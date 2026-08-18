@@ -1,0 +1,68 @@
+[
+  {
+    "name": "Giáo sư Hoffmann",
+    "body": "00-giao-su-hoffmann.svg",
+    "eyes": "00-giao-su-hoffmann-eyes.svg",
+    "viewBox": "0 0 240 320"
+  },
+  {
+    "name": "Bà Tư",
+    "body": "01-ba-tu.svg",
+    "eyes": "01-ba-tu-eyes.svg",
+    "viewBox": "0 0 200 280"
+  },
+  {
+    "name": "Chú Ba",
+    "body": "02-chu-ba.svg",
+    "eyes": "02-chu-ba-eyes.svg",
+    "viewBox": "0 0 200 280"
+  },
+  {
+    "name": "Bé Na",
+    "body": "03-be-na.svg",
+    "eyes": "03-be-na-eyes.svg",
+    "viewBox": "0 0 200 280"
+  },
+  {
+    "name": "Anh Minh",
+    "body": "04-anh-minh.svg",
+    "eyes": "04-anh-minh-eyes.svg",
+    "viewBox": "0 0 200 280"
+  },
+  {
+    "name": "Cô Lan",
+    "body": "05-co-lan.svg",
+    "eyes": "05-co-lan-eyes.svg",
+    "viewBox": "0 0 200 280"
+  },
+  {
+    "name": "Ông Sáu",
+    "body": "06-ong-sau.svg",
+    "eyes": "06-ong-sau-eyes.svg",
+    "viewBox": "0 0 200 280"
+  },
+  {
+    "name": "Bạn Tí",
+    "body": "07-ban-ti.svg",
+    "eyes": "07-ban-ti-eyes.svg",
+    "viewBox": "0 0 200 280"
+  },
+  {
+    "name": "Chị Hoa",
+    "body": "08-chi-hoa.svg",
+    "eyes": "08-chi-hoa-eyes.svg",
+    "viewBox": "0 0 200 280"
+  },
+  {
+    "name": "Thầy Nam",
+    "body": "09-thay-nam.svg",
+    "eyes": "09-thay-nam-eyes.svg",
+    "viewBox": "0 0 200 280"
+  },
+  {
+    "name": "Cô Mai",
+    "body": "10-co-mai.svg",
+    "eyes": "10-co-mai-eyes.svg",
+    "viewBox": "0 0 200 280"
+  }
+]
