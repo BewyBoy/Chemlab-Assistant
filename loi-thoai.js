@@ -66,3 +66,39 @@ const SPECIAL_LINES = {
  avogadroThay: 'Thầy cần ĐÚNG 0,3 mol NaCl — tức là 1,8066×10²³ hạt muối, vì 1 mol = 6,022×10²³ hạt! Thiếu một hạt là thầy biết ngay đấy nhé!',
  avogadroTro: 'Mình vừa học số Avogadro! Cho mình 0,1 mol đường — khỏi đếm, mình tin bạn: 6,022×10²² phân tử là đủ ngọt!'
 };
+
+/* ---- thoại lúc khách phải chờ ----
+   Khách sẽ nói khi đồng hồ chờ của họ còn ~60% rồi ~30%. Giọng bám tính cách
+   từng người (tính cách ghi ở comment để dễ sửa). Chỉ số = thứ tự trong CUSTOMERS. */
+const WAIT_LINES = {
+ 0: [ // Bà Tư · lò bánh mì — hiền, hay lo xa, thích dặn dò
+      'Từ từ thôi con, bà không vội đâu.',
+      'Lò bánh bà còn đang ủ bột, bà chờ được mà.'],
+ 1: [ // Chú Ba · nông dân — thật thà, kiên nhẫn, hay so với chuyện đồng áng
+      'Chú chờ được, ngoài ruộng còn chờ mưa cả tháng nữa kìa.',
+      'Cứ làm cho kỹ, hỏng một mẻ là tiếc lắm đó con.'],
+ 2: [ // Bé Na · học sinh — tò mò, hỏi nhiều, thích ghi chép
+      'Chị ơi, chất này để lâu có bị hỏng không ạ?',
+      'Em ghi vào vở được không? Mai em có bài kiểm tra.'],
+ 3: [ // Anh Minh · thợ xây — vội, nói cộc, ghét chờ
+      'Nhanh giùm anh cái, công trình đang đợi.',
+      'Xong chưa em? Anh còn phải về trộn vữa.'],
+ 4: [ // Cô Lan · y tá — cẩn thận, hay nhắc an toàn
+      'Cứ bình tĩnh, làm sai còn nguy hơn làm chậm.',
+      'Nhớ đeo kính bảo hộ nhé, cô nhắc thật đấy.'],
+ 5: [ // Ông Sáu · chủ ao cá — vui tính, nhiều chuyện
+      'Ông kể cho nghe, cái ao nhà ông năm nay được mùa lắm…',
+      'Hồi xưa ông cũng học Hoá đấy, mà quên sạch rồi!'],
+ 6: [ // Bạn Tí · học sinh — nghịch, nói nhanh, thiếu kiên nhẫn
+      'Lâu quá à, mình đói bụng rồi nè!',
+      'Bạn pha nhanh lên, tí nữa mình còn đi đá bóng!'],
+ 7: [ // Chị Hoa · tiệm vàng bạc — sành sỏi, khó tính về số lượng
+      'Chị cần đúng số đấy nhé, thiếu một chút là chị biết.',
+      'Chị đợi, nhưng đừng để chị đợi lâu quá.'],
+ 8: [ // Thầy Nam · giáo viên Hoá — nghiêm mà ấm, hay hỏi ngược
+      'Trò làm đi, thầy xem trò có nhớ bài không.',
+      'Đừng vội. Cân bằng phương trình trước đã.'],
+ 9: [ // Cô Mai · quán chè — xởi lởi, nhiệt tình
+      'Làm từ từ thôi con, cô không giục đâu.',
+      'Xong việc ghé quán cô, cô đãi chén chè đậu xanh!']
+};
