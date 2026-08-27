@@ -31,8 +31,10 @@ const HD_HEADS  = oneLine('var HD_HEADS = [');
 const CUST_PROPS= block('const CUST_PROPS = {', '\n};');   // object → đóng bằng };
 const CHEMS     = block('const CHEMS = {', '\n};');
 const CUSTOMERS = block('const CUSTOMERS = [', '\n];');
-// engine hoá học thật của game, để bản demo phản ứng đúng chứ không giả vờ
-const REACTIONS = block('const REACTIONS = [', '\n];');
+// engine hoá học thật của game, để bản demo phản ứng đúng chứ không giả vờ.
+// Bảng phản ứng đã tách sang phan-ung.js — đọc thẳng file đó, không moi trong index.html nữa.
+const PU = fs.readFileSync(path.join(GAME, 'phan-ung.js'), 'utf8');
+const REACTIONS = PU.slice(PU.indexOf('const REACTIONS = ['));
 const ISPRECIP  = oneLine('const isPrecip =');
 const SLOWDISS  = oneLine('const SLOW_DISSOLVE =');
 const EQSTR     = block('function eqStr(r){', '\n}');

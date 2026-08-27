@@ -110,24 +110,6 @@ html,body{overflow:auto;height:auto;padding-bottom:30px}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
 /*__SVG_DEFS__*/
 
-<!-- Kiềng đun + lưới amiăng. Game chưa có món này; vẽ theo đúng lối nét của bộ cũ
-     (viền #3b3025, bo tròn đầu nét). Không đun trực tiếp trên ngọn lửa được —
-     cốc phải đặt lên lưới, nên khi bật đèn thì kiềng hiện ra đỡ cốc. -->
-<!-- Kiềng phải RỘNG HƠN đáy cốc thì mới đỡ được — hẹp hơn là nhìn ra ngay là sai. -->
-<symbol id="sym-tripod" viewBox="0 0 160 60">
-  <!-- chân sau, vẽ trước để vành kiềng đè lên -->
-  <path d="M80,24 L80,54" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
-  <!-- vành kiềng -->
-  <ellipse cx="80" cy="22" rx="58" ry="10" fill="none" stroke="#3b3025" stroke-width="5"/>
-  <!-- lưới amiăng đặt trên vành -->
-  <rect x="34" y="9" width="92" height="13" rx="3" fill="#e8e0cc" stroke="#3b3025" stroke-width="3"/>
-  <path d="M49,9 L49,22 M64,9 L64,22 M80,9 L80,22 M96,9 L96,22 M111,9 L111,22"
-        stroke="#3b3025" stroke-width="1.2" opacity=".45"/>
-  <path d="M34,15.5 L126,15.5" stroke="#3b3025" stroke-width="1.2" opacity=".45"/>
-  <!-- 2 chân trước -->
-  <path d="M26,26 L14,54" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
-  <path d="M134,26 L146,54" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
-</symbol>
 </defs></svg>
 
 <div id="game"></div>

@@ -3,13 +3,12 @@
 
 <!-- 1) nguyên stylesheet của game, để mọi thứ ngoài cái bàn giống hệt bản đang chạy -->
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Itim&family=Patrick+Hand&family=Playpen+Sans:wght@400;700&display=swap');
 :root{--ink:#3b3025;--paper:#f7f1e3;--card:#fffdf5;--accent:#e8b84b;--red:#d9634f;--green:#7aa95c;--blue:#6f9ec9;--purple:#9b7bb8;
 --wood:#c89a63;--wood2:#8a6238;--wood3:#a97c4b;--cork:#d9b98a;
 --fh:'Itim','Playpen Sans','Patrick Hand','Segoe Print','Comic Sans MS',cursive;--fb:'Segoe UI','Helvetica Neue',Arial,sans-serif}
 *{box-sizing:border-box;-webkit-user-select:none;user-select:none}
 html,body{margin:0;height:100%;background:#4a4238;overflow:hidden;font-family:var(--fb);font-size:15px;color:var(--ink)}
-h1,h2,h3,.btn,.hand,.tool,.chem .f,.on-name,.day-card .dn,.hud-title{font-family:var(--fh)}
+h1,h2,h3,.btn,.hand,.chem .f,.on-name,.day-card .dn,.hud-title{font-family:var(--fh)}
 #game{position:absolute;left:50%;top:50%;width:1280px;height:720px;background:var(--paper);background-image:radial-gradient(#00000010 1.2px,transparent 1.2px);background-size:26px 26px;border:5px solid var(--ink);border-radius:16px;overflow:hidden}
 .scene{position:absolute;inset:0;padding:18px}
 .ico{vertical-align:-3px}
@@ -74,20 +73,15 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:5px solid 
 .hudboard::before,.hudboard::after{content:'';position:absolute;top:8px;width:9px;height:9px;border-radius:50%;background:#6e5232;border:2px solid var(--ink)}
 .hudboard::before{left:12px}.hudboard::after{right:12px}
 .hud-title{font-size:19px;font-weight:bold;text-shadow:1px 1px 0 #ffffff55;white-space:nowrap}
-.hud-grain{position:absolute;inset:0;pointer-events:none;opacity:.5}
 .timerbar{width:190px;height:13px;border:2.5px solid var(--ink);border-radius:8px;background:var(--card);overflow:hidden;flex:none}
 .timerbar>div{height:100%;background:var(--green);transition:width 1s linear,background 1s}
 .hudstat{font-family:var(--fh);font-size:16px;font-weight:bold;background:var(--card);border:3px solid var(--ink);border-radius:10px;padding:2px 10px;white-space:nowrap}
 /* ---------- lab room ---------- */
-.wall{position:absolute;left:0;right:300px;top:64px;height:388px;background:linear-gradient(#f3ead6,#efe4cc);border-bottom:0}
+.wall{position:absolute;left:0;right:300px;top:64px;height:366px;background:linear-gradient(#f3ead6,#efe4cc);border-bottom:0}
 .wallitem{position:absolute}
-.bench-top{position:absolute;left:336px;right:300px;top:436px;height:34px;background:linear-gradient(#d3a86e,#c89a63);border:4px solid var(--ink);border-radius:8px 8px 0 0;z-index:2}
-.bench-front{position:absolute;left:336px;right:300px;top:468px;bottom:0;background:linear-gradient(#b98a52,#a97c4b);border-left:4px solid var(--ink);border-right:4px solid var(--ink);z-index:1}
-.benchtex{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none}
 /* customer column */
 .custcol{position:absolute;left:8px;top:70px;width:326px;bottom:8px;z-index:5}
 .corkstrip{position:relative;height:186px;border:4px solid var(--ink);border-radius:10px;background:var(--cork);box-shadow:inset 0 0 0 6px #c8a06a55;padding:10px}
-.corktex{position:absolute;inset:0;border-radius:6px;pointer-events:none;opacity:.7}
 .ordernote{position:relative;background:var(--card);border:2.5px solid var(--ink);border-radius:3px 6px 4px 5px;padding:8px 10px 6px;height:100%;box-shadow:2px 3px 4px #3b302533;transform:rotate(-.8deg)}
 .ordernote::before{content:'';position:absolute;top:-11px;left:50%;width:14px;height:14px;border-radius:50%;background:var(--red);border:2.5px solid var(--ink);box-shadow:1px 2px 2px #00000044}
 .ordernote.pulse{animation:notepulse 1s infinite}
@@ -111,7 +105,9 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:5px solid 
 .custzone.shaken{animation:shake .3s 2}
 .cust-nametag{font-family:var(--fh);font-weight:bold;font-size:15px;margin-top:12px;position:relative;z-index:2}
 .queue{font-size:13px;opacity:.75;margin-top:2px}
-.servehint{margin-top:4px;font-size:12.5px;background:#fdf3d7;border:2px dashed var(--ink);border-radius:8px;padding:4px 8px}
+.servehint{margin-top:4px;font-size:12.5px;background:#fdf3d7;border:2px dashed var(--ink);border-radius:8px;padding:4px 8px;line-height:1.45}
+.newtool{background:#fff3c4;border:2px solid var(--ink);border-radius:8px;padding:3px 7px;margin:-1px -3px 5px;box-shadow:1px 2px 0 #3b302533}
+.day-card.freecard .dt{font-family:var(--fh)}
 /* characters: blink + expressions */
 .charsvg .x-neutral,.charsvg .x-happy,.charsvg .x-annoy{display:none}
 .charsvg[data-exp="neutral"] .x-neutral{display:inline}
@@ -119,41 +115,73 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:5px solid 
 .charsvg[data-exp="annoy"] .x-annoy{display:inline}
 .blinklid{transform:scaleY(0);transform-box:fill-box;transform-origin:center;animation:blink 4.6s infinite}
 @keyframes blink{0%,93%,100%{transform:scaleY(0)}95%,97%{transform:scaleY(1)}}
-/* bench stations */
-.benchzone{position:absolute;z-index:6}
-.beakerzone{left:452px;top:186px;width:236px;height:300px;cursor:pointer;transition:top .45s cubic-bezier(.3,1.4,.5,1)}
-.beakerzone.sel{outline:4px dashed var(--blue);outline-offset:6px;border-radius:12px}
-.beakerzone.glowing{animation:glow 1s}
-.beakerzone.hot{top:146px;animation:shimmer 1.6s infinite}
+/* ===== BÀN PHỐI CẢNH =====
+   Mặt bàn là hình thang: mép xa hẹp & cao, mép gần rộng & thấp. Vật đặt bằng (u,t)
+   rồi neo ĐÁY vào đúng điểm tính được, nên trông như đứng trên bàn chứ không dán lên. */
+#benchsvg{position:absolute;left:0;top:0;width:1280px;height:720px;pointer-events:none;z-index:1}
+.item{position:absolute;transform-origin:50% 100%;transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+.item.grab{cursor:grab}
+.item.grab:hover{transform:translateY(-4px)}
+.item.deco{pointer-events:none}
+.shadow{position:absolute;border-radius:50%;background:#3b302533;filter:blur(3px);
+  transform:translate(-50%,-50%);pointer-events:none;z-index:3}
+/* nhãn dụng cụ: luôn hiện và KHÔNG co theo phối cảnh, nên đồ ở xa vẫn đọc được tên.
+   Động từ (Khuấy, Lọc, Đun) được đối xử ngang danh từ — không còn nửa nút bấm nửa đồ kéo. */
+.toolcap{position:absolute;left:50%;transform:translateX(-50%);bottom:-21px;white-space:nowrap;
+  pointer-events:none;   /* nhãn không được ăn cú bấm dành cho vật bên dưới nó */
+  font-family:var(--fh);font-size:12.5px;background:var(--card);color:var(--ink);
+  border:2px solid var(--ink);border-radius:8px;padding:0 7px;box-shadow:1px 2px 0 #3b302533}
+/* đồ đang cắm vào cốc thì giấu nhãn: bình khí úp ngược làm chữ lộn ngược */
+#tool_gas.docked .toolcap,#tool_heat.docked .toolcap,#tool_elec.docked .toolcap{opacity:0}
+/* đun phải có kiềng: kiềng mọc lên từ mặt bàn, cốc được nhấc đặt LÊN lưới amiang */
+.tripod{opacity:0;transform:translateY(10px) scale(.9);pointer-events:none;
+  transition:opacity .3s,transform .35s cubic-bezier(.3,1.4,.5,1)}
+.tripod.up{opacity:1;transform:none}
+/* bóng đổ chỉ được tắt/bật opacity — transform của nó dùng để tự căn tâm */
+.shadow.gated{opacity:0;transition:opacity .3s}
+.shadow.gated.up{opacity:1}
+/* bộ thu khí: chuông trên miệng cốc + giá đỡ giữ bình + ống nối, chỉ hiện khi đang thu */
+.rig{opacity:0;pointer-events:none;transition:opacity .3s,transform .35s cubic-bezier(.3,1.4,.5,1)}
+.rig.up{opacity:1}
+#gasstand{transform:translateY(10px) scale(.94)}
+#gasstand.up{transform:none}
+.gashood{position:absolute;z-index:66;transform:translateY(-14px);transition:opacity .3s,transform .35s cubic-bezier(.3,1.4,.5,1),top .45s cubic-bezier(.3,1.4,.5,1)}
+.gashood.up{transform:none}
+.gastube{position:absolute;left:0;top:0;width:1280px;height:720px;z-index:19;overflow:visible}
+/* bảng định lượng điện phân — nép ở mặt trước bàn, chỉ hiện khi đã cắm nguồn */
+.elecpanel{position:absolute;left:348px;right:308px;top:644px;z-index:72;text-align:center;
+  opacity:0;pointer-events:none;transition:opacity .25s}
+.elecpanel.up{opacity:1;pointer-events:auto}
+.eprow,.ephint{display:inline-flex;align-items:center;gap:5px;background:#fffdf5;color:var(--ink);
+  border:2px solid var(--ink);border-radius:10px;padding:2px 8px;margin:2px 4px;
+  font-size:12.5px;box-shadow:2px 3px 0 #3b302533}
+.eprow .epv{min-width:60px;font-weight:bold;text-align:center}
+.eprow i{opacity:.55;font-size:11px}
+#beakerItem.hot{transform:translateY(var(--lift,-45px))}
+#beakerItem.glowing{animation:glow 1s}
 @keyframes glow{50%{filter:drop-shadow(0 0 26px #ffb347)}}
-@keyframes shimmer{0%,100%{transform:skewX(0)}25%{transform:skewX(.5deg) translateY(-1px)}75%{transform:skewX(-.5deg)}}
 @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 .shaken{animation:shake .3s 2}
-.lampzone{left:395px;top:352px;width:78px;height:96px;z-index:7;transition:left .45s cubic-bezier(.3,1.4,.5,1),top .45s}
-.lampzone.docked{left:531px;top:406px}
-.eleczone{left:305px;top:250px;width:74px;height:84px;z-index:7;transition:left .45s cubic-bezier(.3,1.4,.5,1),top .45s}
-.eleczone.docked{left:530px;top:170px}
-.beakerzone.hot ~ .eleczone.docked{top:120px}
-.dishzone{left:812px;top:446px;width:64px;height:30px;z-index:7}
-.dishzone .dish{margin:0}
+/* Bồn rửa là TRẠM RIÊNG bên trái, không phải cái chậu nằm lẫn giữa dụng cụ thí nghiệm */
+.sinkstation{position:absolute;left:344px;top:352px;width:112px;z-index:6;text-align:center;cursor:pointer}
+.sinkstation .counter{position:absolute;left:-4px;right:-4px;top:64px;height:15px;
+  background:linear-gradient(#c89a63,#a97c4b);border:3px solid var(--ink);border-radius:4px}
+.sinkstation svg{display:block;margin:0 auto}
+.sinkstation .cap{position:absolute;left:50%;transform:translateX(-50%);top:84px;white-space:nowrap;
+  pointer-events:none;font-family:var(--fh);font-size:12.5px;background:var(--card);color:var(--ink);
+  border:2px solid var(--ink);border-radius:8px;padding:0 7px;box-shadow:1px 2px 0 #3b302533}
 /* drag & drop */
-.dragghost{position:absolute;z-index:85;pointer-events:none;filter:drop-shadow(5px 12px 8px #3b302555);will-change:left,top,transform}
+.dragghost{position:absolute;z-index:200;pointer-events:none;filter:drop-shadow(5px 12px 8px #3b302555);will-change:left,top,transform}
 .dragghost svg{display:block}
-.draggingsrc{opacity:.45}
-.dropready{outline:4px dashed var(--blue);outline-offset:6px;border-radius:14px;animation:dzpulse 1s infinite}
-@keyframes dzpulse{50%{outline-color:var(--accent);outline-offset:10px}}
-.gaszone{left:706px;top:330px;width:92px;height:132px;transition:transform .4s,left .4s,top .4s}
-.gaszone.catching{transform:translate(-118px,-160px) rotate(180deg)}
-.beakerzone.hot ~ .gaszone.catching{transform:translate(-118px,-210px) rotate(180deg)}
-.funnelzone{left:806px;top:344px;width:78px;height:110px}
-.dressing{left:350px;top:352px;width:150px;height:96px;pointer-events:none;opacity:.95}
-.dressing2{left:412px;top:368px;width:58px;height:78px;pointer-events:none}
-.sinkzone{left:884px;top:368px;width:92px;height:78px}
-.rodzone{left:700px;top:310px;width:32px;height:142px;z-index:7}
-.rodzone:hover{transform:translateY(-3px)}
-/* dissolve/reaction progress ring — bám sát MẶT chất lỏng/kết tủa trong cốc (xem updateBeaker),
-   thay vì treo cố định phía trên: tín hiệu phải ở ngay cạnh vật nó mô tả */
-.stirring-ring{position:absolute;left:604px;top:174px;width:52px;height:52px;z-index:11;pointer-events:none;opacity:0;transition:opacity .25s,top .3s ease-out,left .3s ease-out}
+.draggingsrc{opacity:.4}
+.dropready{outline:4px dashed var(--blue);outline-offset:5px;border-radius:12px;animation:dzpulse 1s infinite}
+.drophot{outline-color:var(--green);background:#7aa95c22}
+.custzone.dropready{outline-offset:-6px}
+@keyframes dzpulse{50%{outline-color:var(--accent);outline-offset:9px}}
+/* vòng tiến độ khuấy neo ĐÚNG mặt chất lỏng (xem updateBeaker) — tín hiệu phải nằm
+   ngay cạnh thứ nó mô tả, không treo lơ lửng trên miệng cốc */
+.stirring-ring{position:absolute;width:52px;height:52px;z-index:60;pointer-events:none;opacity:0;
+  transform:translate(-50%,-50%);transition:opacity .25s,top .3s ease-out,left .3s ease-out}
 .stirring-ring.active,.stirring-ring.flash{opacity:1}
 .stirring-ring circle.bg{fill:none;stroke:#3b302522;stroke-width:5}
 .stirring-ring circle.fg{fill:none;stroke:#6f9ec9;stroke-width:5;stroke-linecap:round;transform:rotate(-90deg);transform-origin:center;stroke-dasharray:132;transition:stroke-dashoffset .3s ease-out}
@@ -164,24 +192,6 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:5px solid 
   font-family:var(--fh);font-weight:bold;font-size:11px;background:var(--card);color:var(--ink);
   border:2px solid var(--ink);border-radius:7px;padding:0 6px;box-shadow:1px 2px 0 #3b302533}
 @keyframes rxnflash{0%{stroke-dashoffset:132;stroke:var(--green);opacity:1}30%{stroke-dashoffset:0;stroke:var(--green);opacity:1}100%{stroke-dashoffset:0;opacity:0}}
-/* readout strip on bench front */
-.readout{position:absolute;left:352px;top:560px;width:604px;background:var(--card);border:3px solid var(--ink);border-radius:12px 14px 11px 13px;box-shadow:3px 4px 0 #3b302533;padding:9px 14px;z-index:4}
-.readout::before{content:'';position:absolute;top:-9px;left:40px;width:44px;height:15px;background:#e8dfa8aa;border:1.5px solid #3b302544;transform:rotate(-4deg)}
-.mixinfo{display:flex;flex-wrap:wrap;gap:4px;min-height:26px}
-.chip{border:2px solid var(--ink);border-radius:9px;background:#fff;font-size:12.5px;padding:0 7px}
-.chip.pc{background:#efe7da}
-.rlog{margin-top:4px;font-size:13px;min-height:40px;line-height:1.4}
-.rlog .rl{background:#fdf3d7;border-radius:8px;padding:0 7px;display:inline-block;margin:1px}
-/* toolbar */
-.toolbar{position:absolute;left:352px;top:484px;display:flex;gap:10px;z-index:4}
-.tool{border:3px solid var(--ink);border-radius:10px;background:var(--card);padding:3px 6px;font-size:12px;cursor:pointer;text-align:center;box-shadow:2px 3px 0 #3b302533;transition:transform .09s;width:66px}
-.tool svg{display:block;margin:0 auto}
-.tool:hover{transform:translateY(-3px)}
-.tool:active{transform:translateY(1px)}
-.tool.on{background:var(--accent)}
-.vial{border:3px solid var(--ink);border-radius:10px;background:var(--card);padding:3px 6px;font-size:11.5px;cursor:pointer;text-align:center;min-width:92px;transition:transform .09s}
-.vial:hover{transform:translateY(-3px)}
-.vial.sel{outline:4px dashed var(--blue)}
 .dish{width:54px;height:16px;border:3px solid var(--ink);border-radius:0 0 16px 16px;margin:6px auto 2px;background:#fff}
 .mgbtn{font-family:var(--fb);font-size:12px;border:2px solid var(--ink);border-radius:8px;background:#fff;cursor:pointer;padding:1px 6px}
 .mgbtn:hover{background:var(--accent)}
@@ -208,9 +218,14 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:5px solid 
 .chemfact b{display:block;font-family:var(--fh);font-size:11px;margin-bottom:2px;color:#b8832a}
 @keyframes factpop{from{opacity:0}to{opacity:1}}
 /* ---------- modal / toast ---------- */
-.overlay{position:absolute;inset:0;background:#3b302588;display:flex;align-items:center;justify-content:center;z-index:40}
+/* modal phải nằm trên MỌI thứ của bàn phối cảnh: chuông thu khí z66, vòng khuấy z60,
+   ghost đang kéo z200 — z-index 40 của bản bàn phẳng cũ giờ bị đè xuyên qua */
+.overlay{position:absolute;inset:0;background:#3b302588;display:flex;align-items:center;justify-content:center;z-index:220}
 .modal{background:var(--card);border:4px solid var(--ink);border-radius:16px;padding:18px 24px;max-width:780px;max-height:620px;overflow-y:auto;box-shadow:6px 8px 0 #00000033}
 .modal h2{margin-top:0}
+.rxg{font-family:var(--fh);font-size:15px;margin:14px 0 4px;padding-bottom:3px;border-bottom:2px solid #3b302533}
+.rxg i{float:right;font-style:normal;font-size:12.5px;opacity:.6}
+.eq.locked{opacity:.45;font-style:italic;font-size:13.5px;border-bottom:none}
 .eq{font-size:16px;padding:3px 6px;border-bottom:1px dashed #3b302555}
 .toast{position:absolute;left:20px;bottom:20px;background:#3b3025;color:#f7f1e3;border-radius:12px;padding:10px 16px;font-size:15.5px;z-index:60;animation:tpop 3.5s forwards;max-width:520px}
 @keyframes tpop{0%{transform:translateY(60px);opacity:0}10%,85%{transform:none;opacity:1}100%{opacity:0}}
@@ -281,7 +296,7 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:5px solid 
 @keyframes splat{0%{opacity:0;transform:scale(.3)}40%{opacity:.5}100%{opacity:.28;transform:scale(1.15)}}
 /* tutorial hand */
 .tuthand{position:absolute;z-index:80;pointer-events:none;animation:handpath 3.4s ease-in-out infinite;filter:drop-shadow(2px 3px 2px #00000033)}
-@keyframes handpath{0%,8%{left:1060px;top:300px;opacity:0}14%{opacity:1;transform:scale(.9)}18%{transform:scale(1)}45%{left:560px;top:360px;opacity:1}55%{left:560px;top:360px;transform:scale(.9)}85%{left:170px;top:430px;opacity:1;transform:scale(1)}96%,100%{left:170px;top:430px;opacity:0}}
+@keyframes handpath{0%,10%{left:1060px;top:300px;opacity:0}16%{opacity:1;transform:scale(.9)}22%{transform:scale(1)}70%{left:640px;top:380px;opacity:1;transform:scale(1)}82%{left:640px;top:380px;transform:scale(.88)}94%,100%{left:640px;top:380px;opacity:0}}
 /* pause */
 .pausecard{background:var(--card);border:4px solid var(--ink);border-radius:16px;padding:26px 40px;text-align:center;box-shadow:6px 8px 0 #00000033;transform:rotate(-.6deg)}
 .pausecard .btn{display:block;width:230px;margin:10px auto}
@@ -600,61 +615,67 @@ html,body{overflow:auto;height:auto;padding-bottom:30px}
      GAS COLLECTION BOTTLE
      ============================================================ -->
 <symbol id="sym-gasbottle" viewBox="0 0 120 170" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="gwAgasShine" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.32"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.04"/>
-    </linearGradient>
-  </defs>
+  <!-- Ống thu khí (canister) — dựng theo bản vẽ tay gas_collect: thân trụ, miệng loe
+       phía trên, ống dẫn cong ra từ đáy. Miệng hướng LÊN khi đứng trên bàn; lúc thu khí
+       cả zone xoay 180° nên miệng úp xuống cốc, đúng thao tác thật. -->
 
-  <!-- Glass plate under mouth -->
-  <ellipse cx="60" cy="152" rx="44" ry="6" fill="#e8e0d0" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
-  <ellipse cx="60" cy="150" rx="44" ry="5" fill="#f0ece0" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+  <!-- bóng đổ dưới đáy -->
+  <ellipse cx="66" cy="124" rx="32" ry="5" fill="#3b3025" opacity="0.14"/>
 
-  <!-- Bottle glass body (inverted) -->
-  <path d="M26,148 Q22,148 22,144 L22,60 Q22,30 30,22 Q40,14 60,14 Q80,14 90,22 Q98,30 98,60 L98,144 Q98,148 94,148 Z"
-        fill="#ffffff" opacity="0.15" stroke="none"/>
+  <!-- thân trụ -->
+  <path d="M36,32 L36,102 Q36,114 48,118 Q66,121 84,118 Q96,114 96,102 L96,32"
+        fill="#ffffff" fill-opacity="0.16" stroke="#3b3025" stroke-width="3.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
 
-  <!-- Bottle outline -->
-  <path d="M26,148 Q20,148 20,142 L20,60 Q20,28 32,20 Q42,12 60,12 Q78,12 88,20 Q100,28 100,60 L100,142 Q100,148 94,148 Z"
-        fill="none" stroke="#3b3025" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-
-  <!-- Bottle neck / mouth rim -->
-  <path d="M44,148 L44,152" stroke="#3b3025" stroke-width="2.5" stroke-linecap="round"/>
-  <path d="M76,148 L76,152" stroke="#3b3025" stroke-width="2.5" stroke-linecap="round"/>
-  <path d="M44,148 Q44,156 60,156 Q76,156 76,148" fill="none" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
-
-  <!-- Gas swirl group (controlled by --gasop) -->
+  <!-- khí bên trong (bật bằng --gasop) -->
   <g opacity="0" style="opacity:var(--gasop,0)">
-    <!-- Swirl 1 -->
-    <path d="M60,80 Q75,70 70,55 Q65,40 50,45 Q38,50 42,65" fill="none" stroke="#6f9ec9" stroke-width="2" stroke-linecap="round" opacity="0.65">
+    <path d="M66,96 Q82,86 77,70 Q72,54 56,59 Q44,64 48,78" fill="none" stroke="#6f9ec9" stroke-width="2.4" stroke-linecap="round" opacity="0.6">
       <animateTransform attributeName="transform" type="translate" values="0,0;0,-6;0,0" dur="3s" repeatCount="indefinite"/>
     </path>
-    <!-- Swirl 2 -->
-    <path d="M48,95 Q35,85 38,70 Q41,56 55,60 Q66,63 62,76" fill="none" stroke="#6f9ec9" stroke-width="2" stroke-linecap="round" opacity="0.55">
+    <path d="M52,112 Q40,100 44,84 Q48,70 62,75 Q72,79 68,91" fill="none" stroke="#6f9ec9" stroke-width="2.4" stroke-linecap="round" opacity="0.5">
       <animateTransform attributeName="transform" type="translate" values="0,0;0,-8;0,0" dur="4s" begin="1s" repeatCount="indefinite"/>
     </path>
-    <!-- Swirl 3 -->
-    <path d="M70,108 Q82,98 78,83 Q73,68 59,73 Q49,78 52,90" fill="none" stroke="#6f9ec9" stroke-width="2" stroke-linecap="round" opacity="0.45">
+    <path d="M80,110 Q90,98 85,84 Q79,70 66,76" fill="none" stroke="#6f9ec9" stroke-width="2.2" stroke-linecap="round" opacity="0.4">
       <animateTransform attributeName="transform" type="translate" values="0,0;0,-5;0,0" dur="3.5s" begin="0.5s" repeatCount="indefinite"/>
     </path>
   </g>
 
-  <!-- Cork stopper (controlled by --stopop) -->
-  <g style="opacity:var(--stopop,0)">
-    <path d="M46,148 Q44,142 48,138 L72,138 Q76,142 74,148 Z"
-          fill="#c89a63" stroke="#3b3025" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-    <!-- Cork grain -->
-    <path d="M50,143 Q57,142 64,143 Q68,143 70,144" fill="none" stroke="#8a6238" stroke-width="1" stroke-linecap="round" opacity="0.5"/>
-    <path d="M49,146 Q56,145 63,146 Q67,146 71,146" fill="none" stroke="#8a6238" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+  <!-- vành miệng: nét ngoài + lòng ống -->
+  <ellipse cx="66" cy="32" rx="30" ry="10" fill="#ffffff" fill-opacity="0.22"
+           stroke="#3b3025" stroke-width="3.5"/>
+  <ellipse cx="66" cy="33" rx="23" ry="6.5" fill="#e6ecef" fill-opacity="0.55"
+           stroke="#3b3025" stroke-width="2.5"/>
+  <!-- gờ dưới vành, nét tay hơi run -->
+  <path d="M38,44 Q52,50 66,50 Q80,50 94,44" fill="none" stroke="#3b3025"
+        stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- vệt sáng dọc bên phải (viền như bản vẽ, không phải mảng trắng) -->
+  <path d="M85,60 Q90,58 90,66 L90,100 Q90,106 86,106 Q82,106 82,100 L82,66 Q82,61 85,60 Z"
+        fill="#ffffff" fill-opacity="0.5" stroke="#3b3025" stroke-width="2" stroke-linejoin="round"/>
+  <!-- vệt sáng mảnh bên trái -->
+  <path d="M44,56 Q42,86 44,104" fill="none" stroke="#ffffff" stroke-width="5"
+        stroke-linecap="round" opacity="0.35"/>
+
+  <!-- cổ nối xuống ống dẫn -->
+  <path d="M60,117 L60,129 Q66,132 74,129 L74,117" fill="#e6ecef"
+        stroke="#3b3025" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- vòi dẫn rời (tắt bằng --tubeop khi bình đã cắm vào bộ thu khí) -->
+  <g style="opacity:var(--tubeop,1)">
+    <path d="M67,130 Q69,144 52,148 Q34,152 30,162" fill="none" stroke="#3b3025"
+          stroke-width="9" stroke-linecap="round"/>
+    <path d="M67,130 Q69,144 52,148 Q34,152 30,162" fill="none" stroke="#f3f1e8"
+          stroke-width="5" stroke-linecap="round"/>
+    <path d="M22,156 L36,160 L33,170 L19,166 Z" fill="#e6ecef" stroke="#3b3025"
+          stroke-width="3" stroke-linejoin="round"/>
   </g>
 
-  <!-- Shine highlights -->
-  <path d="M32,30 Q28,65 29,120" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.32"/>
-  <path d="M40,24 Q37,60 38,100" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.22"/>
-
-  <!-- Bottom shadow -->
-  <ellipse cx="60" cy="160" rx="36" ry="4" fill="#3b3025" opacity="0.14"/>
+  <!-- nút chặn (bật bằng --stopop) — đậy miệng ống lại khi đã có khí -->
+  <g style="opacity:var(--stopop,0)">
+    <path d="M46,30 Q48,20 66,19 Q84,20 86,30 Q84,38 66,39 Q48,38 46,30 Z"
+          fill="#c89a63" stroke="#3b3025" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M52,27 Q66,25 80,27" fill="none" stroke="#8a6238" stroke-width="1.2" stroke-linecap="round" opacity="0.55"/>
+  </g>
 </symbol>
 
 
@@ -1426,31 +1447,101 @@ html,body{overflow:auto;height:auto;padding-bottom:30px}
 <!-- ==================== TOOLS ==================== -->
 
 <!-- Alcohol Lamp -->
-<symbol id="sym-lamp" viewBox="0 0 100 120">
-  <!-- glass body (squat, slightly wobbly) -->
-  <path d="M28,90 Q24,92 23,100 Q22,108 28,110 Q50,113 72,110 Q78,108 77,100 Q76,92 72,90 Z" fill="url(#teCGlassBody)" stroke="#3b3025" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- fuel liquid fill -->
-  <path d="M30,96 Q50,93 70,96 L70,106 Q50,108 30,106 Z" fill="url(#teCFuelLiq)"/>
-  <!-- body highlight shine -->
-  <path d="M32,92 Q38,90 40,94" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.4"/>
-  <!-- bottle neck -->
-  <path d="M40,70 Q38,82 33,90 Q50,87 67,90 Q62,82 60,70 Z" fill="url(#teCGlassBody)" stroke="#3b3025" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- brass cap collar -->
-  <path d="M36,66 Q37,60 50,59 Q63,60 64,66 L62,72 Q50,74 38,72 Z" fill="url(#teCBrassGrad)" stroke="#3b3025" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- collar detail ring -->
-  <path d="M38,69 Q50,71 62,69" stroke="#a8821e" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-  <!-- wick stub -->
-  <path d="M48,52 Q50,48 52,52 L51,60 L49,60 Z" fill="#c8c0a0" stroke="#3b3025" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<!-- Giá đỡ vòng (kiềng sắt) — dựng theo bản vẽ tay frame: đế phẳng nhìn phối cảnh,
+     trụ đứng, vòng đỡ chìa sang trái. Chỉ hiện khi đang đun. -->
+<!-- Kiềng đun + lưới amiăng. Không đun trực tiếp trên ngọn lửa được — cốc phải đặt
+     lên lưới, nên khi bật đèn thì kiềng hiện ra đỡ cốc.
+     Kiềng phải RỘNG HƠN đáy cốc thì mới đỡ được — hẹp hơn là nhìn ra ngay là sai. -->
+<symbol id="sym-tripod" viewBox="0 0 160 60">
+  <!-- chân sau, vẽ trước để vành kiềng đè lên -->
+  <path d="M80,24 L80,54" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
+  <!-- vành kiềng -->
+  <ellipse cx="80" cy="22" rx="58" ry="10" fill="none" stroke="#3b3025" stroke-width="5"/>
+  <!-- lưới amiăng đặt trên vành -->
+  <rect x="34" y="9" width="92" height="13" rx="3" fill="#e8e0cc" stroke="#3b3025" stroke-width="3"/>
+  <path d="M49,9 L49,22 M64,9 L64,22 M80,9 L80,22 M96,9 L96,22 M111,9 L111,22"
+        stroke="#3b3025" stroke-width="1.2" opacity=".45"/>
+  <path d="M34,15.5 L126,15.5" stroke="#3b3025" stroke-width="1.2" opacity=".45"/>
+  <!-- 2 chân trước -->
+  <path d="M26,26 L14,54" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
+  <path d="M134,26 L146,54" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
+</symbol>
 
-  <!-- flame group — toggled via --flame CSS var -->
+<symbol id="sym-ringstand" viewBox="0 0 150 256">
+  <!-- vòng đỡ (vẽ trước để trụ đè lên chỗ giao nhau) -->
+  <ellipse cx="56" cy="44" rx="46" ry="13" fill="none" stroke="#3b3025" stroke-width="5"/>
+  <!-- tay nối vòng ra trụ -->
+  <path d="M101,45 L114,47" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
+  <!-- trụ đứng -->
+  <path d="M118,28 L118,230" fill="none" stroke="#3b3025" stroke-width="7" stroke-linecap="round"/>
+  <path d="M115,36 L115,222" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.3"/>
+  <!-- đế phẳng nhìn phối cảnh -->
+  <path d="M74,222 L134,212 L148,228 L88,240 Z" fill="#e8e0cc" stroke="#3b3025"
+        stroke-width="4.5" stroke-linejoin="round"/>
+  <path d="M88,240 L88,250 L148,238 L148,228" fill="#c9c0a6" stroke="#3b3025"
+        stroke-width="4" stroke-linejoin="round"/>
+</symbol>
+
+<!-- Chuông thu khí: cái phễu ÚP NGƯỢC chụp lên miệng cốc. Khí bốc lên bị dồn vào
+     cổ hẹp rồi theo ống dẫn sang bình. Miệng loe phải rộng bằng miệng cốc. -->
+<symbol id="sym-gashood" viewBox="0 0 200 130">
+  <!-- thân phễu úp -->
+  <path d="M4,112 L64,44 Q68,36 76,36 L92,36 Q100,36 104,44 L172,112 Z"
+        fill="#ffffff" fill-opacity="0.18" stroke="#3b3025" stroke-width="4"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- vệt sáng trên mặt kính -->
+  <path d="M40,92 Q60,62 74,46" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.4"/>
+  <!-- vành miệng loe (nhìn phối cảnh) -->
+  <ellipse cx="88" cy="112" rx="84" ry="12" fill="#ffffff" fill-opacity="0.14"
+           stroke="#3b3025" stroke-width="4"/>
+  <!-- cổ hẹp -->
+  <path d="M72,20 L72,40 Q88,44 96,40 L96,20 Z" fill="#e6ecef"
+        stroke="#3b3025" stroke-width="3.5" stroke-linejoin="round"/>
+  <ellipse cx="84" cy="20" rx="12" ry="4.5" fill="#e6ecef" stroke="#3b3025" stroke-width="3"/>
+  <!-- ống ra: nét viền dày rồi lòng ống sáng đè lên -->
+  <path d="M92,20 Q140,10 176,24 Q196,32 198,50" fill="none" stroke="#3b3025" stroke-width="10" stroke-linecap="round"/>
+  <path d="M92,20 Q140,10 176,24 Q196,32 198,50" fill="none" stroke="#f3f1e8" stroke-width="5.5" stroke-linecap="round"/>
+</symbol>
+
+
+
+<symbol id="sym-lamp" viewBox="0 0 100 120">
+  <!-- Đèn cồn — dựng theo bản vẽ tay dencon: thân bè thấp có vai gãy góc,
+       nhãn chữ nhật lõm ở bụng, cổ đồng ngắn to bản, bấc dài ngoằn ngoèo. -->
+
+  <!-- thân thuỷ tinh, vai gãy góc kiểu vẽ tay -->
+  <path d="M20,96 Q18,106 27,110 Q50,113 73,110 Q82,106 80,96 L75,78 Q68,67 56,65 L44,65 Q32,67 25,78 Z"
+        fill="url(#teCGlassBody)" stroke="#3b3025" stroke-width="3.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- cồn bên trong -->
+  <path d="M23,84 Q50,80 77,84 L79,96 Q50,101 21,96 Z" fill="url(#teCFuelLiq)"/>
+  <!-- nhãn chữ nhật lõm ở bụng (đúng bản vẽ) -->
+  <path d="M28,86 Q50,83 72,86 L71,102 Q50,105 29,102 Z"
+        fill="none" stroke="#3b3025" stroke-width="2.5"
+        stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
+  <!-- bóng sáng vai trái -->
+  <path d="M30,74 Q34,70 39,69" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/>
+
+  <!-- cổ đồng: khối trụ ngắn to bản, có vành trên -->
+  <path d="M35,48 L35,64 Q50,68 65,64 L65,48 Z" fill="url(#teCBrassGrad)"
+        stroke="#3b3025" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="50" cy="48" rx="15" ry="5" fill="url(#teCBrassGrad)" stroke="#3b3025" stroke-width="3"/>
+  <path d="M37,57 Q50,60 63,57" fill="none" stroke="#a8821e" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- bấc: sợi dài chạy từ trong bình lên, ngoằn ngoèo như nét vẽ tay -->
+  <path d="M52,92 Q46,86 51,78 Q56,70 50,62 Q45,55 50,48 Q54,42 51,36"
+        fill="none" stroke="#3b3025" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- đoạn bấc nhô ra khỏi cổ: cháy thì bị ngọn lửa nuốt nên mờ dần theo --flame -->
+  <path d="M51,36 Q49,32 53,29" fill="none" stroke="#3b3025" stroke-width="4" stroke-linecap="round"
+        opacity="calc(1 - var(--flame,0))"/>
+
+  <!-- ngọn lửa — bật bằng --flame -->
   <g style="opacity:var(--flame,0)">
-    <!-- outer teardrop flame -->
-    <path d="M50,50 Q42,42 44,30 Q45,18 50,14 Q55,18 56,30 Q58,42 50,50 Z" fill="url(#teCFlamOuter)" stroke="#d9634f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M52,40 Q41,31 44,17 Q46,3 52,-2 Q58,3 60,17 Q63,31 52,40 Z" fill="url(#teCFlamOuter)" stroke="#d9634f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <animateTransform attributeName="transform" type="skewX" values="0;3;-2;1;0" dur="0.6s" repeatCount="indefinite"/>
-      <animate attributeName="d" values="M50,50 Q42,42 44,30 Q45,18 50,14 Q55,18 56,30 Q58,42 50,50 Z;M50,50 Q41,43 43,29 Q45,16 50,13 Q55,17 57,29 Q59,43 50,50 Z;M50,50 Q43,41 44,31 Q46,19 50,15 Q54,19 56,31 Q57,41 50,50 Z;M50,50 Q42,42 44,30 Q45,18 50,14 Q55,18 56,30 Q58,42 50,50 Z" dur="0.6s" repeatCount="indefinite"/>
+      <animate attributeName="d" values="M52,40 Q41,31 44,17 Q46,3 52,-2 Q58,3 60,17 Q63,31 52,40 Z;M52,40 Q40,32 43,16 Q46,1 52,-3 Q58,2 61,16 Q64,32 52,40 Z;M52,40 Q42,30 44,18 Q47,4 52,-1 Q57,4 60,18 Q62,30 52,40 Z;M52,40 Q41,31 44,17 Q46,3 52,-2 Q58,3 60,17 Q63,31 52,40 Z" dur="0.6s" repeatCount="indefinite"/>
     </path>
-    <!-- inner blue core -->
-    <path d="M50,49 Q46,44 47,36 Q48,28 50,24 Q52,28 53,36 Q54,44 50,49 Z" fill="#6f9ec9" fill-opacity="0.8" stroke="none">
+    <path d="M52,38 Q46,32 47,22 Q49,12 52,7 Q55,12 57,22 Q58,32 52,38 Z" fill="#6f9ec9" fill-opacity="0.8" stroke="none">
       <animateTransform attributeName="transform" type="skewX" values="0;-2;2;0" dur="0.6s" repeatCount="indefinite"/>
     </path>
   </g>
@@ -1458,22 +1549,32 @@ html,body{overflow:auto;height:auto;padding-bottom:30px}
 
 <!-- Stirring Spoon -->
 <symbol id="sym-spoon" viewBox="0 0 100 100">
-  <!-- handle (slim, diagonal, steel gradient) -->
-  <path d="M18,82 Q20,78 24,74 Q40,58 58,40 Q66,32 70,26" stroke="url(#teCSpoonGrad)" stroke-width="5" stroke-linecap="round" fill="none"/>
-  <!-- handle highlight -->
-  <path d="M20,80 Q22,76 26,72 Q42,56 60,38 Q68,30 72,24" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.35"/>
-  <!-- bowl (oval) -->
-  <ellipse cx="76" cy="20" rx="14" ry="9" transform="rotate(-38,76,20)" fill="url(#teCSpoonGrad)" stroke="#3b3025" stroke-width="2.5" stroke-linecap="round"/>
-  <!-- bowl inner reflection -->
-  <path d="M68,16 Q72,13 78,15" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.5"/>
-  <!-- powder heap (colored per chemical; hidden unless --spop set, so the stir-tool spoon stays empty) -->
+  <!-- Thìa xúc — dựng theo bản vẽ tay spoon: cán dài mảnh chạy chéo, đầu cán bo tròn,
+       lòng thìa là ô-van nhỏ dẹt ở góc dưới trái. --spop=1 thì đội thêm đụn bột. -->
+
+  <!-- cán: nét viền đậm rồi lõi thép sáng đè lên, cho ra kiểu vẽ tay có outline -->
+  <path d="M33,70 Q52,52 78,24" fill="none" stroke="#3b3025" stroke-width="7" stroke-linecap="round"/>
+  <path d="M33,70 Q52,52 78,24" fill="none" stroke="url(#teCSpoonGrad)" stroke-width="3.6" stroke-linecap="round"/>
+  <path d="M40,63 Q56,48 74,29" fill="none" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+  <!-- đầu cán bo tròn -->
+  <circle cx="79" cy="23" r="4.5" fill="url(#teCSpoonGrad)" stroke="#3b3025" stroke-width="3"/>
+
+  <!-- lòng thìa: ô-van dẹt, nghiêng theo cán -->
+  <ellipse cx="25" cy="78" rx="14" ry="8.5" transform="rotate(-38,25,78)"
+           fill="url(#teCSpoonGrad)" stroke="#3b3025" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M16,80 Q20,86 28,86" fill="none" stroke="#3b3025" stroke-width="1.6" stroke-linecap="round" opacity="0.35"/>
+  <path d="M18,73 Q23,70 29,72" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+
+  <!-- đụn bột (chỉ hiện khi --spop; thìa khuấy trên bàn thì để trống) -->
   <g opacity="var(--spop,0)">
-    <ellipse cx="76" cy="20" rx="12.5" ry="7" transform="rotate(-38,76,20)" fill="var(--lc,#d8c58a)"/>
-    <path d="M66,23 Q71,10 77,9 Q83,11 86,18 Q77,14 66,23 Z" fill="var(--lc,#d8c58a)"/>
-    <ellipse cx="74" cy="14" rx="3.5" ry="2" transform="rotate(-38,74,14)" fill="#ffffff" opacity="0.28"/>
+    <ellipse cx="25" cy="78" rx="12.5" ry="7" transform="rotate(-38,25,78)" fill="var(--lc,#d8c58a)"/>
+    <!-- đụn nhọn lởm chởm như bản vẽ -->
+    <path d="M13,74 Q16,64 21,62 Q24,66 27,60 Q31,63 34,60 Q37,66 36,72 Q25,66 13,74 Z"
+          fill="var(--lc,#d8c58a)" stroke="#3b3025" stroke-width="2.2" stroke-linejoin="round"/>
+    <ellipse cx="22" cy="68" rx="3.5" ry="2" transform="rotate(-38,22,68)" fill="#ffffff" opacity="0.3"/>
+    <circle cx="30" cy="66" r="1.4" fill="#3b3025" opacity="0.35"/>
+    <circle cx="24" cy="72" r="1.2" fill="#3b3025" opacity="0.3"/>
   </g>
-  <!-- handle end cap -->
-  <circle cx="18" cy="83" r="3.5" fill="url(#teCSpoonGrad)" stroke="#3b3025" stroke-width="2"/>
 </symbol>
 
 <!-- Electrolysis rig: battery + two electrodes -->
@@ -2000,24 +2101,6 @@ html,body{overflow:auto;height:auto;padding-bottom:30px}
 </svg>
 
 
-<!-- Kiềng đun + lưới amiăng. Game chưa có món này; vẽ theo đúng lối nét của bộ cũ
-     (viền #3b3025, bo tròn đầu nét). Không đun trực tiếp trên ngọn lửa được —
-     cốc phải đặt lên lưới, nên khi bật đèn thì kiềng hiện ra đỡ cốc. -->
-<!-- Kiềng phải RỘNG HƠN đáy cốc thì mới đỡ được — hẹp hơn là nhìn ra ngay là sai. -->
-<symbol id="sym-tripod" viewBox="0 0 160 60">
-  <!-- chân sau, vẽ trước để vành kiềng đè lên -->
-  <path d="M80,24 L80,54" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
-  <!-- vành kiềng -->
-  <ellipse cx="80" cy="22" rx="58" ry="10" fill="none" stroke="#3b3025" stroke-width="5"/>
-  <!-- lưới amiăng đặt trên vành -->
-  <rect x="34" y="9" width="92" height="13" rx="3" fill="#e8e0cc" stroke="#3b3025" stroke-width="3"/>
-  <path d="M49,9 L49,22 M64,9 L64,22 M80,9 L80,22 M96,9 L96,22 M111,9 L111,22"
-        stroke="#3b3025" stroke-width="1.2" opacity=".45"/>
-  <path d="M34,15.5 L126,15.5" stroke="#3b3025" stroke-width="1.2" opacity=".45"/>
-  <!-- 2 chân trước -->
-  <path d="M26,26 L14,54" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
-  <path d="M134,26 L146,54" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
-</symbol>
 </defs></svg>
 
 <div id="game"></div>
@@ -2215,7 +2298,21 @@ const CHEMS = {
  'NH4Cl':    {n:'Amoni clorua',                  s:'r', c:'#f6f4ee', sol:1, slb:37},
  'KMnO4':    {n:'Kali pemanganat (thuốc tím)',   s:'r', c:'#7d2b8b', sol:1, slb:6.4},
  'K2MnO4':   {n:'Kali manganat (xanh lục)',      s:'r', c:'#2f6b4f', sol:1, slb:20},
- 'MnO2':     {n:'Mangan đioxit (đen)',           s:'r', c:'#2b2b2b'}
+ 'MnO2':     {n:'Mangan đioxit (đen)',           s:'r', c:'#2b2b2b'},
+ // chất mới, sinh ra từ các phản ứng bổ sung trong phan-ung.js
+ 'MnCl2':    {n:'Mangan(II) clorua',             s:'r', c:'#f6ece8', sol:1, slb:72},
+ 'K2O':      {n:'Kali oxit',                     s:'r', c:'#f2f0ea'},
+ 'K2CO3':    {n:'Kali cacbonat',                 s:'r', c:'#f4f2ec', sol:1, slb:112},
+ 'KNO3':     {n:'Kali nitrat (diêm tiêu)',       s:'r', c:'#f4f2ec', sol:1, slb:31.6},
+ 'Na2SO3':   {n:'Natri sunfit',                  s:'r', c:'#f4f2ec', sol:1, slb:27},
+ 'Na3PO4':   {n:'Natri photphat',                s:'r', c:'#f4f2ec', sol:1, slb:12},
+ 'CaSO4':    {n:'Canxi sunfat (thạch cao)',      s:'r', c:'#f7f7f0'},
+ 'Al2O3':    {n:'Nhôm oxit',                     s:'r', c:'#f2f0ea'},
+ 'Al(OH)3':  {n:'Nhôm hiđroxit (keo trắng)',     s:'r', c:'#f0f0ea'},
+ 'Al2(SO4)3':{n:'Nhôm sunfat',                   s:'r', c:'#f4f2ec', sol:1, slb:36},
+ 'Mg(OH)2':  {n:'Magie hiđroxit (trắng)',        s:'r', c:'#f2f2ec'},
+ 'Fe2(SO4)3':{n:'Sắt(III) sunfat',               s:'r', c:'#d9a86a', sol:1, slb:44},
+ 'Zn(OH)2':  {n:'Kẽm hiđroxit (trắng)',          s:'r', c:'#f2f2ec'}
 };
 const isPrecip = f => { const c = CHEMS[f]; return c.s === 'r' && !c.sol; };
 const SLOW_DISSOLVE = Object.keys(CHEMS).filter(f => CHEMS[f].s === 'r' && CHEMS[f].sol);
@@ -2225,83 +2322,255 @@ const CUSTOMERS = [
  ['Thầy Nam','giáo viên Hoá','thầy'], ['Cô Mai','quán chè','cô']
 ];
 const REACTIONS = [
- {rg:{HCl:1,NaOH:1},        pr:{NaCl:1,H2O:1}},
- {rg:{HCl:1,KOH:1},         pr:{KCl:1,H2O:1}},
- {rg:{H2SO4:1,NaOH:2},      pr:{Na2SO4:1,H2O:2}},
- {rg:{H2SO4:1,KOH:2},       pr:{K2SO4:1,H2O:2}},
- {rg:{Zn:1,HCl:2},          pr:{ZnCl2:1,H2:1}},
- {rg:{Fe:1,HCl:2},          pr:{FeCl2:1,H2:1}},
- {rg:{Mg:1,HCl:2},          pr:{MgCl2:1,H2:1}},
- {rg:{Al:2,HCl:6},          pr:{AlCl3:2,H2:3}},
- {rg:{Zn:1,H2SO4:1},        pr:{ZnSO4:1,H2:1}},
- {rg:{Fe:1,H2SO4:1},        pr:{FeSO4:1,H2:1}},
- {rg:{Mg:1,H2SO4:1},        pr:{MgSO4:1,H2:1}},
- {rg:{Mg:2,O2:1},           pr:{MgO:2},   heat:1, exo:1},
- {rg:{Cu:2,O2:1},           pr:{CuO:2},   heat:1, exo:1},
- {rg:{Zn:2,O2:1},           pr:{ZnO:2},   heat:1, exo:1},
- {rg:{Fe:3,O2:2},           pr:{Fe3O4:1}, heat:1, exo:1},
- {rg:{S:1,O2:1},            pr:{SO2:1},   heat:1, exo:1},
- {rg:{P:4,O2:5},            pr:{P2O5:2},  heat:1, exo:1},
- {rg:{C:1,O2:1},            pr:{CO2:1},   heat:1, exo:1},
- {rg:{CuO:1,HCl:2},         pr:{CuCl2:1,H2O:1}},
- {rg:{CuO:1,H2SO4:1},       pr:{CuSO4:1,H2O:1}},
- {rg:{Fe2O3:1,HCl:6},       pr:{FeCl3:2,H2O:3}},
- {rg:{MgO:1,HCl:2},         pr:{MgCl2:1,H2O:1}},
- {rg:{ZnO:1,HCl:2},         pr:{ZnCl2:1,H2O:1}},
- {rg:{ZnO:1,H2SO4:1},       pr:{ZnSO4:1,H2O:1}},
- {rg:{CaO:1,H2O:1},         pr:{'Ca(OH)2':1}, exo:1},
- {rg:{Na2O:1,H2O:1},        pr:{NaOH:2},  exo:1},
- {rg:{P2O5:1,H2O:3},        pr:{H3PO4:2}},
- {rg:{CO2:1,NaOH:2},        pr:{Na2CO3:1,H2O:1}},
- {rg:{CO2:1,NaOH:1},        pr:{NaHCO3:1}},
- {rg:{NaHCO3:1,NaOH:1},     pr:{Na2CO3:1,H2O:1}},
- {rg:{CO2:1,'Ca(OH)2':1},   pr:{CaCO3:1,H2O:1}},
- {rg:{CuO:1,H2:1},          pr:{Cu:1,H2O:1},  heat:1},
- {rg:{Fe2O3:1,H2:3},        pr:{Fe:2,H2O:3},  heat:1},
- {rg:{Fe:1,CuSO4:1},        pr:{FeSO4:1,Cu:1}},
- {rg:{Zn:1,CuSO4:1},        pr:{ZnSO4:1,Cu:1}},
- {rg:{Zn:1,FeSO4:1},        pr:{ZnSO4:1,Fe:1}},
- {rg:{Cu:1,AgNO3:2},        pr:{'Cu(NO3)2':1,Ag:2}},
- {rg:{Na:2,H2O:2},          pr:{NaOH:2,H2:1}, exo:1},
- {rg:{AgNO3:1,NaCl:1},      pr:{AgCl:1,NaNO3:1}},
- {rg:{BaCl2:1,Na2SO4:1},    pr:{BaSO4:1,NaCl:2}},
- {rg:{BaCl2:1,H2SO4:1},     pr:{BaSO4:1,HCl:2}},
- {rg:{BaCl2:1,Na2CO3:1},    pr:{BaCO3:1,NaCl:2}},
- {rg:{CuSO4:1,NaOH:2},      pr:{'Cu(OH)2':1,Na2SO4:1}},
- {rg:{CuCl2:1,NaOH:2},      pr:{'Cu(OH)2':1,NaCl:2}},
- {rg:{FeCl3:1,NaOH:3},      pr:{'Fe(OH)3':1,NaCl:3}},
- {rg:{Na2CO3:1,HCl:2},      pr:{NaCl:2,H2O:1,CO2:1}},
- {rg:{CaCO3:1,HCl:2},       pr:{CaCl2:1,H2O:1,CO2:1}},
- {rg:{NaHCO3:1,HCl:1},      pr:{NaCl:1,H2O:1,CO2:1}},
- {rg:{'Cu(OH)2':1},         pr:{CuO:1,H2O:1}, heat:1},
- {rg:{CaCO3:1},             pr:{CaO:1,CO2:1}, heat:1},
- // ---- chương trình 31 ngày: hoá trị, axit mạnh, cacbon ----
- {rg:{Na:4,O2:1},           pr:{Na2O:2},  heat:1, exo:1},
- {rg:{HNO3:1,NaOH:1},       pr:{NaNO3:1,H2O:1}},
- {rg:{C:1,CuO:2},           pr:{Cu:2,CO2:1}, heat:1},
- // ---- halogen ----
- {rg:{Na:2,Cl2:1},          pr:{NaCl:2},  heat:1, exo:1},
- {rg:{Fe:2,Cl2:3},          pr:{FeCl3:2}, heat:1, exo:1},
- {rg:{Cu:1,Cl2:1},          pr:{CuCl2:1}, heat:1},
- {rg:{Al:2,Cl2:3},          pr:{AlCl3:2}, heat:1, exo:1},
- {rg:{H2:1,Cl2:1},          pr:{HCl:2},   heat:1},
- // ---- nitơ ----
- {rg:{N2:1,H2:3},           pr:{NH3:2},   heat:1},
- {rg:{NH3:1,HCl:1},         pr:{NH4Cl:1}},
- // ---- thuốc tím: nhiệt phân điều chế oxi ----
- {rg:{KMnO4:2},             pr:{O2:1,K2MnO4:1,MnO2:1}, heat:1},
- // ---- điện phân (elec = cần nguồn điện; vent = khí thoát ở cực dương, không hứng được) ----
- {rg:{H2O:2},               pr:{H2:2,O2:1}, elec:1, vent:['O2'], last:1}, // ion kim loại điện phân trước nước
- {rg:{CuCl2:1},             pr:{Cu:1,Cl2:1}, elec:1},
- {rg:{FeCl2:1,NaOH:2},      pr:{'Fe(OH)2':1,NaCl:2}}
+
+ /* ---------- 1. AXIT + BAZƠ TAN (trung hoà) ---------- */
+ {rg:{HCl:1,NaOH:1},          pr:{NaCl:1,H2O:1}},
+ {rg:{HCl:1,KOH:1},           pr:{KCl:1,H2O:1}},
+ {rg:{HCl:2,'Ca(OH)2':1},     pr:{CaCl2:1,H2O:2}},
+ {rg:{H2SO4:1,NaOH:2},        pr:{Na2SO4:1,H2O:2}},
+ {rg:{H2SO4:1,KOH:2},         pr:{K2SO4:1,H2O:2}},
+ {rg:{H2SO4:1,'Ca(OH)2':1},   pr:{CaSO4:1,H2O:2}},
+ {rg:{HNO3:1,NaOH:1},         pr:{NaNO3:1,H2O:1}},
+ {rg:{HNO3:1,KOH:1},          pr:{KNO3:1,H2O:1}},
+ {rg:{H3PO4:1,NaOH:3},        pr:{Na3PO4:1,H2O:3}},
+
+ /* ---------- 2. AXIT + BAZƠ KHÔNG TAN (hoà tan kết tủa) ---------- */
+ {rg:{'Cu(OH)2':1,HCl:2},     pr:{CuCl2:1,H2O:2}},
+ {rg:{'Cu(OH)2':1,H2SO4:1},   pr:{CuSO4:1,H2O:2}},
+ {rg:{'Fe(OH)3':1,HCl:3},     pr:{FeCl3:1,H2O:3}},
+ {rg:{'Fe(OH)3':2,H2SO4:3},   pr:{'Fe2(SO4)3':1,H2O:6}},
+ {rg:{'Fe(OH)2':1,HCl:2},     pr:{FeCl2:1,H2O:2}},
+ {rg:{'Fe(OH)2':1,H2SO4:1},   pr:{FeSO4:1,H2O:2}},
+ {rg:{'Mg(OH)2':1,HCl:2},     pr:{MgCl2:1,H2O:2}},
+ {rg:{'Mg(OH)2':1,H2SO4:1},   pr:{MgSO4:1,H2O:2}},
+ {rg:{'Zn(OH)2':1,HCl:2},     pr:{ZnCl2:1,H2O:2}},
+ {rg:{'Zn(OH)2':1,H2SO4:1},   pr:{ZnSO4:1,H2O:2}},
+ {rg:{'Al(OH)3':1,HCl:3},     pr:{AlCl3:1,H2O:3}},
+ {rg:{'Al(OH)3':2,H2SO4:3},   pr:{'Al2(SO4)3':1,H2O:6}},
+
+ /* ---------- 3. KIM LOẠI + AXIT → muối + H₂ ---------- */
+ {rg:{Zn:1,HCl:2},            pr:{ZnCl2:1,H2:1}},
+ {rg:{Fe:1,HCl:2},            pr:{FeCl2:1,H2:1}},
+ {rg:{Mg:1,HCl:2},            pr:{MgCl2:1,H2:1}},
+ {rg:{Al:2,HCl:6},            pr:{AlCl3:2,H2:3}},
+ {rg:{Na:2,HCl:2},            pr:{NaCl:2,H2:1}, exo:1},
+ {rg:{K:2,HCl:2},             pr:{KCl:2,H2:1},  exo:1},
+ {rg:{Zn:1,H2SO4:1},          pr:{ZnSO4:1,H2:1}},
+ {rg:{Fe:1,H2SO4:1},          pr:{FeSO4:1,H2:1}},
+ {rg:{Mg:1,H2SO4:1},          pr:{MgSO4:1,H2:1}},
+ {rg:{Al:2,H2SO4:3},          pr:{'Al2(SO4)3':1,H2:3}},
+ {rg:{Na:2,H2SO4:1},          pr:{Na2SO4:1,H2:1}, exo:1},
+ {rg:{K:2,H2SO4:1},           pr:{K2SO4:1,H2:1},  exo:1},
+
+ /* ---------- 4. KIM LOẠI KIỀM + NƯỚC ---------- */
+ {rg:{Na:2,H2O:2},            pr:{NaOH:2,H2:1}, exo:1},
+ {rg:{K:2,H2O:2},             pr:{KOH:2,H2:1},  exo:1},
+
+ /* ---------- 5. CHÁY TRONG OXI ---------- */
+ {rg:{Mg:2,O2:1},             pr:{MgO:2},    heat:1, exo:1},
+ {rg:{Cu:2,O2:1},             pr:{CuO:2},    heat:1, exo:1},
+ {rg:{Zn:2,O2:1},             pr:{ZnO:2},    heat:1, exo:1},
+ {rg:{Fe:3,O2:2},             pr:{Fe3O4:1},  heat:1, exo:1},
+ {rg:{Al:4,O2:3},             pr:{Al2O3:2},  heat:1, exo:1},
+ {rg:{Na:4,O2:1},             pr:{Na2O:2},   heat:1, exo:1},
+ {rg:{K:4,O2:1},              pr:{K2O:2},    heat:1, exo:1},
+ {rg:{S:1,O2:1},              pr:{SO2:1},    heat:1, exo:1},
+ {rg:{P:4,O2:5},              pr:{P2O5:2},   heat:1, exo:1},
+ {rg:{C:1,O2:1},              pr:{CO2:1},    heat:1, exo:1},
+ {rg:{H2:2,O2:1},             pr:{H2O:2},    heat:1, exo:1},   // nổ!
+ {rg:{C12H22O11:1,O2:12},     pr:{CO2:12,H2O:11}, heat:1, exo:1},
+
+ /* ---------- 6. KIM LOẠI ĐẨY KIM LOẠI KHỎI DUNG DỊCH MUỐI ----------
+    Theo dãy hoạt động: Mg > Al > Zn > Fe > Cu > Ag                     */
+ {rg:{Mg:1,ZnSO4:1},          pr:{MgSO4:1,Zn:1}},
+ {rg:{Mg:1,FeSO4:1},          pr:{MgSO4:1,Fe:1}},
+ {rg:{Mg:1,CuSO4:1},          pr:{MgSO4:1,Cu:1}},
+ {rg:{Mg:1,CuCl2:1},          pr:{MgCl2:1,Cu:1}},
+ {rg:{Al:2,CuSO4:3},          pr:{'Al2(SO4)3':1,Cu:3}},
+ {rg:{Zn:1,FeSO4:1},          pr:{ZnSO4:1,Fe:1}},
+ {rg:{Zn:1,CuSO4:1},          pr:{ZnSO4:1,Cu:1}},
+ {rg:{Zn:1,CuCl2:1},          pr:{ZnCl2:1,Cu:1}},
+ {rg:{Fe:1,CuSO4:1},          pr:{FeSO4:1,Cu:1}},
+ {rg:{Fe:1,CuCl2:1},          pr:{FeCl2:1,Cu:1}},
+ {rg:{Cu:1,AgNO3:2},          pr:{'Cu(NO3)2':1,Ag:2}},
+ // sắt(III) bị chính Fe hoặc Cu khử xuống sắt(II) — mẹo khắc bảng mạch
+ {rg:{Fe:1,FeCl3:2},          pr:{FeCl2:3}},
+ {rg:{Cu:1,FeCl3:2},          pr:{CuCl2:1,FeCl2:2}},
+
+ /* ---------- 7. OXIT BAZƠ + AXIT ---------- */
+ {rg:{MgO:1,HCl:2},           pr:{MgCl2:1,H2O:1}},
+ {rg:{MgO:1,H2SO4:1},         pr:{MgSO4:1,H2O:1}},
+ {rg:{ZnO:1,HCl:2},           pr:{ZnCl2:1,H2O:1}},
+ {rg:{ZnO:1,H2SO4:1},         pr:{ZnSO4:1,H2O:1}},
+ {rg:{CuO:1,HCl:2},           pr:{CuCl2:1,H2O:1}},
+ {rg:{CuO:1,H2SO4:1},         pr:{CuSO4:1,H2O:1}},
+ {rg:{CuO:1,HNO3:2},          pr:{'Cu(NO3)2':1,H2O:1}},
+ {rg:{Fe2O3:1,HCl:6},         pr:{FeCl3:2,H2O:3}},
+ {rg:{Fe2O3:1,H2SO4:3},       pr:{'Fe2(SO4)3':1,H2O:3}},
+ {rg:{Fe3O4:1,HCl:8},         pr:{FeCl2:1,FeCl3:2,H2O:4}},
+ {rg:{CaO:1,HCl:2},           pr:{CaCl2:1,H2O:1}},
+ {rg:{CaO:1,H2SO4:1},         pr:{CaSO4:1,H2O:1}},
+ {rg:{Na2O:1,HCl:2},          pr:{NaCl:2,H2O:1}},
+ {rg:{Na2O:1,H2SO4:1},        pr:{Na2SO4:1,H2O:1}},
+ {rg:{K2O:1,HCl:2},           pr:{KCl:2,H2O:1}},
+ {rg:{Al2O3:1,HCl:6},         pr:{AlCl3:2,H2O:3}},
+ {rg:{Al2O3:1,H2SO4:3},       pr:{'Al2(SO4)3':1,H2O:3}},
+
+ /* ---------- 8. OXIT BAZƠ TAN + NƯỚC → kiềm ---------- */
+ {rg:{CaO:1,H2O:1},           pr:{'Ca(OH)2':1}, exo:1},
+ {rg:{Na2O:1,H2O:1},          pr:{NaOH:2},      exo:1},
+ {rg:{K2O:1,H2O:1},           pr:{KOH:2},       exo:1},
+
+ /* ---------- 9. OXIT AXIT + NƯỚC → axit ---------- */
+ {rg:{P2O5:1,H2O:3},          pr:{H3PO4:2}},
+
+ /* ---------- 10. OXIT AXIT + KIỀM ---------- */
+ {rg:{CO2:1,NaOH:2},          pr:{Na2CO3:1,H2O:1}},
+ {rg:{CO2:1,NaOH:1},          pr:{NaHCO3:1}},
+ {rg:{CO2:1,KOH:2},           pr:{K2CO3:1,H2O:1}},
+ {rg:{CO2:1,'Ca(OH)2':1},     pr:{CaCO3:1,H2O:1}},   // nước vôi trong hoá đục
+ {rg:{SO2:1,NaOH:2},          pr:{Na2SO3:1,H2O:1}},
+ {rg:{P2O5:1,NaOH:6},         pr:{Na3PO4:2,H2O:3}},
+ {rg:{NaHCO3:1,NaOH:1},       pr:{Na2CO3:1,H2O:1}},
+
+ /* ---------- 11. OXIT BAZƠ + OXIT AXIT → muối ---------- */
+ {rg:{CaO:1,CO2:1},           pr:{CaCO3:1}},         // vôi sống để lâu hoá đá
+ {rg:{Na2O:1,CO2:1},          pr:{Na2CO3:1}},
+ {rg:{K2O:1,CO2:1},           pr:{K2CO3:1}},
+
+ /* ---------- 12. MUỐI + AXIT ---------- */
+ {rg:{Na2CO3:1,HCl:2},        pr:{NaCl:2,H2O:1,CO2:1}},
+ {rg:{Na2CO3:1,H2SO4:1},      pr:{Na2SO4:1,H2O:1,CO2:1}},
+ {rg:{Na2CO3:1,HNO3:2},       pr:{NaNO3:2,H2O:1,CO2:1}},
+ {rg:{K2CO3:1,HCl:2},         pr:{KCl:2,H2O:1,CO2:1}},
+ {rg:{NaHCO3:1,HCl:1},        pr:{NaCl:1,H2O:1,CO2:1}},
+ {rg:{NaHCO3:2,H2SO4:1},      pr:{Na2SO4:1,H2O:2,CO2:2}},
+ {rg:{CaCO3:1,HCl:2},         pr:{CaCl2:1,H2O:1,CO2:1}},
+ {rg:{CaCO3:1,H2SO4:1},       pr:{CaSO4:1,H2O:1,CO2:1}},
+ {rg:{BaCO3:1,HCl:2},         pr:{BaCl2:1,H2O:1,CO2:1}},
+ {rg:{BaCO3:1,H2SO4:1},       pr:{BaSO4:1,H2O:1,CO2:1}},
+ {rg:{Na2SO3:1,HCl:2},        pr:{NaCl:2,H2O:1,SO2:1}},
+ {rg:{BaCl2:1,H2SO4:1},       pr:{BaSO4:1,HCl:2}},
+ {rg:{AgNO3:1,HCl:1},         pr:{AgCl:1,HNO3:1}},
+ // điều chế clo trong phòng thí nghiệm
+ {rg:{MnO2:1,HCl:4},          pr:{MnCl2:1,Cl2:1,H2O:2}, heat:1},
+
+ /* ---------- 13. MUỐI + BAZƠ → kết tủa ---------- */
+ {rg:{CuSO4:1,NaOH:2},        pr:{'Cu(OH)2':1,Na2SO4:1}},
+ {rg:{CuSO4:1,KOH:2},         pr:{'Cu(OH)2':1,K2SO4:1}},
+ {rg:{CuCl2:1,NaOH:2},        pr:{'Cu(OH)2':1,NaCl:2}},
+ {rg:{CuCl2:1,KOH:2},         pr:{'Cu(OH)2':1,KCl:2}},
+ {rg:{'Cu(NO3)2':1,NaOH:2},   pr:{'Cu(OH)2':1,NaNO3:2}},
+ {rg:{FeCl3:1,NaOH:3},        pr:{'Fe(OH)3':1,NaCl:3}},
+ {rg:{FeCl3:1,KOH:3},         pr:{'Fe(OH)3':1,KCl:3}},
+ {rg:{'Fe2(SO4)3':1,NaOH:6},  pr:{'Fe(OH)3':2,Na2SO4:3}},
+ {rg:{FeCl2:1,NaOH:2},        pr:{'Fe(OH)2':1,NaCl:2}},
+ {rg:{FeSO4:1,NaOH:2},        pr:{'Fe(OH)2':1,Na2SO4:1}},
+ {rg:{MgCl2:1,NaOH:2},        pr:{'Mg(OH)2':1,NaCl:2}},
+ {rg:{MgSO4:1,NaOH:2},        pr:{'Mg(OH)2':1,Na2SO4:1}},
+ {rg:{AlCl3:1,NaOH:3},        pr:{'Al(OH)3':1,NaCl:3}},
+ {rg:{'Al2(SO4)3':1,NaOH:6},  pr:{'Al(OH)3':2,Na2SO4:3}},
+ {rg:{ZnCl2:1,NaOH:2},        pr:{'Zn(OH)2':1,NaCl:2}},
+ {rg:{ZnSO4:1,NaOH:2},        pr:{'Zn(OH)2':1,Na2SO4:1}},
+ {rg:{Na2CO3:1,'Ca(OH)2':1},  pr:{CaCO3:1,NaOH:2}},
+ {rg:{NH4Cl:1,NaOH:1},        pr:{NaCl:1,NH3:1,H2O:1}},   // điều chế amoniac
+
+ /* ---------- 14. MUỐI + MUỐI ---------- */
+ {rg:{AgNO3:1,NaCl:1},        pr:{AgCl:1,NaNO3:1}},
+ {rg:{AgNO3:1,KCl:1},         pr:{AgCl:1,KNO3:1}},
+ {rg:{AgNO3:2,CuCl2:1},       pr:{AgCl:2,'Cu(NO3)2':1}},
+ {rg:{BaCl2:1,Na2SO4:1},      pr:{BaSO4:1,NaCl:2}},
+ {rg:{BaCl2:1,K2SO4:1},       pr:{BaSO4:1,KCl:2}},
+ {rg:{BaCl2:1,MgSO4:1},       pr:{BaSO4:1,MgCl2:1}},
+ {rg:{BaCl2:1,ZnSO4:1},       pr:{BaSO4:1,ZnCl2:1}},
+ {rg:{BaCl2:1,FeSO4:1},       pr:{BaSO4:1,FeCl2:1}},
+ {rg:{BaCl2:1,CuSO4:1},       pr:{BaSO4:1,CuCl2:1}},
+ {rg:{BaCl2:1,Na2CO3:1},      pr:{BaCO3:1,NaCl:2}},
+ {rg:{Na2CO3:1,CaCl2:1},      pr:{CaCO3:1,NaCl:2}},
+ {rg:{K2CO3:1,CaCl2:1},       pr:{CaCO3:1,KCl:2}},
+ {rg:{Na2SO4:1,CaCl2:1},      pr:{CaSO4:1,NaCl:2}},
+
+ /* ---------- 15. NHIỆT PHÂN ---------- */
+ {rg:{'Cu(OH)2':1},           pr:{CuO:1,H2O:1},          heat:1},
+ {rg:{'Fe(OH)3':2},           pr:{Fe2O3:1,H2O:3},        heat:1},
+ {rg:{'Mg(OH)2':1},           pr:{MgO:1,H2O:1},          heat:1},
+ {rg:{'Zn(OH)2':1},           pr:{ZnO:1,H2O:1},          heat:1},
+ {rg:{'Al(OH)3':2},           pr:{Al2O3:1,H2O:3},        heat:1},
+ {rg:{CaCO3:1},               pr:{CaO:1,CO2:1},          heat:1},
+ {rg:{NaHCO3:2},              pr:{Na2CO3:1,H2O:1,CO2:1}, heat:1},
+ {rg:{KMnO4:2},               pr:{O2:1,K2MnO4:1,MnO2:1}, heat:1},
+
+ /* ---------- 16. KHỬ OXIT KIM LOẠI (H₂ hoặc C) ---------- */
+ {rg:{CuO:1,H2:1},            pr:{Cu:1,H2O:1},   heat:1},
+ {rg:{ZnO:1,H2:1},            pr:{Zn:1,H2O:1},   heat:1},
+ {rg:{Fe2O3:1,H2:3},          pr:{Fe:2,H2O:3},   heat:1},
+ {rg:{Fe3O4:1,H2:4},          pr:{Fe:3,H2O:4},   heat:1},
+ {rg:{CuO:2,C:1},             pr:{Cu:2,CO2:1},   heat:1},
+ {rg:{ZnO:2,C:1},             pr:{Zn:2,CO2:1},   heat:1},
+ {rg:{Fe2O3:2,C:3},           pr:{Fe:4,CO2:3},   heat:1},
+ {rg:{Fe3O4:1,C:2},           pr:{Fe:3,CO2:2},   heat:1},
+
+ /* ---------- 17. HALOGEN ---------- */
+ {rg:{Na:2,Cl2:1},            pr:{NaCl:2},   heat:1, exo:1},
+ {rg:{K:2,Cl2:1},             pr:{KCl:2},    heat:1, exo:1},
+ {rg:{Mg:1,Cl2:1},            pr:{MgCl2:1},  heat:1, exo:1},
+ {rg:{Zn:1,Cl2:1},            pr:{ZnCl2:1},  heat:1, exo:1},
+ {rg:{Al:2,Cl2:3},            pr:{AlCl3:2},  heat:1, exo:1},
+ {rg:{Fe:2,Cl2:3},            pr:{FeCl3:2},  heat:1, exo:1},
+ {rg:{Cu:1,Cl2:1},            pr:{CuCl2:1},  heat:1},
+ {rg:{H2:1,Cl2:1},            pr:{HCl:2},    heat:1},
+
+ /* ---------- 18. NITƠ ---------- */
+ {rg:{N2:1,H2:3},             pr:{NH3:2},    heat:1},
+ {rg:{NH3:1,HCl:1},           pr:{NH4Cl:1}},
+
+ /* ---------- 19. ĐƯỜNG GẶP AXIT SUNFURIC ĐẶC ----------
+    H₂SO₄ đặc chỉ rút nước chứ không tham gia — SGK ghi nó TRÊN mũi tên.
+    Dùng cat: phải có mặt mới chạy, nhưng không bị tiêu hao (nên vẫn cân bằng).  */
+ {rg:{C12H22O11:1},           pr:{C:12,H2O:11}, cat:['H2SO4']},
+
+ /* ---------- 20. ĐIỆN PHÂN ----------
+    vent = khí sinh ra ở cực còn lại; game chỉ có MỘT bình nên chỉ hứng được
+    một loại khí, khí kia coi như thoát ra ngoài.                            */
+ {rg:{H2O:2},                 pr:{H2:2,O2:1},              elec:1, vent:['O2'], last:1},
+ {rg:{CuCl2:1},               pr:{Cu:1,Cl2:1},             elec:1},
+ {rg:{CuSO4:2,H2O:2},         pr:{Cu:2,O2:1,H2SO4:2},      elec:1, vent:['O2']},
+ {rg:{NaCl:2,H2O:2},          pr:{NaOH:2,H2:1,Cl2:1},      elec:1, vent:['H2']}
 ];
+
+/* Mốc chia nhóm cho Sổ tay ở màn hình chính. i = số thứ tự phản ứng đầu tiên của nhóm.
+   Thêm/bớt phản ứng ở trên thì phải chỉnh lại các số này. */
+const RX_GROUPS = [
+ {i:0,   t:'Axit + bazơ tan (trung hoà)'},
+ {i:9,   t:'Axit + bazơ không tan'},
+ {i:21,  t:'Kim loại + axit → muối + H₂'},
+ {i:33,  t:'Kim loại kiềm + nước'},
+ {i:35,  t:'Cháy trong oxi'},
+ {i:47,  t:'Kim loại đẩy kim loại khỏi muối'},
+ {i:60,  t:'Oxit bazơ + axit'},
+ {i:77,  t:'Oxit bazơ tan + nước → kiềm'},
+ {i:80,  t:'Oxit axit + nước → axit'},
+ {i:81,  t:'Oxit axit + kiềm'},
+ {i:88,  t:'Oxit bazơ + oxit axit → muối'},
+ {i:91,  t:'Muối + axit'},
+ {i:105, t:'Muối + bazơ → kết tủa'},
+ {i:123, t:'Muối + muối'},
+ {i:136, t:'Nhiệt phân'},
+ {i:144, t:'Khử oxit kim loại (H₂ hoặc C)'},
+ {i:152, t:'Halogen'},
+ {i:160, t:'Nitơ'},
+ {i:162, t:'Đường gặp axit sunfuric đặc'},
+ {i:163, t:'Điện phân'}
+];
+
 function eqStr(r){ // auto-build balanced equation string with ↑/↓ markers
   const side = (obj, mark) => Object.keys(obj).map(f=>{
     let m = '';
     if(mark){ if(CHEMS[f].s==='k') m='↑'; else if(isPrecip(f)) m='↓'; }
     return (obj[f]>1? obj[f]:'') + sub(f) + m;
   }).join(' + ');
-  return side(r.rg) + ' —' + (r.heat?'t°':'') + '→ ' + side(r.pr, true);
+  const over = [r.heat?'t°':'', r.elec?'đp':'', r.cat?r.cat.map(sub).join(','):''].filter(Boolean).join(', ');
+  return side(r.rg) + ' —' + over + '→ ' + side(r.pr, true);
 }
 const BEAKER_SVG = `
 <svg id="beakersvg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" width="230">
