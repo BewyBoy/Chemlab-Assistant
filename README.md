@@ -1,4 +1,4 @@
-<h1 align="center">ChemLab Assistant</h1>
+<h1 align="center">Trợ Lý Hóa Học Nhí</h1>
 <p align="center"><i>Trợ lý phòng thí nghiệm của giáo sư Hoffmann</i></p>
 <p align="center"><b><a href="https://bewyboy.github.io/Chemlab-Assistant/">▶ Chơi ngay trên trình duyệt</a></b></p>
 
@@ -10,7 +10,7 @@ Bạn, học trò của giáo sư Hoffmann, đã được thầy giao cho một 
 
 Đeo găng tay và kính mắt vào, giờ là lúc pha chế rồi!
 
-**ChemLab Assistant** là game pha chế bám sát chương trình Khoa học tự nhiên lớp 8–9. Bạn không đọc lý thuyết rồi làm bài tập; bạn nhớ bật bình hứng *trước* khi phản ứng chạy, vì lần trước khí đã bay mất.
+**Trợ Lý Hóa Học Nhí** là game pha chế bám sát chương trình Khoa học tự nhiên lớp 8–9. Bạn không đọc lý thuyết rồi làm bài tập; bạn nhớ bật bình hứng *trước* khi phản ứng chạy, vì lần trước khí đã bay mất.
 
 ### Có gì bên trong
 

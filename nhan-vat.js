@@ -1,5 +1,5 @@
 // ============================================================
-//  DAN NHAN VAT — ChemLab Assistant
+//  DAN NHAN VAT — Tro Ly Hoa Hoc Nhi
 //  index.html nap file nay luc khoi dong (phai nam cung thu muc).
 //
 //  Bay khach dung chung mot bo khung ve (HD_CHARS[4..10]) nen truoc day

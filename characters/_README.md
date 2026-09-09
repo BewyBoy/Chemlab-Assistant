@@ -1,4 +1,4 @@
-# Nhân vật ChemLab — file SVG rời để chỉnh sửa
+# Nhân vật Trợ Lý Hóa Học Nhí — file SVG rời để chỉnh sửa
 
 Mỗi nhân vật có **2 file**, dùng chung một `viewBox` nên xếp chồng là khớp tuyệt đối:
 

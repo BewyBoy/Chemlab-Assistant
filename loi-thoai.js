@@ -1,5 +1,5 @@
 // ============================================================
-//  LỜI THOẠI KHÁCH HÀNG — ChemLab Assistant
+//  LỜI THOẠI KHÁCH HÀNG — Trợ Lý Hóa Học Nhí
 //  File này được index.html nạp lúc khởi động (phải nằm cùng thư mục).
 //  Cứ sửa thoải mái các câu bên dưới rồi F5 game là thấy ngay.
 //
