@@ -45,6 +45,10 @@ h2{font-size:26px;margin:6px 0}
 .menu-bubble::after{content:'';position:absolute;bottom:-14px;right:56px;border:8px solid transparent;border-top:10px solid var(--ink)}
 .menu-stats{display:inline-block;margin-top:10px;font-size:13.5px;background:var(--card);border:3px solid var(--ink);border-radius:10px;padding:3px 14px;box-shadow:2px 3px 0 #3b302533}
 .menu-danger-link{background:none;border:none;padding:0;color:var(--ink);opacity:.4;font-size:12px;text-decoration:underline;cursor:pointer;font-family:var(--fb)}
+/* menu chính: các nút xếp dọc, cùng bề ngang cho thẳng hàng */
+.menu-btns{display:flex;flex-direction:column;align-items:center;gap:9px;margin-top:14px}
+.menu-btns .btn{width:250px;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.menu-btns .btn.big{width:250px;padding:11px 20px}
 .menu-danger-link:hover{opacity:.75}
 .mbub{position:absolute;border:3px solid var(--ink);border-radius:50%;background:#dbeefc88;opacity:0;animation:mbubrise 7s linear infinite;pointer-events:none}
 @keyframes mbubrise{0%{transform:translateY(0) translateX(0);opacity:0}12%{opacity:.55}55%{transform:translateY(-160px) translateX(10px)}88%{opacity:.55}100%{transform:translateY(-320px) translateX(-6px);opacity:0}}
@@ -2785,14 +2789,11 @@ function showMenu(){
         <h2>Trợ lý phòng thí nghiệm của giáo sư Hoffmann</h2>
       </div>
       ${save.served ? `<div class="menu-stats">${ico('flask',14)} Mở tới ngày ${nextDay}/${DAYS.length} · ${ico('star',14)} ${totStars} sao · ${ico('coinred',14)} ${achCoins()}</div>` : ''}
-      <div class="row" style="justify-content:center;margin-top:16px">
+      <div class="menu-btns">
         <button class="btn big" id="bstart">${inProgress ? ico('play')+' Ngày '+nextDay+' →' : ico('play')+' Bắt đầu'}</button>
-      </div>
-      <div class="row" style="justify-content:center;margin-top:10px">
         <button class="btn" id="brx">${ico('note')} Sổ tay</button>
         <button class="btn" id="bach">${ico('trophy')} Thành tựu</button>
         <button class="btn" id="bset">${ico('gear')} Cài đặt</button>
-        <button class="btn" id="bmute">${ico(SFX.isMuted()?'mute':'sound')}</button>
       </div>
       <p style="margin-top:6px"><span class="menu-danger-link" id="breset">Xoá dữ liệu trò chơi</span></p>
     </div>
@@ -2816,7 +2817,6 @@ function showMenu(){
   G.querySelector('#brx').onclick = showRxBook;
   G.querySelector('#bach').onclick = showAch;
   G.querySelector('#bset').onclick = settingsModal;
-  G.querySelector('#bmute').onclick = e => { const m = SFX.toggle(); e.currentTarget.innerHTML = ico(m?'mute':'sound'); };
   G.querySelector('#breset').onclick = () => confirmModal(
     '<h2>'+ico('trash',22)+' Xoá dữ liệu?</h2><p style="margin:8px 0">Toàn bộ tiến trình, sao và thành tựu sẽ bị xoá và không thể khôi phục.</p>',
     () => { save = {unlocked:1, stars:{}, ach:[], served:0, spent:0, rx:[], settings:{balance:true}}; persist(); toast('Đã xoá dữ liệu.'); showMenu(); },
@@ -3004,7 +3004,7 @@ function showIntro(i){
     </div>
     <div class="row" style="justify-content:center;margin-top:14px">
       <button class="btn big" id="bgo">${ico(day.mg?'dice':'flask')} ${day.mg?'Chơi ngay':'Mở tiệm'}</button>
-      ${(!day.mg && dayEqs(day).length) ? `<button class="btn" id="bnote2">${ico('note')} Giấy cân bằng</button>` : ''}
+      ${(!day.mg && balanceOn() && dayEqs(day).length) ? `<button class="btn" id="bnote2">${ico('note')} Giấy cân bằng</button>` : ''}
       <button class="btn" id="bmap">${ico('back')} Bản đồ</button>
     </div></div>`;
   G.querySelector('#introprof').innerHTML = profSVG('happy').replace('viewBox','height="270" viewBox');
@@ -3174,15 +3174,26 @@ function settingsModal(){
   SFX.page();
   const ov = document.createElement('div');
   ov.className = 'overlay';
-  const on = balanceOn();
+  const on = balanceOn(), snd = !SFX.isMuted();
   ov.innerHTML = '<div class="modal" style="max-width:470px">'
     + '<h2>'+ico('gear',22)+' Cài đặt</h2>'
     + '<div class="settingrow"><div>'
-    + '<b style="font-family:var(--fh);font-size:16px">Tự cân bằng phương trình</b>'
+    + '<b style="font-family:var(--fh);font-size:16px">'+ico('sound',15)+' Âm thanh</b>'
+    + '<div style="font-size:13px;color:#6b5d4a;margin-top:3px;max-width:330px">Tiếng rót, sủi bọt, chuông thành tựu và các hiệu ứng khác.</div>'
+    + '</div><div class="toggle'+(snd?' on':'')+'" id="tglSound" role="switch" aria-checked="'+snd+'"></div></div>'
+    + '<div class="settingrow"><div>'
+    + '<b style="font-family:var(--fh);font-size:16px">'+ico('note',15)+' Tự cân bằng phương trình</b>'
     + '<div style="font-size:13px;color:#6b5d4a;margin-top:3px;max-width:330px">Từ ngày '+BALANCE_FROM_DAY+' trở đi, trước mỗi ca trò tự điền hệ số. Tắt đi thì giáo sư cân bằng hộ toàn bộ.</div>'
     + '</div><div class="toggle'+(on?' on':'')+'" id="tglBalance" role="switch" aria-checked="'+on+'"></div></div>'
     + '<div class="center" style="margin-top:14px"><button class="btn" id="mclose">Đóng</button></div></div>';
   ov.querySelector('#mclose').onclick = () => ov.remove();
+  ov.querySelector('#tglSound').onclick = e => {
+    const muted = SFX.toggle();            // trả về trạng thái TẮT tiếng
+    const t = e.currentTarget;
+    t.classList.toggle('on', !muted);
+    t.setAttribute('aria-checked', !muted);
+    if(!muted) SFX.clink();                // chỉ kêu khi vừa bật lại tiếng
+  };
   ov.querySelector('#tglBalance').onclick = e => {
     save.settings.balance = !balanceOn(); persist();
     const t = e.currentTarget;
