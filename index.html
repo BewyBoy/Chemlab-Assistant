@@ -72,6 +72,7 @@ h2{font-size:26px;margin:6px 0}
 .day-card.sun .dn{color:#d9634f}
 .day-card .dt{font-size:10.5px;line-height:1.18;max-height:38px;overflow:hidden}
 .day-card .st{position:absolute;right:6px;bottom:2px;font-size:13px;color:#c99a1e;letter-spacing:1px}
+.day-card .sth{position:absolute;left:7px;bottom:3px;font-size:10px;color:#d9634f;font-family:var(--fh);letter-spacing:.5px}
 /* red pen circle drawn around the number when picking an unplayed day */
 .dnw{position:relative;display:inline-block;min-width:22px}
 .dnc{position:absolute;left:-11px;top:-7px;width:46px;height:38px;overflow:visible;pointer-events:none}
@@ -238,7 +239,9 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:5px solid 
 .rxg i{float:right;font-style:normal;font-size:12.5px;opacity:.6}
 .eq.locked{opacity:.45;font-style:italic;font-size:13.5px;border-bottom:none}
 .eq{font-size:16px;padding:3px 6px;border-bottom:1px dashed #3b302555}
-.toast{position:absolute;left:20px;bottom:20px;background:#3b3025;color:#f7f1e3;border-radius:12px;padding:10px 16px;font-size:15.5px;z-index:60;animation:tpop 3.5s forwards;max-width:520px}
+.eq[data-rx]{cursor:pointer;border-radius:6px}
+.eq[data-rx]:hover{background:#fff3c4}
+.toast{position:absolute;left:20px;bottom:20px;background:#3b3025;color:#f7f1e3;border-radius:12px;padding:10px 16px;font-size:15.5px;z-index:60;animation:tpop 3.5s forwards;max-width:520px;transition:bottom .25s ease-out}
 @keyframes tpop{0%{transform:translateY(60px);opacity:0}10%,85%{transform:none;opacity:1}100%{opacity:0}}
 .condlist{text-align:left;display:inline-block;vertical-align:top;margin-left:8px;font-size:15.5px;line-height:1.7}
 .paper{background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:14px 20px;box-shadow:4px 5px 0 #3b302533}
@@ -337,6 +340,49 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:5px solid 
 .bhint b{font-family:var(--fh)}
 .settingrow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px dotted #3b302533;text-align:left}
 .settingrow:last-child{border-bottom:none}
+.hardrow{border-top:2px dashed var(--ink);border-bottom:none;margin-top:8px;padding-bottom:0}
+/* ---- chế độ khó: hộp cân / ống đong, gợi ý theo bậc ---- */
+.dosebox{max-width:440px;text-align:center}
+.dosein{width:150px;height:46px;font-family:var(--fh);font-size:26px;text-align:center;border:3px solid var(--ink);border-radius:10px;background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
+.dosein:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px #e8b84b55}
+.dosemsg{min-height:20px;margin-top:6px;font-size:13.5px;color:#c9524b}
+.hardhint{margin-top:5px;padding:4px 7px;background:#fdeceb;border:2px dashed #c9524b;border-radius:8px;font-size:12px;line-height:1.45}
+.cc-tag .cm{font-size:10px;color:#a8331f}
+/* ---- muôi đốt & lửa trong lọ ---- */
+#tool_burn.lit svg{filter:drop-shadow(0 0 7px #ffb347)}
+.burnfx{position:absolute;width:30px;height:30px;margin:-15px;border-radius:50%;z-index:70;pointer-events:none;
+  background:radial-gradient(circle,#fff 0 18%,var(--fc) 45%,transparent 70%);animation:burnglow 1.3s ease-out forwards}
+@keyframes burnglow{0%{transform:scale(.4);opacity:0}20%{transform:scale(3.2);opacity:1}60%{transform:scale(2.6);opacity:.85}100%{transform:scale(3.6);opacity:0}}
+.burnspark{position:absolute;width:5px;height:5px;border-radius:50%;background:var(--fc);box-shadow:0 0 6px var(--fc);z-index:71;pointer-events:none;animation:spark .9s ease-out forwards}
+@keyframes spark{0%{transform:translate(0,0);opacity:1}100%{transform:translate(var(--dx),var(--dy));opacity:0}}
+.burnsmoke{position:absolute;width:16px;height:16px;margin:-8px;border-radius:50%;background:#fbfaf5;border:2px solid #3b302533;z-index:71;pointer-events:none;animation:smoke 1.4s ease-out forwards}
+@keyframes smoke{0%{transform:translate(0,0) scale(.4);opacity:.95}100%{transform:translate(var(--dx),var(--dy)) scale(1.8);opacity:0}}
+/* ---- thẻ phản ứng: bi nguyên tử tách ra rồi ghép lại ---- */
+.rxcard{background:var(--card);border:4px solid var(--ink);border-radius:16px;padding:12px 22px 14px;width:790px;max-height:700px;overflow-y:auto;box-shadow:6px 8px 0 #00000033;text-align:center}
+.rxc-head{display:flex;align-items:center;justify-content:center;gap:10px;font-family:var(--fh);font-size:20px}
+.rxc-tag{background:var(--accent);border:2.5px solid var(--ink);border-radius:8px;padding:0 9px;font-size:15px;transform:rotate(-3deg);box-shadow:2px 3px 0 #3b302533}
+.rxstage{position:relative;margin:8px auto 4px;background:repeating-linear-gradient(#fffdf5 0 27px,#efe8d6 27px 28px);border:2.5px solid var(--ink);border-radius:12px;overflow:hidden}
+.atom{position:absolute;border-radius:50%;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--fb);font-weight:bold;line-height:1;
+  transform:translate(-50%,-50%);box-shadow:inset -3px -3px 0 #00000026;transition:left 1.1s cubic-bezier(.55,0,.3,1),top 1.1s cubic-bezier(.55,0,.3,1),width .6s,height .6s,opacity .5s,transform .5s}
+@keyframes jig{25%{transform:translate(-50%,-50%) translate(2px,-2px)}75%{transform:translate(-50%,-50%) translate(-2px,2px)}}
+@keyframes apop{50%{transform:translate(-50%,-50%) scale(1.22)}}
+.rxstage.mix .atom{animation:jig .3s 2}
+.rxstage.done .atom.mv{animation:apop .45s}
+.rxstage .atom.rgt{opacity:0;transform:translate(-50%,-50%) scale(.3)}
+.rxstage.done .atom.rgt{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.rxstage.done .atom.lft{opacity:.15}
+.rxlbl{position:absolute;transform:translateX(-50%);font-family:var(--fh);font-size:17px;white-space:nowrap;transition:opacity .5s}
+.rxplus{position:absolute;transform:translate(-50%,-50%);font-family:var(--fh);font-size:22px;opacity:.55;transition:opacity .5s}
+.rxlbl.rgt,.rxplus.rgt{opacity:0}
+.rxstage.done .rxlbl.rgt{opacity:1}
+.rxstage.done .rxplus.rgt{opacity:.55}
+.rxstage.done .rxlbl.lft,.rxstage.done .rxplus.lft{opacity:.3}
+.rxarrow{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-family:var(--fh);font-size:30px;line-height:.9;text-align:center}
+.rxarrow small{font-size:14px}
+.rxc-eq{font-size:21px;font-family:var(--fh);margin:6px 0 2px}
+.rxc-obs{font-size:14.5px;font-style:italic;color:#6b5d4a;min-height:18px}
+.rxc-cons{font-size:12.5px;margin-top:4px;opacity:.85}
+.rxc-note{display:flex;gap:10px;align-items:center;text-align:left;margin-top:8px;background:#fff7de;border:1.5px dashed #c9a24b;border-radius:10px;padding:6px 10px}
 .toggle{position:relative;width:52px;height:28px;border:2px solid var(--ink);border-radius:16px;background:#e0d6c2;cursor:pointer;flex:none;transition:background .18s}
 .toggle.on{background:#7fc4c9}
 .toggle::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fffdf5;border:2px solid var(--ink);transition:left .18s}
@@ -1644,6 +1690,29 @@ const SVG_DEFS = `
   <ellipse cx="23.5" cy="8" rx="1.8" ry="1.2" fill="#ffffff" opacity="0.7" transform="rotate(-8,23.5,8)"/>
 </symbol>
 
+<!-- Muôi đốt (muỗng đốt hoá chất): vòng cầm, cán thép dài, NẮP tròn để đậy miệng lọ khí,
+     chén nhỏ ở đầu dưới đựng chất cháy. --fuel/--lc = chất trên chén, --flame/--fc = lửa. -->
+<symbol id="sym-burnspoon" viewBox="0 0 50 170">
+  <circle cx="25" cy="10" r="7" fill="none" stroke="#3b3025" stroke-width="3.5"/>
+  <path d="M25,17 L25,148" stroke="#3b3025" stroke-width="6" stroke-linecap="round"/>
+  <path d="M25,17 L25,148" stroke="#c9cdd2" stroke-width="2.6" stroke-linecap="round"/>
+  <ellipse cx="25" cy="62" rx="21" ry="6" fill="#c9cdd2" stroke="#3b3025" stroke-width="3"/>
+  <path d="M9,60 Q25,56 41,60" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity=".6"/>
+  <path d="M12,148 Q12,162 25,163 Q38,162 38,148 Z" fill="#aab1b8" stroke="#3b3025" stroke-width="3" stroke-linejoin="round"/>
+  <ellipse cx="25" cy="148" rx="13" ry="3.6" fill="#8a9198" stroke="#3b3025" stroke-width="2.5"/>
+  <g style="opacity:var(--fuel,0)">
+    <path d="M14,148 Q15,140 20,140 Q23,134 28,139 Q34,137 36,148 Z" fill="var(--lc,#ccd2d8)"
+          stroke="#3b3025" stroke-width="2" stroke-linejoin="round"/>
+  </g>
+  <g style="opacity:var(--flame,0)">
+    <path d="M25,146 Q11,136 16,120 Q19,108 25,99 Q31,108 34,120 Q39,136 25,146 Z"
+          fill="var(--fc,#ffb347)" fill-opacity=".9" stroke="#d9634f" stroke-width="1.5" stroke-linejoin="round">
+      <animateTransform attributeName="transform" type="rotate" values="0 25 146;5 25 146;-4 25 146;2 25 146;0 25 146" dur="0.5s" repeatCount="indefinite"/>
+    </path>
+    <path d="M25,144 Q19,136 21,126 Q23,118 25,113 Q27,118 29,126 Q31,136 25,144 Z" fill="#fffbe6" opacity=".85"/>
+  </g>
+</symbol>
+
 <!-- Litmus Box -->
 <symbol id="sym-litmusbox" viewBox="0 0 100 100">
   <!-- box body (slightly wobbly card) -->
@@ -2136,6 +2205,13 @@ const SVG_DEFS = `
   <line x1="8" y1="18" x2="13" y2="18" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
 </symbol>
 
+<!-- ico-book: sách mở (sổ tay công thức, "Bạn có biết?") — trước đây được gọi mà chưa từng vẽ -->
+<symbol id="ico-book" viewBox="0 0 24 24">
+  <path d="M12,6 Q8,3.5 3,4.5 L3,19 Q8,18 12,20.5 Q16,18 21,19 L21,4.5 Q16,3.5 12,6 Z" fill="#fffdf5" stroke="#3b3025" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M12,6 L12,20.5" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
+  <path d="M5.5,8.5 Q8,8 10,9 M5.5,12 Q8,11.5 10,12.5 M14,9 Q16,8 18.5,8.5 M14,12.5 Q16,11.5 18.5,12" fill="none" stroke="#3b3025" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
+</symbol>
+
 <!-- ico-gear -->
 <symbol id="ico-gear" viewBox="0 0 24 24">
   <path d="M12,2 l1.4,0 0.5,2.4 a7.6,7.6 0 0 1 2,1.15 l2.3,-0.9 1,1.7 -1.8,1.6 a7.6,7.6 0 0 1 0,2.3 l1.8,1.6 -1,1.7 -2.3,-0.9 a7.6,7.6 0 0 1 -2,1.15 l-0.5,2.4 -2.8,0 -0.5,-2.4 a7.6,7.6 0 0 1 -2,-1.15 l-2.3,0.9 -1,-1.7 1.8,-1.6 a7.6,7.6 0 0 1 0,-2.3 l-1.8,-1.6 1,-1.7 2.3,0.9 a7.6,7.6 0 0 1 2,-1.15 l0.5,-2.4 z"
@@ -2323,9 +2399,10 @@ function eqStr(r){ // auto-build balanced equation string with ↑/↓ markers
     if(mark){ if(CHEMS[f].s==='k') m='↑'; else if(isPrecip(f)) m='↓'; }
     return (obj[f]>1? obj[f]:'') + sub(f) + m;
   }).join(' + ');
-  const over = [r.heat?'t°':'', r.elec?'đp':'', r.cat?r.cat.map(sub).join(','):''].filter(Boolean).join(', ');
-  return side(r.rg) + ' —' + over + '→ ' + side(r.pr, true);
+  return side(r.rg) + ' —' + rxOver(r) + '→ ' + side(r.pr, true);
 }
+// điều kiện ghi trên mũi tên: đốt cũng là t° như SGK viết
+const rxOver = r => [(r.heat||r.burn)?'t°':'', r.elec?'đp':'', r.cat?r.cat.map(sub).join(','):''].filter(Boolean).join(', ');
 function fxOf(r){ // visual effect summary for a reaction
   const fx = [];
   if(Object.keys(r.pr).some(f=>CHEMS[f].s==='k')) fx.push('sủi bọt khí');
@@ -2376,31 +2453,31 @@ const DAYS = [
   items:[['Fe',0],['Cu',0],['Na',0],['Ag',0],['O2',1],['H2',1],['N2',1],['Cl2',1],['H2O',2],['CO2',2],['NaCl',2],['H2SO4',2]]},
 
  {t:'Hoá trị — những "cánh tay" nguyên tử',
-  story:'Hôm nay học HOÁ TRỊ qua thực hành! Hoá trị như số "tay" để nắm nhau: O có 2 tay, Na chỉ 1 tay → phải 2 Na nắm 1 O thành Na₂O. Mg có 2 tay → MgO cứ 1:1. Đốt kim loại trong oxi (ĐÈN CỒN mới!) rồi LỌC lấy oxit — nhìn công thức là thấy hoá trị.',
-  chems:['Na','Mg','Cu','Zn','O2'], tools:['spoon','book','heat','filter'], dur:320, s1:3,
+  story:'Hôm nay học HOÁ TRỊ qua thực hành! Hoá trị như số "tay" để nắm nhau: O có 2 tay, Na chỉ 1 tay → phải 2 Na nắm 1 O thành Na₂O. Mg có 2 tay → MgO cứ 1:1. Hôm nay ta ĐỐT kim loại trong oxi, mà đốt thì không bỏ vào cốc đâu nhé! Nạp khí O₂ vào LỌ KHÍ, cho kim loại lên MUÔI ĐỐT, hơ qua ĐÈN CỒN cho bén lửa rồi đưa nhanh vào lọ. Oxit rắn được gạt ra đĩa — nhìn công thức là thấy hoá trị.',
+  chems:['Na','Mg','Cu','Zn','O2'], tools:['spoon','book','heat','gas','burn'], dur:320, s1:3,
   orders:[ o(4,'MgO',2,{pname:'magie oxit (Mg hoá trị II)'}),
            o(9,'Na2O',2,{pname:'natri oxit (Na hoá trị I — để ý số 2!)'}),
            o(1,'CuO',2,{pname:'đồng(II) oxit'}),
            o(6,'ZnO',1,{pname:'kẽm oxit'}) ]},
 
  {t:'Oxi gặp kim loại',
-  story:'OXI duy trì sự cháy — kim loại cháy trong oxi tạo OXIT: 2Mg + O₂ —t°→ 2MgO sáng chói! Sắt thì đặc biệt: 3Fe + 2O₂ → Fe₃O₄ oxit sắt từ. Nhớ BẬT đèn thì phản ứng mới xảy ra, xong thì LỌC lấy chất rắn đem giao.',
-  chems:['Mg','Cu','Zn','Fe','O2'], tools:['spoon','book','gas','heat','filter'], dur:320, s1:3,
+  story:'OXI duy trì sự cháy — kim loại cháy trong oxi tạo OXIT: 2Mg + O₂ —t°→ 2MgO sáng chói! Sắt thì đặc biệt: 3Fe + 2O₂ → Fe₃O₄ oxit sắt từ, cháy tóe hoa lửa. Ba bước: nạp O₂ vào lọ khí → kim loại lên muôi, hơ đèn cồn cho bén lửa → đưa vào lọ. Đong oxi cho đúng tỉ lệ — thiếu thì lửa tắt giữa chừng!',
+  chems:['Mg','Cu','Zn','Fe','O2'], tools:['spoon','book','heat','gas','burn'], dur:320, s1:3,
   orders:[ o(4,'MgO',2,{pname:'magie oxit'}),
            o(1,'CuO',2,{pname:'đồng(II) oxit đen'}),
            o(6,'ZnO',2,{pname:'kẽm oxit'}),
            o(8,'Fe3O4',1,{pname:'oxit sắt từ'}) ]},
 
  {t:'Oxi gặp phi kim',
-  story:'Không chỉ kim loại — than, lưu huỳnh, photpho đều cháy trong oxi! C + O₂ —t°→ CO₂↑ là khí, nhớ hứng bằng bình thu khí. Còn P cháy tạo P₂O₅ dạng bột trắng, lọc mà lấy.',
-  chems:['S','P','C','O2'], tools:['spoon','book','gas','heat','filter'], dur:320, s1:2,
+  story:'Không chỉ kim loại — than, lưu huỳnh, photpho đều cháy trong oxi! C + O₂ —t°→ CO₂: khí sinh ra nằm ngay trong lọ, đậy nắp muôi lại là giao được cả lọ. Lưu huỳnh cháy lửa XANH LAM ra SO₂ hắc mũi. Photpho cháy tạo khói trắng P₂O₅ — bột rắn rơi ra đĩa. Nhớ: oxi dư cũng là "hàng lẫn" đấy!',
+  chems:['S','P','C','O2'], tools:['spoon','book','heat','gas','burn'], dur:320, s1:2,
   orders:[ o(2,'CO2',1,{pname:'khí cacbonic'}),
            o(9,'SO2',1,{pname:'khí sunfurơ'}),
            o(5,'P2O5',2,{pname:'điphotpho pentaoxit'}) ]},
 
  {t:'Luyện tập chương 1',
   story:'Hết chương đầu rồi! Bài kiểm tra nhỏ: pha dung dịch đúng số mol, rồi đốt vài thứ trong oxi. Bình tĩnh làm từng đơn, ta đứng sau quầy cổ vũ trò đây.',
-  chems:['H2O','NaCl','Mg','C','S','O2'], tools:['spoon','book','gas','heat','filter'], dur:360, s1:3,
+  chems:['H2O','NaCl','Mg','C','S','O2'], tools:['spoon','book','heat','gas','burn'], dur:360, s1:3,
   orders:[ o(0,'NaCl',2,{water:1,pname:'nước muối (0,2 mol)'}),
            o(4,'MgO',2,{pname:'magie oxit'}),
            o(2,'CO2',1,{pname:'khí cacbonic'}),
@@ -2518,15 +2595,15 @@ DAYS.push(
 
  // ================= CHƯƠNG 4: KIM LOẠI & PHI KIM (22–28) =================
  {t:'Nhôm — kim loại quốc dân',
-  story:'NHÔM nhẹ, bền, làm từ nồi niêu đến máy bay! Hoá trị III nên phương trình hơi "xoắn": 2Al + 6HCl → 2AlCl₃ + 3H₂. Nhôm cũng cháy trong khí clo: 2Al + 3Cl₂ —t°→ 2AlCl₃. Hai con đường, một sản phẩm!',
-  chems:['H2O','HCl','Al','Cl2'], tools:['spoon','book','quy','gas','heat'], dur:340, s1:2,
+  story:'NHÔM nhẹ, bền, làm từ nồi niêu đến máy bay! Hoá trị III nên phương trình hơi "xoắn": 2Al + 6HCl → 2AlCl₃ + 3H₂. Nhôm cũng cháy trong khí clo: 2Al + 3Cl₂ —t°→ 2AlCl₃ — nạp Cl₂ vào lọ khí rồi đốt nhôm trên muôi. Hai con đường, một sản phẩm! (Lọ khí cũng là bình thu khí: dùng xong nhớ xả sạch trước khi hứng H₂.)',
+  chems:['H2O','HCl','Al','Cl2'], tools:['spoon','book','quy','heat','gas','burn'], dur:340, s1:2,
   orders:[ o(3,'AlCl3',2,{pname:'nhôm clorua (đường axit)'}),
            o(6,'H2',3,{pname:'khí hiđro (0,3 mol — nhôm hào phóng!)'}),
            o(1,'AlCl3',2,{pname:'nhôm clorua (đốt trong clo)'}) ]},
 
  {t:'Sắt — hoá trị II và III',
-  story:'SẮT có tính "hai mặt": gặp axit HCl chỉ chịu hoá trị II (FeCl₂), nhưng gặp khí clo mãnh liệt thì lên hẳn hoá trị III (FeCl₃)! Đốt trong oxi lại ra Fe₃O₄. Cùng một kim loại, ba bộ mặt — đó là sắt.',
-  chems:['H2O','HCl','Cl2','Fe','O2','CuSO4'], tools:['spoon','book','gas','heat','filter'], dur:360, s1:3,
+  story:'SẮT có tính "hai mặt": gặp axit HCl chỉ chịu hoá trị II (FeCl₂), nhưng cháy trong lọ khí clo thì lên hẳn hoá trị III (FeCl₃, khói nâu đỏ)! Đốt trong lọ oxi lại ra Fe₃O₄. Cùng một kim loại, ba bộ mặt — đó là sắt.',
+  chems:['H2O','HCl','Cl2','Fe','O2','CuSO4'], tools:['spoon','book','heat','gas','burn','filter'], dur:360, s1:3,
   orders:[ o(7,'FeCl2',1,{pname:'sắt(II) clorua — Fe + axit'}),
            o(9,'FeCl3',2,{pname:'sắt(III) clorua — Fe + clo'}),
            o(8,'Fe3O4',1,{pname:'oxit sắt từ'}),
@@ -2537,8 +2614,8 @@ DAYS.push(
   metals:['K','Na','Mg','Al','Zn','Fe','Cu','Ag']},
 
  {t:'Halogen — khí clo vàng lục',
-  story:'Gặp gỡ họ HALOGEN — nghĩa là "sinh ra muối"! Đại diện: khí clo Cl₂ vàng lục, độc, phản ứng mãnh liệt: 2Na + Cl₂ → 2NaCl (muối ăn từ khí độc, kỳ diệu chưa!). H₂ + Cl₂ → 2HCl. Cẩn thận khi thao tác nhé!',
-  chems:['H2O','Na','Fe','Cu','H2','Cl2'], tools:['spoon','book','quy','heat'], dur:340, s1:3,
+  story:'Gặp gỡ họ HALOGEN — nghĩa là "sinh ra muối"! Đại diện: khí clo Cl₂ vàng lục, độc, phản ứng mãnh liệt: natri đốt trên muôi rồi đưa vào lọ clo là 2Na + Cl₂ → 2NaCl (muối ăn từ khí độc, kỳ diệu chưa!). Còn H₂ + Cl₂ là hai khí: trộn trong cốc rồi châm lửa → 2HCl. Cẩn thận khi thao tác nhé!',
+  chems:['H2O','Na','Fe','Cu','H2','Cl2'], tools:['spoon','book','quy','heat','gas','burn'], dur:340, s1:3,
   orders:[ o(0,'NaCl',2,{pname:'muối ăn (từ Na + Cl₂!)'}),
            o(9,'FeCl3',2,{pname:'sắt(III) clorua'}),
            o(1,'CuCl2',1,{pname:'đồng(II) clorua'}),
@@ -2552,8 +2629,8 @@ DAYS.push(
            o(2,'NH4Cl',2,{pname:'amoni clorua (0,2 mol)'}) ]},
 
  {t:'Cacbon — từ than đến đá vôi',
-  story:'CACBON đa tài: than cháy cho CO₂, than nóng còn KHỬ được oxit kim loại — 2CuO + C —t°→ 2Cu + CO₂ (bí quyết lò luyện kim từ nghìn năm!). Còn đá vôi CaCO₃ nung già lửa thành vôi sống, gặp axit thì sủi bọt "đá sôi".',
-  chems:['H2O','C','O2','CuO','CaCO3','HCl'], tools:['spoon','book','gas','heat','filter'], dur:360, s1:3,
+  story:'CACBON đa tài: than đốt trong lọ oxi cho CO₂, than nóng còn KHỬ được oxit kim loại — 2CuO + C —t°→ 2Cu + CO₂ (bí quyết lò luyện kim từ nghìn năm!). Còn đá vôi CaCO₃ nung già lửa thành vôi sống, gặp axit thì sủi bọt "đá sôi".',
+  chems:['H2O','C','O2','CuO','CaCO3','HCl'], tools:['spoon','book','heat','gas','burn','filter'], dur:360, s1:3,
   orders:[ o(2,'CO2',1,{pname:'khí cacbonic (đốt than)'}),
            o(5,'Cu',2,{pname:'đồng đỏ (C khử CuO — lò luyện kim!)'}),
            o(7,'CaO',1,{pname:'vôi sống (nung đá vôi)'}),
@@ -2579,8 +2656,8 @@ DAYS.push(
            o(9,'Cl2',1,{pname:'khí clo (hứng ở cực dương)'}) ]},
 
  {t:'Thuốc tím — nhà máy oxi tí hon',
-  story:'KMnO₄ — thuốc tím — là chất oxi hoá siêu siêu mạnh! Khuấy tan tinh thể tím (ít tan lắm đấy, dùng đũa!), rồi ĐUN GIÀ LỬA: 2KMnO₄ —t°→ K₂MnO₄ + MnO₂ + O₂↑. Trò vừa tự điều chế OXI! Dùng chính O₂ đó mà đốt đồng xem sao.',
-  chems:['H2O','KMnO4','Cu'], tools:['spoon','book','gas','heat','filter'], dur:380, s1:2,
+  story:'KMnO₄ — thuốc tím — là chất oxi hoá siêu siêu mạnh! Khuấy tan tinh thể tím (ít tan lắm đấy, dùng đũa!), rồi ĐUN GIÀ LỬA: 2KMnO₄ —t°→ K₂MnO₄ + MnO₂ + O₂↑. Trò vừa tự điều chế OXI! Hứng đầy lọ O₂ đó rồi đốt đồng trên muôi đốt mà xem.',
+  chems:['H2O','KMnO4','Cu'], tools:['spoon','book','heat','gas','burn','filter'], dur:380, s1:2,
   orders:[ o(4,'O2',1,{pname:'khí oxi (nhiệt phân thuốc tím)'}),
            o(6,'MnO2',1,{pname:'mangan đioxit (bã rắn — lọc lấy)'}),
            o(1,'CuO',2,{pname:'đồng oxit (đốt Cu bằng O₂ tự chế!)'}) ]},
@@ -2624,14 +2701,17 @@ const ACH = {
  serve50: {n:'Trợ lý vàng',        d:'Phục vụ 50 đơn hàng'},
  oops:    {n:'Ối, nhầm rồi!',      d:'Giao nhầm hàng lần đầu (ai chẳng có lúc sai)'},
  clean:   {n:'Bàn tay sạch',       d:'Xong một ngày trọn vẹn không giao sai'},
- master:  {n:'Nhà hoá học nhí',    d:'Đạt 3 sao ngày Lễ hội hoá học'}
+ master:  {n:'Nhà hoá học nhí',    d:'Đạt 3 sao ngày Lễ hội hoá học'},
+ burn1:   {n:'Lửa trong lọ',       d:'Đốt cháy một chất trong lọ khí bằng muôi đốt'},
+ hard1:   {n:'Cân đo chuẩn xác',   d:'Đạt ít nhất 1 sao một ngày ở chế độ khó'},
+ hard3:   {n:'Phù thuỷ định lượng',d:'Đạt 3 sao chế độ khó ở 5 ngày khác nhau'}
 };
 
 // days where a perfect no-dump run is possible → star 3 also requires "no waste"
 [0,1,4,5,7,8,10,11,12,13,14,15,21,24].forEach(i => DAYS[i].clean = 1);
 
-const TOOLNAMES = {spoon:'Khuấy', book:'Sổ tay', quy:'Giấy quỳ', gas:'Bình thu khí', heat:'Đèn cồn', filter:'Phễu lọc', elec:'Nguồn điện phân'};
-const TOOLSYM   = {spoon:'sym-stirrod', book:'sym-notebook', quy:'sym-litmusbox', gas:'sym-gasbottle', heat:'sym-lamp', filter:'sym-funnel', elec:'sym-electro'};
+const TOOLNAMES = {spoon:'Khuấy', book:'Sổ tay', quy:'Giấy quỳ', gas:'Bình thu khí', heat:'Đèn cồn', filter:'Phễu lọc', elec:'Nguồn điện phân', burn:'Muôi đốt'};
+const TOOLSYM   = {spoon:'sym-stirrod', book:'sym-notebook', quy:'sym-litmusbox', gas:'sym-gasbottle', heat:'sym-lamp', filter:'sym-funnel', elec:'sym-electro', burn:'sym-burnspoon'};
 
 /* ---- inline-SVG helpers ---- */
 const ico = (id, s) => '<svg class="ico" width="'+(s||20)+'" height="'+(s||20)+'"><use href="#ico-'+id+'"/></svg>';
@@ -2723,6 +2803,9 @@ if(!save.rx) save.rx = [];   // save cũ: sổ tay bắt đầu trống, đầy 
 if(!save.settings) save.settings = {};                 // save cũ: bổ sung ô cài đặt
 if(save.settings.balance === undefined) save.settings.balance = true; // cân bằng phương trình: bật mặc định
 const balanceOn = () => save.settings.balance !== false;
+if(!save.starsHard) save.starsHard = {};               // sao chế độ khó lưu riêng, không đè sao thường
+const hardOn  = () => save.settings.hard === true;     // chế độ khó: tự tính gam / ml / lít
+const cardsOn = () => save.settings.cards !== false;   // thẻ phản ứng khi khám phá: bật mặc định
 const BALANCE_FROM_DAY = 5; // từ ngày này trở đi người chơi tự cân bằng; trước đó giáo sư làm hộ
 const GUIDE_DAY = 3;        // ngày đầu tiên có phản ứng (ngày 4) — giáo sư giảng cách cân bằng
 // đồng đỏ: one copper coin per unlocked achievement, minus what was spent in the shop
@@ -2735,6 +2818,14 @@ function toast(msg){
   const t = document.createElement('div');
   t.className = 'toast'; t.innerHTML = msg;
   G.appendChild(t); setTimeout(()=>t.remove(), 3600);
+  // thông báo mới nằm dưới cùng, cái cũ được đẩy lên trên thay vì bị đè mất chữ; giữ tối đa 3
+  const old = [...G.querySelectorAll('.toast')].filter(x => x !== t).reverse();
+  let y = 20 + t.offsetHeight + 8;
+  old.forEach((x, k) => {
+    if(k >= 2){ x.remove(); return; }
+    x.style.bottom = y + 'px';
+    y += x.offsetHeight + 8;
+  });
 }
 function unlockAch(id){
   if(save.ach.includes(id)) return;
@@ -2773,11 +2864,12 @@ function confirmModal(html, onYes, yesLabel, noLabel){
 
 /* =====================  SCENES  ===================== */
 function showMenu(){
-  // Chế độ khó đang ẩn (startConc vẫn còn, chỉ là chưa có lối vào).
   // Ca tự do chuyển sang tấm lịch: nó là "ngày 1 của tháng sau", xem showMap().
+  // Thử thách pha nồng độ (startConc) mở sau ngày 2 — ngày học khái niệm mol.
   const inProgress = save.unlocked > 1; // đã qua ít nhất ngày 1 → có gì đó để "tiếp tục"
   const nextDay = Math.min(save.unlocked, DAYS.length);
   const totStars = Object.values(save.stars).reduce((a,b)=>a+b,0);
+  const concOpen = DEBUG || save.unlocked > 2;
   G.innerHTML = `<div class="scene center" style="padding:0">
     <div class="menu-wall"></div>
     <div style="position:absolute;top:150px;left:64px">${sym('sym-poster-periodic',126,160)}</div>
@@ -2791,6 +2883,7 @@ function showMenu(){
       ${save.served ? `<div class="menu-stats">${ico('flask',14)} Mở tới ngày ${nextDay}/${DAYS.length} · ${ico('star',14)} ${totStars} sao · ${ico('coinred',14)} ${achCoins()}</div>` : ''}
       <div class="menu-btns">
         <button class="btn big" id="bstart">${inProgress ? ico('play')+' Ngày '+nextDay+' →' : ico('play')+' Bắt đầu'}</button>
+        <button class="btn" id="bconc"${concOpen?'':' style="opacity:.55"'}>${ico(concOpen?'flask':'lock')} Thử thách pha nồng độ</button>
         <button class="btn" id="brx">${ico('note')} Sổ tay</button>
         <button class="btn" id="bach">${ico('trophy')} Thành tựu</button>
         <button class="btn" id="bset">${ico('gear')} Cài đặt</button>
@@ -2814,12 +2907,14 @@ function showMenu(){
   </div>`;
   G.querySelector('#menuprof').innerHTML = profSVG('happy').replace('viewBox','height="225" viewBox');
   G.querySelector('#bstart').onclick = () => go(showMap);
+  G.querySelector('#bconc').onclick = () => concOpen ? go(startConc)
+    : toast(ico('lock',16)+' Học xong ngày 2 (khái niệm mol) đã rồi hẵng thử pha nồng độ nhé!');
   G.querySelector('#brx').onclick = showRxBook;
   G.querySelector('#bach').onclick = showAch;
   G.querySelector('#bset').onclick = settingsModal;
   G.querySelector('#breset').onclick = () => confirmModal(
     '<h2>'+ico('trash',22)+' Xoá dữ liệu?</h2><p style="margin:8px 0">Toàn bộ tiến trình, sao và thành tựu sẽ bị xoá và không thể khôi phục.</p>',
-    () => { save = {unlocked:1, stars:{}, ach:[], served:0, spent:0, rx:[], settings:{balance:true}}; persist(); toast('Đã xoá dữ liệu.'); showMenu(); },
+    () => { save = {unlocked:1, stars:{}, starsHard:{}, ach:[], served:0, spent:0, rx:[], settings:{balance:true}}; persist(); toast('Đã xoá dữ liệu.'); showMenu(); },
     'Xoá hết', 'Giữ lại');
 }
 
@@ -2851,10 +2946,11 @@ function showMap(){
       if(d > DAYS.length){ cells += '<div class="day-card blank"></div>'; continue; } // trailing blanks, like a real month page
       const day = DAYS[d], num = d+1;
       const open = DEBUG || num <= save.unlocked;
-      const st = save.stars[num] || 0;
+      const st = save.stars[num] || 0, sth = save.starsHard[num] || 0;
       cells += `<div class="day-card${open?'':' locked'}${d%7===6?' sun':''}" data-d="${d}">
-        <div class="dn"><span class="dnw">${num}${open && !st ? circ : ''}</span>${open?'':' '+ico('lock',11)}</div>
+        <div class="dn"><span class="dnw">${num}${open && !st && !sth ? circ : ''}</span>${open?'':' '+ico('lock',11)}</div>
         <div class="dt">${day.t}</div>
+        ${sth ? '<div class="sth" title="Sao chế độ khó">khó '+starStr(sth)+'</div>' : ''}
         <div class="st">${open||st?starStr(st):''}</div></div>`;
     }
   }
@@ -3000,6 +3096,10 @@ function showIntro(i){
         ${shelf}${tools}
         <div style="border-top:2px dashed var(--ink);margin-top:8px;padding-top:8px">
           <b>Điều kiện sao:</b><div class="condlist">${conds}</div></div>
+        ${day.mg ? '' : `<div class="settingrow hardrow"><div>
+          <b style="font-family:var(--fh);font-size:16px">${ico('flask',15)} Chế độ khó${save.starsHard[i+1] ? ' <span style="color:#d9634f">'+starStr(save.starsHard[i+1])+'</span>' : ''}</b>
+          <div style="font-size:13px;color:#6b5d4a;margin-top:2px">Đơn hàng ghi theo <b>gam</b> và <b>lít khí</b>; trò tự tính rồi cân, đong từng chất. Sai số cho phép 5%. Thêm 50% thời gian.</div>
+        </div><div class="toggle${hardOn()?' on':''}" id="tglHardIntro" role="switch" aria-checked="${hardOn()}"></div></div>`}
       </div>
     </div>
     <div class="row" style="justify-content:center;margin-top:14px">
@@ -3016,6 +3116,8 @@ function showIntro(i){
   const bnote2 = G.querySelector('#bnote2');
   if(bnote2) bnote2.onclick = () => reviewBalance(i);
   G.querySelector('#bmap').onclick = () => go(showMap);
+  const th = G.querySelector('#tglHardIntro');
+  if(th) th.onclick = () => { save.settings.hard = !hardOn(); persist(); th.classList.toggle('on', hardOn()); th.setAttribute('aria-checked', hardOn()); SFX.clink(); };
 }
 
 /* =====================  CÂN BẰNG PHƯƠNG TRÌNH  ===================== */
@@ -3056,10 +3158,9 @@ function eqEditableTerms(obj, mark, eid){
 }
 function eqEditableRow(idx, eid){
   const r = REACTIONS[idx];
-  const over = [r.heat?'t°':'', r.elec?'đp':'', r.cat?r.cat.map(sub).join(','):''].filter(Boolean).join(', ');
   return '<div class="beq" data-eid="'+eid+'">'
     + eqEditableTerms(r.rg, false, eid)
-    + '<span class="barrow">—'+over+'→</span>'
+    + '<span class="barrow">—'+rxOver(r)+'→</span>'
     + eqEditableTerms(r.pr, true, eid)
     + '<span class="bmark"></span>'
     + '<button class="btn" data-reveal="'+eid+'" style="margin-left:auto;padding:2px 10px;font-size:12px;height:26px">Xem đáp án</button>'
@@ -3185,7 +3286,23 @@ function settingsModal(){
     + '<b style="font-family:var(--fh);font-size:16px">'+ico('note',15)+' Tự cân bằng phương trình</b>'
     + '<div style="font-size:13px;color:#6b5d4a;margin-top:3px;max-width:330px">Từ ngày '+BALANCE_FROM_DAY+' trở đi, trước mỗi ca trò tự điền hệ số. Tắt đi thì giáo sư cân bằng hộ toàn bộ.</div>'
     + '</div><div class="toggle'+(on?' on':'')+'" id="tglBalance" role="switch" aria-checked="'+on+'"></div></div>'
+    + '<div class="settingrow"><div>'
+    + '<b style="font-family:var(--fh);font-size:16px">'+ico('flask',15)+' Chế độ khó</b>'
+    + '<div style="font-size:13px;color:#6b5d4a;margin-top:3px;max-width:330px">Đơn hàng ghi theo gam và lít khí; trò tự tính rồi cân, đong từng chất (sai số 5%). Sao chế độ khó lưu riêng.</div>'
+    + '</div><div class="toggle'+(hardOn()?' on':'')+'" id="tglHard" role="switch" aria-checked="'+hardOn()+'"></div></div>'
+    + '<div class="settingrow"><div>'
+    + '<b style="font-family:var(--fh);font-size:16px">'+ico('star',15)+' Thẻ phản ứng</b>'
+    + '<div style="font-size:13px;color:#6b5d4a;margin-top:3px;max-width:330px">Lần đầu tự tay làm ra một phản ứng, giáo sư dừng lại chiếu cảnh các nguyên tử đổi bạn cho trò xem.</div>'
+    + '</div><div class="toggle'+(cardsOn()?' on':'')+'" id="tglCards" role="switch" aria-checked="'+cardsOn()+'"></div></div>'
     + '<div class="center" style="margin-top:14px"><button class="btn" id="mclose">Đóng</button></div></div>';
+  const flip = (id, key, get) => ov.querySelector(id).onclick = e => {
+    save.settings[key] = !get(); persist();
+    e.currentTarget.classList.toggle('on', get());
+    e.currentTarget.setAttribute('aria-checked', get());
+    SFX.clink();
+  };
+  flip('#tglHard', 'hard', hardOn);
+  flip('#tglCards', 'cards', cardsOn);
   ov.querySelector('#mclose').onclick = () => ov.remove();
   ov.querySelector('#tglSound').onclick = e => {
     const muted = SFX.toggle();            // trả về trạng thái TẮT tiếng
@@ -3194,13 +3311,7 @@ function settingsModal(){
     t.setAttribute('aria-checked', !muted);
     if(!muted) SFX.clink();                // chỉ kêu khi vừa bật lại tiếng
   };
-  ov.querySelector('#tglBalance').onclick = e => {
-    save.settings.balance = !balanceOn(); persist();
-    const t = e.currentTarget;
-    t.classList.toggle('on', balanceOn());
-    t.setAttribute('aria-checked', balanceOn());
-    SFX.clink();
-  };
+  flip('#tglBalance', 'balance', balanceOn);
   G.appendChild(ov);
 }
 
@@ -3224,11 +3335,13 @@ function showResult(i, st){
     if(st.served === all) unlockAch('clean');
   }
   const conds = starConds(day).map((c,k)=>'<div>'+ico(stars>k?'check':'close',15)+' '+ico('star',14).repeat(k+1)+' '+c+'</div>').join('');
-  // save progress
-  const prev = save.stars[num] || 0;
-  if(stars > prev) save.stars[num] = stars;
+  // save progress — chế độ khó có cột sao riêng, nhưng qua được thì vẫn mở ngày kế tiếp
+  const book = st.hard ? save.starsHard : save.stars;
+  if(stars > (book[num] || 0)) book[num] = stars;
   if(stars >= 1 && num >= save.unlocked && num < DAYS.length) save.unlocked = num + 1;
   persist();
+  if(st.hard && stars >= 1) unlockAch('hard1');
+  if(Object.values(save.starsHard).filter(s => s >= 3).length >= 5) unlockAch('hard3');
   // achievements
   if(num === 1 && stars >= 1) unlockAch('d1');
   if(stars === 3) unlockAch('star3');
@@ -3245,7 +3358,7 @@ function showResult(i, st){
   const cheer = stars===3?'Xuất sắc! Không chê vào đâu được!':stars===2?'Làm tốt lắm, gần hoàn hảo rồi!':stars===1?'Ổn đấy! Luyện thêm chút nữa nhé.':'Đừng nản — thử lại nào, ta tin trò!';
   const stamps = [0,1,2].map(k=>'<span class="starstamp" id="stamp'+k+'">'+ico('star',68)+'</span>').join('');
   G.innerHTML = `<div class="scene center" style="padding-top:40px">
-    <h2>Ngày ${num} kết thúc</h2>
+    <h2>Ngày ${num} kết thúc${st.hard ? ' <span style="color:#d9634f">· chế độ khó</span>' : ''}</h2>
     <div class="stamprow">${SPLAT}${stamps}</div>
     <div class="paper" style="max-width:620px;margin:6px auto">
       ${detail}<div class="condlist">${conds}</div>
@@ -3322,7 +3435,8 @@ let TOOLPOS = {};                      // (u,t) từng dụng cụ, để đèn/
    "Khuấy" gộp đũa thuỷ tinh + nút thìa cũ — cả hai vốn làm đúng một việc. */
 const TOOLBOX = {
   rod:    {label:'Khuấy',     symbol:'sym-stirrod',   w:30, h:132, drag:'rod',    gw:28, gh:126},
-  heat:   {label:'Đun nóng',  symbol:'sym-lamp',      w:74, h:88,  drag:'lamp',   gw:58, gh:70},
+  heat:   {label:'Đun nóng',  symbol:'sym-lamp',      w:74, h:88,  drag:'lamp',   gw:58, gh:70, dz:'flame'},
+  burn:   {label:'Đốt',       symbol:'sym-burnspoon', w:36, h:122, drag:'ladle',  gw:36, gh:122, dz:'ladle'},
   elec:   {label:'Điện phân', symbol:'sym-electro',   w:70, h:78,  drag:'elec',   gw:58, gh:66},
   gas:    {label:'Thu khí',   symbol:'sym-gasbottle', w:76, h:108, drag:'gas',    gw:60, gh:86, style:'--gasop:0;--stopop:0'},
   filter: {label:'Lọc',       symbol:'sym-funnel',    w:70, h:88,  drag:'funnel', gw:56, gh:70},
@@ -3331,7 +3445,7 @@ const TOOLBOX = {
   // 'spoon' của ngày cũ đã gộp vào rod; bồn rửa là trạm riêng, không nằm trên bàn
 };
 // ponytail: 'quy' & 'book' vẫn còn trong TOOLBOX — thêm lại vào đây là hiện lại ngay
-const TOOL_ORDER = ['heat','elec','gas','filter'];
+const TOOL_ORDER = ['heat','burn','elec','gas','filter'];
 
 /* mặt bàn + mặt trước, thớ gỗ hội tụ về điểm tụ */
 function benchSVG(){
@@ -3414,10 +3528,12 @@ function stripeCol(f){
 
 /* =====================  DRAG & DROP MANAGER  ===================== */
 // types: chem (cabinet bottle), beaker, gas (collection bottle), dish (filtered solids),
-// lamp (heater), funnel (filter), mgcard (minigame cards via opts.onDrop)
+// lamp (heater), ladle (muôi đốt), funnel (filter), mgcard (minigame cards via opts.onDrop)
+// Ngày có muôi đốt: bình khí kiêm LỌ KHÍ (zone 'jar'), đèn cồn là chỗ hơ lửa (zone 'flame').
 const DZ_ACCEPT = {
   rod:   [], // never dropped — stirring happens during the drag, then it snaps home
-  chem:  ['beaker'],
+  chem:  ['beaker','jar','ladle'],
+  ladle: ['flame','jar','sink'],
   beaker:['cust','sink'],
   gas:   ['beaker','cust','sink'],
   dish:  ['cust','sink'],
@@ -3446,14 +3562,16 @@ function dragify(el, type, opts){
    nên elementFromPoint hay trả về dụng cụ đang cắm vào cốc chứ không phải cốc.
    Không thấy vùng nào thì thử lại xem điểm đó có nằm trong hộp của cốc không. */
 function zoneAt(clientX, clientY, type){
+  const acc = DZ_ACCEPT[type]||[];
   const hit = document.elementFromPoint(clientX, clientY);
   const zEl = hit && hit.closest ? hit.closest('[data-dz]') : null;
-  if(zEl) return zEl;
-  if(!(DZ_ACCEPT[type]||[]).includes('beaker')) return null;
+  // vùng không nhận loại này (vd. đèn cồn đang chui dưới cốc) thì đừng che mất cái cốc phía sau
+  if(zEl && acc.includes(zEl.dataset.dz)) return zEl;
+  if(!acc.includes('beaker')) return zEl;
   const bk = G.querySelector('#beakerItem');
-  if(!bk) return null;
+  if(!bk) return zEl;
   const r = bk.getBoundingClientRect();
-  return (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) ? bk : null;
+  return (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) ? bk : zEl;
 }
 function dragMove(e){
   if(!drag) return;
@@ -3497,7 +3615,7 @@ function dragEnd(e){
     if(d.opts.onDrop) d.opts.onDrop(zname);
     else dropAction(d.type, zname, d.opts.data);
   } else {
-    if(d.opts.onLoose && d.opts.onLoose()){ g.remove(); return; } // e.g. undocking lamp/gas
+    if(d.opts.onLoose && d.opts.onLoose(e)){ g.remove(); return; } // e.g. undocking lamp/gas
     g.style.transition = 'left .38s cubic-bezier(.3,1.5,.5,1), top .38s cubic-bezier(.3,1.5,.5,1), transform .38s';
     g.style.left = (d.sx - d.opts.w/2) + 'px';
     g.style.top  = (d.sy - d.opts.h/2) + 'px';
@@ -3520,7 +3638,13 @@ function svgClone(sel, w, h){
 }
 function dropAction(type, zone, data){
   if(!lab) return;
-  if(type === 'chem'){ addChem(data); return; }
+  if(type === 'chem'){ pourChem(data, zone); return; }
+  if(type === 'ladle'){
+    if(zone === 'flame') igniteLadle();
+    else if(zone === 'jar') burnInJar();
+    else dumpLadle();
+    return;
+  }
   if(type === 'beaker'){
     if(zone === 'cust'){ lab.sel = 'beaker'; serve(); } else dumpBeaker();
     return;
@@ -3547,11 +3671,17 @@ function dropAction(type, zone, data){
   if(type === 'funnel'){ useFilter(); return; }
 }
 
+/* ladle/ladleLit: chất trên muôi đốt & đã bén lửa chưa. hard: ca này chơi chế độ khó
+   (chốt lúc mở tiệm — đổi cài đặt giữa ca không làm lệch cách chấm). dur: thời lượng ca. */
+function newLab(i, day){
+  const hard = hardOn(), dur = hard ? Math.round(day.dur * 1.5) : day.dur;
+  return {i, day, hard, dur, mix:{}, undissolved:{}, dissolveTotal:0, gas:{}, solid:{}, ladle:{}, ladleLit:false,
+          heaterOn:false, elecOn:false, catcher:false, sel:'beaker',
+          time:dur, oi:0, served:0, wrong:0, waste:0, timer:null, lastColor:'', magicDose:1,
+          otime:0, odur:0, waitStage:0, miss:0, lastWhy:'', cardQ:[], cardOpen:false};
+}
 function startLab(i){
-  const day = DAYS[i];
-  lab = {i, day, mix:{}, undissolved:{}, dissolveTotal:0, gas:{}, solid:{}, heaterOn:false, elecOn:false, catcher:false, sel:'beaker',
-         time:day.dur, oi:0, served:0, wrong:0, waste:0, timer:null, lastColor:'', magicDose:1,
-         fromRxn:new Set(), otime:0, odur:0, waitStage:0};
+  lab = newLab(i, DAYS[i]);
   renderLab();
   lab.timer = setInterval(labTick, 1000);
 }
@@ -3564,11 +3694,9 @@ function startFree(){
   // ponytail: orders sampled from the 28-day campaign — always solvable with the union shelf
   const freeOrder = () => { const od = Object.assign({}, pick(pool)); delete od.line; return od; };
   const day = {t:'Chế độ tự do', free:true, freeOrder, chems,
-               tools:['spoon','quy','book','gas','heat','filter','elec'],
+               tools:['spoon','quy','book','gas','heat','burn','filter','elec'],
                dur:540, s1:0, orders:Array.from({length:6}, freeOrder)};
-  lab = {i:-1, day, mix:{}, undissolved:{}, dissolveTotal:0, gas:{}, solid:{}, heaterOn:false, elecOn:false, catcher:false, sel:'beaker',
-         time:day.dur, oi:0, served:0, wrong:0, waste:0, timer:null, lastColor:'', magicDose:1,
-         fromRxn:new Set(), otime:0, odur:0, waitStage:0};
+  lab = newLab(-1, day);
   renderLab();
   lab.timer = setInterval(labTick, 1000);
   toast('Kệ mở toàn bộ '+chems.length+' hoá chất — khách đến vô tận, nghịch thoải mái!');
@@ -3576,7 +3704,7 @@ function startFree(){
 function finishLab(){
   if(!lab) return; // serve-timeout and timer can race — first one wins
   clearInterval(lab.timer);
-  const i = lab.i, st = {served:lab.served, wrong:lab.wrong, waste:lab.waste};
+  const i = lab.i, st = {served:lab.served, wrong:lab.wrong, waste:lab.waste, hard:lab.hard};
   lab = null;
   go(()=>showResult(i, st));
 }
@@ -3591,7 +3719,7 @@ function lerpHex(a, b, t){
 function labTick(){
   if(!lab) return; // an orphaned interval must never outlive the day
   lab.time--;
-  const frac = lab.time/lab.day.dur, p = 1-frac;
+  const frac = lab.time/lab.dur, p = 1-frac;
   const bar = G.querySelector('.timerbar>div');
   if(bar){ bar.style.width = (frac*100)+'%'; bar.style.background = frac>.5?'var(--green)':frac>.2?'var(--accent)':'var(--red)'; }
   const tl = G.querySelector('#tleft');
@@ -3623,7 +3751,7 @@ function labTick(){
   const ck = G.querySelector('#clocksvg');
   if(ck){ ck.style.setProperty('--ckh', ((hours%12)*30)+'deg'); ck.style.setProperty('--ckm', ((hours*60)%60*6)+'deg'); }
   if(lab.heaterOn) runReactions();   // điện phân không tự chạy — xem electrolyse()
-  if(lab.time <= 0){ if(lab.day.free) lab.time = lab.day.dur; else { finishLab(); return; } } // free play: the day just starts over
+  if(lab.time <= 0){ if(lab.day.free) lab.time = lab.dur; else { finishLab(); return; } } // free play: the day just starts over
   if(lab.odur > 0 && lab.otime <= 0) customerLeaves();
 }
 
@@ -3757,7 +3885,10 @@ function benchTools(day){
     const t = 0.86 - Math.abs(0.5 - spread) * 0.13;
     TOOLPOS[key] = {u, t};
     const art = sym(tl.symbol, tl.w, tl.h, tl.style || '').replace('<svg ', '<svg id="sv_'+key+'" ');
-    return place({u, t, w:tl.w, h:tl.h, art, z:20, id:'tool_'+key, cls:'grab',
+    // có muôi đốt thì bình khí kiêm lọ khí (thả bình O₂/Cl₂ vào để nạp, thả muôi đang cháy vào để đốt)
+    const dz = key === 'gas' ? (day.tools.includes('burn') ? 'jar' : undefined)
+             : key === 'heat' ? (day.tools.includes('burn') ? tl.dz : undefined) : tl.dz;
+    return place({u, t, w:tl.w, h:tl.h, art, z:20, id:'tool_'+key, cls:'grab', dz,
                   over:'<div class="toolcap">'+tl.label+'</div>'});
   }).join('');
 }
@@ -3766,12 +3897,14 @@ function renderLab(){
   const day = lab.day;
   const has = t => day.tools.includes(t);
   const shelfHtml = day.chems.map(f => { const c = CHEMS[f];
+    // chế độ khó: lọ dung dịch ghi rõ nồng độ — phải biết Cₘ mới tính được thể tích cần đong
+    const cm = lab.hard && SOL_CM[f] ? ' <small class="cm">'+fmt(SOL_CM[f],2)+'M</small>' : '';
     return '<div class="chem" data-f="'+f+'">' +
-      '<div class="cc-tag" style="--stripe:'+stripeCol(f)+'"><span class="f">'+sub(f)+'</span><span class="nm">'+c.n+'</span></div>' +
+      '<div class="cc-tag" style="--stripe:'+stripeCol(f)+'"><span class="f">'+sub(f)+cm+'</span><span class="nm">'+c.n+'</span></div>' +
       sym(contSym(f),60,84,'--lc:'+c.c+';--lc2:#00000022') +
       '</div>'; }).join('');
   
-  const hasMagicTools = save.items && save.items.tools;
+  const hasMagicTools = save.items && save.items.tools && !lab.hard; // chế độ khó tự cân đong, không dùng thìa ma thuật
   const doseSelectorHtml = hasMagicTools ? `
     <div class="dose-selector" style="display:flex;align-items:center;justify-content:center;gap:6px;margin:0 0 10px 0;background:#fffdf5;border:1.5px solid var(--ink);border-radius:8px;padding:4px 8px;font-size:14px;font-family:var(--fh)">
       <span style="color:var(--ink)">Lượng đong: </span>
@@ -3794,11 +3927,12 @@ function renderLab(){
 
   G.innerHTML = `<div class="scene" style="padding:0">
     <div class="hudboard">${sym('sym-benchtex',1240,52,'position:absolute;left:20px;top:6px;opacity:.4;pointer-events:none')}
-      <span class="hud-title">${day.free ? 'Ngày 1 · tự do' : 'Ngày '+(lab.i+1)}</span>
+      <span class="hud-title">${day.free ? 'Ngày 1 · tự do' : 'Ngày '+(lab.i+1)}${lab.hard ? ' · <span style="color:#a8331f">khó</span>' : ''}</span>
       <div class="timerbar"><div style="width:100%"></div></div>
       <span class="hudstat" id="tleft">${Math.floor(lab.time/60)}:${String(lab.time%60).padStart(2,'0')}</span>
       <span class="hudstat">Đơn: <span id="ordn">${lab.served}</span>${day.free ? '' : '/'+day.orders.length}</span>
       <div style="flex:1"></div>
+      ${lab.hard ? `<button class="btn" id="bhbook" style="padding:5px 12px">${ico('book')} Công thức</button>` : ''}
       <button class="btn icobtn" id="bmute">${ico(SFX.isMuted()?'mute':'sound')}</button>
       <button class="btn icobtn" id="bpause">${ico('pause')}</button>
     </div>
@@ -3839,20 +3973,26 @@ function renderLab(){
   // buttons
   G.querySelector('#bpause').onclick = pauseLab;
   G.querySelector('#bmute').onclick = e => { const m = SFX.toggle(); e.currentTarget.innerHTML = ico(m?'mute':'sound'); };
+  const hb = G.querySelector('#bhbook'); if(hb) hb.onclick = showHardBook;
   // hoá chất trong tủ
   G.querySelectorAll('.chem').forEach(c => { const gt = chemDragTool(c.dataset.f);
     dragify(c, 'chem', {
       data: c.dataset.f, w:gt.w, h:gt.h,
       ghostHTML: () => gt.html,
-      onClick: () => addChem(c.dataset.f) // bấm cũng rót — đường tắt
+      onClick: () => pourChem(c.dataset.f, 'beaker') // bấm cũng rót — đường tắt
     });
     factHover(c, c.dataset.f); });
   dragify(G.querySelector('#beakerItem'), 'beaker', {w:110, h:132, ghostHTML: () => svgClone('#beakersvg',110,132)});
   // dụng cụ trên bàn: mỗi thứ một ô, ai cũng có nhãn
+  const overBeaker = e => { const bk = G.querySelector('#beakerItem'); if(!bk || !e) return false;
+    const r = bk.getBoundingClientRect();
+    return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; };
   const LOOSE = {
     lamp: () => { if(lab.heaterOn){ setHeat(false); return true; } return false; },
     elec: () => { if(lab.elecOn){ setElec(false); return true; } return false; },
-    gas:  () => { if(lab.catcher){ setCatch(false); return true; } return false; }
+    gas:  () => { if(lab.catcher){ setCatch(false); return true; } return false; },
+    // nhúng muôi vào cốc: không đốt trong cốc — nói rõ lý do thay vì lặng lẽ bật về
+    ladle: e => { if(overBeaker(e)){ SFX.err(); toast('Không đốt trong cốc! Đưa muôi đang cháy vào <b>lọ khí</b> (bình khí đã nạp O₂ hoặc Cl₂).'); } return false; }
   };
   Object.keys(TOOLPOS).forEach(key => {
     const tl = TOOLBOX[key], el = G.querySelector('#tool_'+key);
@@ -3869,10 +4009,11 @@ function renderLab(){
       // đũa: bấm một cái = khuấy một nhát, thay cho nút "Khuấy" cũ
       onClick: key === 'rod' ? (() => {
         if(tot(lab.undissolved) > 0){ dissolveStep(); return; }
-        wiggleBeaker(); SFX.pour(); runReactions(); updateBeaker();
-      }) : undefined
+        wiggleBeaker(); SFX.pour(); if(!runReactions()) explainNoRx(); updateBeaker();
+      }) : key === 'burn' ? (() => toast(ladleHint())) : undefined
     });
   });
+  syncLadle();
   
   if(hasMagicTools){
     const dec = G.querySelector('#dose-dec');
@@ -3922,36 +4063,26 @@ const RQ = v => Math.round(v*1000)/1000; // quantize doses to 0.001 (=0.0001 mol
 function runReactions(collect){
   const mix = lab.mix, fired = [];
   const hasLiquid = () => Object.keys(mix).some(f => mix[f] > 0 && (CHEMS[f].s === 'l' || CHEMS[f].s === 'd'));
-  const hasGas = () => Object.keys(mix).some(f => mix[f] > 0 && CHEMS[f].s === 'k');
-  // Oxi "chùa" từ không khí chỉ đốt được thứ người chơi tự bỏ vào cốc. Nếu không có luật này,
-  // kim loại vừa được khử ra (Cu, Fe…) sẽ bị đốt ngược thành oxit ngay trong cùng vòng lặp —
-  // xem lab.fromRxn: tập các chất đang có trong cốc do phản ứng sinh ra.
-  const airO2 = r => r.heat && lab.heaterOn && !hasGas()
-    && !Object.keys(r.rg).some(x => x !== 'O2' && lab.fromRxn.has(x));
-  // …và chỉ là phương án cuối: nếu trong cốc đã có chất oxi hoá thật (CuO, Fe₂O₃…) thì
-  // phản ứng khử đó thắng, không để than/hiđro cháy vô ích với oxi không khí trước.
-  const usesAirO2 = r => r.rg['O2'] !== undefined && airO2(r);
+  // Không còn "oxi chùa" từ không khí: phản ứng cháy (burn) không bao giờ chạy trong cốc,
+  // phải làm bằng muôi đốt trong lọ khí — xem burnInJar().
   for(let pass=0; pass<5; pass++){
     const cands = REACTIONS.filter(r => {
-      if(r.elec) return false;   // điện phân chỉ chạy khi người chơi bấm, xem electrolyse()
+      if(r.elec || r.burn) return false;   // điện phân chỉ chạy khi người chơi bấm, xem electrolyse()
       if(r.heat && !lab.heaterOn) return false;
       if(r.cat && !r.cat.every(f => (mix[f]||0) > 0)) return false;   // xúc tác phải có mặt
       return Object.keys(r.rg).every(f => {
-        if(f === 'O2' && airO2(r)) return true;
-        if(f === 'H2O' && !r.elec && hasLiquid()) return true; // điện phân tiêu nước thật, không coi là dư
+        if(f === 'H2O' && hasLiquid()) return true; // nước dung môi coi như dư
         return (mix[f]||0) > 0;
       });
     });
     if(!cands.length) break;
-    cands.sort((a,b) => (usesAirO2(a)?1:0)-(usesAirO2(b)?1:0) // đốt bằng oxi không khí xếp cuối
-                     || (a.last||0)-(b.last||0) || tot(b.rg) - tot(a.rg)); // demanding ratio wins; last-flagged (điện phân nước) always yields
+    cands.sort((a,b) => (a.last||0)-(b.last||0) || tot(b.rg) - tot(a.rg)); // demanding ratio wins; last-flagged always yields
     const r = cands[0];
     const n = Math.min(...Object.keys(r.rg).map(f => {
-      if(f === 'O2' && airO2(r)) return Infinity;
-      if(f === 'H2O' && !r.elec && hasLiquid()) return Infinity;
+      if(f === 'H2O' && hasLiquid()) return Infinity;
       return mix[f]/r.rg[f];
     })); // fractional extent — limiting reagent runs out
-    fired.push(applyReaction(r, n, f => (f === 'O2' && airO2(r)) || (f === 'H2O' && !r.elec && hasLiquid())));
+    fired.push(applyReaction(r, n, f => f === 'H2O' && hasLiquid()));
   }
   if(collect){ fired.forEach(x => collect.push(x)); return fired.length; }
   if(fired.length){
@@ -3968,6 +4099,7 @@ function learnRx(r){
   if(i < 0 || save.rx.includes(i)) return;
   save.rx.push(i); persist();
   if(save.rx.length === REACTIONS.length) unlockAch('rxall');
+  if(lab && cardsOn()) queueRxCard(r);   // lần đầu tự tay làm ra → giáo sư chiếu thẻ phản ứng
 }
 function showRxBook(){
   const done = new Set(save.rx);
@@ -3977,8 +4109,9 @@ function showRxBook(){
     let left = 0;
     for(let i = g.i; i < to; i++){
       if(!done.has(i)){ left++; continue; }        // chưa gặp thì gộp thành một dòng cuối nhóm,
-      items.push('<div class="eq">' + eqStr(REACTIONS[i])   // liệt kê từng dấu ? chỉ tổ dài sổ
+      items.push('<div class="eq" data-rx="' + i + '" title="Bấm để xem thẻ phản ứng">' + eqStr(REACTIONS[i])   // liệt kê từng dấu ? chỉ tổ dài sổ
         + (REACTIONS[i].heat ? ' <small>(cần đun)</small>' : '')
+        + (REACTIONS[i].burn ? ' <small>(đốt trong lọ khí)</small>' : '')
         + (REACTIONS[i].elec ? ' <small>(điện phân)</small>' : '')
         + (fxOf(REACTIONS[i]) ? ' <small style="opacity:.7">— ' + fxOf(REACTIONS[i]) + '</small>' : '') + '</div>');
     }
@@ -3988,18 +4121,19 @@ function showRxBook(){
   modal('<div class="center">' + sym('sym-notebook-open',300,175) + '</div>'
     + '<h2>Sổ tay — những gì đã học</h2>'
     + '<p class="center" style="margin:0 0 10px">Đã ghi được <b>' + save.rx.length + '/' + REACTIONS.length
-    + '</b> phản ứng. Tự tay pha ra phản ứng nào thì nó hiện ra ở đây.</p>' + rows);
+    + '</b> phản ứng. Tự tay pha ra phản ứng nào thì nó hiện ra ở đây — <b>bấm vào</b> một dòng để xem lại thẻ phản ứng.</p>' + rows);
+  G.querySelectorAll('.eq[data-rx]').forEach(el => el.onclick = () => showRxCard(REACTIONS[+el.dataset.rx]));
 }
 
 /* Áp dụng MỘT phản ứng với mức độ n. skip(f) = chất coi như có sẵn không tốn
-   (oxi không khí, nước dung môi). Dùng chung cho phản ứng tự phát và điện phân. */
+   (nước dung môi). Dùng chung cho phản ứng tự phát và điện phân. */
 function applyReaction(r, n, skip){
   const mix = lab.mix;
   learnRx(r);
   Object.keys(r.rg).forEach(f => {
     if(skip && skip(f)) return;
     mix[f] = RQ(mix[f] - r.rg[f]*n);
-    if(mix[f] < 0.01){ delete mix[f]; lab.fromRxn.delete(f); }
+    if(mix[f] < 0.01) delete mix[f];
   });
   let gasNote = '';
   Object.keys(r.pr).forEach(f => {
@@ -4011,7 +4145,6 @@ function applyReaction(r, n, skip){
       else gasNote = ' — khí '+sub(f)+' bay mất!';
     } else {
       mix[f] = RQ((mix[f]||0) + q);
-      lab.fromRxn.add(f); // do phản ứng sinh ra → oxi không khí không được đốt lại
       if(isPrecip(f)) spawnFall(CHEMS[f].c);
     }
   });
@@ -4081,22 +4214,231 @@ function flashStirRing(){
   ring.classList.remove('flash'); void ring.offsetWidth; ring.classList.add('flash');
 }
 
-function addChem(f){
+/* =====================  RÓT HOÁ CHẤT  =====================
+   Một lọ trong tủ thả được vào CỐC (rót), vào MUÔI ĐỐT (chất rắn để đốt) hoặc vào
+   LỌ KHÍ (nạp O₂/Cl₂). Chế độ khó hỏi gam / ml / lít trước khi rót — xem askDose(). */
+const JAR_GASES = ['O2','Cl2'];   // lọ chỉ nạp sẵn khí để ĐỐT; khí khác phải tự điều chế rồi hứng
+function pourChem(f, where){
+  const c = CHEMS[f];
+  if(where === 'jar' && !JAR_GASES.includes(f)){
+    SFX.err();
+    toast(c.s === 'k' ? 'Lọ khí chỉ nạp sẵn <b>O₂</b> hoặc <b>Cl₂</b> để làm thí nghiệm đốt. Khí khác phải tự điều chế rồi hứng bằng bộ thu khí.'
+                      : 'Lọ khí chỉ chứa <b>khí</b>. Chất rắn muốn đốt thì thả vào <b>muôi đốt</b>, còn lại rót vào cốc.');
+    return;
+  }
+  if(where === 'ladle' && c.s !== 'r'){
+    SFX.err();
+    toast('Muôi đốt chỉ đựng chất <b>rắn</b>. ' + (JAR_GASES.includes(f) ? 'Khí '+sub(f)+' thì nạp vào <b>lọ khí</b> (bình Thu khí).' : 'Chất này rót vào cốc.'));
+    return;
+  }
+  askDose(f, dose => where === 'jar' ? fillJar(f, dose) : where === 'ladle' ? loadLadle(f, dose) : addChem(f, dose));
+}
+const baseDose = () => (save.items && save.items.tools && !lab.hard) ? lab.magicDose : 1;
+
+function addChem(f, dose){
   const th = G.querySelector('#tuthand'); if(th) th.remove();
   pourFX(f);
-  lab.fromRxn.delete(f); // người chơi chủ động rót vào → được phép đốt trong không khí
-  const dose = (save.items && save.items.tools && lab && lab.magicDose !== undefined) ? lab.magicDose : 1;
   if(SLOW_DISSOLVE.includes(f)){ // settles at the bottom: no reactions, no serving until stirred in
     lab.undissolved[f] = RQ((lab.undissolved[f]||0) + dose);
     lab.dissolveTotal = RQ(lab.dissolveTotal + dose);
-    toast(amt(dose) + ' ' + sub(f) + ' — ít tan! Kéo đũa <b>Khuấy</b> vào cốc rồi khuấy tròn cho tan.');
+    toast(doseStr(f, dose) + ' ' + sub(f) + ' — ít tan! Kéo đũa <b>Khuấy</b> vào cốc rồi khuấy tròn cho tan.');
     updateBeaker();
     return;
   }
   lab.mix[f] = RQ((lab.mix[f]||0) + dose);
   if(CHEMS[f].s === 'd') lab.mix.H2O = RQ((lab.mix.H2O||0) + dose); // dung dịch nào cũng mang theo nước
-  runReactions();
+  if(!runReactions()) explainNoRx(f);
   updateBeaker();
+}
+
+/* =====================  ĐỐT TRONG LỌ KHÍ  =====================
+   Đốt thật không bỏ chất vào cốc rồi đun. Ba bước như SGK:
+     1. nạp O₂ / Cl₂ vào lọ khí (ngày có muôi đốt thì bình Thu khí kiêm lọ khí)
+     2. thả chất rắn vào muôi đốt, hơ muôi qua đèn cồn cho bén lửa
+     3. đưa muôi đang cháy vào lọ → phản ứng có cờ burn trong phan-ung.js
+   Sản phẩm khí ở lại trong lọ (giao nguyên lọ), sản phẩm rắn gạt ra đĩa, hơi nước đọng thành lọ. */
+const FLAME_COL = {Mg:'#ffffff', Al:'#ffffff', Fe:'#ffc46b', S:'#6f8ff0', P:'#fff1c9', C:'#ff7a3a',
+                   Cu:'#ff9a52', Zn:'#d6efb0', Na:'#ffd23f', K:'#c79bff', C12H22O11:'#ffa64d'};
+const ladleFuel = () => Object.keys(lab.ladle).filter(f => lab.ladle[f] > 0);
+function fillJar(f, dose){
+  lab.gas[f] = RQ((lab.gas[f]||0) + dose);
+  SFX.pour();
+  toast('Đã nạp ' + doseStr(f, dose) + ' ' + sub(f) + ' vào lọ khí.');
+  updateBeaker();
+}
+function loadLadle(f, dose){
+  lab.ladle[f] = RQ((lab.ladle[f]||0) + dose);
+  SFX.grain();
+  toast('Đã cho ' + doseStr(f, dose) + ' ' + sub(f) + ' lên muôi đốt.'
+        + (lab.ladleLit ? '' : ' Giờ kéo muôi qua <b>đèn cồn</b> để hơ cho bén lửa.'));
+  syncLadle(); updateCoach();
+}
+function igniteLadle(){
+  const fuel = ladleFuel();
+  if(!fuel.length){ SFX.err(); toast('Muôi đang trống — thả chất rắn từ tủ vào muôi rồi mới hơ lửa.'); return; }
+  const lamp = G.querySelector('#sv_heat');
+  if(lamp && !lab.heaterOn){   // đèn loé lên một nhịp cho thấy là vừa hơ qua lửa
+    lamp.style.setProperty('--flame', 1);
+    setTimeout(() => { if(lab && !lab.heaterOn) lamp.style.setProperty('--flame', 0); }, 1200);
+  }
+  if(lab.ladleLit){ toast('Muôi đang cháy rồi — đưa nhanh vào lọ khí!'); return; }
+  lab.ladleLit = true;
+  SFX.fizz();
+  toast(fuel.map(sub).join(', ') + ' trên muôi đã bén lửa — đưa nhanh vào <b>lọ khí</b>!');
+  syncLadle(); updateCoach();
+}
+function dumpLadle(){
+  if(!ladleFuel().length){ toast('Muôi đang trống.'); return; }
+  lab.ladle = {}; lab.ladleLit = false;
+  SFX.splash(); toast('Đã đổ chất trên muôi vào bồn.');
+  syncLadle(); updateCoach();
+}
+function burnInJar(){
+  const fuel = ladleFuel();
+  if(!fuel.length){ SFX.err(); toast('Muôi đang trống — thả chất rắn từ tủ vào muôi trước.'); return; }
+  if(!lab.ladleLit){ SFX.err(); toast('Chất trên muôi chưa bén lửa — kéo muôi qua <b>đèn cồn</b> để hơ trước đã.'); return; }
+  const gases = Object.keys(lab.gas).filter(f => lab.gas[f] > 0);
+  if(!gases.length){
+    SFX.err(); lab.ladleLit = false; syncLadle();
+    toast('Lọ trống không — chút oxi trong lọ hết ngay, lửa tắt ngấm. Nạp <b>O₂</b> hoặc <b>Cl₂</b> vào lọ trước!');
+    return;
+  }
+  const amtIn = f => CHEMS[f].s === 'k' ? (lab.gas[f]||0) : (lab.ladle[f]||0);
+  const fired = [], obs = [];
+  let solids = false;
+  for(let pass = 0; pass < 4; pass++){
+    const r = REACTIONS.find(r => r.burn && Object.keys(r.rg).every(f => amtIn(f) > 0));
+    if(!r) break;
+    const n = Math.min(...Object.keys(r.rg).map(f => amtIn(f) / r.rg[f]));
+    learnRx(r);
+    Object.keys(r.rg).forEach(f => {
+      const box = CHEMS[f].s === 'k' ? lab.gas : lab.ladle;
+      box[f] = RQ(box[f] - r.rg[f]*n);
+      if(box[f] < 0.01) delete box[f];
+    });
+    Object.keys(r.pr).forEach(f => {
+      const q = RQ(r.pr[f]*n);
+      if(CHEMS[f].s === 'k') lab.gas[f] = RQ((lab.gas[f]||0) + q);           // khí ở lại trong lọ
+      else if(f !== 'H2O'){ lab.solid[f] = RQ((lab.solid[f]||0) + q); solids = true; } // hơi nước đọng thành lọ
+    });
+    fired.push(eqStr(r));
+    if(r.obs) obs.push(r.obs);
+  }
+  if(!fired.length){
+    SFX.err(); lab.ladleLit = false; syncLadle();
+    const ox = gases.filter(f => JAR_GASES.includes(f));
+    toast(fuel.map(sub).join(', ') + (ox.length ? ' không cháy được trong khí ' + ox.map(sub).join(', ') + '.'
+                                                : ' không cháy trong ' + gases.map(sub).join(', ') + ' — lọ cần khí <b>oxi</b> hoặc <b>clo</b>.')
+          + ' Lửa tắt rồi.');
+    return;
+  }
+  unlockAch('burn1');
+  burnFX(fuel[0]);
+  SFX.fizz(); setTimeout(SFX.clink, 260);
+  const left = ladleFuel();
+  lab.ladleLit = false;   // hết chất cháy, hoặc hết khí trong lọ → lửa tắt
+  toast(fired.join('<br>') + (obs.length ? '<br><i>' + obs.join(' ') + '</i>' : '')
+        + (solids ? '<br>Chất rắn được gạt từ muôi ra <b>đĩa</b>.' : '')
+        + (left.length ? '<br>Lọ hết khí nên lửa tắt — trên muôi còn dư ' + left.map(sub).join(', ') + '.' : ''));
+  syncLadle();
+  updateBeaker();
+}
+function burnFX(f){
+  const jar = G.querySelector('#tool_gas'), sp = G.querySelector('#tool_burn');
+  if(!jar) return;
+  const gr = G.getBoundingClientRect(), s = gr.width/1280, r = jar.getBoundingClientRect();
+  const cx = (r.left + r.width/2 - gr.left)/s, cy = (r.top + r.height*0.5 - gr.top)/s;
+  if(sp){   // muôi thò vào lọ một nhịp: nắp muôi đậy đúng miệng lọ, rồi rút ra
+    const q = sp.getBoundingClientRect();
+    sp.style.transition = 'transform .3s ease-out';
+    sp.style.transform = 'translate(' + (cx - (q.left + q.width/2 - gr.left)/s) + 'px,'
+                       + ((r.top - q.top)/s + r.height*0.19/s - q.height*0.36/s) + 'px)';
+    setTimeout(() => { sp.style.transform = ''; }, 1300);
+  }
+  const col = FLAME_COL[f] || '#ffb347';
+  const fx = document.createElement('div');
+  fx.className = 'burnfx';
+  fx.style.cssText = 'left:' + cx + 'px;top:' + cy + 'px;--fc:' + col;
+  G.appendChild(fx); setTimeout(() => fx.remove(), 1500);
+  // sắt toé hoa lửa, photpho/kim loại cháy toả khói trắng, còn lại vài tia nhỏ
+  const smoke = ['P','Mg','Al','Zn','Na','K'].includes(f), n = f === 'Fe' ? 16 : 8;
+  for(let k = 0; k < n; k++){
+    const p = document.createElement('div');
+    p.className = smoke ? 'burnsmoke' : 'burnspark';
+    const a = Math.random()*Math.PI*2, d = 26 + Math.random()*(f === 'Fe' ? 52 : 26);
+    p.style.cssText = 'left:' + cx + 'px;top:' + cy + 'px;--dx:' + (Math.cos(a)*d).toFixed(0) + 'px;--dy:'
+      + (Math.sin(a)*d - (smoke ? 34 : 0)).toFixed(0) + 'px;--fc:' + col + ';animation-delay:' + (Math.random()*.25).toFixed(2) + 's';
+    G.appendChild(p); setTimeout(() => p.remove(), 1500);
+  }
+}
+function syncLadle(){
+  const sv = G.querySelector('#sv_burn'); if(!sv || !lab) return;
+  const fuel = ladleFuel(), lit = lab.ladleLit && fuel.length > 0;
+  sv.style.setProperty('--fuel', fuel.length ? 1 : 0);
+  if(fuel.length) sv.style.setProperty('--lc', CHEMS[fuel[0]].c);
+  sv.style.setProperty('--flame', lit ? 1 : 0);
+  sv.style.setProperty('--fc', FLAME_COL[fuel[0]] || '#ffb347');
+  const it = G.querySelector('#tool_burn');
+  if(it){
+    it.classList.toggle('lit', lit);
+    const cap = it.querySelector('.toolcap');
+    if(cap) cap.innerHTML = 'Đốt' + (fuel.length ? ' · ' + fuel.map(sub).join(', ') : '');
+  }
+}
+function ladleHint(){
+  if(!ladleFuel().length) return '<b>Muôi đốt</b>: thả chất rắn từ tủ vào muôi → kéo muôi qua <b>đèn cồn</b> cho bén lửa → đưa vào <b>lọ khí</b> (bình Thu khí đã nạp O₂ / Cl₂).';
+  if(!lab.ladleLit) return 'Kéo muôi qua <b>đèn cồn</b> để hơ cho chất trên muôi bén lửa.';
+  return 'Muôi đang cháy — kéo vào <b>lọ khí</b> (bình Thu khí đã nạp O₂ / Cl₂)!';
+}
+
+/* =====================  VÌ SAO KHÔNG PHẢN ỨNG?  =====================
+   Cốc im re thì giáo sư nói LÝ DO (đốt nhầm chỗ, thiếu nhiệt, dãy hoạt động, chất không tan…)
+   thay vì để trò thử bừa. focus = chất vừa rót: chỉ nói lý do có dính tới chất đó. */
+const ACTIVITY = ['K','Na','Mg','Al','Zn','Fe','H','Cu','Ag'];
+const METALS = ACTIVITY.filter(m => m !== 'H');
+const metalOf = f => (f.match(/^(K|Na|Mg|Al|Zn|Fe|Cu|Ag|Ca|Ba|Mn)(?![a-z])/) || [])[1];
+function whyNoReaction(focus){
+  const mix = lab.mix, tools = lab.day.tools;
+  const has = f => (mix[f]||0) > 0.009;
+  const here = Object.keys(mix).filter(has), rest = here.filter(f => f !== 'H2O');
+  const liquid = here.some(f => CHEMS[f].s === 'l' || CHEMS[f].s === 'd');
+  const ready = r => Object.keys(r.rg).every(f => has(f) || (f === 'H2O' && liquid));
+  const hit = inv => !focus || inv.includes(focus);
+  for(const r of REACTIONS) if(r.burn && ready(r)){
+    const g = Object.keys(r.rg).find(f => CHEMS[f].s === 'k'), fu = Object.keys(r.rg).find(f => f !== g);
+    if(hit([g, fu])) return tools.includes('burn')
+      ? 'Phản ứng CHÁY không làm trong cốc: thả <b>' + sub(fu) + '</b> vào <b>muôi đốt</b>, hơ qua đèn cồn cho bén lửa, rồi đưa vào lọ khí đã nạp <b>' + sub(g) + '</b>.'
+      : sub(fu) + ' chỉ cháy khi được đốt nóng trong khí ' + sub(g) + ' — hôm nay không có muôi đốt.';
+  }
+  if(!lab.heaterOn && tools.includes('heat')){
+    const r = REACTIONS.find(r => r.heat && ready(r) && (!r.cat || r.cat.every(has)));
+    if(r && hit(Object.keys(r.rg))) return 'Đủ chất rồi, nhưng phản ứng này cần <b>nhiệt</b> — kéo <b>Đun nóng</b> vào cốc.';
+  }
+  const metals = METALS.filter(has);
+  for(const a of ['HCl','H2SO4']) if(has(a)) for(const m of metals)
+    if(ACTIVITY.indexOf(m) > ACTIVITY.indexOf('H') && hit([m, a]))
+      return '<b>' + m + '</b> đứng sau <b>H</b> trong dãy hoạt động (K Na Mg Al Zn Fe <b>H</b> Cu Ag) nên không đẩy được hiđro ra khỏi axit ' + sub(a) + '.';
+  const salts = rest.filter(f => !METALS.includes(f) && CHEMS[f].s === 'r' && CHEMS[f].sol && METALS.includes(metalOf(f)));
+  for(const m of metals) for(const s of salts){
+    const sm = metalOf(s);
+    if(m !== sm && ACTIVITY.indexOf(m) > ACTIVITY.indexOf(sm) && hit([m, s]))
+      return '<b>' + m + '</b> yếu hơn <b>' + sm + '</b> trong dãy hoạt động nên không đẩy được ' + sm + ' ra khỏi ' + sub(s) + '.';
+  }
+  if(has('H2O') && rest.length && rest.every(f => metals.includes(f)) && hit(rest.concat('H2O')))
+    return '<b>' + rest.join(', ') + '</b> không tác dụng với nước ở nhiệt độ thường — chỉ kim loại rất mạnh như K, Na mới làm được.';
+  if(has('H2O') && rest.length && rest.every(isPrecip) && hit(rest.concat('H2O')))
+    return '<b>' + rest.map(sub).join(', ') + '</b> không tan và không phản ứng với nước.';
+  const sol = rest.filter(f => CHEMS[f].s === 'r' && CHEMS[f].sol && (metalOf(f) || f.startsWith('NH4')));   // muối thật, không tính đường
+  if(sol.length >= 2 && sol.length === rest.length && hit(sol))
+    return 'Hai muối chỉ trao đổi với nhau khi sinh ra chất <b>kết tủa</b> (hoặc khí) — ' + sol.map(sub).join(' và ') + ' trộn vào vẫn tan hết.';
+  return null;
+}
+// nói một lần cho mỗi lý do mới — rót tiếp cùng một lỗi thì không lải nhải
+function explainNoRx(focus){
+  const why = whyNoReaction(focus);
+  if(!why || why === lab.lastWhy) return;
+  lab.lastWhy = why;
+  setTimeout(() => { if(lab) toast('<b>Giáo sư:</b> ' + why); }, 350);
 }
 
 /* ---- pouring animation (visual only; logic already applied) ----
@@ -4204,6 +4546,9 @@ function updateBeaker(){
   const gs = G.querySelector('#sv_gas');
   if(gs){ const full = tot(lab.gas) ? 1 : 0;
           gs.style.setProperty('--gasop', full); gs.style.setProperty('--stopop', full); }
+  const gcap = G.querySelector('#tool_gas .toolcap');   // bình kiêm lọ khí: nhãn cho biết đang chứa khí gì
+  if(gcap){ const ks = Object.keys(lab.gas).filter(f => lab.gas[f] > 0);
+            gcap.innerHTML = 'Thu khí' + (ks.length ? ' · ' + ks.map(sub).join(', ') : ''); }
   if(lab.elecOn) renderElecPanel();
   updateCoach();
   syncDish();
@@ -4287,7 +4632,7 @@ function setHeat(on){
   }
   if(lab.catcher) syncGasRig();   // cốc nhấc lên/hạ xuống thì chuông phải bám theo
   SFX.clink();
-  if(on) runReactions();
+  if(on && !runReactions()) explainNoRx();
   updateBeaker();
 }
 /* điện phân: cùng lối cắm, hai điện cực thả vào lòng cốc */
@@ -4361,7 +4706,7 @@ function useFilter(){
   const fn = G.querySelector('#sv_filter');
   if(fn){ fn.style.setProperty('--dripop', 1); setTimeout(()=>fn.style.setProperty('--dripop', 0), 1400); }
   SFX.pour();
-  moved.forEach(f => { lab.solid[f] = (lab.solid[f]||0) + lab.mix[f]; delete lab.mix[f]; lab.fromRxn.delete(f); });
+  moved.forEach(f => { lab.solid[f] = (lab.solid[f]||0) + lab.mix[f]; delete lab.mix[f]; });
   unlockAch('filter1');
   toast('Đã lọc ' + moved.map(sub).join(', ') + ' sang đĩa.');
   updateBeaker();
@@ -4385,7 +4730,6 @@ function dissolveStep(){
   lab.undissolved[f] = RQ(lab.undissolved[f] - take);
   if(lab.undissolved[f] <= 0) delete lab.undissolved[f];
   lab.mix[f] = RQ((lab.mix[f]||0) + take);
-  lab.fromRxn.delete(f);
   wiggleBeaker(); SFX.pour();
   runReactions();
   if(tot(lab.undissolved) <= 0){ lab.dissolveTotal = 0; toast('Tan hết rồi — dung dịch đồng nhất!'); }
@@ -4393,7 +4737,7 @@ function dissolveStep(){
 }
 
 function dumpBeaker(){
-  lab.mix = {}; lab.undissolved = {}; lab.dissolveTotal = 0; lab.fromRxn.clear();
+  lab.mix = {}; lab.undissolved = {}; lab.dissolveTotal = 0; lab.lastWhy = '';
   const sk = G.querySelector('#sinksvg');
   if(sk){ sk.style.setProperty('--splash', 1); setTimeout(()=>sk.style.setProperty('--splash', 0), 800); }
   SFX.splash();
@@ -4402,7 +4746,7 @@ function dumpBeaker(){
 }
 function pourGas(){
   if(!tot(lab.gas)){ toast('Bình khí đang trống.'); return; }
-  Object.keys(lab.gas).forEach(f => { lab.mix[f] = (lab.mix[f]||0) + lab.gas[f]; lab.fromRxn.delete(f); });
+  Object.keys(lab.gas).forEach(f => { lab.mix[f] = (lab.mix[f]||0) + lab.gas[f]; });
   lab.gas = {};
   toast('Đã đổ khí từ bình vào cốc.');
   SFX.pour();
@@ -4424,22 +4768,47 @@ function orderLine(od, oi){
   const c = CUSTOMERS[od.who];
   const uses = USE_LINES[od.chem];
   const tpl = od.line || (uses ? uses[(od.who + oi) % uses.length] : ORDER_TPL[(od.who + oi) % ORDER_TPL.length]);
-  return tpl.replace(/\{A\}/g, c[2]).replace('{q}', amt(od.n))
+  return tpl.replace(/\{A\}/g, c[2]).replace('{q}', qtyStr(od.chem, od.n))
             .replace('{name}', (od.pname || CHEMS[od.chem].n.toLowerCase())
                                  .replace(/\s*\([^)]*\)\s*$/, '')) // gợi ý cuối tên chỉ hiện trên phiếu
             .replace('{f}', sub(od.chem));
 }
 /* Ngày đầu tiên mỗi dụng cụ xuất hiện — để nhắc cách dùng ngay trong màn. */
+// Ngày có muôi đốt, đèn cồn chỉ để hơ muôi và bình Thu khí chỉ làm lọ khí (mẹo muôi đốt đã nói) —
+// mẹo "đun cốc" và "hứng khí" để dành tới ngày đầu tiên thực sự phải đun cốc / hứng khí từ cốc.
 const TOOL_FIRST = (() => { const m = {rod:0};
-  DAYS.forEach((d,i) => (d.tools||[]).forEach(t => { if(m[t] === undefined) m[t] = i; }));
+  DAYS.forEach((d,i) => (d.tools||[]).forEach(t => {
+    if(m[t] === undefined && !((t === 'gas' || t === 'heat') && d.tools.includes('burn'))) m[t] = i; }));
   return m; })();
 const TOOL_TIP = {
   rod:    'Đũa <b>Khuấy</b> ở đầu bàn: kéo vào cốc rồi <b>khuấy tròn</b> cho chất ít tan tan hết.',
   heat:   'Mới: <b>Đun nóng</b>. Kéo đèn cồn vào cốc — kiềng sẽ mọc lên đỡ cốc. Kéo ra là tắt.',
   gas:    'Mới: <b>Thu khí</b>. Kéo lên miệng cốc <b>trước khi</b> phản ứng sinh khí, không thì khí bay mất.',
   filter: 'Mới: <b>Lọc</b>. Kéo phễu vào cốc để lọc kết tủa ra đĩa, rồi kéo <b>đĩa lọc</b> sang khách.',
-  elec:   'Mới: <b>Điện phân</b>. Kéo nguồn vào cốc, rồi chọn chất và <b>số mol</b> ở bảng dưới mép bàn.'
+  elec:   'Mới: <b>Điện phân</b>. Kéo nguồn vào cốc, rồi chọn chất và <b>số mol</b> ở bảng dưới mép bàn.',
+  burn:   'Mới: <b>Muôi đốt</b>. Thả bình O₂ vào <b>Thu khí</b> để nạp lọ khí → thả chất rắn vào muôi → kéo muôi qua <b>đèn cồn</b> cho bén lửa → đưa vào lọ khí.'
 };
+/* Đơn này có phải làm bằng muôi đốt không? Có phản ứng cháy ra đúng chất đó từ những gì
+   điều chế được hôm nay. Nếu cũng có đường khác ngay trên kệ thì chỉ coi là "đốt" khi phiếu
+   ghi rõ (vd. "nhôm clorua (đốt trong clo)") — còn lại để trò tự chọn đường. */
+function dayHave(day){
+  if(day._have) return day._have;
+  const have = new Set(day.chems);
+  for(let grew = true; grew;){ grew = false;
+    for(const r of REACTIONS)
+      if(Object.keys(r.rg).every(f => have.has(f)))
+        Object.keys(r.pr).forEach(f => { if(!have.has(f)){ have.add(f); grew = true; } });
+  }
+  return (day._have = have);
+}
+function burnRoute(day, od){
+  if(!day.tools.includes('burn')) return null;
+  const have = dayHave(day);
+  const r = REACTIONS.find(r => r.burn && r.pr[od.chem] && Object.keys(r.rg).every(f => have.has(f)));
+  if(!r) return null;
+  const direct = REACTIONS.some(x => !x.burn && x.pr[od.chem] && Object.keys(x.rg).every(f => day.chems.includes(f)));
+  return direct && !/đốt|cháy/.test(od.pname || '') ? null : r;
+}
 const HINT_BASE = 'Kéo lọ từ <b>tủ hoá chất</b> vào cốc để rót. Kéo <b>cốc / bình khí / đĩa lọc</b> đến khách để giao, sang <b>bồn rửa</b> bên trái để đổ.';
 
 /* Câu chỉ dẫn đổi theo thứ CÒN THIẾU trong cốc, nên nó luôn nói bước kế tiếp
@@ -4450,7 +4819,8 @@ function coachText(){
   if(!od) return HINT_BASE;
   const t = od.chem, c = CHEMS[t];
   if(!c) return HINT_BASE;
-  const want = c.s === 'k' ? 'gas' : isPrecip(t) ? 'solid' : 'beaker';
+  const br = burnRoute(day, od);   // đốt thì sản phẩm rắn ra đĩa, khí ở lại trong lọ
+  const want = c.s === 'k' ? 'gas' : (isPrecip(t) || br) ? 'solid' : 'beaker';
   const box  = want === 'gas' ? lab.gas : want === 'solid' ? lab.solid : lab.mix;
   const keep = lab.sel; lab.sel = want;
   const res  = checkServe(box, od);
@@ -4458,6 +4828,16 @@ function coachText(){
   if(res === true)
     return 'Đủ rồi! Kéo <b>' + (want === 'gas' ? 'bình khí' : want === 'solid' ? 'đĩa lọc' : 'cốc')
          + '</b> sang chỗ khách để giao.';
+  if(br){   // thứ tự đúng ba bước đốt: nạp khí → chất lên muôi → hơ lửa → đưa vào lọ
+    const g = Object.keys(br.rg).find(f => CHEMS[f].s === 'k'), fu = Object.keys(br.rg).find(f => f !== g);
+    if((box[t]||0) > 0) return 'Đã có <b>' + sub(t) + '</b> nhưng ' + res + '. Sai tỉ lệ thì đổ ra <b>bồn rửa</b> làm lại cho chuẩn.';
+    if(!((lab.gas[g]||0) > 0)) return 'Đơn này phải <b>ĐỐT</b>. Trước hết nạp khí: '
+      + (day.chems.includes(g) ? 'kéo bình <b>' + sub(g) + '</b> từ tủ thả vào bình <b>Thu khí</b> (lọ khí).'
+                               : 'tự điều chế <b>' + sub(g) + '</b> rồi hứng vào bình <b>Thu khí</b>.');
+    if(!((lab.ladle[fu]||0) > 0)) return 'Lọ đã có ' + sub(g) + '. Giờ thả <b>' + sub(fu) + '</b> từ tủ vào <b>muôi đốt</b> (nhãn <b>Đốt</b>).';
+    if(!lab.ladleLit) return 'Kéo muôi qua <b>đèn cồn</b> để hơ cho ' + sub(fu) + ' bén lửa.';
+    return 'Muôi đang cháy — đưa nhanh vào bình <b>Thu khí</b> (lọ ' + sub(g) + ')!';
+  }
   // thứ tự nhắc đúng thứ tự thao tác: chất tan → nước → khuấy → dụng cụ → giao
   if(day.chems.includes(t) && !((lab.mix[t]||0) > 0 || (box[t]||0) > 0 || (lab.undissolved[t]||0) > 0))
     return 'Bắt đầu bằng cách kéo lọ <b>' + sub(t) + '</b> từ tủ bên phải vào cốc.';
@@ -4472,6 +4852,9 @@ function coachText(){
   if(lab.elecOn && elecList().length)
     return 'Ở bảng dưới mép bàn: chọn chất, vặn <b>số mol</b> rồi bấm <b>điện phân</b>.';
   if(want === 'solid' && (lab.mix[t]||0) > 0) return 'Kết tủa đã có trong cốc — kéo <b>Lọc</b> vào cốc để lọc ra đĩa.';
+  // cốc im re: giáo sư nói lý do nếu đoán ra được (đốt nhầm chỗ, dãy hoạt động, chất không tan…)
+  const why = whyNoReaction();
+  if(why) return '<b>Giáo sư:</b> ' + why;
   // hết gợi ý cụ thể: nhắc chung, không đoán bừa là phải đun hay phải trộn gì
   return 'Chưa ra <b>' + sub(t) + '</b>. Thử rót thêm chất khác từ tủ'
        + (day.tools.includes('heat') ? ', hoặc kéo <b>Đun nóng</b> vào cốc' : '') + ' xem sao.';
@@ -4480,9 +4863,10 @@ function updateCoach(){
   const el = G.querySelector('#coach'); if(!el || !lab) return;
   // khách đầu tiên của ngày: giới thiệu dụng cụ mới trước đã
   const isNew = k => TOOL_FIRST[k] === lab.i && !lab.day.free;
-  const fresh = ['rod','heat','gas','filter','elec'].filter(isNew);
+  const fresh = ['rod','heat','burn','gas','filter','elec'].filter(isNew);
   el.innerHTML = (lab.oi === 0 && fresh.length ? '<div class="newtool">' + fresh.map(k=>TOOL_TIP[k]).join('<br>') + '</div>' : '')
-    + coachText();
+    + coachText()
+    + (lab.hard && lab.miss ? '<div class="hardhint">' + hardHint(lab.day.orders[lab.oi], lab.miss) + '</div>' : '');
 }
 
 function nextCustomer(){
@@ -4492,14 +4876,16 @@ function nextCustomer(){
   // mỗi khách có đồng hồ chờ riêng (vòng tròn trên phiếu): hết giờ thì bỏ đi,
   // nhờ vậy một đơn không pha được cũng không chặn cứng cả hàng đợi
   // backstop, không phải áp lực: gấp đôi phần chia đều, nên chơi bình thường gần như không bao giờ chạm
-  lab.odur = lab.day.free ? 180 : Math.max(120, Math.round(lab.day.dur / lab.day.orders.length * 2));
+  lab.odur = (lab.day.free ? 180 : Math.max(120, Math.round(lab.day.dur / lab.day.orders.length * 2))) * (lab.hard ? 1.5 : 1);
   lab.otime = lab.odur;
   lab.waitStage = 0;
+  lab.miss = 0;      // bậc gợi ý chế độ khó tính riêng cho từng đơn
   G.querySelector('#ordernote').innerHTML =
     '<div class="on-head"><div class="on-face">'+custHead(od.who)+'</div><div class="on-cname">'+c[0]+'<span class="on-job">'+c[1]+'</span></div>' +
     '<svg class="on-ring" width="34" height="34" viewBox="0 0 34 34"><circle class="bg" cx="17" cy="17" r="14"/><circle class="fg" cx="17" cy="17" r="14" stroke-dasharray="88" stroke-dashoffset="0"/></svg></div>' +
-    '<div class="on-name">'+(od.pname || CHEMS[od.chem].n)+'</div>' +
-    '<div class="on-meta"><span class="on-swatch" style="background:'+CHEMS[od.chem].c+'"></span><b>'+amt(od.n)+'</b> · '+sub(od.chem)+'</div>';
+    // chế độ khó: tên hàng kiểu "nước muối (0,2 mol)" lộ sẵn số mol — bỏ phần ngoặc đó đi
+    '<div class="on-name">'+(od.pname || CHEMS[od.chem].n).replace(lab.hard ? /\s*\([^)]*mol[^)]*\)/ : /$^/, '')+'</div>' +
+    '<div class="on-meta"><span class="on-swatch" style="background:'+CHEMS[od.chem].c+'"></span><b>'+qtyStr(od.chem, od.n)+'</b> · '+sub(od.chem)+'</div>';
   G.querySelector('#speech').innerHTML = orderLine(od, lab.oi);
   const cz = G.querySelector('#cust');
   cz.innerHTML = custSVG(od.who,'neutral').replace('<svg ','<svg style="height:212px" ') + '<div class="cust-nametag">'+c[0]+'</div>';
@@ -4523,9 +4909,11 @@ function checkServe(cont, od){
     if(!onlySolids) return 'chất rắn phải lọc ra đĩa rồi mới giao chứ';
   }
   if(!(cont[od.chem] > 0)) return 'không thấy ' + (od.pname || CHEMS[od.chem].n) + ' đâu cả';
-  const others = keys.filter(f => f !== od.chem && f !== 'H2O');
+  // chế độ khó tự cân đong nên cho lệch 5%: cả lượng hàng lẫn chút chất dư còn sót lại
+  const tol = lab.hard ? Math.max(0.01, CONC_TOL * od.n) : 0.01;
+  const others = keys.filter(f => f !== od.chem && f !== 'H2O' && !(lab.hard && cont[f] <= tol));
   if(others.length) return 'hàng bị lẫn ' + others.map(sub).join(', ');
-  if(Math.abs(cont[od.chem] - od.n) > 0.01) return 'cần đúng ' + amt(od.n) + ' cơ, chỗ này ' + (cont[od.chem] > od.n ? 'nhiều quá' : 'ít quá'); // epsilon: amounts are now fractional
+  if(Math.abs(cont[od.chem] - od.n) > tol) return 'cần đúng ' + qtyStr(od.chem, od.n) + ' cơ, chỗ này ' + (cont[od.chem] > od.n ? 'nhiều quá' : 'ít quá'); // epsilon: amounts are now fractional
   const hasWater = cont['H2O'] > 0 || Object.keys(cont).some(f => cont[f] > 0 && (CHEMS[f].s === 'l' || CHEMS[f].s === 'd'));
   if(od.water && !hasWater) return 'phải pha với nước chứ, khô khốc thế này';
   return true;
@@ -4550,8 +4938,9 @@ function serve(){
   const res = checkServe(cont, od);
   const sp = G.querySelector('#speech');
   if(res === true){
-    if(lab.sel === 'beaker'){ lab.mix = {}; lab.fromRxn.clear(); } else if(lab.sel === 'gas') lab.gas = {}; else lab.solid = {};
+    if(lab.sel === 'beaker') lab.mix = {}; else if(lab.sel === 'gas') lab.gas = {}; else lab.solid = {};
     lab.odur = 0; // tắt đồng hồ chờ trong lúc khách kế tiếp bước tới
+    lab.lastWhy = '';
     lab.served++;
     G.querySelector('#ordn').textContent = lab.served;
     sp.innerHTML = PRAISE[Math.floor(Math.random()*PRAISE.length)].replace(/\{A\}/g, c[2]);
@@ -4572,6 +4961,8 @@ function serve(){
     const cu = G.querySelector('#cust'), nt = G.querySelector('#ordernote');
     [cu, nt].forEach(el => { el.classList.remove('shaken'); void el.offsetWidth; el.classList.add('shaken'); });
     setTimeout(()=>setExp('neutral'), 1800);
+    // chế độ khó: mỗi lần giao sai mở thêm một bậc gợi ý — công thức → khối lượng mol → lời giải
+    if(lab.hard && lab.miss < 3){ lab.miss++; updateCoach(); }
   }
 }
 
@@ -4788,21 +5179,26 @@ const MG = {
 const CONC_TOL = 0.05;                       // sai số tối đa 5%
 const within = (v, t) => t > 0 && Math.abs(v - t) <= CONC_TOL * t;
 // khối lượng mol tính từ công thức (bảng nguyên tử khối KHTN 8)
-const ATOM = {H:1,C:12,N:14,O:16,Na:23,Mg:24,Al:27,P:31,S:32,Cl:35.5,K:39,Ca:40,Fe:56,Cu:64,Zn:65,Ag:108,Ba:137};
-function molarMass(f){
+const ATOM = {H:1,C:12,N:14,O:16,Na:23,Mg:24,Al:27,P:31,S:32,Cl:35.5,K:39,Ca:40,Mn:55,Fe:56,Cu:64,Zn:65,Ag:108,Ba:137};
+// đếm nguyên tử trong một công thức, có ngoặc: 'Ca(OH)2' → {Ca:1, O:2, H:2}
+function atomCounts(f){
   let i = 0;
   const grp = () => {
-    let s = 0;
+    const m = {}, add = (k, v) => { m[k] = (m[k]||0) + v; };
     while(i < f.length){
       const ch = f[i];
-      if(ch === '('){ i++; const inner = grp(); let d = ''; while(/\d/.test(f[i]||'')) d += f[i++]; s += inner*(+d||1); }
-      else if(ch === ')'){ i++; return s; }
-      else if(/[A-Z]/.test(ch)){ let sy = ch; i++; while(/[a-z]/.test(f[i]||'')) sy += f[i++]; let d = ''; while(/\d/.test(f[i]||'')) d += f[i++]; s += ATOM[sy]*(+d||1); }
+      if(ch === '('){ i++; const inner = grp(); let d = ''; while(/\d/.test(f[i]||'')) d += f[i++]; Object.keys(inner).forEach(k => add(k, inner[k]*(+d||1))); }
+      else if(ch === ')'){ i++; return m; }
+      else if(/[A-Z]/.test(ch)){ let sy = ch; i++; while(/[a-z]/.test(f[i]||'')) sy += f[i++]; let d = ''; while(/\d/.test(f[i]||'')) d += f[i++]; add(sy, +d||1); }
       else i++;
     }
-    return s;
+    return m;
   };
   return grp();
+}
+function molarMass(f){
+  const c = atomCounts(f);
+  return Object.keys(c).reduce((s, el) => s + ATOM[el]*c[el], 0);
 }
 const fmt = (n, d) => (+n.toFixed(d==null?1:d)).toString().replace('.', ',');
 const niceCeil = x => { const p = Math.pow(10, Math.floor(Math.log10(x))); const h = p/2; return Math.max(h, Math.ceil(x/h)*h); };
@@ -4995,6 +5391,260 @@ function concResult(){
   if(stars > 0) SFX.bell();
 }
 
+/* =====================  CHẾ ĐỘ KHÓ TRONG CA: TỰ TÍNH GAM / ML / LÍT  =====================
+   Bản thường: mỗi lần nghiêng lọ = 0,1 mol, phiếu ghi sẵn số mol. Chế độ khó: phiếu ghi
+   KHỐI LƯỢNG (gam) hoặc THỂ TÍCH KHÍ (lít, đkc); mỗi lần lấy hoá chất phải tự nhập số gam
+   (cân), số ml (ống đong, lọ dung dịch có ghi Cₘ) hoặc số lít khí. Bên trong vẫn quy về
+   đơn vị 0,1 mol nên toàn bộ động cơ phản ứng giữ nguyên; chỉ chấm lệch tối đa 5%. */
+const GAS_VM = 24.79;   // lít/mol ở đkc (25 °C, 1 bar) — KHTN 8
+const SOL_CM = {HCl:2, H2SO4:1, HNO3:1, H3PO4:1, NaOH:1, KOH:1, 'Ca(OH)2':0.5};   // nồng độ lọ dung dịch trên kệ (M)
+// lượng một chất trên phiếu hàng: bản thường ghi mol; chế độ khó ghi lít (khí) hoặc gam
+function qtyStr(f, units){
+  if(!(lab && lab.hard)) return amt(units);
+  const n = units/10;
+  return CHEMS[f].s === 'k' ? fmt(n*GAS_VM, 2) + ' lít' : fmt(n*molarMass(f), 2) + ' g';
+}
+// lượng một chất đúng theo dụng cụ lấy nó: khí → lít, dung dịch trên kệ → ml, chất rắn → gam
+function doseStr(f, units){
+  if(!(lab && lab.hard) || f === 'H2O') return amt(units);
+  const n = units/10;
+  if(CHEMS[f].s === 'k') return fmt(n*GAS_VM, 2) + ' lít';
+  if(SOL_CM[f]) return fmt(n/SOL_CM[f]*1000, 1) + ' ml dd ' + fmt(SOL_CM[f], 2) + 'M';
+  return fmt(n*molarMass(f), 2) + ' g';
+}
+function doseKind(f){
+  const c = CHEMS[f];
+  if(c.s === 'k') return {tool:'Bình khí có đồng hồ đo', unit:'lít', ask:'Nạp bao nhiêu lít khí <b>'+sub(f)+'</b> (đo ở đkc: 25 °C, 1 bar)?',
+                          toUnits: v => v/GAS_VM*10};
+  if(SOL_CM[f]) return {tool:'Ống đong', unit:'ml', ask:'Đong bao nhiêu ml dung dịch <b>'+sub(f)+' '+fmt(SOL_CM[f],2)+'M</b>?',
+                        toUnits: v => SOL_CM[f]*v/1000*10};
+  return {tool:'Cân điện tử', unit:'g', ask:'Cân bao nhiêu gam <b>'+sub(f)+'</b>?', toUnits: v => v/molarMass(f)*10};
+}
+// hỏi lượng rồi mới rót. Nước là dung môi nên không bắt đong.
+function askDose(f, cb){
+  if(!lab.hard || f === 'H2O') return cb(f === 'H2O' ? 1 : baseDose());
+  const k = doseKind(f);
+  const ov = document.createElement('div');
+  ov.className = 'overlay';
+  ov.innerHTML = '<div class="modal dosebox"><h2>' + ico('flask',22) + ' ' + k.tool + '</h2>'
+    + '<p style="margin:4px 0 12px">' + k.ask + '</p>'
+    + '<div class="row" style="justify-content:center"><input id="dosein" class="dosein" inputmode="decimal" autocomplete="off" placeholder="0">'
+    + '<b style="font-family:var(--fh);font-size:20px">' + k.unit + '</b></div>'
+    + '<div class="dosemsg" id="dosemsg"></div>'
+    + '<div class="row" style="justify-content:center;margin-top:10px"><button class="btn big" id="dok">Cho vào</button>'
+    + '<button class="btn" id="dno">Huỷ</button></div></div>';
+  G.appendChild(ov);
+  const inp = ov.querySelector('#dosein'), msg = ov.querySelector('#dosemsg');
+  setTimeout(() => inp.focus(), 30);
+  const ok = () => {
+    const v = parseFloat(inp.value.replace(',', '.'));
+    if(!(v > 0)){ msg.textContent = 'Nhập một số lớn hơn 0 nhé (dùng dấu phẩy cho số lẻ: 6,5).'; return; }
+    const units = RQ(k.toUnits(v));
+    if(units < 0.01){ msg.textContent = 'Ít quá, cân không đo nổi — kiểm tra lại phép tính.'; return; }
+    if(units > 40){ msg.textContent = 'Nhiều quá — cốc chỉ chứa nổi cỡ 4 mol thôi. Kiểm tra lại phép tính.'; return; }
+    ov.remove(); cb(units);
+  };
+  ov.querySelector('#dok').onclick = ok;
+  ov.querySelector('#dno').onclick = () => ov.remove();
+  inp.addEventListener('keydown', e => { if(e.key === 'Enter') ok(); else if(e.key === 'Escape') ov.remove(); });
+}
+// con đường dùng để giải mẫu: đốt nếu phiếu là đơn đốt, không thì phản ứng ra đúng chất từ kệ
+function hardRoute(od){
+  const day = lab.day, br = burnRoute(day, od);
+  if(br) return br;
+  const on = (r, set) => Object.keys(r.rg).every(f => set.has ? set.has(f) : set.includes(f));
+  return REACTIONS.find(r => r.pr[od.chem] && on(r, day.chems))
+      || REACTIONS.find(r => r.pr[od.chem] && on(r, dayHave(day))) || null;
+}
+// gợi ý theo bậc sau mỗi lần giao sai: 1 công thức · 2 khối lượng mol · 3 lời giải đủ
+function hardHint(od, tier){
+  if(!od) return '';
+  const f = od.chem, n = od.n/10, gas = CHEMS[f].s === 'k';
+  const onShelf = lab.day.chems.includes(f), r = onShelf ? null : hardRoute(od);
+  if(tier <= 1) return '<b>Gợi ý 1:</b> ' + (gas ? 'n = V / 24,79 (lít khí ở đkc)' : 'n = m / M')
+    + ' → ra số mol ' + sub(f) + (r ? ', rồi theo hệ số phương trình suy ra số mol từng chất cần lấy' : '')
+    + '. Rắn: m = n·M · dung dịch: V = n / Cₘ · khí: V = n·24,79.';
+  const inv = [...new Set([f].concat(r ? Object.keys(r.rg) : []))].filter(x => x !== 'H2O');
+  if(tier === 2) return '<b>Gợi ý 2:</b> ' + inv.map(x => 'M(' + sub(x) + ') = ' + fmt(molarMass(x), 1)).join(' · ');
+  if(!r) return '<b>Lời giải:</b> n(' + sub(f) + ') = ' + fmt(n, 3) + ' mol → lấy <b>' + doseStr(f, od.n) + '</b>.';
+  const k = n / r.pr[f];
+  return '<b>Lời giải:</b> ' + eqStr(r) + ' · n(' + sub(f) + ') = ' + fmt(n, 3) + ' mol → '
+    + Object.keys(r.rg).filter(x => x !== 'H2O').map(x => {
+        const nx = k * r.rg[x];
+        return fmt(nx, 3) + ' mol ' + sub(x) + (lab.day.chems.includes(x) ? ' = <b>' + doseStr(x, nx*10) + '</b>' : ' (tự điều chế)');
+      }).join(', ') + '.';
+}
+function showHardBook(){
+  const sols = lab.day.chems.filter(f => SOL_CM[f]);
+  modal('<h2>' + ico('book',22) + ' Sổ tay công thức</h2><div style="text-align:left;font-size:15px;line-height:1.85">'
+    + '<div><b>Số mol ↔ khối lượng:</b> n = m / M &nbsp;⇒&nbsp; m = n · M</div>'
+    + '<div><b>Dung dịch:</b> n = Cₘ · V &nbsp;(V tính bằng <b>lít</b>: 50 ml = 0,05 l)</div>'
+    + '<div><b>Chất khí ở đkc</b> (25 °C, 1 bar): V = n · 24,79 &nbsp;(lít)</div>'
+    + '<div><b>Theo phương trình:</b> số mol các chất tỉ lệ đúng với hệ số. Vd 2Mg + O₂ → 2MgO: 0,2 mol Mg cần 0,1 mol O₂.</div>'
+    + (sols.length ? '<div style="margin-top:4px"><b>Lọ dung dịch hôm nay:</b> ' + sols.map(f => sub(f) + ' ' + fmt(SOL_CM[f],2) + 'M').join(' · ') + '</div>' : '')
+    + '<div style="margin-top:6px"><b>Nguyên tử khối:</b> ' + Object.keys(ATOM).map(e => e + ' = ' + fmt(ATOM[e],1)).join(' · ') + '</div>'
+    + '<div style="margin-top:6px;opacity:.75">Giao hàng được chấp nhận nếu lệch không quá <b>5%</b>.</div></div>');
+}
+
+/* =====================  THẺ PHẢN ỨNG  =====================
+   Lần đầu tự tay làm ra một phản ứng (hoặc bấm một dòng trong Sổ tay): mỗi phân tử là một
+   chùm bi nguyên tử; bi tách khỏi chất tham gia rồi bay sang ghép thành sản phẩm — số bi mỗi
+   màu hai bên bằng nhau, đó chính là cân bằng phương trình. Dựng tự động từ rg/pr trong
+   phan-ung.js nên cả 167 phản ứng đều có thẻ, không phải vẽ tay cái nào. */
+const ATOM_STYLE = {H:['#ffffff',8], O:['#e0574a',11], C:['#4a4a4a',11], N:['#5b7fe0',11], Cl:['#7cc35a',12],
+  S:['#e8d44d',12], P:['#f0954a',12], Na:['#a37ad6',13], K:['#8f5fd0',14], Mg:['#4fb38a',13], Ca:['#9fb8a6',14],
+  Al:['#c9a0a8',13], Zn:['#8aa0b8',13], Fe:['#c46a3a',13], Cu:['#d98a4a',13], Ag:['#c8ccd4',14], Ba:['#5fbf8f',14], Mn:['#9b6bb0',13]};
+const atomR = el => (ATOM_STYLE[el] || ['#ccc',12])[1];
+const RX_NOTES = [
+  'Axit gặp bazơ: H của axit bắt tay nhóm OH của bazơ thành nước, phần còn lại ghép thành muối — phản ứng trung hoà.',
+  'Bazơ không tan vẫn bị axit "ăn" dần, tạo muối tan và nước.',
+  'Kim loại đứng trước H trong dãy hoạt động đẩy được hiđro ra khỏi axit thành khí H₂.',
+  'Kim loại kiềm mạnh đến mức đẩy được cả hiđro ra khỏi nước, để lại dung dịch kiềm.',
+  'Chất cháy kết hợp với oxi thành oxit — phản ứng hoá hợp, toả rất nhiều nhiệt.',
+  'Kim loại mạnh hơn đẩy kim loại yếu hơn ra khỏi dung dịch muối.',
+  'Oxit bazơ gặp axit tạo ra muối và nước.',
+  'Oxit của kim loại mạnh tan vào nước thành dung dịch bazơ (kiềm).',
+  'Oxit của phi kim tan vào nước thành axit.',
+  'Oxit axit gặp kiềm tạo muối và nước — vì thế CO₂ làm đục nước vôi trong.',
+  'Oxit bazơ và oxit axit kết hợp thẳng với nhau thành muối.',
+  'Muối gặp axit đổi thành muối mới và axit mới — thường kèm khí bay lên hoặc kết tủa.',
+  'Muối gặp bazơ đổi thành muối mới và bazơ mới — xảy ra khi có kết tủa hoặc khí.',
+  'Hai muối đổi "bạn nhảy" cho nhau — chỉ xảy ra khi có chất kết tủa.',
+  'Nhiệt tách một chất thành nhiều chất đơn giản hơn — phản ứng phân huỷ.',
+  'Chất khử (H₂ hoặc C) giành lấy oxi của oxit kim loại, để lại kim loại.',
+  'Clo phản ứng mãnh liệt với kim loại và hiđro, tạo muối clorua hoặc khí HCl.',
+  'Nitơ rất trơ, phải ép với hiđro ở nhiệt độ cao mới ra amoniac.',
+  'Axit sunfuric đặc háo nước: rút hết H và O khỏi đường, chỉ còn lại than.',
+  'Dòng điện tách hợp chất thành những chất đơn giản hơn.'
+];
+const rxGroupOf = i => { let k = 0; RX_GROUPS.forEach((g, j) => { if(g.i <= i) k = j; }); return k; };
+// một phân tử = chùm bi: nguyên tố "trung tâm" ở giữa, O quây quanh, H bám ngoài cùng
+// 9 chỗ đầu xếp tay (tâm + chữ thập + chéo), sau đó là các vòng đồng tâm — đủ chỗ cho cả phân tử đường 45 bi
+const MOL_OFFS = [[0,0],[1,0],[-1,0],[0,-1],[0,1],[.72,-.72],[-.72,.72],[.72,.72],[-.72,-.72]]
+  .concat(...[[1.9,12],[2.8,18],[3.7,24]].map(([R, n]) =>
+    Array.from({length:n}, (_, k) => [R*Math.cos(2*Math.PI*k/n), R*Math.sin(2*Math.PI*k/n)])));
+function molAtoms(f){
+  const cnt = atomCounts(f), rank = e => e === 'H' ? 2 : e === 'O' ? 1 : 0;
+  const els = Object.keys(cnt).sort((a, b) => rank(a) - rank(b) || cnt[a] - cnt[b]);
+  const list = [];
+  els.forEach(e => { for(let k = 0; k < cnt[e]; k++) list.push(e); });
+  return list.map((el, k) => ({el, x:MOL_OFFS[k][0]*17, y:MOL_OFFS[k][1]*17}));
+}
+// xếp một vế: mỗi chất một khối, hệ số bao nhiêu thì bấy nhiêu phân tử (quá 3 thì xếp lưới
+// nhiều cột cho khỏi thành cột dài ngoằng); cả vế co giãn cho vừa khung
+function rxSide(obj, x0, x1, H, fixSc){
+  const GAP = 30, PAD = 6;
+  const sp = Object.keys(obj).map(f => {
+    const atoms = molAtoms(f), n = obj[f];
+    const box = k => Math.max(...atoms.map(a => a[k] + atomR(a.el))) - Math.min(...atoms.map(a => a[k] - atomR(a.el)));
+    const mid = k => (Math.max(...atoms.map(a => a[k] + atomR(a.el))) + Math.min(...atoms.map(a => a[k] - atomR(a.el)))) / 2;
+    const w = box('x'), h = box('y'), cols = n <= 3 ? 1 : Math.ceil(n/3), rows = Math.ceil(n/cols);
+    return {f, n, atoms, w, h, mx:mid('x'), my:mid('y'), cols, rows,
+            bw:cols*w + (cols - 1)*PAD, bh:rows*h + (rows - 1)*PAD};
+  });
+  const totW = sp.reduce((s, x) => s + x.bw, 0) + GAP*(sp.length - 1);
+  const colH = Math.max(...sp.map(x => x.bh));
+  const sc = fixSc || Math.min(1.9, (x1 - x0)/totW, (H - 34)/colH);   // phản ứng ít bi thì phóng to cho dễ nhìn
+  const atoms = [], labels = [], plus = [];
+  let cur = (x0 + x1)/2 - totW*sc/2;
+  sp.forEach((s, si) => {
+    const left = cur, top = (H - 24)/2 - s.bh*sc/2;
+    for(let c = 0; c < s.n; c++){
+      const cx = left + ((c % s.cols)*(s.w + PAD) + s.w/2)*sc;
+      const cy = top + (Math.floor(c / s.cols)*(s.h + PAD) + s.h/2)*sc;
+      s.atoms.forEach(a => atoms.push({el:a.el, x:cx + (a.x - s.mx)*sc, y:cy + (a.y - s.my)*sc, r:atomR(a.el)*sc, mx:cx, my:cy}));
+    }
+    labels.push({t:(s.n > 1 ? s.n : '') + sub(s.f), x:left + s.bw*sc/2});
+    cur += s.bw*sc;
+    if(si < sp.length - 1){ plus.push(cur + GAP*sc/2); cur += GAP*sc; }
+  });
+  return {atoms, labels, plus, sc};
+}
+function showRxCard(r, opt){
+  opt = opt || {};
+  const W = 720, H = 230, idx = REACTIONS.indexOf(r), gi = rxGroupOf(idx);
+  // hai vế chung một tỉ lệ — bi cùng nguyên tố hai bên to bằng nhau thì mới thấy là "cùng một bi"
+  const sc = Math.min(rxSide(r.rg, 18, W/2 - 58, H).sc, rxSide(r.pr, W/2 + 58, W - 18, H).sc);
+  const L = rxSide(r.rg, 18, W/2 - 58, H, sc), R = rxSide(r.pr, W/2 + 58, W - 18, H, sc);
+  // ghép cặp từng bi bên trái với một bi cùng nguyên tố bên phải (cân bằng thì luôn đủ cặp)
+  const pool = {};
+  R.atoms.forEach(a => (pool[a.el] = pool[a.el] || []).push(a));
+  const exact = L.sc > 0.42 && R.sc > 0.42 && L.atoms.every(a => (pool[a.el]||[]).length && pool[a.el].shift());
+  const ink = c => { const v = parseInt(c.slice(1), 16); return ((v>>16)*0.3 + (v>>8&255)*0.59 + (v&255)*0.11) < 120 ? '#fffdf5' : '#3b3025'; };
+  const ball = (a, cls) => { const [col] = ATOM_STYLE[a.el] || ['#ccc']; const d = Math.max(8, a.r*2);
+    return '<div class="atom ' + cls + '" style="left:' + a.x + 'px;top:' + a.y + 'px;width:' + d + 'px;height:' + d + 'px;background:'
+      + col + ';color:' + ink(col) + ';font-size:' + Math.max(7, Math.round(a.r*0.95)) + 'px">' + (a.r >= 6.5 ? a.el : '') + '</div>'; };
+  const lbl = (side, cls) => side.labels.map(l => '<div class="rxlbl ' + cls + '" style="left:' + l.x + 'px;top:' + (H - 30) + 'px">' + l.t + '</div>').join('')
+    + side.plus.map(x => '<div class="rxplus ' + cls + '" style="left:' + x + 'px;top:' + ((H - 24)/2) + 'px">+</div>').join('');
+  // đủ cặp thì bi bay thật từ trái sang phải; không thì (đường, phân tử quá to) chỉ tan rồi hiện
+  const stage = exact
+    ? L.atoms.map(a => ball(a, 'mv')).join('')
+    : L.atoms.map(a => ball(a, 'lft')).join('') + R.atoms.map(a => ball(a, 'rgt')).join('');
+  const cons = (() => { const c = {};
+    Object.keys(r.rg).forEach(f => { const a = atomCounts(f); Object.keys(a).forEach(e => c[e] = (c[e]||0) + a[e]*r.rg[f]); });
+    return Object.keys(c).map(e => e + ': ' + c[e]).join(' · '); })();
+  const face = profSVG('happy').replace(/viewBox="[^"]+"/, 'viewBox="' + HD_HEADS[0] + '"');
+  const ov = document.createElement('div');
+  ov.className = 'overlay';
+  ov.innerHTML = '<div class="rxcard">'
+    + '<div class="rxc-head">' + (opt.isNew ? '<span class="rxc-tag">Phản ứng mới!</span>' : '') + '<b>' + RX_GROUPS[gi].t + '</b></div>'
+    + '<div class="rxstage" style="width:' + W + 'px;height:' + H + 'px">' + stage + lbl(L, 'lft') + lbl(R, 'rgt')
+    +   '<div class="rxarrow">' + (rxOver(r) ? '<small>' + rxOver(r) + '</small><br>' : '') + '⟶</div></div>'
+    + '<div class="rxc-eq">' + eqStr(r) + '</div>'
+    + '<div class="rxc-obs">' + (r.obs || (fxOf(r) ? 'Hiện tượng: ' + fxOf(r) + '.' : '')) + '</div>'
+    + '<div class="rxc-cons">Đếm bi mỗi bên — <b>' + cons + '</b> — trước và sau bằng nhau: nguyên tử không mất đi, chỉ đổi bạn.</div>'
+    + '<div class="rxc-note"><div class="on-face" style="width:54px;height:54px">' + face + '</div>'
+    +   '<p class="hand" style="margin:0;font-size:15px;line-height:1.4">“' + RX_NOTES[gi] + '”</p></div>'
+    + '<div class="row" style="justify-content:center;margin-top:10px"><button class="btn" id="rxagain">' + ico('retry') + ' Xem lại</button>'
+    + '<button class="btn big" id="rxgo">' + (opt.isNew ? 'Ghi vào sổ ' + ico('next') : 'Đóng') + '</button></div></div>';
+  G.appendChild(ov);
+  const st = ov.querySelector('.rxstage');
+  let timers = [];
+  const later = (ms, fn) => timers.push(setTimeout(fn, ms));
+  const play = () => {
+    timers.forEach(clearTimeout); timers = [];
+    st.classList.remove('done', 'mix');
+    const mv = [...st.querySelectorAll('.atom.mv')];
+    mv.forEach((el, k) => { const a = L.atoms[k]; el.style.transition = 'none'; el.style.left = a.x + 'px'; el.style.top = a.y + 'px';
+      el.style.width = el.style.height = Math.max(8, a.r*2) + 'px'; });
+    void st.offsetWidth;
+    // ghép đích cho từng bi: bi thứ k của nguyên tố X bên trái → bi thứ k của X bên phải
+    const used = {}, dest = L.atoms.map(a => { used[a.el] = (used[a.el]||0); return R.atoms.filter(b => b.el === a.el)[used[a.el]++]; });
+    later(700, () => {           // liên kết đứt: bi rung rồi tách xa nhau một chút
+      st.classList.add('mix');
+      mv.forEach((el, k) => { const a = L.atoms[k]; el.style.transition = '';
+        el.style.left = (a.mx + (a.x - a.mx)*1.45) + 'px'; el.style.top = (a.my + (a.y - a.my)*1.45) + 'px'; });
+    });
+    later(1350, () => mv.forEach((el, k) => {   // bay sang chỗ mới trong sản phẩm
+      const b = dest[k]; if(!b) return;
+      el.style.transitionDelay = Math.min(k*18, 360) + 'ms';
+      el.style.left = b.x + 'px'; el.style.top = b.y + 'px';
+      el.style.width = el.style.height = Math.max(8, b.r*2) + 'px';
+    }));
+    later(exact ? 2950 : 1500, () => { st.classList.add('done'); mv.forEach(el => el.style.transitionDelay = ''); });
+  };
+  play();
+  ov.querySelector('#rxagain').onclick = play;
+  ov.querySelector('#rxgo').onclick = () => { timers.forEach(clearTimeout); ov.remove(); if(opt.onClose) opt.onClose(); };
+  SFX.bell();
+}
+/* Trong ca: thẻ xếp hàng, mỗi lần một thẻ; đồng hồ ca đứng yên lúc xem — học không bị trừ giờ */
+function queueRxCard(r){
+  lab.cardQ.push(r);
+  if(!lab.cardOpen) setTimeout(nextRxCard, 650);
+}
+function nextRxCard(){
+  if(!lab || lab.cardOpen || !lab.cardQ.length) return;
+  lab.cardOpen = true;
+  if(lab.timer){ clearInterval(lab.timer); lab.timer = null; }
+  showRxCard(lab.cardQ.shift(), {isNew:true, onClose: () => {
+    if(!lab) return;
+    lab.cardOpen = false;
+    if(lab.cardQ.length) return nextRxCard();
+    if(lab.timer === null && !G.querySelector('.pausecard')) lab.timer = setInterval(labTick, 1000);
+  }});
+}
+
 /* =====================  SELF-CHECK & BOOT  ===================== */
 // ponytail: dev-time sanity check — every order must be reachable from that day's shelf
 if(DEBUG){
@@ -5007,12 +5657,28 @@ if(DEBUG){
         if(Object.keys(r.rg).every(f => have.has(f)))
           Object.keys(r.pr).forEach(f => { if(!have.has(f)){ have.add(f); grew = true; } });
     }
+    // bao đóng KHÔNG tính phản ứng cháy: đơn nào chỉ ra được bằng đốt thì ngày đó phải có muôi + lọ khí
+    const noBurn = new Set(day.chems);
+    for(let grew = true; grew;){ grew = false;
+      for(const r of REACTIONS)
+        if(!r.burn && Object.keys(r.rg).every(f => noBurn.has(f)))
+          Object.keys(r.pr).forEach(f => { if(!noBurn.has(f)){ noBurn.add(f); grew = true; } });
+    }
     day.orders.forEach(od => {
       console.assert(CHEMS[od.chem], 'Ngày '+(i+1)+': chất lạ '+od.chem);
       console.assert(have.has(od.chem), 'Ngày '+(i+1)+': đơn '+od.chem+' KHÔNG điều chế được!');
+      const br = burnRoute(day, od);
+      if(!noBurn.has(od.chem)) console.assert(day.tools.includes('burn') && day.tools.includes('gas'), 'Ngày '+(i+1)+': '+od.chem+' chỉ ra được bằng đốt — cần muôi đốt + lọ khí');
       if(CHEMS[od.chem] && CHEMS[od.chem].s === 'k') console.assert(day.tools.includes('gas'), 'Ngày '+(i+1)+': cần bình thu khí cho '+od.chem);
-      if(CHEMS[od.chem] && isPrecip(od.chem)) console.assert(day.tools.includes('filter'), 'Ngày '+(i+1)+': cần phễu lọc cho '+od.chem);
+      if(CHEMS[od.chem] && isPrecip(od.chem) && !br) console.assert(day.tools.includes('filter'), 'Ngày '+(i+1)+': cần phễu lọc cho '+od.chem);
     });
+  });
+  console.assert(REACTIONS.length === 167 && RX_GROUPS.length === RX_NOTES.length, 'sổ tay: số phản ứng / ghi chú nhóm lệch');
+  REACTIONS.forEach((r,k) => {   // thẻ phản ứng ghép bi theo nguyên tố — phương trình nào lệch là lộ ngay
+    const side = o => { const c = {}; Object.keys(o).forEach(f => { const a = atomCounts(f); Object.keys(a).forEach(e => c[e] = (c[e]||0) + a[e]*o[f]); }); return c; };
+    const L = side(r.rg), R = side(r.pr);
+    console.assert(Object.keys(L).concat(Object.keys(R)).every(e => L[e] === R[e]), 'Phản ứng #'+k+' chưa cân bằng: '+eqStr(r));
+    Object.keys(L).forEach(e => console.assert(ATOM_STYLE[e] && ATOM[e], 'thiếu màu bi / nguyên tử khối cho '+e));
   });
   REACTIONS.forEach((r,k) => {
     Object.keys(r.rg).concat(Object.keys(r.pr)).forEach(f => console.assert(CHEMS[f], 'Phản ứng #'+k+': chất lạ '+f));
