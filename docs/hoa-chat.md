@@ -1,6 +1,6 @@
 # Sổ tay hóa chất – Trợ Lý Hóa Học Nhí
 
-Đây là bảng tra cứu toàn bộ **67 hóa chất** xuất hiện trong game *Trợ Lý Hóa Học Nhí – Trợ lý phòng thí nghiệm* (biến `CHEMS` trong `index.html`). Mỗi chất được liệt kê đúng một lần, nhóm theo loại hợp chất để dễ ôn tập.
+Đây là bảng tra cứu toàn bộ **67 hóa chất** xuất hiện trong game *Trợ Lý Hóa Học Nhí – Trợ lý phòng thí nghiệm* (biến `CHEMS` trong `du-lieu.js`). Mỗi chất được liệt kê đúng một lần, nhóm theo loại hợp chất để dễ ôn tập.
 
 Nguồn: dữ liệu trong game Trợ Lý Hóa Học Nhí + kiến thức Khoa học tự nhiên (KHTN) lớp 8. Khối lượng mol (M) tính theo nguyên tử khối KHTN 8: H=1, C=12, N=14, O=16, Na=23, Mg=24, Al=27, P=31, S=32, Cl=35.5, K=39, Ca=40, Fe=56, Cu=64, Zn=65, Ag=108, Ba=137.
 

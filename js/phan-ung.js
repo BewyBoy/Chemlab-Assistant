@@ -1,6 +1,6 @@
 /* =====================================================================
    BẢNG PHẢN ỨNG — nguồn sự thật duy nhất cho hoá học trong cốc.
-   index.html nạp file này rồi runReactions()/electrolyse() tra thẳng vào đây.
+   index.html nạp file này; runReactions()/electrolyse()/burnInJar() (phong-thi-nghiem.js) tra thẳng vào đây.
 
    Cấu trúc một dòng:
      rg    chất tham gia  {công thức: hệ số}
@@ -14,7 +14,7 @@
      last  1 = xếp sau cùng khi nhiều phản ứng cùng chạy được
      obs   hiện tượng quan sát được — hiện trên thẻ phản ứng và lúc đốt
 
-   Mọi công thức xuất hiện ở đây PHẢI có trong CHEMS của index.html.
+   Mọi công thức xuất hiện ở đây PHẢI có trong CHEMS (du-lieu.js).
    Sổ tay lưu phản ứng đã gặp theo SỐ THỨ TỰ trong mảng này (save.rx), nên
    KHÔNG chèn/xoá/đảo dòng ở giữa — chỉ sửa tại chỗ hoặc thêm vào cuối.
    ===================================================================== */

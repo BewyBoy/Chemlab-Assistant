@@ -1,0 +1,3 @@
+# Thư mục do dong-goi.ps1 sinh ra (file zip để tải lên itch.io).
+# Không commit: đây là sản phẩm build, dựng lại lúc nào cũng được.
+dist/
