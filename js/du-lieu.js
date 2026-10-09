@@ -231,9 +231,12 @@ const DAYS = [
            o(4,'NaOH',2,{pname:'natri hiđroxit'}),
            o(0,'Ca(OH)2',1,{pname:'nước vôi trong'}) ]},
 
- {t:'Axit hay bazơ? — Thám tử quỳ tím', mg:'litmus',
-  story:'AXIT có H đứng đầu, làm quỳ tím hoá ĐỎ. BAZƠ có nhóm OH, làm quỳ hoá XANH. Chất trung tính thì… vẫn TÍM. Sáu lọ này mất nhãn hết rồi — nhúng quỳ rồi dán nhãn giúp ta, chỉ có 60 giây!',
-  bottles:['HCl','H2SO4','NaOH','Ca(OH)2','NaCl','H2O']},
+ {t:'Axit hay bazơ? — Thám tử quỳ tím', mg:'identify',
+  story:'AXIT có H đứng đầu, làm quỳ tím hoá ĐỎ. BAZƠ có nhóm OH, làm quỳ hoá XANH. Chất trung tính thì… vẫn TÍM. Hai lọ cùng đỏ thì sao? Gọi thêm trợ thủ: BaCl₂ cho kết tủa trắng với gốc =SO₄, AgNO₃ cho kết tủa trắng với gốc −Cl, Na₂CO₃ sủi bọt khi gặp axit. Ba lọ này bong hết nhãn rồi — nhỏ thử từng mẫu, ghi lại hiện tượng, rồi dán nhãn giúp ta!',
+  // mỗi lượt bốc ngẫu nhiên MỘT bộ 3 lọ; bộ nào cũng phải phân biệt được bằng quỳ + reagents (khoi-dong.js kiểm tra)
+  reagents:['BaCl2','AgNO3','Na2CO3'],
+  sets:[['HCl','H2SO4','NaOH'], ['HCl','NaCl','NaOH'], ['H2SO4','Na2SO4','NaCl'],
+        ['HCl','NaCl','H2O'], ['NaOH','Ca(OH)2','NaCl'], ['H2SO4','NaOH','Na2SO4']]},
 
  {t:'Oxit gặp nước',
   story:'Vài oxit phản ứng luôn với nước: CaO (vôi sống) + H₂O → Ca(OH)₂ là BAZƠ, còn P₂O₅ + 3H₂O → 2H₃PO₄ là AXIT. Quy luật: oxit kim loại + nước → bazơ, oxit phi kim + nước → axit. Thử quỳ để kiểm tra sản phẩm nhé!',

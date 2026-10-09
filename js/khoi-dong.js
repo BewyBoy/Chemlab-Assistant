@@ -57,6 +57,16 @@ if(DEBUG){
   });
   DAYS.filter(d => d.mg === 'bins').forEach(d => d.items.forEach(([f]) =>
     console.assert(MOL_2D[f] || molAtoms(f).length === 1, 'minigame phân loại: thiếu mô hình bi–que cho '+f)));
+  // xác định chất: mỗi bộ 3 lọ phải phân biệt được — hai mẫu khác nhau thì khác ít nhất một ô trong sổ ghi chép
+  DAYS.filter(d => d.mg === 'identify').forEach(d => {
+    const st = ['quy'].concat(d.reagents);
+    d.reagents.forEach(r => console.assert(TESTS[r], 'xác định chất: chưa có thuốc thử '+r+' trong TESTS'));
+    d.sets.forEach(set => {
+      set.forEach(f => console.assert(CHEMS[f] && TESTS.quy.on[f], 'xác định chất: '+f+' thiếu trong CHEMS hoặc chưa có dòng quỳ'));
+      const sig = set.map(f => st.map(r => TESTS[r] ? testOf(r, f).t : '').join('|'));
+      console.assert(new Set(sig).size === set.length, 'xác định chất: bộ '+set.join(', ')+' không phân biệt được');
+    });
+  });
   // hard mode: molar mass parser + tolerance + generated challenges are self-consistent
   console.assert(molarMass('NaCl') === 58.5, 'Mr NaCl');
   console.assert(molarMass('Ca(OH)2') === 74, 'Mr Ca(OH)2');

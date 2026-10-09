@@ -262,3 +262,43 @@ const RX_GROUPS = [
  {i:162, t:'Đường gặp axit sunfuric đặc'},
  {i:163, t:'Điện phân'}
 ];
+
+/* =====================================================================
+   THUỐC THỬ NHẬN BIẾT — minigame xác định chất (MG.identify, che-do.js).
+   Nhỏ một MẪU (lọ mất nhãn) vào thuốc thử thì thấy gì:
+     tip   một dòng mẹo, hiện trong sổ ghi chép
+     on    {mẫu: hiện tượng}; mẫu không có ở đây = không hiện tượng (NO_TEST)
+   Một hiện tượng:
+     t     chữ ngắn ghi vào ô của sổ — hai mẫu khác nhau mà cùng t thì người chơi coi như giống nhau
+     d     câu mô tả đầy đủ, hiện dưới bảng
+     fx    hình trong cốc: {ppt:'màu kết tủa'} (faint:1 = chỉ hơi vẩn đục) · {gas:1} sủi bọt ·
+           {spot:'màu'} vết trên giấy quỳ · {} không đổi. col = tên màu, cho dòng chữ "kết tủa trắng" hiện trên trạm
+   'quy' là giấy quỳ tím (luôn có, không nằm trong day.reagents) — mẫu nào cũng phải có dòng 'quy'.
+   ===================================================================== */
+const NO_TEST = {t:'—', d:'Không thấy hiện tượng gì.', fx:{}};
+const TESTS = {
+ quy:   {tip:'Quỳ tím: axit → ĐỎ, bazơ → XANH, trung tính → vẫn TÍM', on:{
+   HCl:      {t:'đỏ',   d:'Quỳ tím hoá ĐỎ → mẫu là axit.',            fx:{spot:'#d9634f', col:'đỏ'}},
+   H2SO4:    {t:'đỏ',   d:'Quỳ tím hoá ĐỎ → mẫu là axit.',            fx:{spot:'#d9634f', col:'đỏ'}},
+   NaOH:     {t:'xanh', d:'Quỳ tím hoá XANH → mẫu là bazơ.',          fx:{spot:'#4f78c9', col:'xanh'}},
+   'Ca(OH)2':{t:'xanh', d:'Quỳ tím hoá XANH → mẫu là bazơ.',          fx:{spot:'#4f78c9', col:'xanh'}},
+   NaCl:     {t:'tím',  d:'Quỳ vẫn TÍM → mẫu trung tính.',            fx:{spot:'#9b7bb8', col:'tím'}},
+   Na2SO4:   {t:'tím',  d:'Quỳ vẫn TÍM → mẫu trung tính.',            fx:{spot:'#9b7bb8', col:'tím'}},
+   H2O:      {t:'tím',  d:'Quỳ vẫn TÍM → mẫu trung tính.',            fx:{spot:'#9b7bb8', col:'tím'}}}},
+ BaCl2: {tip:'BaCl₂: kết tủa trắng với gốc sunfat =SO₄', on:{
+   H2SO4:    {t:'↓ trắng', d:'Kết tủa trắng BaSO₄ → mẫu có gốc sunfat (=SO₄).', fx:{ppt:'#ffffff', col:'trắng'}},
+   Na2SO4:   {t:'↓ trắng', d:'Kết tủa trắng BaSO₄ → mẫu có gốc sunfat (=SO₄).', fx:{ppt:'#ffffff', col:'trắng'}}}},
+ AgNO3: {tip:'AgNO₃: kết tủa trắng với gốc clorua −Cl', on:{
+   HCl:      {t:'↓ trắng',   d:'Kết tủa trắng AgCl → mẫu có gốc clorua (−Cl).', fx:{ppt:'#ffffff', col:'trắng'}},
+   NaCl:     {t:'↓ trắng',   d:'Kết tủa trắng AgCl → mẫu có gốc clorua (−Cl).', fx:{ppt:'#ffffff', col:'trắng'}},
+   NaOH:     {t:'↓ nâu đen', d:'Kết tủa nâu đen Ag₂O → mẫu là bazơ tan (kiềm).', fx:{ppt:'#4a3a2a', col:'nâu đen'}},
+   'Ca(OH)2':{t:'↓ nâu đen', d:'Kết tủa nâu đen Ag₂O → mẫu là bazơ tan (kiềm).', fx:{ppt:'#4a3a2a', col:'nâu đen'}},
+   // Ag₂SO₄ ít tan: dung dịch loãng chỉ hơi đục — đúng thực tế, và là lý do nên thử =SO₄ bằng BaCl₂ trước
+   H2SO4:    {t:'hơi đục',   d:'Chỉ hơi vẩn đục — Ag₂SO₄ ít tan, dễ nhầm với AgCl. Thử gốc =SO₄ bằng BaCl₂ cho chắc!', fx:{ppt:'#ffffff', col:'trắng', faint:1}},
+   Na2SO4:   {t:'hơi đục',   d:'Chỉ hơi vẩn đục — Ag₂SO₄ ít tan, dễ nhầm với AgCl. Thử gốc =SO₄ bằng BaCl₂ cho chắc!', fx:{ppt:'#ffffff', col:'trắng', faint:1}}}},
+ Na2CO3:{tip:'Na₂CO₃: sủi bọt khí CO₂ với axit', on:{
+   HCl:      {t:'sủi bọt', d:'Sủi bọt khí CO₂ → mẫu là axit.',            fx:{gas:1}},
+   H2SO4:    {t:'sủi bọt', d:'Sủi bọt khí CO₂ → mẫu là axit.',            fx:{gas:1}},
+   'Ca(OH)2':{t:'↓ trắng', d:'Kết tủa trắng CaCO₃ → mẫu có canxi (Ca).', fx:{ppt:'#ffffff', col:'trắng'}}}}
+};
+const testOf = (r, f) => TESTS[r].on[f] || NO_TEST;

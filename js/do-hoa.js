@@ -1740,9 +1740,37 @@ const SVG_DEFS = `
 
 <!-- ico-gear -->
 <symbol id="ico-gear" viewBox="0 0 24 24">
-  <path d="M12,2 l1.4,0 0.5,2.4 a7.6,7.6 0 0 1 2,1.15 l2.3,-0.9 1,1.7 -1.8,1.6 a7.6,7.6 0 0 1 0,2.3 l1.8,1.6 -1,1.7 -2.3,-0.9 a7.6,7.6 0 0 1 -2,1.15 l-0.5,2.4 -2.8,0 -0.5,-2.4 a7.6,7.6 0 0 1 -2,-1.15 l-2.3,0.9 -1,-1.7 1.8,-1.6 a7.6,7.6 0 0 1 0,-2.3 l-1.8,-1.6 1,-1.7 2.3,0.9 a7.6,7.6 0 0 1 2,-1.15 l0.5,-2.4 z"
+  <path d="M10.23,4.61 L10.60,1.59 L13.40,1.59 L13.77,4.61 L15.97,5.52 L18.37,3.65 L20.35,5.63 L18.48,8.03 L19.39,10.23 L22.41,10.60 L22.41,13.40 L19.39,13.77 L18.48,15.97 L20.35,18.37 L18.37,20.35 L15.97,18.48 L13.77,19.39 L13.40,22.41 L10.60,22.41 L10.23,19.39 L8.03,18.48 L5.63,20.35 L3.65,18.37 L5.52,15.97 L4.61,13.77 L1.59,13.40 L1.59,10.60 L4.61,10.23 L5.52,8.03 L3.65,5.63 L5.63,3.65 L8.03,5.52 Z"
     fill="#fffdf5" stroke="#3b3025" stroke-width="1.6" stroke-linejoin="round"/>
   <circle cx="12" cy="12" r="3.2" fill="#fffdf5" stroke="#3b3025" stroke-width="1.6"/>
+</symbol>
+
+<!-- ============================================================
+     LỌ MẤT NHÃN (minigame xác định chất): lọ bầu, nút nhám, dải nhãn trống ngang thân (y 128–186).
+     --lc = màu dung dịch. Số thứ tự và nhãn dán là HTML phủ lên dải.
+     ============================================================ -->
+<symbol id="sym-jar-blank" viewBox="0 0 170 240">
+  <path d="M62,8 Q62,3 67,3 L103,3 Q108,3 108,8 L108,16 Q108,20 103,20 L67,20 Q62,20 62,16 Z" fill="#e6dfcf" stroke="#3b3025" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M68,20 L68,42 C40,46 22,58 18,84 C12,120 12,170 22,214 Q26,232 44,232 L126,232 Q144,232 148,214 C158,170 158,120 152,84 C148,58 130,46 102,42 L102,20 Z" fill="#ffffff" fill-opacity=".4"/>
+  <path d="M16,100 Q50,94 85,100 T154,100 C158,135 157,178 147,213 Q143,229 126,229 L44,229 Q27,229 23,213 C13,178 12,135 16,100 Z" fill="var(--lc,#dcecf3)" opacity=".9"/>
+  <path d="M14,128 L156,128 L153,186 L17,186 Z" fill="#fffdf5"/>
+  <path d="M14,128 L156,128 M17,186 L153,186" stroke="#3b3025" stroke-width="3" stroke-linecap="round"/>
+  <path d="M68,20 L68,42 C40,46 22,58 18,84 C12,120 12,170 22,214 Q26,232 44,232 L126,232 Q144,232 148,214 C158,170 158,120 152,84 C148,58 130,46 102,42 L102,20" fill="none" stroke="#3b3025" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M30,96 Q25,108 25,122 M27,196 Q29,206 33,214" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity=".6"/>
+</symbol>
+
+<!-- ============================================================
+     CỐC NHỎ đựng thuốc thử (minigame xác định chất): thành thẳng, vòi rót bên phải. Hai lớp kẹp dung dịch ở giữa:
+     sym-beaker-small (thân kính, nằm dưới) → canvas dung dịch (liquidSim, lòng cốc x 16–94, mặt nước y 58)
+     → sym-beaker-line (viền, vạch chia, vệt sáng — luôn nằm trên cùng).
+     ============================================================ -->
+<symbol id="sym-beaker-small" viewBox="0 0 110 120">
+  <path d="M16,16 L16,104 Q16,112 24,112 L86,112 Q94,112 94,104 L94,16 Z" fill="#ffffff" fill-opacity=".4"/>
+</symbol>
+<symbol id="sym-beaker-line" viewBox="0 0 110 120">
+  <path d="M22,36 L30,36 M22,48 L27,48" stroke="#3b3025" stroke-width="2" stroke-linecap="round" opacity=".45"/>
+  <path d="M13,16 L97,16 M16,16 L16,104 Q16,113 25,113 L85,113 Q94,113 94,104 L94,24 Q95,16 103,11" fill="none" stroke="#3b3025" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M24,66 Q22,84 24,100" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity=".6"/>
 </symbol>
 
 </svg>

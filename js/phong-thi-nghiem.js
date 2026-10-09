@@ -140,7 +140,7 @@ function stripeCol(f){
 
 /* =====================  DRAG & DROP MANAGER  ===================== */
 // types: chem (cabinet bottle), beaker, gas (collection bottle), dish (filtered solids),
-// lamp (heater), ladle (muôi đốt), funnel (filter), mgcard (minigame cards via opts.onDrop)
+// lamp (heater), ladle (muôi đốt), funnel (filter), mgcard / mgdrop / mglabel (minigame, via opts.onDrop)
 // Ngày có muôi đốt: bình khí kiêm LỌ KHÍ (zone 'jar'), đèn cồn là chỗ hơ lửa (zone 'flame').
 const DZ_ACCEPT = {
   rod:   [], // never dropped — stirring happens during the drag, then it snaps home
@@ -152,7 +152,9 @@ const DZ_ACCEPT = {
   lamp:  ['beaker'],
   elec:  ['beaker'],
   funnel:['beaker'],
-  mgcard:['bin0','bin1','bin2','bin3']
+  mgcard:['bin0','bin1','bin2','bin3'],
+  mgdrop:['quy','rg0','rg1','rg2','rg3'],     // xác định chất: ống nhỏ giọt mẫu → giấy quỳ / cốc thuốc thử
+  mglabel:['jar0','jar1','jar2','tray']       // xác định chất: nhãn → lọ mất nhãn / khay nhãn
 };
 let drag = null;
 function gameXY(e){
@@ -491,7 +493,7 @@ function renderLab(){
   
   const hasMagicTools = save.items && save.items.tools && !lab.hard; // chế độ khó tự cân đong, không dùng thìa ma thuật
   const doseSelectorHtml = hasMagicTools ? `
-    <div class="dose-selector" style="display:flex;align-items:center;justify-content:center;gap:6px;margin:0 0 10px 0;background:#fffdf5;border:1.5px solid var(--ink);border-radius:4.8px;padding:4px 8px;font-size:14px;font-family:var(--fh)">
+    <div class="dose-selector" style="display:flex;align-items:center;justify-content:center;gap:6px;margin:0 0 10px 0;background:#fffdf5;border:1.2px solid var(--ink);border-radius:4.8px;padding:4px 8px;font-size:14px;font-family:var(--fh)">
       <span style="color:var(--ink)">Lượng đong: </span>
       <button class="btn dose-btn" id="dose-dec" style="padding:0 8px;font-size:12px;height:22px;line-height:18px">-</button>
       <span id="dose-val" style="font-weight:bold;width:65px;text-align:center;display:inline-block">${amt(lab.magicDose)}</span>
@@ -501,7 +503,7 @@ function renderLab(){
 
   const hasStickyNotes = save.items && save.items.notes;
   const stickyNoteHtml = hasStickyNotes ? `
-    <div class="wallitem stickynote" style="left:346px;top:168px;width:104px;min-height:100px;background:#fef5c1;border:1.5px solid var(--ink);box-shadow:3px 5px 6px #00000022;transform:rotate(-2deg);padding:8px;font-family:var(--fh);font-size:14px;z-index:5">
+    <div class="wallitem stickynote" style="left:346px;top:168px;width:104px;min-height:100px;background:#fef5c1;border:1.2px solid var(--ink);transform:rotate(-2deg);padding:8px;font-family:var(--fh);font-size:14px;z-index:5">
       <h4 style="margin:0 0 6px 0;font-size:14px;border-bottom:1px dotted #3b302566;padding-bottom:2px;display:flex;align-items:center;gap:4px">${ico('note',14)} Giấy nhớ</h4>
       <div id="stickynote-content" style="font-size:12px;line-height:1.4"></div>
       <div id="sn-water" style="display:none;position:absolute;right:6px;bottom:3px;font-size:10.5px;color:#4a7ba8;align-items:center;gap:2px">
@@ -707,10 +709,11 @@ function showRxBook(){
     if(left) items.push('<div class="eq locked">còn ' + left + ' phản ứng chưa gặp</div>');
     return '<h3 class="rxg">' + g.t + ' <i>' + (to - g.i - left) + '/' + (to - g.i) + '</i></h3>' + items.join('');
   }).join('');
-  modal('<div class="center">' + sym('sym-notebook-open',300,175) + '</div>'
-    + '<h2>Sổ tay — những gì đã học</h2>'
-    + '<p class="center" style="margin:0 0 10px">Đã ghi được <b>' + save.rx.length + '/' + REACTIONS.length
-    + '</b> phản ứng. Tự tay pha ra phản ứng nào thì nó hiện ra ở đây — <b>bấm vào</b> một dòng để xem lại thẻ phản ứng.</p>' + rows);
+  modal('<h2>Sổ tay — những gì đã học</h2>'
+    + '<div class="hgrid"><div class="center">' + sym('sym-notebook-open',300,175)
+    + '<p style="margin:8px 0 10px;text-align:left">Đã ghi được <b>' + save.rx.length + '/' + REACTIONS.length
+    + '</b> phản ứng. Tự tay pha ra phản ứng nào thì nó hiện ra ở đây — <b>bấm vào</b> một dòng để xem lại thẻ phản ứng.</p></div>'
+    + '<div>' + rows + '</div></div>', null, 'hcard');
   G.querySelectorAll('.eq[data-rx]').forEach(el => el.onclick = () => showRxCard(REACTIONS[+el.dataset.rx]));
 }
 

@@ -14,31 +14,38 @@ const SFX = (() => {
   // itch.io chạy trong iframe sandbox — localStorage có thể NÉM LỖI (không chỉ trả null)
   // ở đó; không bọc try/catch thì cả file script chết ngay từ dòng này, màn hình trắng.
   let muted = false;
+  let sfxVol = 1, musVol = 1;   // 0..1, chỉnh trong Cài đặt
   try { muted = localStorage.getItem('chemlab_mute') === '1'; } catch(e){}
+  try {
+    const a = localStorage.getItem('chemlab_sfxvol'), b = localStorage.getItem('chemlab_musvol');
+    if(a !== null) sfxVol = Math.max(0, Math.min(1, +a));
+    if(b !== null) musVol = Math.max(0, Math.min(1, +b));
+  } catch(e){}
   const ac = () => {
     if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
     if(ctx && ctx.state === 'suspended') ctx.resume();
     return ctx;
   };
-  function tone(f, d, type, v, f2){
+  function tone(f, d, type, v, f2, vol){
     const c = ac(); if(!c || muted) return;
+    v = (v||.1) * (vol === undefined ? sfxVol : vol); if(v <= 0) return;
     const o = c.createOscillator(), g = c.createGain();
     o.type = type||'sine'; o.frequency.value = f;
     if(f2) o.frequency.exponentialRampToValueAtTime(f2, c.currentTime+d);
-    g.gain.setValueAtTime(v||.1, c.currentTime);
+    g.gain.setValueAtTime(v, c.currentTime);
     g.gain.exponentialRampToValueAtTime(.0001, c.currentTime+d);
     o.connect(g); g.connect(c.destination);
     o.start(); o.stop(c.currentTime+d+.02);
   }
   // fq2: quét tần số lọc tới fq2 trong suốt tiếng — ra tiếng "vù" của lửa bùng lên
   function noise(d, v, fq, q, fq2){
-    const c = ac(); if(!c || muted) return;
+    const c = ac(); if(!c || muted || sfxVol <= 0) return;
     const n = Math.floor(c.sampleRate*d), b = c.createBuffer(1, n, c.sampleRate), ch = b.getChannelData(0);
     for(let i=0;i<n;i++) ch[i] = (Math.random()*2-1)*(1-i/n);
     const s = c.createBufferSource(); s.buffer = b;
     const fl = c.createBiquadFilter(); fl.type='bandpass'; fl.frequency.value=fq||1200; fl.Q.value=q||1;
     if(fq2) fl.frequency.exponentialRampToValueAtTime(fq2, c.currentTime + d);
-    const g = c.createGain(); g.gain.value = v||.08;
+    const g = c.createGain(); g.gain.value = (v||.08) * sfxVol;
     s.connect(fl); fl.connect(g); g.connect(c.destination); s.start();
   }
   /* Nhạc nền: hộp nhạc tự sinh trên thang ngũ cung, mỗi chương một giọng — không cần file nhạc.
@@ -53,7 +60,7 @@ const SFX = (() => {
   ];
   const mus = {theme:null, timer:null, step:0, pos:5};
   let unlocked = false;   // chưa có cú nhấp/chạm nào thì trình duyệt chưa cho phát — nhớ giai điệu, đợi unlock()
-  const musicOn = () => !muted && unlocked && save.settings.music !== false;
+  const musicOn = () => !muted && unlocked && musVol > 0;
   function musicStop(){ clearInterval(mus.timer); mus.timer = null; }
   function musicPlay(k){
     mus.theme = k; musicStop();
@@ -63,15 +70,23 @@ const SFX = (() => {
     mus.step = 0; mus.pos = 5;
     mus.timer = setInterval(() => {
       const s = mus.step++;
-      if(s % 8 === 0) tone(note(s % 32 === 16 ? -2 : -5), 1.4, 'sine', .035);     // bè trầm: chủ âm, thỉnh thoảng lên bậc
+      if(s % 8 === 0) tone(note(s % 32 === 16 ? -2 : -5), 1.4, 'sine', .035, null, musVol);     // bè trầm: chủ âm, thỉnh thoảng lên bậc
       if(Math.random() < .62){
         mus.pos = Math.max(0, Math.min(9, mus.pos + [-2,-1,-1,1,1,2][Math.floor(Math.random()*6)]));
-        tone(note(mus.pos), .55, th.w, .028);
+        tone(note(mus.pos), .55, th.w, .028, null, musVol);
       }
     }, 60000 / th.bpm / 2);
   }
   return {
     isMuted: () => muted,
+    getVol: k => k === 'music' ? musVol : sfxVol,
+    setVol(k, v){                       // v: 0..1; kéo thanh cũng bỏ tắt tiếng chung
+      const was = musicOn();
+      if(k === 'music') musVol = v; else sfxVol = v;
+      muted = false;
+      try{ localStorage.setItem(k === 'music' ? 'chemlab_musvol' : 'chemlab_sfxvol', v); localStorage.setItem('chemlab_mute','0'); }catch(e){}
+      if(k === 'music' && (was !== musicOn() || !mus.timer)) musicPlay(mus.theme);
+    },
     toggle(){ muted = !muted; try{ localStorage.setItem('chemlab_mute', muted?'1':'0'); }catch(e){}
               if(muted) musicStop(); else musicPlay(mus.theme); return muted; },
     // trình duyệt điện thoại chỉ cho phát tiếng sau một cú chạm — gọi cái này ở cú chạm đầu tiên
@@ -131,19 +146,30 @@ function go(fn){
 
 /* =====================  STATE & PERSISTENCE  ===================== */
 const G = document.getElementById('game');
+// bấm ra ngoài hộp thoại (nền mờ) = bấm nút Đóng / Huỷ của nó; chỉ khi cả nhấn lẫn thả đều ở nền
+let ovDown = null;
+G.addEventListener('mousedown', e => { ovDown = e.target; });
+G.addEventListener('click', e => {
+  if(!e.target.classList.contains('overlay') || ovDown !== e.target) return;
+  const b = e.target.querySelector('#mclose, #mno');
+  if(b) b.click();
+});
 let save;
 try { save = JSON.parse(localStorage.getItem('chemlab_save')); } catch(e){}
 if(!save) save = {unlocked:1, stars:{}, ach:[], served:0, spent:0, rx:[]};
 if(!save.rx) save.rx = [];   // save cũ: sổ tay bắt đầu trống, đầy dần khi chơi
 if(!save.settings) save.settings = {};                 // save cũ: bổ sung ô cài đặt
 if(save.settings.balance === undefined) save.settings.balance = true; // cân bằng phương trình: bật mặc định
-const balanceOn = () => save.settings.balance !== false;
+const nobalOwned = () => !!(save.items && save.items.nobalance);   // mua ở Cửa hàng mới được tắt cân bằng
+const balanceOn = () => !nobalOwned() || save.settings.balance !== false;
 if(!save.starsHard) save.starsHard = {};               // sao chế độ khó lưu riêng, không đè sao thường
 if(!save.hist) save.hist = [];                         // nhật ký từng lượt chơi, cho báo cáo học tập
-const hardOn  = () => save.settings.hard === true;     // chế độ khó: tự tính gam / ml / lít
+const hardUnlocked = () => (save.stars[DAYS.length]||0) >= 1 || (save.starsHard[DAYS.length]||0) >= 1;   // đã qua ngày cuối lần đầu
+const hardOn  = () => hardUnlocked() && save.settings.hard === true;     // chế độ khó: tự tính gam / ml / lít
 const cardsOn = () => save.settings.cards !== false;   // thẻ phản ứng khi khám phá: bật mặc định
+// sổ ghi chép ở màn xác định chất: phải mua ở Cửa hàng; mua rồi bật/tắt ngay trong Cửa hàng (mặc định bật)
+const labbookOn = () => !!(save.items && save.items.labbook) && save.settings.labbook !== false;
 const BALANCE_FROM_DAY = 5; // từ ngày này trở đi người chơi tự cân bằng; trước đó giáo sư làm hộ
-const GUIDE_DAY = 3;        // ngày đầu tiên có phản ứng (ngày 4) — giáo sư giảng cách cân bằng
 // đồng đỏ: one copper coin per unlocked achievement, minus what was spent in the shop
 const achCoins = () => save.ach.length - (save.spent||0);
 // persist() được gọi rải khắp game (mở khoá, đổi liều lượng…) — không bọc thì storage bị
@@ -176,11 +202,12 @@ function starConds(day){
     : ['Hoàn thành ít nhất '+day.s1+' đơn hàng','Hoàn thành tất cả '+day.orders.length+' đơn hàng',
        'Không giao sai, không phạm lỗi an toàn'];
 }
-function modal(html, onclose){
+function modal(html, onclose, cls){
   SFX.page();
   const ov = document.createElement('div');
   ov.className = 'overlay';
-  ov.innerHTML = '<div class="modal">'+html+'<div class="center" style="margin-top:12px"><button class="btn" id="mclose">Đóng</button></div></div>';
+  ov.innerHTML = cls ? '<div class="modal '+cls+'"><button class="xbtn" id="mclose" aria-label="Đóng">'+ico('close',16)+'</button>'+html+'</div>'
+    : '<div class="modal">'+html+'<div class="center" style="margin-top:12px"><button class="btn" id="mclose">Đóng</button></div></div>';
   ov.querySelector('#mclose').onclick = () => { ov.remove(); if(onclose) onclose(); };
   G.appendChild(ov);
 }
@@ -205,8 +232,6 @@ function showMenu(){
   // Thử thách pha nồng độ (startConc) mở sau ngày 2 — ngày học khái niệm mol.
   const inProgress = save.unlocked > 1; // đã qua ít nhất ngày 1 → có gì đó để "tiếp tục"
   const nextDay = Math.min(save.unlocked, DAYS.length);
-  const totStars = Object.values(save.stars).reduce((a,b)=>a+b,0);
-  const concOpen = DEBUG || save.unlocked > 2;
   G.innerHTML = `<div class="scene center" style="padding:0">
     <div class="menu-wall"></div>
     <div style="position:absolute;top:150px;left:64px">${sym('sym-poster-periodic',126,160)}</div>
@@ -217,16 +242,12 @@ function showMenu(){
         <h1>${sym('sym-erlenmeyer',40,54,'vertical-align:-12px;--lc:#7fc4c9')} Trợ Lý Hóa Học Nhí</h1>
         <h2>Trợ lý phòng thí nghiệm của giáo sư Hoffmann</h2>
       </div>
-      ${save.served ? `<div class="menu-stats">${ico('flask',14)} Mở tới ngày ${nextDay}/${DAYS.length} · ${ico('star',14)} ${totStars} sao · ${ico('coinred',14)} ${achCoins()}</div>` : ''}
       <div class="menu-btns">
         <button class="btn big" id="bstart">${inProgress ? ico('play')+' Ngày '+nextDay+' →' : ico('play')+' Bắt đầu'}</button>
-        <button class="btn" id="bconc"${concOpen?'':' style="opacity:.55"'}>${ico(concOpen?'flask':'lock')} Thử thách pha nồng độ</button>
         <button class="btn" id="brx">${ico('note')} Sổ tay</button>
         <button class="btn" id="bach">${ico('trophy')} Thành tựu</button>
-        <button class="btn" id="brep">${ico('check')} Báo cáo học tập</button>
         <button class="btn" id="bset">${ico('gear')} Cài đặt</button>
       </div>
-      <p style="margin-top:6px"><span class="menu-danger-link" id="breset">Xoá dữ liệu trò chơi</span></p>
     </div>
     <div style="position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(#c89a63,#a97c4b);border-top:5px solid var(--ink)">
       ${sym('sym-benchtex',1270,60,'position:absolute;top:6px;left:0')}
@@ -245,16 +266,9 @@ function showMenu(){
   </div>`;
   G.querySelector('#menuprof').innerHTML = profSVG('happy').replace('viewBox','height="225" viewBox');
   G.querySelector('#bstart').onclick = () => go(showMap);
-  G.querySelector('#bconc').onclick = () => concOpen ? go(startConc)
-    : toast(ico('lock',16)+' Học xong ngày 2 (khái niệm mol) đã rồi hẵng thử pha nồng độ nhé!');
   G.querySelector('#brx').onclick = showRxBook;
   G.querySelector('#bach').onclick = showAch;
-  G.querySelector('#brep').onclick = () => showReport();
   G.querySelector('#bset').onclick = settingsModal;
-  G.querySelector('#breset').onclick = () => confirmModal(
-    '<h2>'+ico('trash',22)+' Xoá dữ liệu?</h2><p style="margin:8px 0">Toàn bộ tiến trình, sao và thành tựu sẽ bị xoá và không thể khôi phục.</p>',
-    () => { save = {unlocked:1, stars:{}, starsHard:{}, ach:[], served:0, spent:0, rx:[], hist:[], settings:{balance:true}}; persist(); toast('Đã xoá dữ liệu.'); showMenu(); },
-    'Xoá hết', 'Giữ lại');
 }
 
 function showAch(){
@@ -263,7 +277,7 @@ function showAch(){
     return '<div class="sealrow'+(got?'':' off')+'"><div class="seal">'+ico(got?'star':'lock',16)+'</div><div><b>'+ACH[id].n+'</b><br><span style="font-size:13px">'+ACH[id].d+'</span></div></div>';
   }).join('');
   modal('<h2>'+ico('trophy',22)+' Thành tựu ('+save.ach.length+'/'+Object.keys(ACH).length+')</h2>'
-    + '<p style="margin:2px 0 10px">'+ico('coinred',16)+' Mỗi thành tựu tặng 1 đồng đỏ để mua đồ ở Cửa hàng — trò đang có <b>'+achCoins()+'</b>.</p>'+rows);
+    + '<div class="hgrid">'+rows+'</div>', null, 'hcard');
 }
 
 /* =====================  BÁO CÁO HỌC TẬP (cho thầy cô)  =====================
@@ -403,9 +417,7 @@ function showMap(){
   G.innerHTML = `<div class="scene" style="overflow-y:auto">
     <div class="row" style="justify-content:space-between">
       <h2>${ico('map',22)} Lịch làm việc</h2>
-      <div class="row"><span class="hudstat">${ico('coinred',16)} ${achCoins()}</span>
-        <button class="btn" id="bshop" style="margin-left: 6px; font-family: var(--fh)">${ico('note',14)} Cửa hàng</button>
-        <button class="btn icobtn" id="bach2">${ico('trophy')}</button>
+      <div class="row"><button class="btn" id="bshop" style=" font-family: var(--fh)">${ico('note',14)} Cửa hàng</button>
         <button class="btn" id="bback">${ico('back')} Menu</button></div>
     </div>
     <div class="calsheet">
@@ -416,7 +428,6 @@ function showMap(){
     </div>
     ${DEBUG?'<div class="devbadge">DEV: mọi ngày đều mở</div>':''}</div>`;
   G.querySelector('#bback').onclick = () => go(showMenu);
-  G.querySelector('#bach2').onclick = showAch;
   G.querySelector('#bshop').onclick = showShop;
   const fc = G.querySelector('.freecard.locked');
   if(fc) fc.onclick = () => toast(ico('lock',16)+' Làm hết 31 ngày đã, rồi tháng sau tha hồ nghịch!');
@@ -432,18 +443,22 @@ function showMap(){
 }
 
 function showShop(){
-  save.items = save.items || { tools: false, notes: false };
-  
+  save.items = save.items || { tools: false, notes: false, labbook: false, nobalance: false };
+
   const renderShop = () => {
     const hasTools = save.items.tools;
     const hasNotes = save.items.notes;
-    
-    return `
-      <h2 style="font-family:var(--fh); text-align:center">${ico('coinred', 22)} Cửa hàng Hoffmann</h2>
-      <div style="text-align:left; font-size:15px; margin-bottom:12px; line-height:1.6; font-family:var(--fh)">
-        <p>Mỗi <b>thành tựu</b> mở được tặng trò 1 đồng đỏ. Trò đang có: <b>${achCoins()}</b> ${ico('coinred',15)}</p>
+    const hasBook = save.items.labbook, bookOn = labbookOn();
+    const hasNobal = save.items.nobalance;
 
-        <div class="shop-item" style="border: 2px solid var(--ink); border-radius: 4.8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; background: #fffdf5">
+    return `
+      <button class="xbtn" id="mclose" aria-label="Đóng">${ico('close',16)}</button>
+      <h2 style="font-family:var(--fh)">${ico('coinred', 22)} Cửa hàng Hoffmann</h2>
+      <div style="text-align:left; font-size:15px; margin-bottom:12px; line-height:1.6; font-family:var(--fh)">
+        <p style="padding:0 4px;margin:0 0 10px">Trò đang có: <b>${achCoins()}</b> ${ico('coinred',15)}</p>
+        <div class="hgrid">
+
+        <div class="shop-item" style="border: 1.2px solid var(--ink); border-radius: 4.8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; background: #fffdf5">
           <div style="flex: 1; padding-right: 12px">
             <b style="font-size: 16px; color: var(--accent)">${ico('flask', 16)} Thìa & Pipet Ma Thuật</b>
             <div style="font-size: 13px; color: #555; margin-top: 4px">Cho phép bạn chủ động tăng/giảm lượng đong hóa chất mỗi lần đổ vào cốc (0,05 mol - 1,0 mol).</div>
@@ -456,7 +471,7 @@ function showShop(){
           </div>
         </div>
 
-        <div class="shop-item" style="border: 2px solid var(--ink); border-radius: 4.8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; background: #fffdf5">
+        <div class="shop-item" style="border: 1.2px solid var(--ink); border-radius: 4.8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; background: #fffdf5">
           <div style="flex: 1; padding-right: 12px">
             <b style="font-size: 16px; color: var(--accent)">${ico('note', 16)} Giấy Nhớ Hóa Chất</b>
             <div style="font-size: 13px; color: #555; margin-top: 4px">Tự động hiện danh sách chi tiết các chất và số mol tương ứng hiện có trong cốc thí nghiệm.</div>
@@ -468,13 +483,43 @@ function showShop(){
             }
           </div>
         </div>
+
+        <div class="shop-item" style="border: 1.2px solid var(--ink); border-radius: 4.8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; background: #fffdf5">
+          <div style="flex: 1; padding-right: 12px">
+            <b style="font-size: 16px; color: var(--accent)">${ico('note', 16)} Giấy Phép Bỏ Cân Bằng</b>
+            <div style="font-size: 13px; color: #555; margin-top: 4px">Mở khoá công tắc "Tắt cân bằng phương trình" trong Cài đặt: giáo sư cân bằng hộ toàn bộ phương trình.</div>
+          </div>
+          <div>
+            ${hasNobal
+              ? `<span style="color: var(--green); font-weight: bold; font-size: 15px">Đã sở hữu</span>`
+              : `<button class="btn" id="buyNobal" style="min-width: 100px; font-family:var(--fh)">5 ${ico('coinred', 14)} Mua</button>`
+            }
+          </div>
+        </div>
+
+        <div class="shop-item" style="border: 1.2px solid var(--ink); border-radius: 4.8px; padding: 12px; display: flex; justify-content: space-between; align-items: center; background: #fffdf5">
+          <div style="flex: 1; padding-right: 12px">
+            <b style="font-size: 16px; color: var(--accent)">${ico('book', 16)} Sổ Ghi Chép Thí Nghiệm</b>
+            <div style="font-size: 13px; color: #555; margin-top: 4px">Ở màn xác định chất, sổ tự ghi hiện tượng của mỗi lần nhỏ thử, kèm mẹo nhận biết. Không có sổ thì trò phải tự nhớ — hoặc tự ghi ra giấy!</div>
+          </div>
+          <div>
+            ${hasBook
+              ? `<div style="display: flex; flex-direction: column; align-items: center; gap: 5px">
+                   <span style="color: var(--green); font-weight: bold; font-size: 15px">Đã sở hữu</span>
+                   <div class="toggle${bookOn ? ' on' : ''}" id="tglBook" role="switch" aria-checked="${bookOn}" title="Bật / tắt sổ ghi chép"></div>
+                 </div>`
+              : `<button class="btn" id="buyBook" style="min-width: 100px; font-family:var(--fh)">3 ${ico('coinred', 14)} Mua</button>`
+            }
+          </div>
+        </div>
+        </div>
       </div>
     `;
   };
 
   const ov = document.createElement('div');
   ov.className = 'overlay';
-  ov.innerHTML = `<div class="modal" style="width: 520px">${renderShop()}<div class="center" style="margin-top:12px"><button class="btn" id="mclose" style="font-family:var(--fh)">Đóng</button></div></div>`;
+  ov.innerHTML = `<div class="modal hcard">${renderShop()}</div>`;
   G.appendChild(ov);
   
   const setupHandlers = () => {
@@ -509,7 +554,48 @@ function showShop(){
         }
       };
     }
-    
+
+    const btnNobal = ov.querySelector('#buyNobal');
+    if(btnNobal){
+      btnNobal.onclick = () => {
+        if(achCoins() >= 5){
+          save.spent = (save.spent||0) + 5;
+          save.items.nobalance = true;
+          persist();
+          SFX.page();
+          toast('Đã sở hữu Giấy Phép Bỏ Cân Bằng!');
+          refresh();
+        } else {
+          toast('Chưa đủ đồng đỏ — mở thêm thành tựu nhé!');
+        }
+      };
+    }
+
+    const btnBook = ov.querySelector('#buyBook');
+    if(btnBook){
+      btnBook.onclick = () => {
+        if(achCoins() >= 3){
+          save.spent = (save.spent||0) + 3;
+          save.items.labbook = true;
+          persist();
+          SFX.page();
+          toast('Đã sở hữu Sổ Ghi Chép Thí Nghiệm!');
+          refresh();
+        } else {
+          toast('Chưa đủ đồng đỏ — mở thêm thành tựu nhé!');
+        }
+      };
+    }
+    const tglBook = ov.querySelector('#tglBook');
+    if(tglBook){
+      tglBook.onclick = () => {
+        save.settings.labbook = !labbookOn(); persist();
+        tglBook.classList.toggle('on', labbookOn());
+        tglBook.setAttribute('aria-checked', labbookOn());
+        SFX.clink();
+      };
+    }
+
     ov.querySelector('#mclose').onclick = () => {
       ov.remove();
       showMap();
@@ -518,7 +604,7 @@ function showShop(){
   
   const refresh = () => {
     const modalDiv = ov.querySelector('.modal');
-    modalDiv.innerHTML = `${renderShop()}<div class="center" style="margin-top:12px"><button class="btn" id="mclose" style="font-family:var(--fh)">Đóng</button></div>`;
+    modalDiv.innerHTML = renderShop();
     setupHandlers();
   };
   
@@ -542,9 +628,9 @@ function showIntro(i){
         <b style="font-size:18px;font-family:var(--fh)">Giáo sư Hoffmann:</b>
         <p class="hand" style="font-size:16px;line-height:1.5;margin:6px 0">“${day.story}”</p>
         ${shelf}${tools}
-        <div style="border-top:2px dashed var(--ink);margin-top:8px;padding-top:8px">
+        <div style="border-top:1.2px dashed var(--ink);margin-top:8px;padding-top:8px">
           <b>Điều kiện sao:</b><div class="condlist">${conds}</div></div>
-        ${day.mg ? '' : `<div class="settingrow hardrow"><div>
+        ${(day.mg || !hardUnlocked()) ? '' : `<div class="settingrow hardrow"><div>
           <b style="font-family:var(--fh);font-size:16px">${ico('flask',15)} Chế độ khó${save.starsHard[i+1] ? ' <span style="color:#d9634f">'+starStr(save.starsHard[i+1])+'</span>' : ''}</b>
           <div style="font-size:13px;color:#6b5d4a;margin-top:2px">Đơn hàng ghi theo <b>gam</b> và <b>lít khí</b>; trò tự tính rồi cân, đong từng chất. Sai số cho phép 5%. Thêm 50% thời gian.</div>
         </div><div class="toggle${hardOn()?' on':''}" id="tglHardIntro" role="switch" aria-checked="${hardOn()}"></div></div>`}
@@ -569,14 +655,6 @@ function showIntro(i){
 }
 
 /* =====================  CÂN BẰNG PHƯƠNG TRÌNH  ===================== */
-// Lời giảng của giáo sư về cách cân bằng — hiện ở ngày đầu tiên có phản ứng.
-const BALANCE_GUIDE =
-  'Cân bằng phương trình là làm cho <b>số nguyên tử của mỗi nguyên tố ở hai vế bằng nhau</b>. '
-  + 'Ta chỉ được thêm <b>hệ số</b> (số đứng trước công thức), <b>tuyệt đối không sửa chỉ số nhỏ</b> bên trong công thức. '
-  + 'Mẹo: đếm từng nguyên tố, vế nào thiếu thì thêm hệ số cho đủ, chọn bội chung nhỏ nhất. '
-  + 'Ví dụ H₂ + O₂ → H₂O: bên phải chỉ có 1 O, thêm <b>2</b> trước H₂O cho đủ 2 O, rồi cân H thành <b>2</b>H₂. '
-  + 'Kết quả: 2H₂ + O₂ → 2H₂O. Ô để trống nghĩa là hệ số 1.';
-
 // Các phản ứng người chơi sẽ thực hiện trong ngày: chất tham gia đều có trên kệ và
 // tạo ra ít nhất một sản phẩm mà khách đặt. Tính một lần rồi nhớ vào day._eqs.
 function dayEqs(day){
@@ -595,24 +673,91 @@ function dayEqs(day){
 }
 
 // Một vế phương trình với ô nhập hệ số cho TỪNG chất (kể cả hệ số 1).
-function eqEditableTerms(obj, mark, eid){
-  return Object.keys(obj).map(f => {
+// n: số ô chất của vế này (bằng nhau ở mọi dòng để dấu + và mũi tên thẳng cột);
+// lead: ô trống dồn lên đầu (vế trái, sát mũi tên) hay xuống cuối (vế phải).
+function eqEditableTerms(obj, mark, eid, n, lead){
+  const terms = Object.keys(obj).map(f => {
     let m = '';
     if(mark){ if(CHEMS[f].s==='k') m='↑'; else if(isPrecip(f)) m='↓'; }
     return '<span class="bterm"><input class="bcoef" type="number" min="1" inputmode="numeric"'
       + ' data-eid="'+eid+'" data-want="'+obj[f]+'" aria-label="hệ số của '+f+'">'
       + sub(f) + m + '</span>';
-  }).join('<span class="bplus"> + </span>');
+  });
+  const pad = new Array(n - terms.length).fill('');
+  const slots = lead ? pad.concat(terms) : terms.concat(pad);
+  return slots.map((t, k) => (k ? '<span class="bplus">'+(t && slots[k-1] ? '+' : '')+'</span>' : '')
+    + (t || '<span class="bterm"></span>')).join('');
 }
-function eqEditableRow(idx, eid){
+function eqEditableRow(idx, eid, nl, np){
   const r = REACTIONS[idx];
   return '<div class="beq" data-eid="'+eid+'">'
-    + eqEditableTerms(r.rg, false, eid)
+    + eqEditableTerms(r.rg, false, eid, nl, true)
     + '<span class="barrow">—'+rxOver(r)+'→</span>'
-    + eqEditableTerms(r.pr, true, eid)
+    + eqEditableTerms(r.pr, true, eid, np, false)
     + '<span class="bmark"></span>'
-    + '<button class="btn" data-reveal="'+eid+'" style="margin-left:auto;padding:2px 10px;font-size:12px;height:26px">Xem đáp án</button>'
     + '</div><div class="beqmsg" data-msg="'+eid+'"></div>';
+}
+// Cho mỗi cột (chất, dấu +, mũi tên) cùng bề rộng ở mọi dòng.
+function alignEqCols(){
+  const rows = [...G.querySelectorAll('.beq[data-eid]')];
+  if(!rows.length) return;
+  const cols = rows[0].children.length - 1;   // trừ ô dấu ✔ cuối dòng
+  for(let j = 0; j < cols; j++){
+    const cells = rows.map(r => r.children[j]);
+    cells.forEach(c => c.style.width = '');
+    const w = Math.max(...cells.map(c => c.offsetWidth));
+    cells.forEach(c => c.style.width = w + 'px');
+  }
+}
+
+// Thẻ hướng dẫn cân bằng, ví dụ Fe(OH)₃ + HCl → FeCl₃ + H₂O
+function balanceTutorial(){
+  const T = [   // a: số nguyên tử mỗi nguyên tố trong MỘT phân tử
+    {f:'Fe(OH)<sub>3</sub>', a:{Fe:1, O:3, H:3}},
+    {f:'HCl',                a:{H:1, Cl:1}},
+    {f:'FeCl<sub>3</sub>',   a:{Fe:1, Cl:3}},
+    {f:'H<sub>2</sub>O',     a:{H:2, O:1}}
+  ], SIDE = [0,0,1,1], EL = ['Fe','Cl','O','H'];
+  // c: hệ số sau bước; tc: chất vừa đổi hệ số; ec: ô đếm vừa đổi (nguyên tố + vế 0/1)
+  const ST = [
+    {c:[1,1,1,1], tc:-1, ec:[],          t:'<b>Đếm</b> số nguyên tử mỗi nguyên tố ở hai vế. Cl, O và H đang lệch.'},
+    {c:[1,3,1,1], tc:1,  ec:['Cl0','H0'], t:'<b>Cl</b>: trái 1, phải 3 → đặt <b>3</b> trước HCl. Cl đã bằng nhau; H bên trái tăng lên 6.'},
+    {c:[1,3,1,3], tc:3,  ec:['H1','O1'],  t:'<b>H</b>: trái 6, phải 2 → đặt <b>3</b> trước H<sub>2</sub>O. H bằng 6; O bên phải cũng lên 3.'},
+    {c:[1,3,1,3], tc:-1, ec:[], done:true, t:'<b>Kiểm tra</b>: mọi nguyên tố đều bằng nhau ở hai vế. Xong!'}
+  ];
+  const term = (k, j) => {
+    const c = ST[k].c[j], p = k ? ST[k-1].c[j] : c;
+    let chips = '';
+    for(let n = 0; n < c; n++) chips += '<span class="tchip'+(n >= p ? ' new' : '')+'" style="--d:'+((n-p)*.12+.3).toFixed(2)+'s">'+T[j].f+'</span>';
+    return '<span class="tterm"><span class="tf"><b class="tcoef'+(c === 1 ? ' one' : '')+(ST[k].tc === j ? ' chg' : '')+'">'+c+'</b><span>'+T[j].f+'</span></span>'
+      + '<span class="tchips">'+chips+'</span></span>';
+  };
+  const cnt = (k, e, s) => {   // "hệ số×số nguyên tử + … = tổng" của một nguyên tố ở một vế
+    const parts = []; let n = 0;
+    T.forEach((t, j) => { if(SIDE[j] !== s || !t.a[e]) return; const c = ST[k].c[j]; parts.push(c+'×'+t.a[e]); n += c*t.a[e]; });
+    return {txt: parts.join(' + ')+' = <b>'+n+'</b>', n};
+  };
+  const render = k => {
+    const s = ST[k], op = x => '<span class="top">'+x+'</span>';
+    const rows = EL.map((e, r) => {
+      const L = cnt(k,e,0), R = cnt(k,e,1), ok = L.n === R.n;
+      const was = k ? cnt(k-1,e,0).n === cnt(k-1,e,1).n : ok;
+      return '<tr class="'+(s.done ? 'okrow' : '')+(k === 0 ? ' cnt' : '')+'" style="--d:'+(r*.15).toFixed(2)+'s"><td><b>'+e+'</b></td>'
+        + '<td class="'+(s.ec.includes(e+'0') ? 'chg' : '')+'">'+L.txt+'</td>'
+        + '<td class="'+(s.ec.includes(e+'1') ? 'chg' : '')+'">'+R.txt+'</td>'
+        + '<td class="tmark '+(ok ? 'ok' : 'bad')+(ok !== was ? ' flip' : '')+'"><span>'+(ok ? '✓' : '✗')+'</span></td></tr>';
+    }).join('');
+    G.querySelector('#tstage').innerHTML = '<div class="teq">'+term(k,0)+op('+')+term(k,1)+op('→')+term(k,2)+op('+')+term(k,3)+'</div>'
+      + '<table class="tuttab"><tr><th></th><th>Vế trái</th><th>Vế phải</th><th></th></tr>'+rows+'</table>';
+    G.querySelectorAll('.tstep').forEach(el => el.classList.toggle('on', +el.dataset.k === k));
+  };
+  modal('<h2>'+ico('book',22)+' Hướng dẫn cân bằng</h2>'
+    + '<div class="hgrid"><div class="tstage" id="tstage"></div><div>'
+    + ST.map((s, k) => '<div class="tstep" data-k="'+k+'"><span class="tnum">'+(k+1)+'</span><div>'+s.t+'</div></div>').join('')
+    + '<p class="tnote">Hệ số 1 không cần viết. Chỉ đổi hệ số trước công thức, không đổi chỉ số nhỏ bên trong công thức.</p>'
+    + '</div></div>', null, 'hcard');
+  G.querySelectorAll('.tstep').forEach(el => { el.onmouseenter = el.onclick = () => render(+el.dataset.k); });
+  render(0);
 }
 
 // Màn hình giấy cân bằng trước khi vào ca. next() chạy khi trò đã xong.
@@ -620,37 +765,41 @@ function showBalance(i, next){
   const day = DAYS[i], num = i+1, eqs = dayEqs(day);
   if(!eqs.length) return next();
   const editable = num >= BALANCE_FROM_DAY;
-  const guide = (i === GUIDE_DAY)
-    ? '<div class="bhint"><b>'+ico('book',14)+' Giáo sư dạy cân bằng:</b> '+BALANCE_GUIDE+'</div>'
-    : (editable ? '<div class="bhint">Điền hệ số sao cho số nguyên tử mỗi nguyên tố ở hai vế bằng nhau. Ô trống = hệ số 1.</div>' : '');
 
   let rows;
   if(editable){
-    rows = eqs.map((idx,k)=>eqEditableRow(idx,k)).join('');
+    const nl = Math.max(...eqs.map(idx => Object.keys(REACTIONS[idx].rg).length));
+    const np = Math.max(...eqs.map(idx => Object.keys(REACTIONS[idx].pr).length));
+    rows = eqs.map((idx,k)=>eqEditableRow(idx,k,nl,np)).join('');
   } else {
     rows = eqs.map(idx => '<div class="beq ok">'+eqStr(REACTIONS[idx])+'</div>').join('');
   }
   const sub2 = editable
-    ? 'Cân bằng các phản ứng của ngày hôm nay rồi hãy mở tiệm.'
+    ? ''
     : 'Giáo sư đã cân bằng giúp trò rồi — từ <b>ngày '+BALANCE_FROM_DAY+'</b> trở đi trò sẽ tự làm nhé!';
 
-  G.innerHTML = '<div class="scene" style="padding-top:22px">'
+  // tiêu đề + tờ giấy + nút được căn giữa theo chiều dọc (margin:auto trong cột flex)
+  G.innerHTML = '<div class="scene" style="display:flex;flex-direction:column">'
+    + '<div style="margin:auto 0">'
     + '<h2 class="center">Ngày '+num+': Giấy cân bằng phương trình</h2>'
     + '<div class="row" style="justify-content:center;margin-top:8px"><div style="max-width:760px;width:100%">'
-    + guide
     + '<div class="bnote"><h3>'+ico('note',18)+' Giấy nháp của trợ lý</h3>'
-    + '<p class="bsub">'+sub2+'</p>' + rows + '</div>'
-    + '<div class="row" style="justify-content:center;margin-top:16px;gap:12px">'
-    + '<button class="btn big" id="bgolab" '+(editable?'disabled style="opacity:.5"':'')+'>'+ico('flask')+' Mở tiệm</button>'
-    + (editable ? '<button class="btn" id="brevealall">'+ico('note')+' Cân bằng hộ &amp; vào ca</button>' : '')
+    + (sub2 ? '<p class="bsub">'+sub2+'</p>' : '') + rows + '</div>'
+    + '<div class="row" style="justify-content:flex-end;align-items:stretch;margin-top:16px;gap:12px">'
     + '<button class="btn" id="bbackmap">'+ico('back')+' Bản đồ</button>'
-    + '</div></div></div></div>';
+    + '<button class="btn big" id="bgolab" '+(editable?'disabled style="opacity:.5"':'')+'>'+ico('flask')+' Mở tiệm</button>'
+    + '</div></div></div></div>'
+    + (editable ? '<button class="btn icobtn helpbtn" id="bhelp" aria-label="Hướng dẫn cân bằng">?</button>' : '')
+    + '</div>';
 
   const golab = G.querySelector('#bgolab');
   G.querySelector('#bbackmap').onclick = () => go(showMap);
   G.querySelector('#bgolab').onclick = () => { if(!golab.disabled) go(next); };
 
   if(!editable) return; // giáo sư làm hộ — chỉ cần bấm Mở tiệm
+  G.querySelector('#bhelp').onclick = balanceTutorial;
+  alignEqCols();
+  if(document.fonts) document.fonts.ready.then(alignEqCols);   // đo lại khi phông tải xong
 
   const done = new Array(eqs.length).fill(false);
   const refresh = () => {
@@ -658,13 +807,12 @@ function showBalance(i, next){
     golab.disabled = !all;
     golab.style.opacity = all ? '' : '.5';
   };
-  const lockRow = (eid, revealed) => {
+  const lockRow = (eid) => {
     done[eid] = true;
     const row = G.querySelector('.beq[data-eid="'+eid+'"]');
-    row.classList.add(revealed ? 'rev' : 'ok');
+    row.classList.add('ok');
     row.querySelectorAll('.bcoef').forEach(inp => { inp.readOnly = true; inp.classList.remove('bad'); });
-    row.querySelector('.bmark').textContent = revealed ? '✔ (đã xem)' : '✔ Cân bằng đúng!';
-    const rb = row.querySelector('[data-reveal]'); if(rb) rb.remove();
+    row.querySelector('.bmark').textContent = '✔ Cân bằng đúng!';
     refresh();
   };
   const checkRow = (eid) => {
@@ -680,8 +828,8 @@ function showBalance(i, next){
     const k = got[0] / want[0];
     const exact = got.every((v,j) => v === want[j]);
     const multiple = Number.isInteger(k) && k > 1 && got.every((v,j) => v === want[j]*k);
-    if(exact){ msg.textContent=''; SFX.clink(); lockRow(eid,false); }
-    else if(multiple){ msg.style.color='#b9812f'; msg.textContent='Đúng rồi! Lần sau thử dùng hệ số nhỏ nhất nhé.'; SFX.clink(); lockRow(eid,false); }
+    if(exact){ msg.textContent=''; SFX.clink(); lockRow(eid); }
+    else if(multiple){ msg.style.color='#b9812f'; msg.textContent='Đúng rồi! Lần sau thử dùng hệ số nhỏ nhất nhé.'; SFX.clink(); lockRow(eid); }
     else {
       msg.style.color='#c9524b';
       msg.textContent='Số nguyên tử hai vế chưa bằng nhau — đếm lại rồi thử tiếp nào.';
@@ -691,22 +839,6 @@ function showBalance(i, next){
   G.querySelectorAll('.bcoef').forEach(inp => {
     inp.addEventListener('input', () => { inp.classList.remove('bad'); checkRow(+inp.dataset.eid); });
   });
-  G.querySelectorAll('[data-reveal]').forEach(btn => {
-    btn.onclick = () => {
-      const eid = +btn.dataset.reveal;
-      G.querySelectorAll('.bcoef[data-eid="'+eid+'"]').forEach(inp => { inp.value = inp.dataset.want; });
-      G.querySelector('.beqmsg[data-msg="'+eid+'"]').textContent = '';
-      lockRow(eid, true);
-    };
-  });
-  const revealAll = G.querySelector('#brevealall');
-  if(revealAll) revealAll.onclick = () => {
-    eqs.forEach((idx,eid) => { if(!done[eid]){
-      G.querySelectorAll('.bcoef[data-eid="'+eid+'"]').forEach(inp => { inp.value = inp.dataset.want; });
-      lockRow(eid, true);
-    }});
-    go(next);
-  };
   refresh();
 }
 
@@ -723,49 +855,50 @@ function settingsModal(){
   SFX.page();
   const ov = document.createElement('div');
   ov.className = 'overlay';
-  const on = balanceOn(), snd = !SFX.isMuted();
-  ov.innerHTML = '<div class="modal" style="max-width:470px">'
+  const lbl = 'font-family:var(--fh);font-size:16px';
+  const pct = k => SFX.isMuted() ? 0 : Math.round(SFX.getVol(k)*100);
+  const slider = (id, ic, name, k) => '<div class="settingrow vol"><div><b style="'+lbl+'">'+ico(ic,15)+' '+name+'</b></div>'
+    + '<div class="volbar"><input type="range" min="0" max="100" step="1" id="'+id+'" value="'+pct(k)+'"><b class="volpct" id="'+id+'p">'+pct(k)+'%</b></div></div>';
+  const tgl = (id, ic, name, on, locked) => '<div class="settingrow'+(locked?' locked':'')+'"><div><b style="'+lbl+'">'+ico(locked?'lock':ic,15)+' '+name+'</b></div>'
+    + '<div class="toggle'+(on&&!locked?' on':'')+'" id="'+id+'" role="switch" aria-checked="'+(on&&!locked)+'"></div></div>';
+  ov.innerHTML = '<div class="modal hcard"><button class="xbtn" id="mclose" aria-label="Đóng">'+ico('close',16)+'</button>'
     + '<h2>'+ico('gear',22)+' Cài đặt</h2>'
-    + '<div class="settingrow"><div>'
-    + '<b style="font-family:var(--fh);font-size:16px">'+ico('sound',15)+' Âm thanh</b>'
-    + '<div style="font-size:13px;color:#6b5d4a;margin-top:3px;max-width:330px">Tiếng rót, sủi bọt, chuông thành tựu và các hiệu ứng khác.</div>'
-    + '</div><div class="toggle'+(snd?' on':'')+'" id="tglSound" role="switch" aria-checked="'+snd+'"></div></div>'
-    + '<div class="settingrow"><div>'
-    + '<b style="font-family:var(--fh);font-size:16px">'+ico('bell',15)+' Nhạc nền</b>'
-    + '<div style="font-size:13px;color:#6b5d4a;margin-top:3px;max-width:330px">Hộp nhạc khe khẽ, mỗi chương một giai điệu. Tắt Âm thanh thì nhạc cũng tắt.</div>'
-    + '</div><div class="toggle'+(save.settings.music !== false?' on':'')+'" id="tglMusic" role="switch" aria-checked="'+(save.settings.music !== false)+'"></div></div>'
-    + '<div class="settingrow"><div>'
-    + '<b style="font-family:var(--fh);font-size:16px">'+ico('note',15)+' Tự cân bằng phương trình</b>'
-    + '<div style="font-size:13px;color:#6b5d4a;margin-top:3px;max-width:330px">Từ ngày '+BALANCE_FROM_DAY+' trở đi, trước mỗi ca trò tự điền hệ số. Tắt đi thì giáo sư cân bằng hộ toàn bộ.</div>'
-    + '</div><div class="toggle'+(on?' on':'')+'" id="tglBalance" role="switch" aria-checked="'+on+'"></div></div>'
-    + '<div class="settingrow"><div>'
-    + '<b style="font-family:var(--fh);font-size:16px">'+ico('flask',15)+' Chế độ khó</b>'
-    + '<div style="font-size:13px;color:#6b5d4a;margin-top:3px;max-width:330px">Đơn hàng ghi theo gam và lít khí; trò tự tính rồi cân, đong từng chất (sai số 5%). Sao chế độ khó lưu riêng.</div>'
-    + '</div><div class="toggle'+(hardOn()?' on':'')+'" id="tglHard" role="switch" aria-checked="'+hardOn()+'"></div></div>'
-    + '<div class="settingrow"><div>'
-    + '<b style="font-family:var(--fh);font-size:16px">'+ico('star',15)+' Thẻ phản ứng</b>'
-    + '<div style="font-size:13px;color:#6b5d4a;margin-top:3px;max-width:330px">Lần đầu tự tay làm ra một phản ứng, giáo sư dừng lại chiếu cảnh các nguyên tử đổi bạn cho trò xem.</div>'
-    + '</div><div class="toggle'+(cardsOn()?' on':'')+'" id="tglCards" role="switch" aria-checked="'+cardsOn()+'"></div></div>'
-    + '<div class="center" style="margin-top:14px"><button class="btn" id="mclose">Đóng</button></div></div>';
+    + '<div class="hgrid"><div>'
+    + slider('volSfx','sound','Âm thanh','sfx')
+    + slider('volMus','bell','Nhạc nền','music')
+    + '<div class="settingrow"><div><b style="'+lbl+'">'+ico('trash',15)+' Xoá dữ liệu trò chơi</b></div>'
+    + '<button class="btn danger" id="breset">Xoá</button></div>'
+    + '</div><div>'
+    + tgl('tglCards','star','Thẻ phản ứng',cardsOn())
+    + tgl('tglBalance','note','Tắt cân bằng phương trình',!balanceOn(),!nobalOwned())
+    + tgl('tglHard','flask','Chế độ khó',hardOn(),!hardUnlocked())
+    + '</div></div></div>';
   const flip = (id, key, get, after) => ov.querySelector(id).onclick = e => {
-    save.settings[key] = !get(); persist();
+    save.settings[key] = key === 'balance' ? get() : !get(); persist();   // 'balance' lưu ngược: công tắc = tắt cân bằng
     e.currentTarget.classList.toggle('on', get());
     e.currentTarget.setAttribute('aria-checked', get());
     SFX.clink();
     if(after) after();
   };
-  flip('#tglHard', 'hard', hardOn);
+  const lockedTgl = (id, msg) => ov.querySelector(id).onclick = () => { SFX.err(); toast(ico('lock',16)+' '+msg); };
   flip('#tglCards', 'cards', cardsOn);
-  flip('#tglMusic', 'music', () => save.settings.music !== false, SFX.musicRefresh);
-  ov.querySelector('#mclose').onclick = () => ov.remove();
-  ov.querySelector('#tglSound').onclick = e => {
-    const muted = SFX.toggle();            // trả về trạng thái TẮT tiếng
-    const t = e.currentTarget;
-    t.classList.toggle('on', !muted);
-    t.setAttribute('aria-checked', !muted);
-    if(!muted) SFX.clink();                // chỉ kêu khi vừa bật lại tiếng
+  if(hardUnlocked()) flip('#tglHard', 'hard', hardOn);
+  else lockedTgl('#tglHard', 'Hoàn thành trò chơi lần đầu để mở khoá chế độ khó!');
+  if(nobalOwned()) flip('#tglBalance', 'balance', () => !balanceOn());
+  else lockedTgl('#tglBalance', 'Mua vật phẩm ở Cửa hàng để mở khoá!');
+  const bar = (id, k) => {
+    const el = ov.querySelector('#'+id), out = ov.querySelector('#'+id+'p');
+    const paint = () => { el.style.setProperty('--v', el.value+'%'); el.classList.toggle('zero', +el.value === 0); out.textContent = el.value+'%'; };
+    el.oninput = () => { SFX.setVol(k, el.value/100); paint(); };
+    el.onchange = () => { if(k === 'sfx') SFX.clink(); };
+    paint();
   };
-  flip('#tglBalance', 'balance', balanceOn);
+  bar('volSfx', 'sfx'); bar('volMus', 'music');
+  ov.querySelector('#mclose').onclick = () => ov.remove();
+  ov.querySelector('#breset').onclick = () => confirmModal(
+    '<h2>'+ico('trash',22)+' Xoá dữ liệu?</h2><p style="margin:8px 0">Toàn bộ tiến trình, sao và thành tựu sẽ bị xoá và không thể khôi phục.</p>',
+    () => { save = {unlocked:1, stars:{}, starsHard:{}, ach:[], served:0, spent:0, rx:[], hist:[], settings:{balance:true}}; persist(); ov.remove(); toast('Đã xoá dữ liệu.'); showMenu(); },
+    'Xoá hết', 'Giữ lại');
   G.appendChild(ov);
 }
 

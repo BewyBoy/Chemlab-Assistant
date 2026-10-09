@@ -141,6 +141,117 @@ function binWorld(){
   return {add};
 }
 
+/* Dung dịch trong cốc nhỏ (minigame xác định chất): mô phỏng vật lý vẽ trên canvas, toạ độ px tính từ góc trên
+   trái lòng cốc, rest = độ cao mặt nước lúc yên.
+   – Mặt nước: N cột nối nhau như lò xo (phương trình sóng có tắt dần) — giọt rơi, bọt vỡ làm gợn sóng lan ra
+     và dội lại ở thành cốc.
+   – Kết tủa: hạt rắn chịu trọng lực + cản nhớt (nên chìm đều với vận tốc giới hạn ≈ g/DRAG) + xáo động nhẹ.
+     Chạm đáy thì hạt nhập vào lớp cặn; lớp cặn dốc quá SLOPE thì sụt dần sang hai bên như cát đổ (góc nghỉ).
+     Hạt còn lơ lửng vẽ thêm quầng mờ: đám đục loang ra từ chỗ giọt rơi rồi tan dần khi hạt lắng. Hạt mịn thì không
+     bao giờ lắng hết, nên cả cốc ngả dần sang màu kết tủa và giữ lại độ đục nhẹ (turb) như ngoài thực tế.
+   – Bọt khí: lực đẩy kéo lên, lắc ngang khi nổi, chạm mặt nước thì vỡ và hất mặt nước lên.
+   Đứng yên hết thì dừng vòng lặp; có tác động mới thì chạy lại. */
+function liquidSim(cv, W, H, rest, liq){
+  const R = Math.max(2, Math.ceil(window.devicePixelRatio || 1)), ctx = cv.getContext('2d');
+  cv.width = W*R; cv.height = H*R;
+  const N = 26, CW = W/N, TENS = 2500, SPRING = 40, DAMP = 3, DRAG = 3.2, SLOPE = .4, SUB = 4;
+  const d = new Float32Array(N), v = new Float32Array(N);   // độ lệch mặt nước (px, dương = lõm xuống) và vận tốc
+  const pile = new Float32Array(Math.ceil(W));             // độ dày lớp cặn ở từng px
+  let parts = [], bubs = [], col = '#fff', haze = .1, gasEnd = 0, now = 0, raf = 0, last = 0, slump = false;
+  let turb = 0, turbTo = 0;                 // độ đục cả cốc lúc này / mức sẽ ngả tới
+  const colAt = x => Math.min(N - 1, Math.max(0, x/CW | 0));
+  const surf = x => rest + d[colAt(x)];
+  const wake = () => { if(!raf){ last = performance.now(); raf = requestAnimationFrame(tick); } };
+  function poke(x, s){                       // s > 0: ấn mặt nước xuống (giọt rơi), s < 0: hất lên (bọt vỡ)
+    const i = colAt(x);
+    v[i] += s; if(i) v[i-1] += s/2; if(i < N - 1) v[i+1] += s/2;
+    wake();
+  }
+  function reset(){ parts = []; bubs = []; gasEnd = 0; pile.fill(0); turb = turbTo = 0; draw(); }
+  function ppt(c, n, faint){                 // n hạt kết tủa nở ra từ chỗ giọt rơi (giữa cốc), mỗi hạt trễ một chút
+    col = c; haze = faint ? .05 : .11; turbTo = faint ? .16 : .3;
+    for(let k = 0; k < n; k++) parts.push({x:W/2 + (Math.random() - .5)*16, y:rest + 2 + Math.random()*4,
+      vx:(Math.random() - .5)*170, vy:Math.random()*60, r:faint ? .9 + Math.random()*.6 : 1.3 + Math.random()*.9,
+      g:(faint ? 18 : 45) + Math.random()*35, wait:Math.random()*.45});
+    wake();
+  }
+  function gas(sec){ gasEnd = now + sec; wake(); }
+  function step(dt){
+    for(let i = 0; i < N; i++)               // biên phản xạ: cột ngoài cùng coi như có hàng xóm giống hệt nó
+      v[i] += (TENS*(d[i ? i-1 : 0] + d[i < N-1 ? i+1 : i] - 2*d[i]) - SPRING*d[i] - DAMP*v[i])*dt;
+    for(let i = 0; i < N; i++) d[i] = Math.max(-8, Math.min(8, d[i] + v[i]*dt));
+    turb += (turbTo - turb)*Math.min(1, dt*1.2);
+    const k = Math.exp(-DRAG*dt);
+    parts = parts.filter(p => {
+      if(p.wait > 0){ p.wait -= dt; return true; }
+      p.vx = (p.vx + (Math.random() - .5)*300*dt)*k; p.vy = (p.vy + p.g*dt)*k;
+      p.x += p.vx*dt; p.y += p.vy*dt;
+      if(p.x < p.r){ p.x = p.r; p.vx = Math.abs(p.vx)*.3; }
+      else if(p.x > W - p.r){ p.x = W - p.r; p.vx = -Math.abs(p.vx)*.3; }
+      const top = surf(p.x) + p.r; if(p.y < top){ p.y = top; p.vy = Math.abs(p.vy)*.2; }
+      const xi = Math.min(pile.length - 1, Math.max(0, p.x | 0));
+      if(p.y < H - pile[xi] - p.r) return true;
+      for(let j = -3; j <= 3; j++)                                    // chạm đáy: diện tích hạt rải hình tam giác vào lớp cặn
+        pile[Math.min(pile.length - 1, Math.max(0, xi + j))] += Math.PI*p.r*p.r*.9*(4 - Math.abs(j))/16;
+      slump = true; return false;
+    });
+    if(slump){                                // lớp cặn sụt: mỗi bước san bớt một nửa phần dốc quá SLOPE
+      slump = false;
+      for(let j = 0; j < pile.length - 1; j++){
+        const diff = pile[j] - pile[j+1];
+        if(Math.abs(diff) <= SLOPE) continue;
+        const t = (diff - Math.sign(diff)*SLOPE)/4;
+        pile[j] -= t; pile[j+1] += t; slump = true;
+      }
+    }
+    if(now < gasEnd && Math.random() < dt*28){
+      const x = 4 + Math.random()*(W - 8);
+      bubs.push({x, y:H - pile[x | 0] - 3, r:1.4 + Math.random()*2, vy:0, ph:Math.random()*6});
+    }
+    bubs = bubs.filter(b => {
+      b.vy = (b.vy - (220 + 40*b.r)*dt)*Math.exp(-2.5*dt);
+      b.y += b.vy*dt; b.x += Math.sin(now*11 + b.ph)*10*dt;
+      if(b.y - b.r > surf(b.x)) return true;
+      poke(b.x, -b.r*14); return false;
+    });
+  }
+  function draw(){
+    ctx.setTransform(R, 0, 0, R, 0, 0); ctx.clearRect(0, 0, W, H);
+    const line = () => { ctx.moveTo(0, rest + d[0]); for(let i = 0; i < N; i++) ctx.lineTo((i + .5)*CW, rest + d[i]); ctx.lineTo(W, rest + d[N-1]); };
+    ctx.beginPath(); line(); ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+    ctx.fillStyle = liq; ctx.fill();
+    ctx.save(); ctx.clip();
+    if(turb > .003){ ctx.fillStyle = col; ctx.globalAlpha = turb; ctx.fillRect(0, 0, W, H); }
+    ctx.fillStyle = col; ctx.globalAlpha = haze;
+    parts.forEach(p => { if(p.wait <= 0){ ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, 7); ctx.fill(); } });
+    ctx.globalAlpha = 1; ctx.strokeStyle = 'rgba(59,48,37,.6)'; ctx.lineWidth = .8;
+    parts.forEach(p => { if(p.wait <= 0){ ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); ctx.stroke(); } });
+    if(pile.some(h => h > .05)){              // lớp cặn: mặt trên vẽ cong qua trung điểm cho mượt, viền mực nhạt
+      const top = () => { ctx.moveTo(0, H - pile[0]);
+        for(let j = 1; j < pile.length; j++) ctx.quadraticCurveTo(j - .5, H - pile[j-1], j, H - (pile[j-1] + pile[j])/2);
+        ctx.lineTo(W, H - pile[pile.length - 1]); };
+      ctx.beginPath(); top(); ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); top(); ctx.strokeStyle = 'rgba(59,48,37,.45)'; ctx.lineWidth = 1.2; ctx.stroke();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.strokeStyle = '#3b3025'; ctx.lineWidth = 1;
+    bubs.forEach(b => { ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7); ctx.fill(); ctx.stroke(); });
+    ctx.restore();
+    ctx.beginPath(); line(); ctx.strokeStyle = 'rgba(59,48,37,.7)'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.stroke();
+  }
+  function tick(t){
+    if(!cv.isConnected){ raf = 0; return; }                          // rời minigame: dừng hẳn
+    // mốc giờ của khung đầu có thể SỚM hơn lúc wake() (trình duyệt bóp khung khi ẩn) → dt âm làm sóng nổ tung
+    const dt = Math.max(0, Math.min(t - last, 34))/1000; last = t; now += dt;
+    for(let s = 0; s < SUB; s++) step(dt/SUB);
+    draw();
+    const calm = now >= gasEnd && !bubs.length && !parts.length && !slump && Math.abs(turbTo - turb) < .003
+      && d.every(x => Math.abs(x) < .04) && v.every(x => Math.abs(x) < .3);
+    raf = calm ? 0 : requestAnimationFrame(tick);
+  }
+  draw();
+  return {poke, ppt, gas, reset};
+}
+
 const MG = {
  /* --- phân loại (ngày 3: nguyên tử/phân tử; ngày 17: oxit/axit/bazơ/muối). Mỗi lúc chỉ MỘT chất: thẻ vẽ
         mô hình bi–que, công thức ở dưới; kéo thẻ vào giỏ hoặc bấm thẳng vào giỏ. Đúng giỏ: mô hình rơi vào giỏ
@@ -230,43 +341,188 @@ const MG = {
   show();
  },
 
- /* --- day 4: litmus detective, 60s --- */
- litmus(i, day){
-  const bottles = shuffle(day.bottles);
-  const kindOf = f => CHEMS[f].a ? 0 : CHEMS[f].b ? 1 : 2;
-  const KINDS = ['Axit','Bazơ','Trung tính'], COLS = ['#d9634f','#4f78c9','#9b7bb8'];
-  const html = bottles.map((f,k)=>`<div class="mgbottle">
-      <div class="bo" data-k="${k}" title="Nhúng quỳ">${sym('sym-bottle-liquid',54,74,'--lc:#e6e0d0')}<div style="font-family:var(--fh);font-weight:bold;margin-top:-8px">?</div></div>
-      <div class="strip" id="strip${k}"></div>
-      <div class="mgbtnrow">${KINDS.map((kn,x)=>`<button class="mgbtn" data-k="${k}" data-x="${x}">${kn}</button>`).join('')}</div>
-    </div>`).join('');
-  mgFrame(i, day, `<p style="font-size:16px">Bấm vào lọ để nhúng quỳ tím, rồi chọn nhãn đúng cho từng lọ. Nhanh lên!</p>
-    <div class="mgbottles">${html}</div>`);
-  let time = 60, correct = 0, answered = 0;
-  const lock = {};
-  mgScore(0, bottles.length);
-  const tEl = G.querySelector('#mgtime');
-  tEl.style.display = ''; tEl.textContent = '60s';
-  const tm = setInterval(() => {
-    // bấm "Bỏ dở" thì màn này đã bị thay — dừng đồng hồ, kẻo 60 giây sau nhảy bừa sang màn kết quả
-    if(!tEl.isConnected){ clearInterval(tm); return; }
-    time--; tEl.textContent = time + 's';
-    if(time <= 0){ clearInterval(tm); showResult(i, {correct, total:bottles.length}); }
-  }, 1000);
-  G.querySelectorAll('.bo').forEach(b => b.onclick = () => {
-    const k = +b.dataset.k;
-    G.querySelector('#strip'+k).style.background = COLS[kindOf(bottles[k])];
-    SFX.pour();
+ /* --- ngày 12: xác định chất. Ba lọ mất nhãn đánh số 1–3, nhãn nằm xáo trộn bên dưới.
+        Bước 1 — kệ: xem lọ và tên các chất có thể; "Bắt đầu thí nghiệm" thì cả bàn trượt sang trái.
+        Bước 2 — bàn: kéo ống nhỏ giọt mẫu 1–3 vào giấy quỳ / cốc thuốc thử (bảng TESTS, phan-ung.js);
+                 dung dịch trong cốc là mô phỏng vật lý (liquidSim); dòng chữ hiện tượng chỉ thoáng hiện trên
+                 trạm — trò phải tự nhớ, hoặc tự ghi ra giấy.
+        Bước 3 — trượt về kệ, kéo nhãn dán vào lọ (dán đè thì hai nhãn đổi chỗ), "Kiểm tra" để chấm.
+        Bấm thay kéo cũng được: bấm ống / nhãn để chọn, rồi bấm trạm / lọ.
+        Sổ ghi chép (mua ở Cửa hàng, bật/tắt được — labbookOn): đứng yên bên phải, tự ghi từng lần nhỏ thử kèm mẹo
+        nhận biết; không có sổ thì khung trượt chiếm cả bề ngang. --- */
+ identify(i, day){
+  const book = labbookOn();
+  const samples = shuffle(pick(day.sets)), labels = shuffle(samples);   // samples[lọ], labels[ô trong khay nhãn]
+  const st = ['quy'].concat(day.reagents);                              // trạm 0 = giấy quỳ, còn lại = cốc thuốc thử
+  const stName = s => s ? sub(st[s]) : 'quỳ tím';
+  const short = f => CHEMS[f].n.split(' (')[0];                         // "Muối ăn (natri clorua)" → "Muối ăn"
+  const LIQ = '--lc:#dcecf3';    // mẫu nào cũng trong suốt như nhau — nhìn màu không đoán được
+  const LIQ_X = 36, LIQ_Y = 44;  // canvas dung dịch trong .idf-art (khớp .idf-liq): lòng cốc x 16–94, đáy y 112, mặt nước y 58
+  // dòng chữ hiện tượng chỉ tả cái mắt thấy, không nói mẫu số mấy
+  const seenText = fx => fx.spot ? (fx.col === 'tím' ? 'quỳ không đổi màu' : 'quỳ hoá ' + fx.col)
+    : fx.ppt ? 'kết tủa ' + fx.col + (fx.faint ? ' rất ít' : '') : fx.gas ? 'sủi bọt khí' : 'không hiện tượng';
+  const pip = (k, w, h) => `<div class="idf-pip">${sym('sym-pipette', w, h, LIQ)}<span class="idf-badge">${k+1}</span></div>`;
+  const jarHTML = samples.map((f, k) => `<div class="idf-jar" data-dz="jar${k}">${sym('sym-jar-blank', 170, 240, LIQ)}
+      <span class="idf-badge idf-cap">${k+1}</span><span class="idf-num">${k+1}</span><div class="idf-slot"></div><div class="idf-ans"></div></div>`).join('');
+  const lblHTML = labels.map(f => `<div class="idf-tslot"><div class="idf-lbl"><b>${sub(f)}</b><small>${short(f)}</small></div></div>`).join('');
+  const dropHTML = samples.map((f, k) => `<div class="idf-drop">${pip(k, 44, 160)}</div>`).join('');
+  const stHTML = st.map((r, s) => `<div class="idf-st" data-s="${s}" data-dz="${s ? 'rg'+(s-1) : 'quy'}"><div class="idf-art">${s
+      ? sym('sym-beaker-small', 110, 120, 'position:absolute;left:20px;top:0') + '<canvas class="idf-liq"></canvas>'
+        + sym('sym-beaker-line', 110, 120, 'position:absolute;left:20px;top:0') + '<span class="idf-badge idf-who"></span>'
+      : '<div class="idf-tile"><div class="idf-paper"></div></div>' + samples.map((f, k) => `<span class="idf-mark" style="left:${35+40*k}px">${k+1}</span>`).join('')}
+    </div><div class="idf-tag">${s ? sub(r) : 'Quỳ tím'}</div></div>`).join('');
+  const head = '<tr><th>Mẫu</th>' + st.map((r, s) => '<th>' + (s ? sub(r) : 'Quỳ') + '</th>').join('') + '</tr>';
+  const rows = samples.map((f, k) => '<tr><th>' + (k+1) + '</th>' + st.map((r, s) => `<td data-k="${k}" data-s="${s}">·</td>`).join('') + '</tr>').join('');
+  mgFrame(i, day, `<div class="idf${book ? '' : ' nobook'}" data-stage="1" data-shelf="look">
+    <div class="idf-view"><div class="idf-track">
+      <div class="idf-pane">
+        <p class="idf-say s1only">Ba lọ dung dịch bong hết nhãn! Mỗi nhãn dưới đây thuộc về một lọ — làm thí nghiệm để biết lọ nào là chất nào.</p>
+        <p class="idf-say s3only">Kéo nhãn dán vào đúng lọ (hoặc bấm nhãn rồi bấm lọ). Dán đủ ba lọ thì bấm <b>Kiểm tra</b>.</p>
+        <div class="idf-row idf-jars">${jarHTML}</div>
+        <div class="idf-tray" data-dz="tray">${lblHTML}</div>
+        <div class="idf-btns">
+          <button class="btn big s1only" id="idgo">Bắt đầu thí nghiệm ${ico('next')}</button>
+          <button class="btn s3only" id="idmore">Làm thêm thí nghiệm ${ico('next')}</button>
+          <button class="btn big s3only" id="idcheck" disabled>${ico('check')} Kiểm tra</button>
+        </div>
+      </div>
+      <div class="idf-pane">
+        <div class="idf-rack"><div class="idf-row idf-drops">${dropHTML}</div><div class="idf-rackbar"></div></div>
+        <div class="idf-row idf-sts">${stHTML}</div>
+        <div class="idf-btns"><button class="btn big" id="idlabel">${ico('back')} Quay lại dán nhãn</button></div>
+      </div>
+    </div></div>${book ? `
+    <div class="idf-book">
+      <h3>${ico('note', 22)} Sổ ghi chép</h3>
+      <table class="idf-tab">${head}${rows}</table>
+      <div class="idf-obs">Chưa có thí nghiệm nào — nhỏ thử mẫu để xem hiện tượng.</div>
+      <ul class="idf-tips">${st.map(r => '<li>' + TESTS[r].tip + '</li>').join('')}</ul>
+    </div>` : ''}</div>`);
+  const root = G.querySelector('.idf'), hud = G.querySelector('#mgscore'), obs = G.querySelector('.idf-obs');
+  const jars = [...G.querySelectorAll('.idf-jar')], lbls = [...G.querySelectorAll('.idf-lbl')], tslots = [...G.querySelectorAll('.idf-tslot')];
+  const btnCheck = G.querySelector('#idcheck'), STEP = ['', 'Bước 1/3 · Xem lọ', 'Bước 2/3 · Thí nghiệm', 'Bước 3/3 · Dán nhãn'];
+  const onJar = samples.map(() => null);    // onJar[lọ] = ô khay của nhãn đang dán trên lọ đó
+  const busy = {}, rec = {};                // busy[trạm]: đang nhỏ dở · rec['mẫu-trạm']: hiện tượng đã thấy
+  let stage = 1, moving = false, done = false, live = false, sel = null;
+  lbls.forEach(tapeLabel);
+  const sims = {};                          // sims[trạm]: dung dịch trong từng cốc thuốc thử (liquidSim)
+  G.querySelectorAll('.idf-liq').forEach((cv, n) => sims[n + 1] = liquidSim(cv, 78, 112 - LIQ_Y, 58 - LIQ_Y, 'rgba(220,236,243,.9)'));
+  hud.textContent = STEP[1];
+
+  function unselect(){ if(sel) sel.el.classList.remove('idf-sel'); sel = null; }
+  function choose(el, it){                   // bấm để chọn ống / nhãn; bấm lại lần nữa thì bỏ chọn
+    const again = sel && sel.el === el;
+    unselect();
+    if(!again){ sel = Object.assign({el}, it); el.classList.add('idf-sel'); SFX.clink(); }
+  }
+  // stage 2 = bàn thí nghiệm (khung trượt sang trái); 1 và 3 cùng là kệ lọ, khác nhau ở chữ và nút (data-shelf)
+  function goStage(n){
+    if(moving || done) return;
+    moving = true; setTimeout(() => moving = false, 900);              // đang trượt thì không nhận nút
+    stage = n; root.dataset.stage = n;
+    if(n !== 2) root.dataset.shelf = n === 1 ? 'look' : 'label';
+    hud.textContent = STEP[n]; unselect(); SFX.page();
+    if(n === 3 && !live){ live = true; lbls.forEach(liveLabel); }      // bước 1 chỉ xem, chưa cho kéo nhãn
+  }
+  G.querySelector('#idgo').onclick = () => goStage(2);
+  G.querySelector('#idmore').onclick = () => goStage(2);
+  G.querySelector('#idlabel').onclick = () => goStage(3);
+
+  /* ---- bước 2: nhỏ mẫu vào trạm ---- */
+  G.querySelectorAll('.idf-drop').forEach((d, k) => dragify(d, 'mgdrop', {w:44, h:160,
+    ghostHTML: () => pip(k, 44, 160),
+    onDrop: z => drip(k, z === 'quy' ? 0 : +z.slice(2) + 1),
+    onClick: () => choose(d, {k})}));
+  G.querySelectorAll('.idf-st').forEach(el => el.onclick = () => { if(stage === 2 && sel) drip(sel.k, +el.dataset.s); });
+  // ống nhỏ giọt hạ xuống trên trạm, ba giọt rơi, rồi hiện tượng hiện ra (có sổ thì ghi luôn vào sổ)
+  function drip(k, s){
+    if(done || busy[s]) return;
+    busy[s] = 1; unselect();
+    const art = G.querySelector('.idf-st[data-s="'+s+'"] .idf-art'), res = testOf(st[s], samples[k]);
+    const x = s ? 75 : 35 + 40*k, tip = s ? 4 : 30, land = s ? 58 : 65;   // toạ độ trong .idf-art: đầu ống → chỗ giọt rơi
+    const p = document.createElement('div');
+    p.className = 'idf-pour'; p.style.cssText = `left:${x - 17}px;top:${tip - 122}px`;
+    p.innerHTML = sym('sym-pipette', 34, 124, LIQ);
+    art.appendChild(p); SFX.pour();
+    if(s){                                                              // cốc được thay sạch cho mẫu mới
+      sims[s].reset();
+      const who = art.querySelector('.idf-who'); who.textContent = k + 1; who.style.display = 'block';
+    }
+    for(let n = 0; n < 3; n++) setTimeout(() => {
+      const d = document.createElement('div');
+      d.className = 'idf-drip'; d.style.cssText = `left:${x}px;top:${tip}px;--fall:${land - tip}px`;
+      art.appendChild(d); setTimeout(() => d.remove(), 400);
+      if(s) setTimeout(() => sims[s].poke(x - LIQ_X, 140), 320);         // giọt chạm mặt nước (hết .32s rơi)
+    }, 250 + n*160);
+    setTimeout(() => {
+      p.remove(); busy[s] = 0;
+      if(!art.isConnected) return;                                      // đã bỏ dở minigame
+      if(s) inBeaker(s, res.fx); else onPaper(art, k, res.fx);
+      // dòng chữ thoáng hiện trên trạm rồi mờ hẳn — giúp nhìn rõ hiện tượng nhạt (hơi đục), nhưng không lưu lại
+      art.querySelector('.idf-seen')?.remove();
+      art.insertAdjacentHTML('beforeend', `<div class="idf-seen">${seenText(res.fx)}</div>`);
+      art.lastElementChild.onanimationend = e => e.target.remove();
+      if(!book) return;
+      rec[k+'-'+s] = res; tell(k, s);
+      const td = G.querySelector(`.idf-tab td[data-k="${k}"][data-s="${s}"]`);
+      td.textContent = res.t; td.classList.remove('got'); void td.offsetWidth; td.classList.add('got');
+    }, 900);
+  }
+  // giấy quỳ: mỗi mẫu một vết ở đúng ô số của nó (tâm x = 35 + 40k trong .idf-art = 22 + 40k trong lòng dải giấy),
+  // vết nằm lại trên giấy
+  function onPaper(art, k, fx){
+    art.querySelector('.idf-spot' + k)?.remove();
+    art.querySelector('.idf-paper').insertAdjacentHTML('beforeend', `<div class="idf-spot idf-spot${k}" style="left:${3+40*k}px;--c:${fx.spot}"></div>`);
+    SFX.clink();
+  }
+  // cốc thuốc thử: kết tủa nở ra rồi lắng thành đống / sủi bọt khí; không phản ứng thì chỉ còn gợn sóng của giọt rơi
+  function inBeaker(s, fx){
+    if(fx.ppt){ sims[s].ppt(fx.ppt, fx.faint ? 14 : 70, fx.faint); SFX.tinkle(); }
+    else if(fx.gas){ sims[s].gas(2.6); SFX.fizz(); }
+  }
+  const tell = (k, s) => { obs.innerHTML = `<b>Mẫu ${k+1} + ${stName(s)}:</b> ${rec[k+'-'+s].d}`; };
+  G.querySelectorAll('.idf-tab td').forEach(td => td.onclick = () => {      // bấm ô đã ghi để đọc lại hiện tượng
+    if(rec[td.dataset.k+'-'+td.dataset.s]) tell(+td.dataset.k, +td.dataset.s);
   });
-  G.querySelectorAll('.mgbtn').forEach(b => b.onclick = () => {
-    const k = +b.dataset.k;
-    if(lock[k]) return;
-    lock[k] = 1; answered++;
-    b.classList.add('picked');
-    if(+b.dataset.x === kindOf(bottles[k])){ correct++; SFX.coin(); } else SFX.err();
-    mgScore(correct, bottles.length);
-    if(answered === bottles.length){ clearInterval(tm); setTimeout(()=>showResult(i,{correct,total:bottles.length}), 600); }
-  });
+
+  /* ---- bước 3: dán nhãn ---- */
+  function liveLabel(el, L){
+    dragify(el, 'mglabel', {w:146, h:56,
+      ghostHTML: () => el.outerHTML,
+      onDrop: z => put(L, z === 'tray' ? null : +z.slice(3)),
+      onClick: () => { if(done) return; if(onJar.includes(L)) put(L, null); else choose(el, {L}); }});
+  }
+  jars.forEach((j, J) => j.onclick = () => { if(stage === 3 && sel) put(sel.L, J); });
+  // nhãn L → lọ J (null = trả về khay). Lọ đích đã có nhãn thì nhãn cũ sang chỗ nhãn L vừa rời (khay hoặc lọ khác)
+  function put(L, J){
+    if(done) return;
+    unselect();
+    const from = onJar.indexOf(L);
+    if(from === (J === null ? -1 : J)) return;
+    const M = J === null ? null : onJar[J];
+    if(from >= 0) onJar[from] = M;
+    if(J !== null) onJar[J] = L;
+    lbls.forEach((el, n) => {
+      const at = onJar.indexOf(n), host = at >= 0 ? jars[at].querySelector('.idf-slot') : tslots[n];
+      if(el.parentNode !== host){ host.appendChild(el); el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+    });
+    btnCheck.disabled = onJar.includes(null);
+    SFX.clink();
+  }
+  btnCheck.onclick = () => {
+    if(moving || done || onJar.includes(null)) return;
+    done = true; unselect();
+    G.querySelectorAll('.idf-btns .btn').forEach(b => b.disabled = true);
+    let correct = 0, shown = 0;
+    jars.forEach((j, J) => setTimeout(() => {                          // lật từng lọ một
+      const ok = labels[onJar[J]] === samples[J];
+      if(ok){ correct++; SFX.coin(); } else SFX.err();
+      j.classList.add(ok ? 'ok' : 'bad');
+      j.querySelector('.idf-ans').innerHTML = ok ? ico('check', 16) + ' Đúng!' : ico('close', 16) + ' Là <b>' + sub(samples[J]) + '</b>';
+      mgScore(correct, samples.length);
+      if(++shown === samples.length) setTimeout(() => { if(root.isConnected) showResult(i, {correct, total:samples.length}); }, 1800);
+    }, 300 + J*550));
+  };
  },
 
  /* --- day 10: pick the reducing agent --- */
@@ -291,33 +547,6 @@ const MG = {
     });
   }
   ask();
- },
-
- /* --- day 17: identify mystery solutions with reagent drops --- */
- identify(i, day){
-  const opts = shuffle(day.bottles);
-  const head = '<tr><th>Lọ ?</th>' + day.reagents.map(r=>'<th>'+r+'</th>').join('') + '<th>Kết luận</th></tr>';
-  const rows = day.bottles.map((f,bi)=>'<tr><td><b>Lọ '+(bi+1)+'</b> '+sym('sym-bottle-liquid',22,30,'--lc:#e6e0d0;vertical-align:-8px')+'</td>' +
-    day.reagents.map((r,ri)=>'<td class="o" data-b="'+bi+'" data-r="'+ri+'">'+ico('drop',13)+' nhỏ thử</td>').join('') +
-    `<td><div class="mgbtnrow">${opts.map(op=>`<button class="mgbtn" data-b="${bi}" data-f="${op}">${sub(op)}</button>`).join('')}</div></td></tr>`).join('');
-  mgFrame(i, day, `<p style="font-size:15.5px">Nhỏ thuốc thử vào từng lọ để xem hiện tượng, rồi kết luận lọ nào là chất nào.</p>
-    <table class="obsgrid">${head}${rows}</table>`);
-  let correct = 0, answered = 0;
-  const lock = {};
-  mgScore(0, day.bottles.length);
-  G.querySelectorAll('td.o').forEach(td => td.onclick = () => {
-    td.textContent = day.obs[+td.dataset.b][+td.dataset.r];
-    td.style.background = '#fff'; SFX.pour();
-  });
-  G.querySelectorAll('.mgbtn').forEach(b => b.onclick = () => {
-    const bi = +b.dataset.b;
-    if(lock[bi]) return;
-    lock[bi] = 1; answered++;
-    b.classList.add('picked');
-    if(b.dataset.f === day.bottles[bi]){ correct++; SFX.coin(); } else SFX.err();
-    mgScore(correct, day.bottles.length);
-    if(answered === day.bottles.length) setTimeout(()=>showResult(i,{correct,total:day.bottles.length}), 700);
-  });
  },
 
  /* --- day 24: order metals by activity --- */
@@ -487,8 +716,8 @@ function renderConc(){
       .concwrap{display:flex;gap:30px;justify-content:center;align-items:flex-start;padding:30px 26px}
       .conc-order{max-width:430px}
       .conc-ask{font-family:var(--fh);font-size:19px;margin-top:2px}
-      .conc-hint{margin-top:12px;padding:9px 11px;background:#fffdf5;border:2px dashed var(--ink);border-radius:6px;font-size:14px;line-height:1.5}
-      .conc-bench{display:flex;gap:26px;align-items:center;background:var(--card);border:4px solid var(--ink);border-radius:9.6px;padding:20px 24px;box-shadow:5px 7px 0 #00000022}
+      .conc-hint{margin-top:12px;padding:9px 11px;background:#fffdf5;border:1.2px dashed var(--ink);border-radius:6px;font-size:14px;line-height:1.5}
+      .conc-bench{display:flex;gap:26px;align-items:center;background:var(--card);border:1.2px solid var(--ink);border-radius:9.6px;padding:20px 24px;}
       .conc-panel{display:flex;flex-direction:column;gap:5px;min-width:310px}
       .conc-read{font-size:15px;margin-top:6px}
       .conc-read b{font-family:var(--fh)}
@@ -569,7 +798,7 @@ function serveConc(){
       <div>${chk(okA)} ${c.aLabel}: <b>${fmt(conc.a, c.aStep<1?1:0)} ${c.aUnit}</b> · cần ${fmt(c.aTarget,1)} ${c.aUnit}</div>
       <div>${chk(okT)} Tổng ${c.totalMode==='b'?'thể tích':'khối lượng'}: <b>${fmt(total,1)}</b> · cần ${fmt(c.totalTarget,1)}</div>
       <div style="margin-top:6px">Nồng độ đạt được: <b>${fmt(achieved,2)} ${c.cUnit}</b> · yêu cầu <b>${fmt(c.targetC,2)} ${c.cUnit}</b></div>
-      <div style="margin-top:8px;padding-top:8px;border-top:2px dashed var(--ink)"><b>Cách tính:</b><br>${c.solve}</div>
+      <div style="margin-top:8px;padding-top:8px;border-top:1.2px dashed var(--ink)"><b>Cách tính:</b><br>${c.solve}</div>
     </div>
     <div class="center" style="margin-top:12px"><button class="btn big" id="cnext">${last?'Xem kết quả':'Câu tiếp '+ico('next')}</button></div>
   </div>`;
