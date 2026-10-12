@@ -611,6 +611,10 @@ function showShop(){
   setupHandlers();
 }
 
+// chế độ khám phá của minigame hoá trị (che-do.js): mở khi ngày đó đạt 3 sao — nút ở màn giới thiệu và màn kết quả
+const exploreBtn = (day, i) => day.mg === 'valence' && (save.stars[i+1] || 0) >= 3 ? `<button class="btn" id="bexplore">${ico('flask')} Khám phá</button>` : '';
+function bindExplore(i){ const b = G.querySelector('#bexplore'); if(b) b.onclick = () => go(() => startVlExplore(i)); }
+
 function showIntro(i){
   SFX.music(themeOf(i));
   const day = DAYS[i];
@@ -639,6 +643,7 @@ function showIntro(i){
     <div class="row" style="justify-content:center;margin-top:14px">
       <button class="btn big" id="bgo">${ico(day.mg?'dice':'flask')} ${day.mg?'Chơi ngay':'Mở tiệm'}</button>
       ${(!day.mg && balanceOn() && dayEqs(day).length) ? `<button class="btn" id="bnote2">${ico('note')} Giấy cân bằng</button>` : ''}
+      ${exploreBtn(day, i)}
       <button class="btn" id="bmap">${ico('back')} Bản đồ</button>
     </div></div>`;
   G.querySelector('#introprof').innerHTML = profSVG('happy').replace('viewBox','height="270" viewBox');
@@ -649,6 +654,7 @@ function showIntro(i){
   };
   const bnote2 = G.querySelector('#bnote2');
   if(bnote2) bnote2.onclick = () => reviewBalance(i);
+  bindExplore(i);
   G.querySelector('#bmap').onclick = () => go(showMap);
   const th = G.querySelector('#tglHardIntro');
   if(th) th.onclick = () => { save.settings.hard = !hardOn(); persist(); th.classList.toggle('on', hardOn()); th.setAttribute('aria-checked', hardOn()); SFX.clink(); };
@@ -959,6 +965,7 @@ function showResult(i, st){
     <div class="row" style="justify-content:center;margin-top:14px">
       <button class="btn" id="bretry">${ico('retry')} Chơi lại</button>
       <button class="btn" id="bmap">${ico('map')} Bản đồ</button>
+      ${exploreBtn(day, i)}
       ${(stars>=1 && num<DAYS.length)?'<button class="btn big" id="bnext">Ngày tiếp theo '+ico('next')+'</button>':''}
     </div></div>`;
   G.querySelector('#resprof').innerHTML = profSVG(stars>=2?'happy':stars>=1?'neutral':'annoy').replace('viewBox','height="120" viewBox');
@@ -971,6 +978,7 @@ function showResult(i, st){
   }
   G.querySelector('#bretry').onclick = () => go(()=>showIntro(i));
   G.querySelector('#bmap').onclick = () => go(showMap);
+  bindExplore(i);
   const bn = G.querySelector('#bnext');
   if(bn) bn.onclick = () => go(()=>showIntro(i+1));
 }

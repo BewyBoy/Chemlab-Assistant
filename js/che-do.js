@@ -1,5 +1,5 @@
 /* =====================================================================
-   CÁC CHẾ ĐỘ PHỤ — 6 minigame, thử thách pha nồng độ, chế độ khó trong ca (tự cân đong),
+   CÁC CHẾ ĐỘ PHỤ — 7 minigame, thử thách pha nồng độ, chế độ khó trong ca (tự cân đong),
    thẻ phản ứng hoạt hình.
    ===================================================================== */
 'use strict';
@@ -252,6 +252,228 @@ function liquidSim(cv, W, H, rest, liq){
   return {poke, ppt, gas, reset};
 }
 
+/* Lập công thức theo hoá trị (ngày 4). Hoá trị = số "tay" của một nguyên tử. Bóng nguyên tố để trơn, không que (một
+   nguyên tố có thể có nhiều hoá trị — N từ I tới V); đề ghi đủ các hoá trị và tô đậm hoá trị dùng trong câu. Kiểm tra
+   đúng thì các bóng trượt về chỗ rồi mọc tay nối nhau thành mô hình bi–que kiểu ngày 3. Mô hình đáp án dựng tự động:
+   – hai nguyên tố (valLayout): 1 : 1 → nối a que; một bên chỉ 1 nguyên tử → đứng giữa, bên kia quây quanh (CO₂ thẳng
+     hàng, H₂O / H₂S / SO₂ gấp khúc, NH₃ / SO₃ chữ Y, CH₄ chữ thập); Al₂O₃, P₂O₅, Mg₃N₂ → hai nguyên tử nối qua một
+     nguyên tử hoá trị II làm cầu, còn lại bám ngoài bằng liên kết đôi;
+   – axit / bazơ / muối (terLayout): gốc là X ở giữa nối các O đôi và các O "neo" (mỗi O neo còn một tay rảnh, số O neo
+     = hoá trị gốc). H / kim loại hoá trị I bám vào từng O neo; kim loại hoá trị II ôm hai O neo thành vòng (CaSO₄,
+     CaCO₃); kim loại hoá trị II–III với −OH / −NO₃ thì đứng giữa, các gốc toả ra.
+   Hai bóng nắm tay cách nhau đúng r₁ + r₂ + 2·VL_ARM: mỗi tay dài VL_ARM tính từ mặt bóng, hai đầu tay chạm nhau. */
+const VL_ARM = 9;
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+const EL_VN = {H:'hiđro', O:'oxi', C:'cacbon', N:'nitơ', Cl:'clo', S:'lưu huỳnh', P:'photpho', Na:'natri', K:'kali',
+  Mg:'magie', Ca:'canxi', Ba:'bari', Al:'nhôm', Zn:'kẽm', Fe:'sắt', Cu:'đồng', Ag:'bạc'};
+// các hoá trị thường gặp (bảng hoá trị KHTN) — đề ghi đủ, tô đậm hoá trị dùng trong câu
+const VL_VALS = {H:[1], O:[2], C:[2, 4], N:[1, 2, 3, 4, 5], S:[2, 4, 6], P:[3, 5], Cl:[1, 3, 5, 7], Na:[1], K:[1], Ag:[1],
+  Mg:[2], Ca:[2], Ba:[2], Zn:[2], Al:[3], Fe:[2, 3], Cu:[1, 2]};
+// gốc axit và nhóm −OH: X ở giữa (hoá trị xv) nối dbl O bằng liên kết đôi, oh O mang H, và v O neo (mỗi O neo một tay
+// rảnh = hoá trị gốc); −OH là một O neo kèm H; bridge: hai X nối qua một O (S₂O₇). Câu hỏi chỉ dùng 5 gốc đầu, các gốc
+// còn lại cho phần tạo chất tự do / khám phá (freeExtra)
+const VL_RAD = {
+  OH:   {v:1, nm:'hiđroxit', mark:'−'},
+  NO3:  {v:1, X:'N', xv:5, dbl:2, nm:'nitrat', mark:'−'},
+  SO4:  {v:2, X:'S', xv:6, dbl:2, nm:'sunfat', mark:'='},
+  CO3:  {v:2, X:'C', xv:4, dbl:1, nm:'cacbonat', mark:'='},
+  PO4:  {v:3, X:'P', xv:5, dbl:1, nm:'photphat', mark:'≡'},
+  NO2:  {v:1, X:'N', xv:3, dbl:1, nm:'nitrit', mark:'−'},
+  SO3:  {v:2, X:'S', xv:4, dbl:1, nm:'sunfit', mark:'='},
+  HSO4: {v:1, X:'S', xv:6, dbl:2, oh:1, nm:'hiđrosunfat', mark:'−'},
+  S2O7: {v:2, X:'S', xv:6, dbl:2, bridge:1, nm:'đisunfat', mark:'='},
+  HCO3: {v:1, X:'C', xv:4, dbl:1, oh:1, nm:'hiđrocacbonat', mark:'−'},
+  HPO4: {v:2, X:'P', xv:5, dbl:1, oh:1, nm:'hiđrophotphat', mark:'='},
+  H2PO4:{v:1, X:'P', xv:5, dbl:1, oh:2, nm:'đihiđrophotphat', mark:'−'},
+  ClO3: {v:1, X:'Cl', xv:5, dbl:2, nm:'clorat', mark:'−'}};
+const radStr = R => VL_RAD[R].mark + sub(R);
+const gcd = (a, b) => b ? gcd(b, a % b) : a;
+const fmlOf = (A, x, B, y) => (x ? A + (x > 1 ? x : '') : '') + (y ? B + (y > 1 ? y : '') : '');
+function valFormula(A, a, B, b){
+  const g = gcd(a, b), x = b/g, y = a/g;
+  return {x, y, f:fmlOf(A, x, B, y)};
+}
+// một câu trong pools: [A, a, B, b, tên] (hai nguyên tố) hoặc [M, m, gốc, tên] (axit / bazơ / muối)
+function vlQuestion(q){
+  if(typeof q[3] === 'number'){
+    const [A, a, B, b, name] = q;
+    return {kind:'bin', name, A, a, B, b, f:valFormula(A, a, B, b).f, vals:{[A]:a, [B]:b}, els:[A, B]};
+  }
+  const [M, m, R, name] = q, rd = VL_RAD[R], g = gcd(m, rd.v), x = rd.v/g, y = m/g;
+  return {kind:'ter', name, M, m, R, f:M + (x > 1 ? x : '') + (y > 1 ? '(' + R + ')' + y : R),
+    vals:R === 'OH' ? {[M]:m, O:2, H:1} : Object.assign({[M]:m, [rd.X]:rd.xv, O:2}, rd.oh ? {H:1} : {}),
+    els:R === 'OH' ? [M, 'O', 'H'] : [M, rd.X, 'O'].concat(rd.oh && M !== 'H' ? ['H'] : [])};
+}
+// dựng mô hình: nút đầu ở gốc toạ độ, mỗi nút sau nắm tay một nút đã có theo hướng deg (độ, y hướng xuống), bậc o.
+// g: nhóm (các nút của cùng một gốc dựng sẵn) — nút không ghi nhóm thì đứng riêng
+function vlBuilder(){
+  const nodes = [], bonds = [];
+  const add = (el, x, y, g) => nodes.push({el, x, y, g}) - 1;
+  const at = (i, el, deg, o, g) => {
+    const t = deg*Math.PI/180, d = atomR(nodes[i].el) + atomR(el) + 2*VL_ARM;
+    const j = add(el, nodes[i].x + Math.cos(t)*d, nodes[i].y + Math.sin(t)*d, g);
+    bonds.push([i, j, o || 1]);
+    return j;
+  };
+  const done = () => { nodes.forEach((n, j) => { if(n.g === undefined) n.g = 'n' + j; }); return {nodes, bonds, add, at}; };
+  return {nodes, bonds, add, at, done};
+}
+function valLayout(A, a, B, b){
+  const {x, y} = valFormula(A, a, B, b), L = vlBuilder();
+  if(x === 1 && y === 1){ L.add(A, 0, 0); L.at(0, B, 0, a); }
+  else if(x === 1 || y === 1){
+    const [C, Lg, n, v] = x === 1 ? [A, B, y, b] : [B, A, x, a];
+    const bent = n === 2 && (C === 'S' || (C === 'O' && Lg === 'H'));
+    const angs = n === 2 ? (bent ? (Lg === 'H' ? [37.5, 142.5] : [30, 150]) : [180, 0])
+      : Array.from({length:n}, (_, k) => -90 + 360*k/n);
+    L.add(C, 0, 0);
+    angs.forEach(d => L.at(0, Lg, d, v));
+  } else {
+    const [P, Q, q, n] = x === 2 ? [A, B, b, y] : [B, A, a, x], k = (n - 1)/2;
+    if(q !== 2 || Math.min(x, y) !== 2 || k > 2) return null;     // chưa có kiểu xếp cho tỉ lệ này
+    L.add(Q, 0, 0);
+    [1, -1].forEach(sg => {                                       // nửa phải, rồi nửa trái lật gương
+      const mir = d => sg > 0 ? d : 180 - d, p = L.at(0, P, mir(35));
+      (k === 1 ? [0] : [-25, 95]).forEach(d => L.at(p, Q, mir(d), q));
+    });
+  }
+  return L.done();
+}
+// hướng các O quanh X (theo số O): xếp O neo trước, rồi O–H, rồi O nối đôi — kim loại / H bám thẳng ra ngoài từng O neo
+// nên không bao giờ đụng nhau. ring: kim loại hoá trị II ôm hai O neo ở ±α quanh hướng 0°, các O còn lại bên trái
+const VL_AROUND = {2:[180, 0], 3:[150, 30, -90], 4:[180, 0, 90, -90]};
+const VL_RING = {3:[60, -60, 180], 4:[45, -45, 135, 225]};
+function terLayout(M, m, R){
+  const rd = VL_RAD[R], g = gcd(m, rd.v), x = rd.v/g, y = m/g, L = vlBuilder(), oh = rd.oh || 0;
+  const kinds = [...'a'.repeat(rd.v), ...'h'.repeat(oh), ...'d'.repeat(rd.dbl || 0)];
+  if(x > 1 && y > 1) return null;                                 // Al₂(SO₄)₃, Ca₃(PO₄)₂: chưa có kiểu xếp
+  if(y > 1){                                                      // kim loại ở giữa, các gốc hoá trị I toả ra
+    if(rd.v !== 1) return null;
+    L.add(M, 0, 0);
+    (y === 2 ? [180, 0] : Array.from({length:y}, (_, k) => -90 + 360*k/y)).forEach((d, k) => {
+      const gid = 'r' + k, o = L.at(0, 'O', d, 1, gid);
+      if(R === 'OH') return L.at(o, 'H', d, 1, gid);
+      const xi = L.at(o, rd.X, d, 1, gid), rest = kinds.slice(1), sp = {1:[0], 2:[-60, 60], 3:[-90, 0, 90]}[rest.length];
+      rest.forEach((kd, j) => { const e = d + sp[j], oo = L.at(xi, 'O', e, kd === 'd' ? 2 : 1, gid); if(kd === 'h') L.at(oo, 'H', e, 1, gid); });
+    });
+    return L.done();
+  }
+  if(R === 'OH'){ L.add('O', 0, 0, 'r'); L.at(0, M, 180); L.at(0, 'H', 0, 1, 'r'); return L.done(); }   // NaOH, KOH
+  if(rd.bridge){                                                  // X–O–X: mỗi X hai O đôi + một O neo; chỉ kim loại hoá trị I
+    if(m !== 1) return null;
+    L.add('O', 0, 0, 'r');
+    [180, 0].forEach(d => { const xi = L.at(0, rd.X, d, 1, 'r'); [90, -90].forEach(e => L.at(xi, 'O', e, 2, 'r')); L.at(L.at(xi, 'O', d, 1, 'r'), M, d); });
+    return L.done();
+  }
+  const ring = m === 2 && rd.v === 2, dirs = (ring ? VL_RING : VL_AROUND)[kinds.length];
+  if((m !== 1 && !ring) || !dirs) return null;
+  L.add(rd.X, 0, 0, 'r');
+  const anc = [];
+  kinds.forEach((kd, k) => {
+    const o = L.at(0, 'O', dirs[k], kd === 'd' ? 2 : 1, 'r');
+    if(kd === 'h') L.at(o, 'H', dirs[k], 1, 'r');
+    if(kd === 'a'){ anc.push(o); if(!ring) L.at(o, M, dirs[k]); }
+  });
+  if(ring){                                                       // kim loại trên phân giác, cách mỗi O neo một tay nắm
+    const [p, q] = anc.map(j => L.nodes[j]), ux = (p.x + q.x)/2, uy = (p.y + q.y)/2, ul = Math.hypot(ux, uy);
+    const d = atomR('O') + atomR(M) + 2*VL_ARM, h = Math.hypot(p.x - ux, p.y - uy), t = ul + Math.sqrt(d*d - h*h);
+    const c = L.add(M, ux/ul*t, uy/ul*t);
+    anc.forEach(j => L.bonds.push([j, c, 1]));
+  }
+  return L.done();
+}
+const vlLayout = q => q.kind === 'bin' ? valLayout(q.A, q.a, q.B, q.b) : terLayout(q.M, q.m, q.R);
+// sổ chất (tạo chất tự do + khám phá): mọi câu trong pools + freeExtra, mỗi công thức một lần
+const vlBook = day => day.pools.flatMap(([, list]) => list).concat(day.freeExtra || []).map(vlQuestion)
+  .filter((q, k, all) => all.findIndex(o => o.f === q.f) === k);
+function startVlExplore(i){ SFX.music(themeOf(i)); MG.valence(i, DAYS[i], true); }
+// chất bí mật: chất có thật mà không theo kiểu "hai nhóm nắm nhau" của đề, ghép được từ bóng của câu.
+// a: [nguyên tố, nút nắm tay, hướng, bậc liên kết]; b: liên kết thêm (khép vòng); free: tay rảnh [nút, hướng];
+// v: số tay của nút ngoại lệ (Fe hoá trị II / III trong Fe₃O₄, liên kết cho–nhận trong O₃); show: cách viết công thức
+const VL_EGG = {
+  N2H4:   {nm:'hiđrazin, nhiên liệu tên lửa', a:[['N'], ['N', 0, 0], ['H', 0, 120], ['H', 0, 240], ['H', 1, 60], ['H', 1, -60]]},
+  H2O2:   {nm:'hiđro peoxit, nước oxi già', a:[['O'], ['O', 0, 0], ['H', 0, 120], ['H', 1, -60]]},
+  Na2O2:  {nm:'natri peoxit — hai O nắm tay nhau', a:[['O'], ['O', 0, 0], ['Na', 0, 120], ['Na', 1, -60]]},
+  O3:     {nm:'ozon — O giữa nắm thêm O kia bằng liên kết cho–nhận', a:[['O'], ['O', 0, 150, 2], ['O', 0, 30]], v:{0:3, 2:1}},
+  C2H6:   {nm:'etan', a:[['C'], ['C', 0, 0], ['H', 0, 90], ['H', 0, 180], ['H', 0, 270], ['H', 1, 90], ['H', 1, 0], ['H', 1, 270]]},
+  C2H4:   {nm:'etilen', a:[['C'], ['C', 0, 0, 2], ['H', 0, 120], ['H', 0, 240], ['H', 1, 60], ['H', 1, -60]]},
+  C2H2:   {nm:'axetilen, khí đất đèn', a:[['C'], ['C', 0, 0, 3], ['H', 0, 180], ['H', 1, 0]]},
+  C2H6O:  {nm:'etanol (cồn)', show:'C2H5OH', a:[['C'], ['C', 0, 0], ['H', 0, 90], ['H', 0, 180], ['H', 0, 270], ['H', 1, 90], ['H', 1, 270],
+    ['O', 1, 0], ['H', 7, -60]]},
+  C2H4O2: {nm:'axit axetic (giấm ăn)', show:'CH3COOH', a:[['C'], ['C', 0, 0], ['H', 0, 90], ['H', 0, 180], ['H', 0, 270], ['O', 1, -60, 2],
+    ['O', 1, 60], ['H', 6, 0]]},
+  CaC2:   {nm:'canxi cacbua (đất đèn) — gặp nước sinh khí axetilen', a:[['Ca'], ['C', 0, 62.28], ['C', 1, 180, 3]], b:[[0, 2, 1]]},
+  Fe3O4:  {nm:'oxit sắt từ — một Fe hoá trị II, hai Fe hoá trị III', a:[['Fe'], ['O', 0, 210], ['O', 0, -30], ['Fe', 1, 150], ['Fe', 2, 30],
+    ['O', 3, 210, 2], ['O', 4, -30, 2]], v:{0:2, 3:3, 4:3}},
+  S2O7:   {nm:'gốc đisunfat (hoá trị II) trong oleum', a:[['O'], ['S', 0, 180], ['S', 0, 0], ['O', 1, 90, 2], ['O', 1, 270, 2],
+    ['O', 1, 180], ['O', 2, 90, 2], ['O', 2, 270, 2], ['O', 2, 0]], free:[[5, 180], [8, 0]]}};
+// chất đã biết vẽ tay: hữu cơ tới 2 nguyên tử C (nhiều C hơn cấu tạo phức tạp mà ít ích), cùng kiểu khai báo với chất bí mật
+const VL_MOL = {
+  CH4O:   {nm:'metanol (rất độc)', show:'CH3OH', a:[['C'], ['H', 0, 90], ['H', 0, 180], ['H', 0, 270], ['O', 0, 0], ['H', 4, -60]]},
+  CH2O:   {nm:'fomanđehit (fomon)', show:'HCHO', a:[['C'], ['O', 0, 0, 2], ['H', 0, 120], ['H', 0, 240]]},
+  CH2O2:  {nm:'axit fomic (có trong nọc kiến)', show:'HCOOH', a:[['C'], ['O', 0, -60, 2], ['O', 0, 60], ['H', 0, 180], ['H', 2, 0]]},
+  C2H4O:  {nm:'anđehit axetic', show:'CH3CHO', a:[['C'], ['C', 0, 0], ['H', 0, 90], ['H', 0, 180], ['H', 0, 270], ['O', 1, -60, 2], ['H', 1, 60]]},
+  CH5N:   {nm:'metylamin', show:'CH3NH2', a:[['C'], ['H', 0, 90], ['H', 0, 180], ['H', 0, 270], ['N', 0, 0], ['H', 4, -60], ['H', 4, 60]]},
+  CHN:    {nm:'axit xianhiđric (rất độc)', show:'HCN', a:[['C'], ['N', 0, 0, 3], ['H', 0, 180]]},
+  CH4N2O: {nm:'urê (phân đạm)', show:'CO(NH2)2', a:[['C'], ['O', 0, -90, 2], ['N', 0, 150], ['N', 0, 30], ['H', 2, 90], ['H', 2, 210],
+    ['H', 3, 90], ['H', 3, -30]]}};
+const fShow = f => ((VL_EGG[f] || VL_MOL[f] || {}).show) || f;   // cách viết công thức (CH₃COOH thay cho C₂H₄O₂)
+function handLayout(e){
+  const L = vlBuilder();
+  e.a.forEach(([el, i, d, o]) => i === undefined ? L.add(el, 0, 0) : L.at(i, el, d, o));
+  (e.b || []).forEach(b => L.bonds.push(b));
+  return Object.assign(L.done(), {free:e.free || []});
+}
+const eggLayout = f => handLayout(VL_EGG[f]);
+// mọi chất được công nhận khi tạo chất tự do / khám phá: sổ chất + chất vẽ tay (chất bí mật tính riêng)
+const vlKnown = day => vlBook(day).map(q => ({f:q.f, name:q.name, L:() => vlLayout(q)}))
+  .concat(Object.keys(VL_MOL).map(f => ({f, name:VL_MOL[f].nm, L:() => handLayout(VL_MOL[f])})));
+// hoá trị từng nguyên tố trong một mô hình, đếm tay của từng bóng: "Fe: II, III · O: II" (chú thích khi rê chuột)
+function vlValText(L){
+  const arms = L.nodes.map(() => 0), m = {};
+  L.bonds.forEach(([p, q, o]) => { arms[p] += o; arms[q] += o; });
+  (L.free || []).forEach(([p]) => arms[p]++);
+  L.nodes.forEach((n, k) => (m[n.el] = m[n.el] || new Set()).add(arms[k]));
+  return Object.keys(m).map(e => e + ': ' + [...m[e]].sort().map(v => ROMAN[v]).join(', ')).join(' · ');
+}
+// các lớp svg cho một nhóm bóng, cùng thứ tự với molDraw (viền mực mờ → sticker trắng → que) để sticker các bóng chạm
+// nhau liền thành một miếng. Tay là một nét mọc từ tâm bóng: a = hướng, d = lệch ngang (liên kết đôi / ba là 2 / 3 nét
+// song song), w = bề dày, g = đã mọc bao nhiêu (0 → 1); d, w, độ dài tính theo đơn vị bóng, nhân với cỡ s của từng bóng
+function vlLayers(list){
+  const f = n => n.toFixed(1);
+  const segs = list.map(A => A.arms.filter(m => m.g > .02).map(m => {
+    const c = Math.cos(m.a), s = Math.sin(m.a), x = A.x - s*m.d*A.s, y = A.y + c*m.d*A.s, len = (atomR(A.el) + VL_ARM)*A.s*m.g;
+    return {p:`x1="${f(x)}" y1="${f(y)}" x2="${f(x + c*len)}" y2="${f(y + s*len)}"`, w:m.w*A.s};
+  }));
+  const shape = edge => list.map((A, n) => {
+    const p = STICKER*A.s + (edge ? Math.max(1, .6*A.s) : 0);
+    return `<circle cx="${f(A.x)}" cy="${f(A.y)}" r="${f(atomR(A.el)*A.s + p)}"/>`
+      + segs[n].map(g => `<line ${g.p} stroke-width="${f(g.w + 2*p)}"/>`).join('');
+  }).join('');
+  return `<g fill="#3b3025" stroke="#3b3025" opacity=".28" stroke-linecap="round">${shape(true)}</g>`
+    + `<g fill="#fff" stroke="#fff" stroke-linecap="round">${shape(false)}</g>`
+    + `<g stroke="#3b3025" stroke-linecap="round">${segs.flat().map(g => `<line ${g.p} stroke-width="${f(g.w)}"/>`).join('')}</g>`;
+}
+// một "bóng" trong cột trái: nguyên tố, hoặc gốc dựng sẵn = chùm bóng sát nhau (X ở giữa, O quây quanh), chưa có que
+function vlPieceGeom(key){
+  const rd = VL_RAD[key];
+  if(!rd) return [{el:key, x:0, y:0}];
+  const n = rd.dbl + rd.v, d = key === 'OH' ? 0 : atomR(rd.X) + atomR('O');
+  const at = key === 'OH' ? [{el:'O', x:0, y:0}, {el:'H', x:atomR('O') + atomR('H'), y:0}]
+    : [{el:rd.X, x:0, y:0}].concat(Array.from({length:n}, (_, k) => {
+        const t = -Math.PI/2 + 2*Math.PI*k/n; return {el:'O', x:Math.cos(t)*d, y:Math.sin(t)*d}; }));
+  const mid = k => (Math.min(...at.map(a => a[k] - atomR(a.el))) + Math.max(...at.map(a => a[k] + atomR(a.el))))/2;
+  const cx = mid('x'), cy = mid('y');
+  return at.map(a => ({el:a.el, x:a.x - cx, y:a.y - cy}));
+}
+const vlPieceR = key => Math.max(...vlPieceGeom(key).map(a => Math.hypot(a.x, a.y) + atomR(a.el))) + STICKER;
+const vlPieceSize = (key, sc) => Math.ceil(2*(vlPieceR(key)*sc + 3));
+function vlPiece(key, sc, bare){             // bare: bóng trơn, không ghi kí hiệu (chip nhỏ trên đề)
+  const S = vlPieceSize(key, sc), c = S/2, P = vlPieceGeom(key).map(a => ({el:a.el, x:c + a.x*sc, y:c + a.y*sc, s:sc, arms:[]}));
+  return `<div class="vl-one" style="width:${S}px;height:${S}px"><svg class="bonds" width="${S}" height="${S}">${vlLayers(P)}</svg>`
+    + P.map(p => atomBall({el:p.el, x:p.x, y:p.y, r:atomR(p.el)*sc}, '', '', bare)).join('') + '</div>';
+}
+
 const MG = {
  /* --- phân loại (ngày 3: nguyên tử/phân tử; ngày 17: oxit/axit/bazơ/muối). Mỗi lúc chỉ MỘT chất: thẻ vẽ
         mô hình bi–que, công thức ở dưới; kéo thẻ vào giỏ hoặc bấm thẳng vào giỏ. Đúng giỏ: mô hình rơi vào giỏ
@@ -339,6 +561,436 @@ const MG = {
   }
   G.querySelectorAll('.bin').forEach(bn => bn.onclick = () => grade(+bn.dataset.b, null));
   show();
+ },
+
+ /* --- ngày 4: lập công thức theo hoá trị. Cột trái: bóng của câu (nguyên tố; mấy câu đầu có thêm gốc dựng sẵn); rê
+        chuột lên bóng để xem các hoá trị. Cột phải: Kiểm tra / Làm lại. Kéo bóng (hoặc bấm — bóng rơi vào giữa sân)
+        vào khu vực tạo chất; bóng trên bàn trôi rất chậm quanh giữa sân. Bấm bóng, hoặc kéo ra ngoài, để bỏ. Kiểm tra:
+        – đúng → các bóng trượt về chỗ trong mô hình đáp án rồi mọc tay nối nhau (rê chuột lên mô hình: hoá trị từng bóng);
+        – ghép ra chất có thật "ngoài đề" (VL_EGG) → ngôi sao vào bộ sưu tập (save.eggs, chỉ bật lên lúc vừa tìm được) +
+          thành tựu, không tính sai, nhưng vẫn phải ghép chất của đề;
+        – sai → bàn rung, bị từ chối; mọi tay đã nắm được mà vẫn sai thì nói lý do (chưa tối giản / sai gốc / thiếu
+          nguyên tố). Sai là mất điểm câu đó, bàn tự dọn sạch để làm lại ngay cho tới khi đúng.
+        Cả màn chỉ có TOTAL_T giây, chạy từ câu đầu; hết giờ là kết thúc. Xong 8 câu thì đồng hồ dừng, cột phải hiện
+        "Hoàn thành!" với Kết thúc / Tiếp tục. Tiếp tục → tạo chất tự do (mode 'free') bằng số giây còn lại: mỗi lượt một
+        bộ nguyên tố, tạo chất nào có thật cũng được (vlKnown — không ép về chất của đề), mỗi chất +PTS một lần, chất bí
+        mật thưởng thêm EGG_BONUS. Khám phá (explore, mở khi ngày 4 đạt 3 sao, startVlExplore): bảng 17 nguyên tố, ghép
+        bừa không tính giờ; số chất đã khám phá lưu ở save.vlSeen.
+        Cả khu vực vẽ lại mỗi khung hình trên MỘT svg (vlLayers), bóng là các .atom đè lên trên. --- */
+ valence(i, day, explore){
+  const known = vlKnown(day), EGGS = Object.keys(VL_EGG), qs = [];     // qs: 8 câu, bốc theo từng nhóm, không lặp chất
+  if(!explore) day.pools.forEach(([n, list]) => shuffle(list).map(vlQuestion).filter(q => !qs.some(o => o.f === q.f)).slice(0, n).forEach(q => qs.push(q)));
+  const TOTAL_T = 90, PTS = 10, EGG_BONUS = 20;
+  const ZW = 840, ZH = 430, SC = 2.2, PSC = 1.9, MAX = 16;             // SC: cỡ bóng trên bàn, PSC: ở cột trái
+  // bóng trôi DRIFT px/s, hướng lắc ngẫu nhiên (NOISE·√dt — đổi hướng sau vài giây, không phụ thuộc số khung hình);
+  // mỗi giây bị kéo về giữa sân PULL phần khoảng cách → cả cụm trôi chừng 4–5 px/s quanh giữa sân
+  const DRIFT = 6, PULL = .03, NOISE = 2.5;
+  // bộ nguyên tố của phần tự do lấy từ thành phần các chất thường trong sổ (không lấy từ chất bí mật — khỏi lộ bí mật;
+  // chất bí mật vẫn được thưởng nếu ghép ra); xếp kim loại trước, O cuối
+  const ORDER = ['Na', 'K', 'Ag', 'Mg', 'Ca', 'Ba', 'Zn', 'Cu', 'Fe', 'Al', 'H', 'C', 'N', 'P', 'S', 'Cl', 'O'];
+  const elsOf = f => Object.keys(atomCounts(f)), ALL = known.map(k => k.f);
+  mgFrame(i, explore ? Object.assign({}, day, {t:day.t + ' · Khám phá'}) : day, `<div class="vl">
+    <div class="vl-task"><div class="vl-t1"></div><div class="vl-t2"></div></div>
+    <div class="vl-mid">
+      <div class="vl-pal"></div>
+      <div class="vl-zone" data-dz="vbuild" style="width:${ZW}px;height:${ZH}px">
+        <div class="vl-layer"><svg class="bonds" width="${ZW}" height="${ZH}"></svg></div>
+        <span class="vl-zlbl">Khu vực tạo chất</span></div>
+      <div class="vl-side">
+        <div class="vl-acts"><button class="btn big" id="vlgo"></button>
+          <button class="btn" id="vlclear">${ico('retry')} Làm lại</button></div>
+        <div class="vl-donebox"><b>Hoàn thành!</b><button class="btn" id="vlend">${ico('check')} Kết thúc</button>
+          <button class="btn big" id="vlmore">Tiếp tục ${ico('next')}</button></div>
+        <div class="vl-eggs"></div>${explore ? '<div class="vl-found"></div>' : ''}</div>
+    </div>
+    <div class="vl-say"></div></div>`);
+  const t1 = G.querySelector('.vl-t1'), t2 = G.querySelector('.vl-t2'), pal = G.querySelector('.vl-pal'), side = G.querySelector('.vl-side');
+  const zone = G.querySelector('.vl-zone'), layer = zone.querySelector('.vl-layer'), svg = layer.firstElementChild;
+  const say = G.querySelector('.vl-say'), bGo = G.querySelector('#vlgo'), bClear = G.querySelector('#vlclear'), eggsEl = G.querySelector('.vl-eggs');
+  tapeLabel(zone.querySelector('.vl-zlbl'));
+  // missed: câu này đã sai một lần (không còn tính điểm); afterEgg: vừa ra chất bí mật — nhắc ghép chất của đề.
+  // tLeft: số giây còn lại của cả màn (paused: đang chờ chọn Kết thúc / Tiếp tục); solved: số câu đã xong;
+  // made / found: chất đã tạo ở phần tự do (khám phá: chất đã ghép lượt này)
+  let mode = explore ? 'explore' : 'quiz', qi = -1, correct = 0, solved = 0, q = null, keys = [], phase = 'build', missed = false, afterEgg = false;
+  let pieces = [], atoms = [], shakeT = 0, tLeft = TOTAL_T, paused = false, score = 0, made = 0, found = [], ended = false, shownT = -1, lastSet = '', eggT = 0;
+  const live = () => pieces.filter(p => !p.leaving);                   // phase: build → check (hoạt cảnh) → done / egg / next
+  // toạ độ trong khu vực tạo chất: tâm một phần tử / điểm thả (ngón tay: vật nổi trên đầu ngón, xem dragify).
+  // Cửa sổ thu về 0×0 thì fit() co game về tỉ lệ 0 — chia cho 0 ra NaN lây sang mọi bóng qua relax, nên đặt sàn 1
+  const zPt = el => { const z = layer.getBoundingClientRect(), r = el.getBoundingClientRect(), s = z.width/ZW || 1;
+    return {x:(r.left + r.width/2 - z.left)/s, y:(r.top + r.height/2 - z.top)/s}; };
+  const dropAt = (e, h) => { const z = layer.getBoundingClientRect(), s = z.width/ZW || 1;
+    return {x:(e.clientX - z.left)/s, y:(e.clientY - z.top)/s - (e.pointerType === 'mouse' ? 0 : h*.6 + 24)}; };
+  const palPt = k => zPt(pal.children[k].querySelector('.vl-one'));
+  const countOf = list => { const c = {}; list.forEach(p => p.atoms.forEach(A => c[A.el] = (c[A.el]||0) + 1)); return c; };
+  const same = (a, b) => Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(e => a[e] === b[e]);
+  const setGo = chk => { bGo.innerHTML = chk ? ico('check') + ' Kiểm tra' : 'Tiếp tục ' + ico('next'); };
+  const later = (ms, fn) => setTimeout(() => { if(zone.isConnected && !ended) fn(); }, ms);
+  const fml = (f, L) => `<b class="vl-f" title="${vlValText(L)}">${sub(fShow(f))}</b>`;   // rê chuột: hoá trị
+  const hud = (txt, el) => { G.querySelector(el || '#mgscore').textContent = txt; };
+  const seen = () => known.filter(k => (save.vlSeen || []).includes(k.f)).length;
+  const AGAIN = 'Hãy tạo chất với ít nguyên tử nhất để qua màn ;)';   // nhắc sau khi ra chất bí mật
+  const ORG = 'Chất hữu cơ (C, H, O, N) mới hỗ trợ tới 2 nguyên tử C thôi — nhiều C hơn thì cấu tạo phức tạp lắm!';
+
+  // bộ sưu tập chất bí mật (lưu qua các lượt): chỉ bật lên lúc vừa tìm được một chất, vài giây sau tự tắt.
+  // Mỗi chất một ngôi sao, chưa tìm thì mờ; rê chuột lên ngôi sao đã sáng để xem công thức và hoá trị
+  function showEggs(){
+    const got = EGGS.filter(f => (save.eggs || []).includes(f));
+    eggsEl.innerHTML = '<small>Chất bí mật</small><div>' + EGGS.map(f => got.includes(f)
+      ? `<span class="on" title="${sub(fShow(f))} — ${vlValText(eggLayout(f))}">${ico('star', 17)}</span>` : `<span title="???">${ico('star', 17)}</span>`).join('')
+      + `</div><b>${got.length}/${EGGS.length}</b>`;
+    eggsEl.classList.remove('show'); void eggsEl.offsetWidth; eggsEl.classList.add('show');
+    clearTimeout(eggT); eggT = setTimeout(hideEggs, 5000);
+  }
+  const hideEggs = () => eggsEl.classList.remove('show');
+  function collect(f){
+    save.eggs = save.eggs || [];
+    if(!save.eggs.includes(f)){ save.eggs.push(f); persist(); }
+    unlockAch('egg'); showEggs();
+  }
+
+  // một bóng (hoặc chùm bóng của gốc dựng sẵn) bay từ from tới to; bấm / kéo ra ngoài để bỏ, kéo trong khu vực để dời
+  function spawn(key, k, from, to){
+    const geo = vlPieceGeom(key), S = vlPieceSize(key, SC);
+    const p = {key, k, comp:geo.map(a => a.el).sort().join(), R:vlPieceR(key)*SC, tx:to.x, ty:to.y, va:Math.random()*2*Math.PI, leaving:false, dragging:false, atoms:[]};
+    geo.forEach(a => {
+      const A = {el:a.el, pc:p, ox:a.x*SC, oy:a.y*SC, s:SC, ts:SC, arms:[]};
+      Object.assign(A, {x:from.x + A.ox, y:from.y + A.oy, tx:to.x + A.ox, ty:to.y + A.oy});
+      layer.insertAdjacentHTML('beforeend', atomBall({el:a.el, x:A.x, y:A.y, r:atomR(a.el)*SC}, 'vl-b'));
+      A.div = layer.lastElementChild;
+      dragify(A.div, 'vlmove', {w:S, h:S,
+        ghostHTML: () => { p.dragging = true; return vlPiece(key, SC); },
+        onDrop: (z, e) => { p.dragging = false; const d = dropAt(e, S);
+          p.tx = d.x; p.ty = d.y; p.atoms.forEach(B => { B.x = d.x + B.ox; B.y = d.y + B.oy; }); relax(p); SFX.clink(); },
+        onLoose: () => { p.dragging = false; leave(p); refresh(); return true; },
+        onClick: () => { if(phase === 'build'){ leave(p); refresh(); } }});
+      p.atoms.push(A); atoms.push(A);
+    });
+    pieces.push(p);
+    return p;
+  }
+  function leave(p){                        // về lại cột trái rồi biến mất (vòng vẽ xoá khi tới nơi); tay thu lại
+    const h = palPt(p.k), k = (mode === 'explore' ? 1.4 : PSC)/SC;
+    p.leaving = true;
+    p.atoms.forEach(A => { Object.assign(A, {tx:h.x + A.ox*k, ty:h.y + A.oy*k, ts:SC*k}); A.arms.forEach(m => m.tg = 0); A.div.style.pointerEvents = 'none'; });
+    SFX.clink();
+  }
+  const clearOut = () => { live().forEach(leave); layer.classList.remove('vl-done'); };
+  const wipe = () => { atoms.forEach(A => A.div.remove()); atoms = []; pieces = []; layer.classList.remove('vl-done'); };
+  // dồn các bóng cho sticker khỏi chạm nhau (chạm là trông như đã nắm tay), giữ trong khu vực; bóng vừa thả ít bị đẩy.
+  // Vòng vẽ gọi mỗi khung với 1 lượt (its = 1) để bóng đang trôi né nhau dần dần
+  function relax(fix, its){
+    const L = live().filter(P => !P.dragging);
+    for(let it = 0; it < (its || 40); it++){
+      L.forEach((A, n) => L.slice(n + 1).forEach((B, m) => {
+        const dx = B.tx - A.tx, dy = B.ty - A.ty, d = Math.hypot(dx, dy), need = A.R + B.R + 8;
+        if(d >= need) return;
+        const [ux, uy] = d > .5 ? [dx/d, dy/d] : [Math.cos(n + m + it), Math.sin(n + m + it)];
+        const push = need - d, wa = A === fix ? .15 : B === fix ? .85 : .5;
+        A.tx -= ux*push*wa; A.ty -= uy*push*wa; B.tx += ux*push*(1 - wa); B.ty += uy*push*(1 - wa);
+      }));
+      L.forEach(P => { P.tx = Math.max(P.R, Math.min(ZW - P.R, P.tx)); P.ty = Math.max(P.R, Math.min(ZH - P.R, P.ty)); });
+    }
+    L.forEach(P => P.atoms.forEach(A => { A.tx = P.tx + A.ox; A.ty = P.ty + A.oy; }));
+  }
+  function put(key, k, d){                  // d: điểm thả; null = bấm → bóng rơi vào giữa sân, bóng cũ dạt ra nhường chỗ
+    if(phase !== 'build') return;
+    if(live().length >= MAX){ SFX.err(); toast('Khu vực tạo chất đầy rồi — bấm vào một bóng để bỏ bớt!'); return; }
+    relax(spawn(key, k, d || palPt(k), d || {x:ZW/2 + (Math.random() - .5)*60, y:ZH/2 + (Math.random() - .5)*40}));
+    refresh(); SFX.clink();
+  }
+
+  function refresh(){                       // nút + dòng nhắc dưới bàn (chỉ lúc đang ghép; có bóng trên bàn thì để trống)
+    if(phase !== 'build') return;
+    const L = live();
+    bGo.disabled = bClear.disabled = !L.length;
+    say.innerHTML = L.length ? '' : afterEgg ? AGAIN
+      : mode === 'free' ? 'Tạo chất nào cũng được, miễn là chất có thật!'
+      : mode === 'explore' ? ''
+      : 'Kéo bóng ở cột trái vào khu vực tạo chất (hoặc bấm vào bóng). Bấm vào bóng trên bàn để bỏ ra.';
+  }
+  function lock(on){
+    pal.classList.toggle('off', on);
+    atoms.forEach(A => A.div.style.pointerEvents = on || A.pc.leaving ? 'none' : '');
+    bGo.disabled = bClear.disabled = on;
+  }
+  // chip trên đề: bóng nhỏ + mọi hoá trị của nguyên tố, tô vàng hoá trị dùng trong câu (on); all: không tô, để rõ cả
+  const vchip = (el, on, all) => `<span class="vl-chip">${vlPiece(el, .7, true)}<b>${el}</b><span class="vl-vals${all ? ' all' : ''}">`
+    + VL_VALS[el].map(v => `<i${v === on ? ' class="on"' : ''}>${ROMAN[v]}</i>`).join('') + '</span></span>';
+  // cột trái: bóng có nhãn (câu hỏi, tự do) hoặc lưới 17 nguyên tố (khám phá — rê chuột lên bóng hiện các hoá trị của nó;
+  // câu hỏi và tự do đã ghi hoá trị trên đề nên khỏi)
+  function setPal(grid){
+    pal.classList.toggle('grid', grid);
+    pal.innerHTML = keys.map((key, k) => `<div class="vl-pitem enter" style="animation-delay:${k*(grid ? 25 : 70)}ms">`
+      + (grid ? vlPiece(key, 1.4) : vlPiece(key, PSC) + `<div class="vl-plbl">${VL_RAD[key] ? `<b>${radStr(key)}</b> · ${key === 'OH' ? 'nhóm' : 'gốc'} ${VL_RAD[key].nm}`
+        : `<b>${key}</b> · ${EL_VN[key]}`}</div>`) + (grid ? `<span class="vl-hv">${VL_VALS[key].map(v => ROMAN[v]).join(' · ')}</span>` : '') + '</div>').join('');
+    [...pal.children].forEach((it, k) => {
+      const key = keys[k], S = vlPieceSize(key, SC);
+      if(!grid) tapeLabel(it.querySelector('.vl-plbl'));
+      dragify(it, 'vlatom', {w:S, h:S, enabled: () => phase === 'build', ghostHTML: () => vlPiece(key, SC),
+        onDrop: (z, e) => put(key, k, dropAt(e, S)), onClick: () => put(key, k, null)});
+    });
+  }
+  function round(){                         // câu hỏi tiếp theo (8 câu)
+    q = qs[++qi]; phase = 'build'; missed = afterEgg = false;
+    wipe();
+    // cột trái: hai nguyên tố; axit / bazơ / muối thì kim loại (hoặc H) + gốc dựng sẵn ở mấy câu đầu, sau đó 3 nguyên tố
+    keys = q.kind === 'bin' ? [q.A, q.B] : qi < day.buildFrom ? [q.M, q.R] : q.els;
+    const rchip = hint => `<span class="vl-chip vl-rad${hint ? ' hint' : ''}">${hint ? (q.R === 'OH' ? 'nhóm' : 'gốc') : vlPiece(q.R, .6, true)}`
+      + `<b>${radStr(q.R)}</b><span class="vl-vals"><i class="on">${ROMAN[VL_RAD[q.R].v]}</i></span></span>`;
+    t1.innerHTML = `<span class="vl-qn">Câu ${qi + 1}/${qs.length}</span>`
+      + (q.kind === 'bin' ? 'Lập công thức hợp chất của hai nguyên tố' : `Lập công thức: <b>${q.name}</b>`);
+    t2.innerHTML = q.kind === 'bin' ? vchip(q.A, q.a) + vchip(q.B, q.b)
+      : keys.includes(q.R) ? vchip(q.M, q.m) + rchip(false) : q.els.map(el => vchip(el, q.vals[el])).join('') + rchip(true);
+    setPal(false);
+    setGo(true); lock(false); refresh();
+  }
+  // tạo chất tự do: bộ nguyên tố còn ít nhất một chất chưa tạo (không lặp bộ vừa rồi)
+  function nextSet(){
+    const sets = [...new Set(ALL.map(f => elsOf(f).sort().join()))].map(s => s.split(',')).filter(s => s.length > 1 && s.length <= 3);   // mỗi chất tối đa 3 nguyên tố
+    const open = sets.filter(s => ALL.some(f => !found.includes(f) && elsOf(f).every(e => s.includes(e))));
+    const fresh = open.filter(s => s.join() !== lastSet), set = pick(fresh.length ? fresh : open.length ? open : sets);
+    lastSet = set.join();
+    return set.sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+  }
+  function freeRound(){
+    phase = 'build'; afterEgg = false;
+    wipe();
+    keys = nextSet();
+    t1.innerHTML = `<span class="vl-qn">Tự do · chất ${made + 1}</span>Tạo một chất bất kỳ từ các nguyên tố này`;
+    t2.innerHTML = keys.map(el => vchip(el, 0, true)).join('');
+    setPal(false);
+    setGo(true); lock(false); refresh();
+  }
+  function startFree(){                     // xong 8 câu → Tiếp tục: đồng hồ chạy tiếp; ✕ lúc này chỉ dừng sớm
+    mode = 'free'; side.classList.remove('complete'); paused = false;
+    score = made = 0; found = [];
+    hud('Điểm: 0');
+    G.querySelector('#bquit').onclick = () => { if(!ended) endGame(true); };
+    SFX.page(); freeRound();
+  }
+  function exploreSetup(){
+    keys = Object.keys(VL_VALS);
+    t1.innerHTML = '<span class="vl-qn">Khám phá</span>';
+    t2.innerHTML = '<span>Chất hữu cơ (C, H, O, N): tối đa 2 nguyên tử C</span>';
+    setPal(true);
+    hud('Sổ chất: ' + seen() + '/' + known.length);
+    setGo(true); lock(false); refresh();
+  }
+  // hết giờ (early: bấm ✕ dừng sớm ở phần tự do): khoá bàn, bảng tổng kết chỉ có Kết thúc — chơi lại thì làm lại từ đầu
+  function endGame(early){
+    ended = true; phase = 'end'; lock(true); hideEggs(); SFX.bell();
+    const free = mode === 'free', rec = free && score > (save.vlBest || 0), eggs = found.filter(f => VL_EGG[f]).length;
+    if(rec){ save.vlBest = score; persist(); }
+    const ov = document.createElement('div');
+    ov.className = 'overlay';
+    ov.innerHTML = `<div class="paper vl-end"><h2>${ico('flask', 24)} ${early ? 'Dừng thử thách' : 'Hết giờ!'}</h2>` + (free
+      ? `<p>Tạo được <b>${made}</b> chất${eggs ? ` · ${ico('star', 16)} ${eggs} chất bí mật` : ''}</p><div class="vl-endpts">${score} điểm</div>
+        <p>${rec ? '<b class="vl-ok">Kỷ lục mới!</b>' : 'Kỷ lục: <b>' + (save.vlBest || 0) + '</b> điểm'}</p>`
+      : `<p>Xong <b>${solved}</b>/${qs.length} câu · đúng ngay lần đầu <b>${correct}</b> câu</p>`)
+      + `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn big" id="vfend">${ico('check')} Kết thúc</button></div></div>`;
+    G.appendChild(ov);
+    ov.querySelector('#vfend').onclick = () => showResult(i, {correct, total:qs.length});
+  }
+  // bị từ chối: bàn rung, đỏ lên rồi tự dọn sạch; plain: không phải ghép sai đề (khỏi nhắc "Sai rồi")
+  function reject(msg, plain){
+    phase = 'check'; lock(true);
+    shakeT = performance.now() + 450; SFX.err();
+    zone.classList.remove('flash-bad'); void zone.offsetWidth; zone.classList.add('flash-bad');
+    say.innerHTML = `<span class="vl-bad">${ico('close', 20)} ${msg}</span>` + (mode !== 'quiz' || plain ? '' : '<br><small>Sai rồi — bàn đã dọn sạch, làm lại nhé!</small>');
+    later(650, () => { live().forEach(leave); phase = 'build'; lock(false); bGo.disabled = bClear.disabled = true; });
+  }
+
+  function check(){
+    const c = countOf(live());
+    phase = 'check'; lock(true);
+    if(mode !== 'quiz') return checkKnown(c);
+    const want = atomCounts(q.f);
+    if(same(c, want)) return win();
+    const egg = EGGS.find(f => same(c, atomCounts(f)));
+    if(egg) return eggFound(egg);
+    // sai là sai: câu này mất điểm, bàn tự dọn sạch — làm lại ngay cho tới khi đúng
+    missed = true;
+    reject(why(c, want));
+  }
+  function win(){
+    const L = vlLayout(q), last = qi + 1 >= qs.length;
+    if(!missed){ correct++; mgScore(correct, qs.length); }
+    solved++;
+    if(last) paused = true;                 // đủ 8 công thức: đồng hồ dừng trong lúc chọn Kết thúc / Tiếp tục
+    assemble(L, () => {
+      SFX.coin();
+      say.innerHTML = `<span class="vl-ok">${ico('check', 20)} Chính xác!</span> ${fml(q.f, L)} — ${q.name}`;
+      if(!last) return finish('done');
+      phase = 'complete'; side.classList.add('complete'); SFX.bell();
+    });
+  }
+  function eggFound(egg){
+    const L = eggLayout(egg);
+    assemble(L, () => {
+      SFX.tinkle(); collect(egg);
+      say.innerHTML = `<span class="vl-ok">${ico('star', 20)}</span> ${fml(egg, L)} — ${VL_EGG[egg].nm}<br><small>${AGAIN}</small>`;
+      finish('egg');
+    });
+  }
+  function backToBuild(){ clearOut(); phase = 'build'; afterEgg = true; setGo(true); lock(false); refresh(); }
+  // tự do / khám phá: chất có thật nào cũng được (sổ chất, chất vẽ tay, chất bí mật).
+  // Tự do: mỗi chất tính điểm một lần rồi sang bộ nguyên tố khác. Khám phá: mô hình đứng yên cho rê chuột xem hoá trị
+  function checkKnown(c){
+    const hit = known.find(k => same(c, atomCounts(k.f))), egg = !hit && EGGS.find(e => same(c, atomCounts(e)));
+    if(!hit && !egg){
+      const els = Object.keys(c);
+      return reject(els.length === 1 ? `Mới có ${els[0]} — hãy ghép thành hợp chất nhé!`
+        : (c.C || 0) >= 3 && els.every(e => ['C', 'H', 'O', 'N'].includes(e)) ? ORG : 'Chưa có chất này trong sổ — thử chất khác!', true);
+    }
+    const f = hit ? hit.f : egg, L = hit ? hit.L() : eggLayout(egg), nm = hit ? hit.name : VL_EGG[egg].nm;
+    if(mode === 'free'){
+      if(found.includes(f)) return reject(`Đã tạo ${sub(fShow(f))} rồi — thử chất khác!`, true);
+      const pts = egg ? PTS + EGG_BONUS : PTS;
+      found.push(f); made++; score += pts; hud('Điểm: ' + score);
+      return assemble(L, () => {
+        if(egg){ SFX.tinkle(); collect(egg); } else SFX.coin();
+        say.innerHTML = `<span class="vl-ok">${ico(egg ? 'star' : 'check', 20)}</span> ${fml(f, L)} — ${nm} <b class="vl-ok">+${pts}</b>`;
+        later(900, freeRound);
+      });
+    }
+    let fresh = false;
+    if(hit){ save.vlSeen = save.vlSeen || []; if(!save.vlSeen.includes(f)){ save.vlSeen.push(f); persist(); fresh = true; } }
+    if(!found.includes(f)){
+      found.push(f);
+      G.querySelector('.vl-found').insertAdjacentHTML('beforeend', `<span class="vl-tag${egg ? ' egg' : ''}" title="${vlValText(L)}">${sub(fShow(f))}</span>`);
+    }
+    hud('Sổ chất: ' + seen() + '/' + known.length);
+    assemble(L, () => {
+      if(egg){ SFX.tinkle(); collect(egg); } else SFX.coin();
+      say.innerHTML = `<span class="vl-ok">${ico(egg ? 'star' : 'check', 20)}</span> ${fml(f, L)} — ${nm}` + (fresh ? ' <b class="vl-ok">Mới!</b>' : '');
+      finish('next');
+    });
+  }
+  const finish = ph => { phase = ph; setGo(false); bGo.disabled = false; };
+  // lý do bị từ chối. Mọi tay có nắm hết được không: hai nguyên tố thì A chỉ nắm B; gốc dựng sẵn thì kim loại chỉ nắm
+  // gốc; ráp từ từng nguyên tử thì mọi liên kết đều đi qua O (mỗi O hai tay). Nắm hết mà vẫn sai thì nói vì sao.
+  function why(c, want){
+    const v = q.vals, n = e => c[e] || 0, ready = q.kind === 'ter' && keys.includes(q.R), nk = key => live().filter(p => p.key === key).length;
+    const ok = q.kind === 'bin' ? v[q.A]*n(q.A) === v[q.B]*n(q.B)
+      : ready ? q.m*nk(q.M) === VL_RAD[q.R].v*nk(q.R)
+      : n('O') > 0 && 2*n('O') === Object.keys(c).reduce((s, e) => s + (e === 'O' ? 0 : (v[e] || 0)*c[e]), 0);
+    const els = Object.keys(want), k = n(els[0])/want[els[0]], miss = els.filter(e => !n(e));
+    if(Object.keys(c).length === 1) return `Mới có ${Object.keys(c)[0]} — chất cần tạo là hợp chất của ${els.length} nguyên tố.`;   // O₂, H₂…: đơn chất
+    if(!ok) return 'Vẫn còn tay chưa có bạn nắm.';
+    if(Number.isInteger(k) && k > 1 && els.every(e => n(e) === want[e]*k) && Object.keys(c).length === els.length)
+      return `Mọi tay đều có bạn nắm, nhưng công thức chưa tối giản — còn chia được cho ${k}.`;
+    if(miss.length) return `Mọi tay đều có bạn nắm, nhưng thiếu ${miss.join(', ')} — ${q.name} có đủ ${els.length} nguyên tố.`;
+    const comp = atomCounts(q.R);
+    return `Mọi tay đều có bạn nắm, nhưng chưa thành ${q.R === 'OH' ? 'nhóm' : 'gốc'} ${radStr(q.R)} — gồm `
+      + Object.keys(comp).map(e => comp[e] + ' ' + e).join(' và ') + '.';
+  }
+  // ghép mô hình: mỗi nút nhận một bóng cùng nguyên tố. Gốc dựng sẵn đi nguyên chùm vào đúng một gốc của mô hình (cặp
+  // gần nhau ghép trước); ghép chùm không khớp (vd. hai nhóm OH thành H₂O₂) thì ghép từng bóng.
+  // Bóng tới gần chỗ thì mới mọc tay — liên kết bậc o là o nét song song. Mỗi bóng gắn nhãn hoá trị (số tay của nó),
+  // chỉ hiện khi rê chuột lên khu vực tạo chất (.vl-val, style.css)
+  function assemble(L, done){
+    const {nodes, bonds} = L, free = L.free || [], pad = STICKER + 2;
+    const ext = (key, sg) => Math.max(...nodes.map(nd => sg*nd[key] + atomR(nd.el) + pad));
+    const x0 = -ext('x', -1), x1 = ext('x', 1), y0 = -ext('y', -1), y1 = ext('y', 1);
+    const sc = Math.min(SC, (ZW - 60)/(x1 - x0), (ZH - 60)/(y1 - y0));
+    const P = nodes.map(nd => ({el:nd.el, g:nd.g, x:ZW/2 + (nd.x - (x0 + x1)/2)*sc, y:ZH/2 + (nd.y - (y0 + y1)/2)*sc}));
+    const own = match(P);
+    const slots = P.map(() => []);
+    bonds.forEach(([s, t, o]) => {
+      const a = Math.atan2(P[t].y - P[s].y, P[t].x - P[s].x), w = o > 1 ? 2.2 : 3.2;
+      [[0], [-2.2, 2.2], [-4.4, 0, 4.4]][o - 1].forEach(d => { slots[s].push({a, d, w}); slots[t].push({a:a + Math.PI, d, w}); });
+    });
+    free.forEach(([j, deg]) => slots[j].push({a:deg*Math.PI/180, d:0, w:3.2}));
+    own.forEach((A, j) => {
+      Object.assign(A, {tx:P[j].x, ty:P[j].y, ts:sc, arms:slots[j].map(s => Object.assign({g:0, tg:0}, s))});
+      A.div.style.pointerEvents = 'none';
+      A.div.querySelector('.vl-val')?.remove();
+      A.div.insertAdjacentHTML('beforeend', `<span class="vl-val">${ROMAN[slots[j].length]}</span>`);
+    });
+    setTimeout(() => own.forEach(A => A.arms.forEach(m => m.tg = 1)), 380);
+    setTimeout(() => {
+      if(!zone.isConnected || ended) return;
+      own.forEach((A, n) => setTimeout(() => { A.div.classList.remove('vl-pop'); void A.div.offsetWidth; A.div.classList.add('vl-pop'); }, n*40));
+      layer.classList.add('vl-done');
+      done();
+    }, 1150);
+  }
+  function match(P){
+    const own = P.map(() => null), L = live(), byG = {};
+    P.forEach((p, j) => (byG[p.g] = byG[p.g] || []).push(j));
+    const pick = (js, As) => {              // từng bóng cùng nguyên tố, cặp gần nhau ghép trước
+      const pr = [], got = new Set();
+      js.forEach(j => As.forEach(A => { if(A.el === P[j].el) pr.push([Math.hypot(A.x - P[j].x, A.y - P[j].y), A, j]); }));
+      pr.sort((u, w) => u[0] - w[0]).forEach(([, A, j]) => { if(!own[j] && !got.has(A)){ own[j] = A; got.add(A); } });
+    };
+    const units = Object.values(byG).map(js => ({js, comp:js.map(j => P[j].el).sort().join(),
+      x:js.reduce((s, j) => s + P[j].x, 0)/js.length, y:js.reduce((s, j) => s + P[j].y, 0)/js.length}));
+    const pr = [], uU = new Set(), uP = new Set();
+    units.forEach(u => L.forEach(p => { if(p.comp === u.comp) pr.push([Math.hypot(p.tx - u.x, p.ty - u.y), u, p]); }));
+    pr.sort((u, w) => u[0] - w[0]).forEach(([, u, p]) => { if(uU.has(u) || uP.has(p)) return; uU.add(u); uP.add(p); pick(u.js, p.atoms); });
+    if(uU.size < units.length || uP.size < L.length){ own.fill(null); pick(P.map((_, j) => j), L.flatMap(p => p.atoms)); }
+    return own;
+  }
+  bGo.onclick = () => {
+    if(phase === 'build'){ if(live().length) check(); }
+    else if(phase === 'egg'){ hideEggs(); backToBuild(); }
+    else if(phase === 'next'){ clearOut(); phase = 'build'; setGo(true); lock(false); refresh(); }   // khám phá: dọn bàn
+    else if(phase === 'done'){ SFX.page(); round(); }
+  };
+  bClear.onclick = () => { if(phase === 'build'){ live().forEach(leave); refresh(); } };
+  G.querySelector('#vlend').onclick = () => showResult(i, {correct, total:qs.length});
+  G.querySelector('#vlmore').onclick = startFree;
+
+  // vòng vẽ: đồng hồ của màn; mọi thứ trôi êm về đích (vị trí, cỡ, độ mọc của tay); bị từ chối thì cả bàn rung ngang.
+  // Lúc đang ghép, bóng trên bàn trôi rất chậm: hướng đổi dần, bị kéo nhẹ về giữa sân, nảy ở mép, né nhau (relax 1 lượt)
+  let last = performance.now();
+  (function frame(now){
+    if(!zone.isConnected) return;                                       // rời minigame: dừng hẳn
+    // máy chậm (ít khung hình) vẫn về đích kịp mốc của assemble: chặn dt rộng tay hơn các vòng vật lý
+    const dt = Math.max(0, Math.min(now - last, 120))/1000, e = 1 - Math.exp(-dt*9), t = now/1000;
+    // đồng hồ của màn theo giờ thật (máy chậm vẫn đúng giờ); khung hình ngắt quãng quá 1 s (chuyển tab, thu nhỏ cửa
+    // sổ) chỉ tính 1 s — trò không bị trừ giờ lúc không nhìn màn hình
+    const clk = Math.max(0, Math.min(now - last, 1000))/1000;
+    last = now;
+    if(!G.querySelector('.dragghost')) pieces.forEach(p => p.dragging = false);   // kéo bị huỷ giữa chừng
+    if(mode !== 'explore' && !ended && !paused){
+      tLeft = Math.max(0, tLeft - clk);
+      const sec = Math.ceil(tLeft);
+      if(sec !== shownT){ shownT = sec; hud('Còn ' + sec + ' giây', '#mgtime'); }
+      if(!tLeft) endGame(false);
+    }
+    if(phase === 'build' && pieces.length){
+      live().forEach(P => {
+        if(P.dragging) return;
+        P.va += (Math.random() - .5)*NOISE*Math.sqrt(dt);
+        P.tx += (Math.cos(P.va)*DRIFT + (ZW/2 - P.tx)*PULL)*dt;
+        P.ty += (Math.sin(P.va)*DRIFT + (ZH/2 - P.ty)*PULL)*dt;
+        if(P.tx < P.R || P.tx > ZW - P.R) P.va = Math.PI - P.va;
+        if(P.ty < P.R || P.ty > ZH - P.R) P.va = -P.va;
+      });
+      relax(null, 1);
+    }
+    atoms.forEach(A => {
+      A.x += (A.tx - A.x)*e; A.y += (A.ty - A.y)*e; A.s += (A.ts - A.s)*e;
+      A.arms.forEach(m => m.g += (m.tg - m.g)*Math.min(1, e*1.3));
+    });
+    pieces = pieces.filter(p => {
+      const A = p.atoms[0];
+      if(!p.leaving || Math.hypot(A.tx - A.x, A.ty - A.y) > 8) return true;
+      p.atoms.forEach(B => B.div.remove()); atoms = atoms.filter(B => B.pc !== p);
+      return false;
+    });
+    const sh = now < shakeT ? 7*Math.sin(t*55)*(shakeT - now)/450 : 0;
+    const dx = A => A.pc.leaving ? 0 : sh;
+    const look = A => ({el:A.el, x:A.x + dx(A), y:A.y, s:A.s, arms:A.arms});
+    const held = atoms.filter(A => A.pc.dragging);                      // bóng đang bị kéo: mờ đi như .draggingsrc
+    svg.innerHTML = vlLayers(atoms.filter(A => !A.pc.dragging).map(look)) + (held.length ? `<g opacity=".35">${vlLayers(held.map(look))}</g>` : '');
+    atoms.forEach(A => { const r = atomR(A.el)*A.s, st = A.div.style;
+      st.left = A.x + dx(A) + 'px'; st.top = A.y + 'px'; st.width = st.height = 2*r + 'px'; st.fontSize = Math.max(7, Math.round(r*.95)) + 'px'; });
+    requestAnimationFrame(frame);
+  })(last);
+  if(explore) exploreSetup();
+  else { G.querySelector('#mgtime').style.display = ''; hud('Còn ' + TOTAL_T + ' giây', '#mgtime'); mgScore(0, qs.length); round(); }
  },
 
  /* --- ngày 12: xác định chất. Ba lọ mất nhãn đánh số 1–3, nhãn nằm xáo trộn bên dưới.

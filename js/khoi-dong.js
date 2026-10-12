@@ -57,6 +57,47 @@ if(DEBUG){
   });
   DAYS.filter(d => d.mg === 'bins').forEach(d => d.items.forEach(([f]) =>
     console.assert(MOL_2D[f] || molAtoms(f).length === 1, 'minigame phân loại: thiếu mô hình bi–que cho '+f)));
+  // lập công thức theo hoá trị: mô hình đáp án (và easter egg) dựng được, mỗi bóng đúng số tay theo hoá trị dùng trong
+  // câu, đủ bóng theo công thức, không hai bóng nào sát tới mức sticker dính vào nhau; hoá trị tô đậm phải có trong bảng
+  const vlCheck = (f, lay, vals, over) => {          // over: số tay của nút ngoại lệ (chất bí mật)
+    console.assert(lay, 'hoá trị: chưa có kiểu xếp cho '+f);
+    if(!lay) return;
+    const arms = lay.nodes.map(() => 0), cnt = {}, want = atomCounts(f);
+    lay.bonds.forEach(([p, q, o]) => { arms[p] += o; arms[q] += o; });
+    (lay.free || []).forEach(([p]) => arms[p]++);
+    lay.nodes.forEach((nd, k) => { cnt[nd.el] = (cnt[nd.el]||0) + 1;
+      const need = over && over[k] !== undefined ? over[k] : vals[nd.el];
+      console.assert(arms[k] === need, 'hoá trị '+f+': '+nd.el+' #'+k+' có '+arms[k]+' tay, cần '+need); });
+    console.assert(same(cnt, want), 'hoá trị '+f+': số bóng lệch công thức');
+    lay.nodes.forEach((p, s) => lay.nodes.forEach((q, t) => { if(t > s)
+      console.assert(Math.hypot(p.x - q.x, p.y - q.y) >= atomR(p.el) + atomR(q.el) + 2*STICKER, 'hoá trị '+f+': bóng #'+s+' và #'+t+' quá sát'); }));
+  };
+  const same = (a, b) => Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(e => a[e] === b[e]);
+  const vlAll = [];
+  // sổ chất của chơi tự do = mọi câu trong pools + freeExtra (vlBook), nên kiểm tra luôn cả những chất thêm
+  DAYS.filter(d => d.mg === 'valence').forEach(d => {
+    d.pools.forEach(([n, list]) => console.assert(n <= list.length, 'hoá trị: bốc '+n+' câu từ nhóm chỉ có '+list.length));
+    vlBook(d).forEach(q => {
+      console.assert(!vlAll.some(c => same(c, atomCounts(q.f))), 'sổ chất: '+q.f+' trùng số nguyên tử với chất khác');
+      vlAll.push(atomCounts(q.f));
+      console.assert(q.name && Object.keys(q.vals).every(e => EL_VN[e] && ATOM_STYLE[e] && (VL_VALS[e]||[]).includes(q.vals[e])), 'hoá trị: thiếu dữ liệu cho '+q.f);
+      vlCheck(q.f, vlLayout(q), q.vals);
+    });
+  });
+  // gốc: số tay mỗi X = 2·(O đôi) + (O–H) + (O neo của X đó) + (O cầu nối); chất vẽ tay (hữu cơ tới 2 C) cũng phải đúng hoá trị
+  Object.keys(VL_RAD).forEach(R => { const rd = VL_RAD[R];
+    if(rd.X) console.assert(2*rd.dbl + (rd.oh||0) + (rd.bridge ? rd.v/2 + 1 : rd.v) === rd.xv && VL_VALS[rd.X].includes(rd.xv), 'gốc '+R+': số tay của '+rd.X+' lệch hoá trị'); });
+  const BASE = {H:1, O:2, C:4, N:3, S:6, Na:1, Ca:2};
+  Object.keys(VL_MOL).forEach(f => {
+    console.assert(!vlAll.some(c => same(c, atomCounts(f))) && (atomCounts(f).C || 0) <= 2, 'chất vẽ tay '+f+' trùng sổ chất hoặc quá 2 C');
+    vlAll.push(atomCounts(f));
+    vlCheck(f, handLayout(VL_MOL[f]), BASE, VL_MOL[f].v);
+  });
+  Object.keys(VL_EGG).forEach(f => {
+    console.assert(!vlAll.some(c => same(c, atomCounts(f))), 'chất bí mật '+f+' trùng số nguyên tử với một chất trong sổ');
+    vlAll.push(atomCounts(f));                       // hai chất bí mật cũng không được trùng nhau
+    vlCheck(f, eggLayout(f), BASE, VL_EGG[f].v);
+  });
   // xác định chất: mỗi bộ 3 lọ phải phân biệt được — hai mẫu khác nhau thì khác ít nhất một ô trong sổ ghi chép
   DAYS.filter(d => d.mg === 'identify').forEach(d => {
     const st = ['quy'].concat(d.reagents);

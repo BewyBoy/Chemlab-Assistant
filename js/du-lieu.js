@@ -166,16 +166,48 @@ const DAYS = [
   bins:['Nguyên tử','Phân tử đơn chất','Phân tử hợp chất'], binNotes:['kim loại'],
   items:[['Fe',0],['Cu',0],['Na',0],['Ag',0],['O2',1],['H2',1],['N2',1],['Cl2',1],['H2O',2],['CO2',2],['NaCl',2],['H2SO4',2]]},
 
- {t:'Hoá trị — những "cánh tay" nguyên tử',
-  story:'Hôm nay học HOÁ TRỊ qua thực hành! Hoá trị như số "tay" để nắm nhau: O có 2 tay, Na chỉ 1 tay → phải 2 Na nắm 1 O thành Na₂O. Mg có 2 tay → MgO cứ 1:1. Hôm nay ta ĐỐT kim loại trong oxi, mà đốt thì không bỏ vào cốc đâu nhé! Nạp khí O₂ vào LỌ KHÍ, cho kim loại lên MUÔI ĐỐT, hơ qua ĐÈN CỒN cho bén lửa rồi đưa nhanh vào lọ. Oxit rắn được gạt ra đĩa — nhìn công thức là thấy hoá trị.',
-  chems:['Na','Mg','Cu','Zn','O2'], tools:['spoon','book','heat','gas','burn'], dur:320, s1:3,
-  orders:[ o(4,'MgO',2,{pname:'magie oxit (Mg hoá trị II)'}),
-           o(9,'Na2O',2,{pname:'natri oxit (Na hoá trị I — để ý số 2!)'}),
-           o(1,'CuO',2,{pname:'đồng(II) oxit'}),
-           o(6,'ZnO',1,{pname:'kẽm oxit'}) ]},
+ {t:'Hoá trị — những "cánh tay" nguyên tử', mg:'valence',
+  story:'HOÁ TRỊ là số "cánh tay" một nguyên tử dùng để nắm tay nguyên tử khác. Công thức đúng khi MỌI bàn tay đều có bạn nắm, không tay nào thừa: Na 1 tay, O 2 tay → 2 Na nắm 1 O thành Na₂O. Có nguyên tố nhiều hoá trị (N từ I tới V!) — đề ghi đủ và tô đậm hoá trị dùng trong câu. GỐC AXIT (=SO₄, −NO₃…) và nhóm −OH cũng có hoá trị, coi như một nguyên tố: mấy câu đầu ta ráp sẵn gốc cho, từ câu 4 trò tự ráp từ từng nguyên tử. Kéo bóng vào khu vực tạo chất rồi bấm KIỂM TRA. Cả màn chỉ có 90 giây — làm nhanh nhé! Xong sớm thì giây còn lại để trò tự do tạo chất lấy điểm.',
+  // mỗi lượt bốc theo thứ tự: [số câu, danh sách]. Hai nguyên tố: [A, hoá trị A, B, hoá trị B, tên];
+  // axit / bazơ / muối: [kim loại hoặc H, hoá trị, gốc, tên] — câu trước buildFrom có gốc dựng sẵn, từ đó ráp từ nguyên tử
+  buildFrom:3,
+  pools:[
+   [1, [['H',1,'O',2,'nước'], ['Na',1,'O',2,'natri oxit'], ['H',1,'S',2,'hiđro sunfua'], ['Mg',2,'Cl',1,'magie clorua'],
+        ['Ca',2,'Cl',1,'canxi clorua'], ['Fe',2,'Cl',1,'sắt(II) clorua'], ['N',3,'H',1,'amoniac'], ['Al',3,'Cl',1,'nhôm clorua'],
+        ['Fe',3,'Cl',1,'sắt(III) clorua'], ['C',4,'H',1,'metan'], ['C',4,'O',2,'khí cacbonic'], ['S',4,'O',2,'lưu huỳnh đioxit'],
+        ['S',6,'O',2,'lưu huỳnh trioxit'], ['Al',3,'O',2,'nhôm oxit'], ['Fe',3,'O',2,'sắt(III) oxit'],
+        ['P',5,'O',2,'điphotpho pentaoxit'], ['N',5,'O',2,'đinitơ pentaoxit'], ['Mg',2,'N',3,'magie nitrua']]],
+   [2, [['Na',1,'OH','natri hiđroxit'], ['Ca',2,'OH','canxi hiđroxit'], ['Al',3,'OH','nhôm hiđroxit'], ['Fe',3,'OH','sắt(III) hiđroxit'],
+        ['H',1,'SO4','axit sunfuric'], ['Na',1,'SO4','natri sunfat'], ['Cu',2,'SO4','đồng(II) sunfat'], ['H',1,'NO3','axit nitric'],
+        ['Ca',2,'NO3','canxi nitrat'], ['Na',1,'CO3','natri cacbonat'], ['Ca',2,'CO3','canxi cacbonat'], ['H',1,'PO4','axit photphoric']]],
+   [1, [['H',1,'SO4','axit sunfuric'], ['H',1,'NO3','axit nitric'], ['H',1,'CO3','axit cacbonic'], ['H',1,'PO4','axit photphoric']]],
+   [1, [['Na',1,'OH','natri hiđroxit'], ['K',1,'OH','kali hiđroxit'], ['Ba',2,'OH','bari hiđroxit'], ['Cu',2,'OH','đồng(II) hiđroxit'],
+        ['Mg',2,'OH','magie hiđroxit']]],
+   [3, [['K',1,'SO4','kali sunfat'], ['Ba',2,'SO4','bari sunfat'], ['Zn',2,'SO4','kẽm sunfat'], ['Cu',2,'SO4','đồng(II) sunfat'],
+        ['K',1,'NO3','kali nitrat'], ['Ag',1,'NO3','bạc nitrat'], ['Na',1,'NO3','natri nitrat'], ['K',1,'CO3','kali cacbonat'],
+        ['Ca',2,'CO3','canxi cacbonat'], ['Mg',2,'CO3','magie cacbonat'], ['Na',1,'PO4','natri photphat']]]],
+  // tạo chất tự do (sau khi xong 8 câu) + khám phá: sổ chất = mọi câu trong pools + các chất dưới đây (cả các gốc chỉ dùng ở đây)
+  freeExtra:[['Na',1,'Cl',1,'natri clorua'], ['K',1,'Cl',1,'kali clorua'], ['H',1,'Cl',1,'hiđro clorua'], ['Ag',1,'Cl',1,'bạc clorua'],
+   ['Zn',2,'Cl',1,'kẽm clorua'], ['Cu',2,'Cl',1,'đồng(II) clorua'], ['Ba',2,'Cl',1,'bari clorua'], ['K',1,'O',2,'kali oxit'],
+   ['Mg',2,'O',2,'magie oxit'], ['Ca',2,'O',2,'canxi oxit'], ['Zn',2,'O',2,'kẽm oxit'], ['Cu',2,'O',2,'đồng(II) oxit'],
+   ['Cu',1,'O',2,'đồng(I) oxit'], ['Ba',2,'O',2,'bari oxit'], ['Fe',2,'O',2,'sắt(II) oxit'], ['C',2,'O',2,'cacbon oxit'],
+   ['N',4,'O',2,'nitơ đioxit'], ['Na',1,'S',2,'natri sunfua'], ['Zn',2,'S',2,'kẽm sunfua'], ['Al',3,'S',2,'nhôm sunfua'],
+   ['Ca',2,'SO4','canxi sunfat'], ['Mg',2,'SO4','magie sunfat'], ['Ba',2,'NO3','bari nitrat'], ['Cu',2,'NO3','đồng(II) nitrat'],
+   ['Zn',2,'OH','kẽm hiđroxit'], ['Fe',2,'OH','sắt(II) hiđroxit'], ['K',1,'PO4','kali photphat'], ['Ba',2,'CO3','bari cacbonat'],
+   ['K',1,'S',2,'kali sunfua'], ['Ca',2,'S',2,'canxi sunfua'], ['Mg',2,'S',2,'magie sunfua'], ['Ba',2,'S',2,'bari sunfua'],
+   ['Fe',2,'S',2,'sắt(II) sunfua'], ['Cu',2,'S',2,'đồng(II) sunfua'], ['Ag',1,'S',2,'bạc sunfua'], ['Ag',1,'O',2,'bạc oxit'],
+   ['N',2,'O',2,'nitơ oxit'], ['C',4,'S',2,'cacbon đisunfua'], ['C',4,'Cl',1,'cacbon tetraclorua'],
+   ['P',3,'Cl',1,'photpho triclorua'], ['P',5,'Cl',1,'photpho pentaclorua'],
+   ['Na',1,'SO3','natri sunfit'], ['K',1,'SO3','kali sunfit'], ['H',1,'SO3','axit sunfurơ'], ['Ca',2,'SO3','canxi sunfit'],
+   ['Ba',2,'SO3','bari sunfit'], ['Na',1,'S2O7','natri đisunfat'], ['K',1,'S2O7','kali đisunfat'], ['H',1,'S2O7','axit đisunfuric (oleum)'],
+   ['Na',1,'NO2','natri nitrit'], ['K',1,'NO2','kali nitrit'], ['H',1,'NO2','axit nitrơ'],
+   ['Na',1,'HCO3','natri hiđrocacbonat (thuốc muối)'], ['K',1,'HCO3','kali hiđrocacbonat'], ['Ca',2,'HCO3','canxi hiđrocacbonat'],
+   ['Na',1,'HSO4','natri hiđrosunfat'], ['K',1,'HSO4','kali hiđrosunfat'], ['Na',1,'H2PO4','natri đihiđrophotphat'],
+   ['Na',1,'HPO4','natri hiđrophotphat'], ['Ca',2,'HPO4','canxi hiđrophotphat'],
+   ['K',1,'ClO3','kali clorat'], ['Na',1,'ClO3','natri clorat'], ['H',1,'ClO3','axit cloric']]},
 
  {t:'Oxi gặp kim loại',
-  story:'OXI duy trì sự cháy — kim loại cháy trong oxi tạo OXIT: 2Mg + O₂ —t°→ 2MgO sáng chói! Sắt thì đặc biệt: 3Fe + 2O₂ → Fe₃O₄ oxit sắt từ, cháy tóe hoa lửa. Ba bước: nạp O₂ vào lọ khí → kim loại lên muôi, hơ đèn cồn cho bén lửa → đưa vào lọ. Đong oxi cho đúng tỉ lệ — thiếu thì lửa tắt giữa chừng!',
+  story:'OXI duy trì sự cháy — kim loại cháy trong oxi tạo OXIT: 2Mg + O₂ —t°→ 2MgO sáng chói! Sắt thì đặc biệt: 3Fe + 2O₂ → Fe₃O₄ oxit sắt từ, cháy tóe hoa lửa. Đốt thì không bỏ vào cốc đâu nhé — ba bước với MUÔI ĐỐT: nạp O₂ vào LỌ KHÍ → kim loại lên muôi, hơ ĐÈN CỒN cho bén lửa → đưa nhanh vào lọ. Nhìn công thức oxit là thấy hoá trị hôm qua! Đong oxi cho đúng tỉ lệ — thiếu thì lửa tắt giữa chừng!',
   chems:['Mg','Cu','Zn','Fe','O2'], tools:['spoon','book','heat','gas','burn'], dur:320, s1:3,
   orders:[ o(4,'MgO',2,{pname:'magie oxit'}),
            o(1,'CuO',2,{pname:'đồng(II) oxit đen'}),
@@ -421,7 +453,8 @@ const ACH = {
  master:  {n:'Nhà hoá học nhí',    d:'Đạt 3 sao ngày Lễ hội hoá học'},
  burn1:   {n:'Lửa trong lọ',       d:'Đốt cháy một chất trong lọ khí bằng muôi đốt'},
  hard1:   {n:'Cân đo chuẩn xác',   d:'Đạt ít nhất 1 sao một ngày ở chế độ khó'},
- hard3:   {n:'Phù thuỷ định lượng',d:'Đạt 3 sao chế độ khó ở 5 ngày khác nhau'}
+ hard3:   {n:'Phù thuỷ định lượng',d:'Đạt 3 sao chế độ khó ở 5 ngày khác nhau'},
+ egg:     {n:'Phân tử bí mật',     d:'Ghép ra một chất "ngoài đề" ở trò lập công thức (ngày 4)'}
 };
 
 // days where a perfect no-dump run is possible → star 3 also requires "no waste"

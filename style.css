@@ -282,6 +282,76 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .binlbl .tape{position:absolute;left:0;top:0;z-index:-1}
 .binnote{font-family:var(--fh);font-size:16px;opacity:.7;min-height:22px}
 .mbody{position:absolute;left:0;top:0;pointer-events:none;will-change:transform}
+/* lập công thức theo hoá trị (ngày 4): cột bóng bên trái, khu vực tạo chất ở giữa (giấy kẻ dòng, viền đứt, nhãn băng
+   dính vắt qua mép trên), Kiểm tra / Làm lại bên phải. Đề: mỗi nguyên tố kèm đủ các hoá trị, hoá trị dùng trong câu tô
+   vàng. Bóng trên bàn do vòng vẽ JS đặt vị trí từng khung → tắt transition sẵn có của .atom */
+.vl{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;gap:12px}
+.vl-task{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:88px;font-family:var(--fh)}
+.vl-t1{display:flex;align-items:center;gap:8px;font-size:23px}
+.vl-t2{display:flex;align-items:center;gap:20px;font-size:21px}
+.vl-qn{font-size:16px;background:var(--accent);border:1.2px solid var(--ink);border-radius:4.8px;padding:1px 9px;transform:rotate(-3deg);margin-right:6px}
+.vl-chip{display:inline-flex;align-items:center;gap:4px}
+.vl-vals{display:inline-flex;gap:3px;margin-left:3px}
+.vl-vals i{font-style:normal;font-size:14px;line-height:20px;min-width:22px;padding:0 4px;text-align:center;border:1.2px solid #3b302555;border-radius:4px;opacity:.5}
+.vl-vals i.on{opacity:1;font-weight:bold;background:var(--accent);border-color:var(--ink)}
+.vl-vals.all i{opacity:1}                        /* phần tự do: không có hoá trị "đúng", hiện rõ cả */
+.vl-rad.hint{border:1.2px dashed #3b302588;border-radius:6px;padding:1px 8px;font-size:18px}
+.vl-one{position:relative;display:inline-block;vertical-align:middle;flex:none}
+.vl-mid{display:flex;align-items:center;gap:18px}
+.vl-pal{width:180px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.vl-pal.off .vl-pitem{cursor:default!important}               /* khoá: không nhấc được bóng (dragify enabled) nhưng vẫn rê chuột xem hoá trị */
+.vl-pal.off .vl-pitem:hover{background:none}
+.vl-pitem{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 8px;border-radius:10px;transition:background .15s}
+.vl-pitem:hover{background:#e8b84b55}
+.vl-pitem.enter{animation:specin .45s cubic-bezier(.3,1.4,.5,1) backwards}
+/* rê chuột lên bóng nguyên liệu: bong bóng ghi các hoá trị của nguyên tố (gốc: hoá trị của gốc) */
+.vl-pitem{position:relative}
+.vl-hv{display:none;position:absolute;left:50%;bottom:calc(100% - 6px);transform:translateX(-50%);z-index:6;white-space:nowrap;font-family:var(--fh);font-size:15px;background:var(--card);border:1.2px solid var(--ink);border-radius:6px;padding:2px 9px;pointer-events:none;box-shadow:0 2px 0 #3b302533}
+.vl-pitem:hover .vl-hv{display:block}
+.vl-pal.grid .vl-hv{left:calc(100% - 4px);bottom:auto;top:50%;transform:translateY(-50%)}
+.vl-plbl,.vl-zlbl{position:relative;isolation:isolate;padding:2px 12px;font-family:var(--fh);white-space:nowrap}
+.vl-plbl{font-size:16px}
+.vl-plbl b{font-size:19px}
+.vl-plbl .tape,.vl-zlbl .tape{position:absolute;left:0;top:0;z-index:-1}
+.vl-pal.grid{display:grid;grid-template-columns:repeat(3,56px);gap:4px}   /* chơi tự do: 17 nguyên tố, kí hiệu nằm trong bóng */
+.vl-pal.grid .vl-pitem{padding:2px;align-items:center;justify-content:center;min-height:56px}
+.vl-side{width:170px;display:flex;flex-direction:column;align-items:center;gap:14px}
+/* bộ sưu tập chất bí mật: chỉ bật lên lúc vừa tìm được một chất; một ngôi sao mỗi chất, chưa tìm thì mờ */
+.vl-eggs{display:none;flex-direction:column;align-items:center;gap:2px;font-family:var(--fh);margin-top:6px;padding:6px 8px;background:var(--card);border:1.2px solid var(--ink);border-radius:8px}
+.vl-eggs.show{display:flex;animation:idfpop .4s cubic-bezier(.3,1.6,.5,1)}
+.vl-eggs small{font-size:14px;opacity:.75}
+.vl-eggs div{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;max-width:130px}
+.vl-eggs span{opacity:.22}
+.vl-eggs span.on{opacity:1}
+.vl-eggs b{font-size:15px}
+/* chơi tự do: chất đã tìm trong lượt */
+/* thẻ cùng cỡ xếp lưới 2 cột: chữ số nhỏ (₂, ₃) lấy từ font dự phòng làm thẻ cao thấp khác nhau — cố định chiều cao, căn giữa */
+.vl-found{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;width:166px;max-height:190px;overflow-y:auto}
+.vl-tag{display:flex;align-items:center;justify-content:center;height:24px;line-height:1;white-space:nowrap;font-family:var(--fh);font-size:15px;background:var(--card);border:1.2px solid var(--ink);border-radius:4px;padding:0 6px;animation:idfpop .32s cubic-bezier(.3,1.6,.5,1)}
+.vl-tag.egg{background:var(--accent)}
+.vl-end{text-align:center;min-width:380px;font-size:17px}
+.vl-endpts{font-family:var(--fh);font-size:46px;line-height:1.2}
+.vl-side .btn{width:166px;padding-left:10px;padding-right:10px}
+.vl-acts,.vl-donebox{display:flex;flex-direction:column;align-items:center;gap:14px}
+/* xong 8 câu: nút Kiểm tra / Làm lại nhường chỗ cho "Hoàn thành!" + Kết thúc / Tiếp tục */
+.vl-donebox{display:none}
+.vl-side.complete .vl-acts{display:none}
+.vl-side.complete .vl-donebox{display:flex}
+.vl-donebox b{font-family:var(--fh);font-size:30px;color:#4d7a33;animation:stampin .5s ease-out}
+.vl-zone{position:relative;flex:none;border-radius:10px;background:repeating-linear-gradient(#fffdf5 0 27px,#efe8d6 27px 28px)}
+.vl-zone::before{content:'';position:absolute;inset:0;border:2px dashed #3b302588;border-radius:10px;pointer-events:none}
+.vl-zlbl{position:absolute;left:50%;top:-16px;transform:translateX(-50%);z-index:2;font-size:19px;font-weight:bold;pointer-events:none}
+.vl-layer{position:absolute;left:0;top:0;width:100%;height:100%}
+.vl-layer.vl-done{animation:molfloat 3.4s ease-in-out infinite}
+.vl .atom{transition:none}
+.vl .atom.vl-pop{animation:apop .45s}
+/* hoá trị (số tay) của từng bóng trong mô hình đã ghép — hiện khi rê chuột lên khu vực tạo chất */
+.vl-val{position:absolute;right:-12px;top:-12px;font:bold 12px/16px var(--fh);color:var(--ink);background:var(--accent);border:1.2px solid var(--ink);border-radius:5px;padding:0 4px;opacity:0;transition:opacity .2s;pointer-events:none}
+.vl-zone:hover .vl-val{opacity:1}
+.vl-say{font-family:var(--fh);font-size:19px;line-height:1.35;text-align:center;min-height:56px;max-width:1000px}
+.vl-say .vl-f{font-size:28px}
+.vl-ok{color:#4d7a33}
+.vl-bad{color:#b8432f}
 .flash-ok{animation:fok .5s}
 @keyframes fok{50%{background:#c9e3b4}}
 .flash-bad{animation:fbad .5s}

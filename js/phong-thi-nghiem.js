@@ -140,7 +140,7 @@ function stripeCol(f){
 
 /* =====================  DRAG & DROP MANAGER  ===================== */
 // types: chem (cabinet bottle), beaker, gas (collection bottle), dish (filtered solids),
-// lamp (heater), ladle (muôi đốt), funnel (filter), mgcard / mgdrop / mglabel (minigame, via opts.onDrop)
+// lamp (heater), ladle (muôi đốt), funnel (filter), mgcard / mgdrop / mglabel / vlatom / vlmove (minigame, via opts.onDrop)
 // Ngày có muôi đốt: bình khí kiêm LỌ KHÍ (zone 'jar'), đèn cồn là chỗ hơ lửa (zone 'flame').
 const DZ_ACCEPT = {
   rod:   [], // never dropped — stirring happens during the drag, then it snaps home
@@ -154,7 +154,9 @@ const DZ_ACCEPT = {
   funnel:['beaker'],
   mgcard:['bin0','bin1','bin2','bin3'],
   mgdrop:['quy','rg0','rg1','rg2','rg3'],     // xác định chất: ống nhỏ giọt mẫu → giấy quỳ / cốc thuốc thử
-  mglabel:['jar0','jar1','jar2','tray']       // xác định chất: nhãn → lọ mất nhãn / khay nhãn
+  mglabel:['jar0','jar1','jar2','tray'],      // xác định chất: nhãn → lọ mất nhãn / khay nhãn
+  vlatom: ['vbuild'],                         // hoá trị: bi từ khay → khu vực tạo chất
+  vlmove: ['vbuild']                          // hoá trị: dời bi trong khu vực (thả ra ngoài = bỏ bi)
 };
 let drag = null;
 function gameXY(e){
@@ -163,11 +165,13 @@ function gameXY(e){
 }
 function dragify(el, type, opts){
   // opts.touchAction 'pan-y': lọ trong tủ — vuốt dọc thì tủ cuộn, kéo ngang sang bàn mới là nhấc lọ
+  // opts.enabled(): false thì không nhấc được (vật vẫn nhận rê chuột — vd. bong bóng hoá trị ở minigame hoá trị)
   el.style.touchAction = opts.touchAction || 'none';
   el.style.cursor = 'grab';
   el.addEventListener('pointerdown', e => {
     if(e.button !== 0 || drag) return;
     if(lab && lab.timer === null) return; // paused
+    if(opts.enabled && !opts.enabled()) return;
     const p = gameXY(e);
     // ngón tay: vật nổi lên TRÊN đầu ngón (lift) để không che chỗ thả; chỗ thả tính theo vật, không theo ngón
     const lift = e.pointerType === 'mouse' ? 0 : opts.h*0.6 + 24;
