@@ -390,11 +390,11 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 /* nhãn: băng dính trắng (tapeLabel), cùng cỡ ở khay lẫn trên lọ */
 .idf-tray{display:flex;gap:44px;margin-top:34px;padding:14px 26px;border:1.2px dashed #3b302555;border-radius:10px}
 .idf-tslot{width:146px;height:56px}
-.idf-lbl{position:relative;isolation:isolate;width:146px;height:56px;box-sizing:border-box;padding:5px 6px 0;text-align:center;line-height:1.1}
-.idf-lbl .tape{position:absolute;left:0;top:0;z-index:-1}
-.idf-lbl b{display:block;font-family:var(--fh);font-size:23px}
-.idf-lbl small{display:block;font-size:12px;opacity:.8;white-space:nowrap;margin-top:1px}
-.idf-lbl.pop{animation:idfpop .32s cubic-bezier(.3,1.6,.5,1)}
+.idf-lbl,.chn-lbl{position:relative;isolation:isolate;width:146px;height:56px;box-sizing:border-box;padding:5px 6px 0;text-align:center;line-height:1.1}
+.idf-lbl .tape,.chn-lbl .tape{position:absolute;left:0;top:0;z-index:-1}
+.idf-lbl b,.chn-lbl b{display:block;font-family:var(--fh);font-size:23px}
+.idf-lbl small,.chn-lbl small{display:block;font-size:12px;opacity:.8;white-space:nowrap;margin-top:1px}
+.idf-lbl.pop,.chn-lbl.pop{animation:idfpop .32s cubic-bezier(.3,1.6,.5,1)}
 @keyframes idfpop{from{transform:scale(1.18) rotate(-4deg)}}
 .idf-sel{outline:3px dashed var(--blue);outline-offset:4px;border-radius:6px}
 /* bàn thí nghiệm: giá ống nhỏ giọt ở trên, giấy quỳ + cốc thuốc thử ở dưới */
@@ -444,6 +444,78 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .idf-tips{margin:auto 0 0;padding:8px 10px 8px 26px;background:#fdf3d7;border:1.2px dashed var(--ink);border-radius:6px;font-size:13.5px;line-height:1.55}
 .seqslot{display:inline-block;border:1.2px dashed var(--ink);border-radius:6px;min-width:56px;height:44px;margin:3px;font-size:20px;font-weight:bold;line-height:40px;background:#fff;font-family:var(--fh);text-align:center}
 .seqslot.filled{border-style:solid;background:#c9e3b4}
+/* chuỗi phản ứng (ngày 31): hàng chất ○ —▭→ ○ ở trên (ô ▭ nằm trên mũi tên), băng chọn chất (dải vàng) ở dưới.
+   Vòng tròn chất như bình cầu: phần dưới tô màu chất (--lc); chất ở giữa giấu sau dấu ? viền đứt đến khi giải xong */
+.chn{position:absolute;inset:0}
+.chn-say{position:absolute;left:0;right:0;top:2px;margin:0;font-family:var(--fh);font-size:19px;line-height:1.35;text-align:center}
+.chn-say.bad{color:#b8432f}
+.chn-say.good{color:#4d7a33}
+.chn-row{position:absolute;left:0;right:0;top:100px;display:flex;justify-content:center;align-items:center}
+.chn-node{--lc:transparent;position:relative;width:128px;display:flex;justify-content:center}
+.chn-ball{width:116px;height:116px;box-sizing:border-box;border-radius:50%;border:2.4px solid var(--ink);display:flex;align-items:center;justify-content:center;
+  font-family:var(--fh);overflow:hidden;background:linear-gradient(transparent 66%,var(--lc) 66%),var(--card)}
+.chn-ball b{position:relative;top:-8px;white-space:nowrap;font-weight:normal}
+.chn-node small{position:absolute;top:124px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:13.5px;opacity:.8}
+.chn-tag{position:absolute;top:-30px;left:50%;transform:translateX(-50%);white-space:nowrap;font-family:var(--fh);font-size:14px;background:var(--accent);border:1.2px solid var(--ink);border-radius:5px;padding:0 8px}
+.chn-node.hid .chn-ball{border:2.4px dashed #3b302588}
+.chn-node.hid b{color:#3b302555}
+.chn-node.show .chn-ball{animation:chnpop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes chnpop{from{transform:scale(.55)}}
+.chn-link{position:relative;width:212px;height:116px}
+.chn-arrow{position:absolute;left:6px;top:48px;overflow:visible}
+.chn-arrow path{fill:none;stroke:var(--ink);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.chn-arrow .chn-flow{stroke:#4d9a3e;stroke-width:4;stroke-dasharray:1;stroke-dashoffset:1}
+.chn-link.lit .chn-flow{stroke-dashoffset:0;transition:stroke-dashoffset .55s ease-in-out}
+.chn-cond{position:absolute;left:0;right:0;top:72px;text-align:center;font-family:var(--fh);font-size:16px;opacity:.7}
+.chn-slot{position:absolute;left:50%;top:-26px;width:156px;height:64px;margin-left:-78px;box-sizing:border-box;border:2px dashed #3b302580;border-radius:9px;background:#fffdf5;
+  display:flex;align-items:center;justify-content:center;cursor:pointer}
+.chn-slot.full{border-color:transparent;background:none}
+.chn-lbl{width:116px;height:48px;padding:0;display:flex;align-items:center;justify-content:center}
+.chn-lbl b{font-size:26px}
+.chn-slot.ok .tape path{fill:#c9e3b4}
+.chn-slot.bad .tape path{fill:#f3b8ac}
+.chn-slot.bad .chn-lbl{animation:chnshake .45s}
+@keyframes chnshake{20%,60%{transform:translateX(-6px) rotate(-2deg)}40%,80%{transform:translateX(6px) rotate(2deg)}}
+.chn-minus{position:absolute;z-index:30;font-family:var(--fh);font-size:40px;font-weight:bold;color:#c9524b;pointer-events:none;animation:chnminus 1.3s ease-out forwards}
+@keyframes chnminus{0%{transform:translate(-50%,24px) scale(.5);opacity:0}25%{transform:translate(-50%,4px) scale(1.2);opacity:1}100%{transform:translate(-50%,-30px);opacity:0}}
+/* băng chọn chất: dải vàng chạy hết bề ngang khung game, viền đứt nét ở mép trên và mép dưới (nét dưới lệch nhịp
+   với nét trên cho giống vẽ tay). Bình xếp thành hàng trượt ngang trong .chn-strip, giữa hai nút ◁ ▷ */
+.chn-band{position:absolute;left:-14px;right:-14px;top:330px;height:204px;
+  background:repeating-linear-gradient(90deg,var(--ink) 0 28px,#0000 28px 46px) 0 0/100% 3px no-repeat,
+    repeating-linear-gradient(90deg,var(--ink) 0 34px,#0000 34px 50px) 17px 100%/100% 3px no-repeat,#fffe91}
+.chn-nav{position:absolute;top:50%;width:56px;height:72px;margin-top:-36px;padding:0;border:none;background:none;cursor:pointer;transition:transform .1s,opacity .2s}
+.chn-nav:first-child{left:20px}
+.chn-nav:nth-child(3){right:20px}
+.chn-nav svg{display:block;margin:auto;overflow:visible}
+.chn-nav path{fill:var(--card);stroke:var(--ink);stroke-width:3;stroke-linejoin:round}
+.chn-nav:hover path{fill:var(--accent)}
+.chn-nav:active{transform:scale(.9)}
+.chn-nav:disabled{opacity:.3;cursor:default;transform:none}
+.chn-nav:disabled:hover path{fill:var(--card)}
+.chn-band.fits .chn-nav{display:none}
+/* khung nhìn 1280 − 2·80 = 1120 (VIEW trong MG.chain), mép mờ dần để bình bị cắt ở rìa trông như còn tiếp */
+.chn-strip{position:absolute;left:80px;right:80px;top:0;bottom:0;overflow:hidden;transition:opacity .3s;
+  -webkit-mask-image:linear-gradient(90deg,#0000,#000 24px,#000 calc(100% - 24px),#0000);mask-image:linear-gradient(90deg,#0000,#000 24px,#000 calc(100% - 24px),#0000)}
+.chn-flasks{display:flex;height:100%;align-items:center;transition:transform .35s cubic-bezier(.3,.7,.3,1)}
+.chn-band.fits .chn-flasks{justify-content:center}
+/* một lọ: ô rộng 190 (CELL). Lọ dung dịch nghiêng --lean quanh đáy; rê chuột thì nhấc lên (--up), chọn thì nhấc cao
+   hơn và viền đứt nét như các minigame khác. Sticker dán đè lên thân lọ, phẳng như nhãn trong tủ hoá chất (.cc-tag) */
+.chn-flask{flex:none;width:190px;height:184px;display:flex;justify-content:center;align-items:flex-end}
+.chn-art{--up:0px;position:relative;transform:translateY(var(--up)) rotate(var(--lean,0deg));transform-origin:50% 92%;transition:transform .14s}
+.chn-art>svg{display:block}
+.chn-flask:hover .chn-art{--up:-6px}
+.chn-flask.chn-sel .chn-art{--up:-10px}
+.chn-flask.chn-sel .chn-art>svg{outline:3px dashed var(--blue);outline-offset:4px;border-radius:8px}
+.chn-stk{position:absolute;left:50%;transform:translate(-50%,-50%) rotate(var(--rot,0deg));padding:3px 4px 1px;font-family:var(--fh);font-size:17px;font-weight:bold;line-height:18px;
+  white-space:nowrap;color:var(--ink);pointer-events:none;background:#fffdf5;border:1.2px solid var(--ink);border-radius:1.8px;overflow:hidden}
+.chn-stk::before{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:var(--stripe,#e8b84b)}
+/* giải xong: băng bình rút đi, tờ phương trình và nút đi tiếp hiện giữa dải vàng */
+.chn-done{position:absolute;inset:0;display:none;align-items:center;justify-content:center;gap:28px}
+.chn.solved .chn-strip,.chn.solved .chn-nav{opacity:0;pointer-events:none}
+.chn.solved .chn-done{display:flex;animation:specin .45s cubic-bezier(.3,1.4,.5,1)}
+.chn-eqs{background:var(--card);border:1.2px solid var(--ink);border-radius:4.8px;padding:10px 26px 12px;font-family:var(--fh);font-size:22px;line-height:1.5;white-space:nowrap;box-shadow:0 3px 0 #3b302533}
+.chn-eqs h3{margin:0 0 2px;font-size:17px}
+.chn-eqs span{display:inline-block;width:44px;opacity:.6}
 .devbadge{position:absolute;right:16px;top:10px;font-size:12px;background:#d9634f;color:#fff;border-radius:4.8px;padding:2px 8px;z-index:50}
 /* ---------- FX layers ---------- */
 .bubble{position:absolute;border:2px solid var(--ink);border-radius:50%;background:#ffffffcc;animation:bub 1.2s ease-in forwards;pointer-events:none}

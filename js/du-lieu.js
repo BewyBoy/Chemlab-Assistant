@@ -411,25 +411,15 @@ DAYS.push(
            o(6,'MnO2',1,{pname:'mangan đioxit (bã rắn — lọc lấy)'}),
            o(1,'CuO',2,{pname:'đồng oxit (đốt Cu bằng O₂ tự chế!)'}) ]},
 
- {t:'Chuỗi phản ứng — Hỏi xoáy đáp xoay', mg:'chain',
-  story:'Thử thách cuối cùng! Ta đưa chất ĐẦU và chất ĐÍCH — trò chọn đúng thuốc thử từng bước để nối thành chuỗi phản ứng. Toàn bộ 31 ngày dồn vào đây. Sẵn sàng chưa, NHÀ HOÁ HỌC NHÍ?',
+ {t:'Chuỗi phản ứng — Nối mắt xích', mg:'chain',
+  story:'Thử thách cuối cùng! Trên bảng chỉ có chất ĐẦU và chất ĐÍCH — mấy chất ở giữa ta giấu đi rồi. Kéo bình hoá chất trong khay vào ô trên từng mũi tên. Điền đủ thì ta chấm: đúng cả chuỗi thì hiện ra hết các chất, sai thì mất điểm đấy! Toàn bộ 31 ngày dồn vào đây. Sẵn sàng chưa, NHÀ HOÁ HỌC NHÍ?',
+  // Mỗi chuỗi: chất đầu → … → chất đích. ans = chất thêm vào ở từng mũi tên, more = bình gây nhiễu trong khay.
+  // Chất ở giữa không ghi ở đây — MG.chain tự dò theo REACTIONS (khoi-dong.js kiểm tra ans đi tới được đích).
   chains:[
-   {start:'Cu', target:'Cu(OH)₂', steps:[
-     {opts:['Đốt trong O₂','+ dd HCl','+ dd NaOH'], ans:0, prod:'CuO', why:'Cu đứng sau H nên không tan trong HCl; đốt trong oxi tạo CuO'},
-     {opts:['+ H₂O','+ dd H₂SO₄','Đun nóng tiếp'], ans:1, prod:'CuSO₄', why:'oxit bazơ + axit → muối: CuO + H₂SO₄ → CuSO₄ + H₂O'},
-     {opts:['+ dd NaOH','+ Fe','Đốt trong O₂'], ans:0, prod:'Cu(OH)₂', why:'muối đồng + kiềm → kết tủa xanh: CuSO₄ + 2NaOH → Cu(OH)₂↓ + Na₂SO₄'}]},
-   {start:'CaCO₃', target:'CaCO₃ (vòng tròn đá vôi)', steps:[
-     {opts:['+ H₂O','Nung già lửa','+ dd NaOH'], ans:1, prod:'CaO', why:'nhiệt phân đá vôi: CaCO₃ —t°→ CaO + CO₂'},
-     {opts:['+ dd HCl','Nung tiếp','+ H₂O'], ans:2, prod:'Ca(OH)₂', why:'vôi sống + nước → vôi tôi: CaO + H₂O → Ca(OH)₂'},
-     {opts:['Thổi CO₂ vào','+ NaCl','Đun sôi'], ans:0, prod:'CaCO₃', why:'CO₂ làm đục nước vôi trong: CO₂ + Ca(OH)₂ → CaCO₃↓ + H₂O'}]},
-   {start:'Fe', target:'Fe₂O₃', steps:[
-     {opts:['+ dd CuSO₄','+ khí Cl₂ (t°)','+ H₂O'], ans:1, prod:'FeCl₃', why:'Fe + Cl₂ cho sắt hoá trị III: 2Fe + 3Cl₂ → 2FeCl₃'},
-     {opts:['+ dd NaOH','+ dd HCl','Đun nóng'], ans:0, prod:'Fe(OH)₃', why:'FeCl₃ + 3NaOH → Fe(OH)₃↓ nâu đỏ + 3NaCl'},
-     {opts:['+ O₂','+ H₂O','Nung khô'], ans:2, prod:'Fe₂O₃', why:'nhiệt phân bazơ không tan: 2Fe(OH)₃ —t°→ Fe₂O₃ + 3H₂O'}]},
-   {start:'H₂O', target:'CuCl₂', steps:[
-     {opts:['Đun sôi','+ quỳ tím','Điện phân'], ans:2, prod:'H₂', why:'điện phân nước: 2H₂O → 2H₂ (cực âm) + O₂ (cực dương)'},
-     {opts:['+ CuO (t°)','+ NaOH','+ O₂'], ans:0, prod:'Cu', why:'H₂ khử oxit: CuO + H₂ —t°→ Cu + H₂O'},
-     {opts:['+ dd NaCl','+ khí Cl₂ (t°)','+ H₂O'], ans:1, prod:'CuCl₂', why:'Cu + Cl₂ —t°→ CuCl₂'}]}
+   {start:'Cu',  target:'Cu(OH)2',   ans:['O2','H2SO4','NaOH'],  more:['H2O','NaCl','Fe','CO2','Cl2']},
+   {start:'CaO', target:'CaCl2',     ans:['H2O','CO2','HCl'],    more:['NaOH','NaCl','O2','H2SO4','H2']},
+   {start:'Fe',  target:'Fe2(SO4)3', ans:['Cl2','NaOH','H2SO4'], more:['HCl','O2','CuSO4','H2O','NaCl']},
+   {start:'CuO', target:'AgCl',      ans:['H2','Cl2','AgNO3'],   more:['HCl','O2','H2O','NaCl','H2SO4']}
   ]}
 );
 

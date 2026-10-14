@@ -108,6 +108,13 @@ if(DEBUG){
       console.assert(new Set(sig).size === set.length, 'xác định chất: bộ '+set.join(', ')+' không phân biệt được');
     });
   });
+  // chuỗi phản ứng: đáp án đi tới đích theo REACTIONS; bố cục và vùng thả (cs0–cs2) chỉ đủ cho 2–3 mũi tên
+  DAYS.filter(d => d.mg === 'chain').forEach(d => d.chains.forEach(ch => {
+    const tag = 'chuỗi ' + ch.start + ' → ' + ch.target;
+    [ch.start, ch.target].concat(ch.ans, ch.more).forEach(f => console.assert(CHEMS[f], tag + ': chất lạ ' + f));
+    console.assert(ch.ans.length >= 2 && ch.ans.length <= 3, tag + ': cần 2–3 mũi tên');
+    console.assert(chainWalk(ch.start, ch.ans, ch.target), tag + ': đáp án không đi tới đích');
+  }));
   // hard mode: molar mass parser + tolerance + generated challenges are self-consistent
   console.assert(molarMass('NaCl') === 58.5, 'Mr NaCl');
   console.assert(molarMass('Ca(OH)2') === 74, 'Mr Ca(OH)2');

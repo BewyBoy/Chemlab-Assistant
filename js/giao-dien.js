@@ -916,7 +916,7 @@ function showResult(i, st){
   if(day.mg){
     const r = st.total ? st.correct/st.total : 0;
     stars = r >= 1 ? 3 : r >= .75 ? 2 : r >= .5 ? 1 : 0;
-    detail = `<p style="font-size:18px">Trả lời đúng: <b>${st.correct}/${st.total}</b></p>`;
+    detail = `<p style="font-size:18px">${st.label || 'Trả lời đúng'}: <b>${st.correct}/${st.total}</b></p>`;
   } else {
     const all = day.orders.length;
     const perfect = st.wrong === 0 && !st.safety;

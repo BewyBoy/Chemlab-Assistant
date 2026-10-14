@@ -156,7 +156,9 @@ const DZ_ACCEPT = {
   mgdrop:['quy','rg0','rg1','rg2','rg3'],     // xác định chất: ống nhỏ giọt mẫu → giấy quỳ / cốc thuốc thử
   mglabel:['jar0','jar1','jar2','tray'],      // xác định chất: nhãn → lọ mất nhãn / khay nhãn
   vlatom: ['vbuild'],                         // hoá trị: bi từ khay → khu vực tạo chất
-  vlmove: ['vbuild']                          // hoá trị: dời bi trong khu vực (thả ra ngoài = bỏ bi)
+  vlmove: ['vbuild'],                         // hoá trị: dời bi trong khu vực (thả ra ngoài = bỏ bi)
+  chflask:['cs0','cs1','cs2'],                // chuỗi phản ứng: bình trong khay → ô trên mũi tên
+  chlbl:  ['cs0','cs1','cs2']                 // chuỗi phản ứng: dời nhãn sang ô khác (thả ra ngoài = gỡ nhãn)
 };
 let drag = null;
 function gameXY(e){

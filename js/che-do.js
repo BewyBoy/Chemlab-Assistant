@@ -1229,37 +1229,227 @@ const MG = {
   });
  },
 
- /* --- day 31: reaction-chain quiz — pick the right reagent to reach the target --- */
+ /* --- ngày 31: chuỗi phản ứng. Trên: chất đầu ○ —▭→ ? —▭→ ? —▭→ ○ chất đích; dưới: băng chọn chất (dải vàng).
+        Kéo bình (hoặc bấm bình rồi bấm ô) vào ô trên mũi tên. Điền đủ ô thì chấm ngay: đúng cả chuỗi thì các chất
+        ở giữa lần lượt hiện ra kèm phương trình; sai thì ô sai đỏ lên rồi bật ra, mất 1 điểm. Mỗi chuỗi mất tối đa
+        bằng số ô của nó — mất hết thì giáo sư điền đáp án làm mẫu. Chấm theo REACTIONS (chainWalk), nên cách đi
+        khác mà đúng hoá học vẫn được tính. --- */
  chain(i, day){
-  let ci = 0, si = 0, correct = 0;
-  const total = day.chains.reduce((a, c) => a + c.steps.length, 0);
-  mgFrame(i, day, '<div id="qbox" class="paper" style="min-width:660px;max-width:900px;text-align:center"></div>');
-  mgScore(0, total);
-  function ask(){
-    if(ci >= day.chains.length){ showResult(i, {correct, total}); return; }
-    const ch = day.chains[ci], st = ch.steps[si];
-    const crumb = [ch.start].concat(ch.steps.slice(0, si).map(s => s.prod));
-    const trail = crumb.join(' → ') + ' → <b style="color:var(--accent)">?</b>' +
-      (si < ch.steps.length-1 ? ' → …' : '');
-    G.querySelector('#qbox').innerHTML = `<p style="opacity:.7">Chuỗi ${ci+1}/${day.chains.length} · bước ${si+1}/${ch.steps.length} · đích: <b>${ch.target}</b></p>
-      <h2 style="font-family:var(--fh)">${trail}</h2><p>Chọn cách đi đúng:</p>
-      <div class="row" style="justify-content:center;flex-wrap:wrap">${st.opts.map((op,x)=>`<button class="btn" data-x="${x}">${op}</button>`).join('')}</div>
-      <p id="why" style="min-height:44px;font-size:15px"></p>`;
-    G.querySelectorAll('#qbox .btn').forEach(b => b.onclick = () => {
-      const ok = +b.dataset.x === st.ans;
-      if(ok){ correct++; SFX.coin(); } else SFX.err();
-      mgScore(correct, total);
-      G.querySelector('#why').innerHTML = (ok ? ico('check',15)+' Chuẩn! ' : ico('close',15)+' Chưa đúng — phải "'+st.opts[st.ans]+'". ')
-        + st.why + ' → thu được <b>' + st.prod + '</b>.';
-      G.querySelectorAll('#qbox .btn').forEach(x => x.disabled = true);
-      si++;
-      if(si >= ch.steps.length){ ci++; si = 0; if(ci < day.chains.length) toast('Xong chuỗi! Sang chuỗi tiếp theo…'); }
-      setTimeout(ask, 2200);
-    });
+  const total = day.chains.reduce((a, c) => a + c.ans.length, 0);
+  const short = f => CHEMS[f].n.split(' (')[0];                     // "Natri hiđroxit (xút)" → "Natri hiđroxit"
+  const fz = f => sub(f).length > 7 ? 20 : 25;                      // công thức dài thì chữ nhỏ lại cho lọt vòng tròn
+  const liq = f => CHEMS[f].c + (CHEMS[f].s === 'k' ? '80' : '');   // khí: màu trong hơn
+  const lblHTML = f => `<div class="chn-lbl"><b>${sub(f)}</b></div>`;
+  /* Lọ trong băng chọn chất — cùng bộ hình với tủ hoá chất ở bàn thí nghiệm (contSym): dung dịch trong lọ nút mài,
+     khí trong bình thép, chất rắn trong lọ nút bần; riêng kim loại ở đây là bột nên cũng vào lọ bột (bàn thí nghiệm
+     vẽ mẩu kim loại). Lọ dung dịch đứng nghiêng vài độ, tựa vào đáy. Sticker công thức dán đè lên phần dung dịch / bột
+     (bình khí: lên dải màu giữa thân), xoay lệch vài độ; góc nào cũng cố định theo chất. STK_Y: tâm sticker theo toạ độ
+     viewBox 100×140 của các symbol này. */
+  const ART_W = 120, ART_H = 168, STK_Y = {'sym-bottle-liquid':103, 'sym-jar-powder':108, 'sym-canister':84};
+  const hash = f => [...f].reduce((s, c) => (s*31 + c.charCodeAt(0)) % 997, 7);
+  const cont = f => contSym(f).startsWith('sym-metal') ? 'sym-jar-powder' : contSym(f);
+  function art(f){
+    const id = cont(f), lean = id === 'sym-bottle-liquid' ? [-7, -5, 5, 7][hash(f) % 4] : 0;
+    return `<div class="chn-art" style="--lean:${lean}deg">${sym(id, ART_W, ART_H, '--lc:' + CHEMS[f].c + ';--lc2:#00000022')}`
+      + `<span class="chn-stk" style="top:${STK_Y[id]*ART_H/140}px;--rot:${hash(f) % 9 - 4}deg;--stripe:${stripeCol(f)}">${sub(f)}</span></div>`;
   }
-  ask();
+  const ARR = 'M4 10 Q60 8 194 10 M183 3 L195 10 L183 17';           // mũi tên vẽ tay; bản thứ hai tô màu chạy dọc khi mở
+  let ci = 0, pts = total;
+  mgFrame(i, day, '<div class="chn"></div>');
+  const root = G.querySelector('.chn'), hud = G.querySelector('#mgscore');
+  const score = () => { hud.textContent = 'Điểm: ' + pts + '/' + total; };
+  score();
+
+  function play(){
+    const ch = day.chains[ci], n = ch.ans.length;
+    const pool = shuffle([...new Set(ch.ans.concat(ch.more))]);
+    const sols = chainSolutions(ch.start, ch.target, n, pool);        // mọi cách đi tới đích bằng bình trong khay
+    const fill = new Array(n).fill(null);                             // fill[ô] = công thức đã thả vào ô đó
+    let sel = null, busy = false, lost = 0;
+    const node = (f, k) => {
+      const end = k === 0 || k === n;
+      return `<div class="chn-node${end ? '' : ' hid'}" data-n="${k}"${end ? ` style="--lc:${liq(f)}"` : ''}>
+        ${end ? `<span class="chn-tag">${k ? 'chất đích' : 'chất đầu'}</span>` : ''}
+        <div class="chn-ball"><b style="font-size:${end ? fz(f) : 44}px">${end ? sub(f) : '?'}</b></div>
+        <small>${end ? short(f) : ''}</small></div>`;
+    };
+    const link = k => `<div class="chn-link" data-l="${k}"><div class="chn-slot" data-dz="cs${k}"></div>
+        <svg class="chn-arrow" width="200" height="20" viewBox="0 0 200 20"><path d="${ARR}"/><path class="chn-flow" pathLength="1" d="${ARR}"/></svg>
+        <span class="chn-cond">(${k+1})</span></div>`;
+    root.className = 'chn';
+    root.innerHTML = `<p class="chn-say"></p>
+      <div class="chn-row">${node(ch.start, 0)}${ch.ans.map((a, k) => link(k) + node(k === n-1 ? ch.target : null, k+1)).join('')}</div>
+      <div class="chn-band">
+        <button class="chn-nav" aria-label="Cuộn sang trái"><svg width="40" height="52" viewBox="0 0 40 52"><path d="M34 5 L6 26 L34 47 Z"/></svg></button>
+        <div class="chn-strip"><div class="chn-flasks">${pool.map(f => `<div class="chn-flask" data-f="${f}">${art(f)}</div>`).join('')}</div></div>
+        <button class="chn-nav" aria-label="Cuộn sang phải"><svg width="40" height="52" viewBox="0 0 40 52"><path d="M6 5 L34 26 L6 47 Z"/></svg></button>
+        <div class="chn-done"><div class="chn-eqs"></div><button class="btn big" id="chnext"></button></div>
+      </div>`;
+    const sayEl = root.querySelector('.chn-say');
+    const say = (html, cls) => { sayEl.innerHTML = html; sayEl.className = 'chn-say' + (cls ? ' ' + cls : ''); };
+    say(`Chuỗi ${ci+1}/${day.chains.length}: đi từ <b>${sub(ch.start)}</b> tới <b>${sub(ch.target)}</b> — kéo bình hoá chất vào ô trên mỗi mũi tên.`);
+    const slots = [...root.querySelectorAll('.chn-slot')];
+
+    // băng chọn chất: mỗi bình một ô rộng CELL, khung nhìn rộng VIEW (băng 1280 trừ chỗ hai nút ◁ ▷). Nút trượt 2 ô
+    // (canh theo ô; còn chưa tới nửa ô là hết băng thì nhảy luôn tới cuối), lăn chuột trượt liền. Hết đường thì nút
+    // mờ đi; cả băng vừa khung thì giấu nút, bình xếp giữa.
+    const CELL = 190, VIEW = 1120, maxOff = Math.max(0, pool.length*CELL - VIEW);
+    const track = root.querySelector('.chn-flasks'), [prev, next] = root.querySelectorAll('.chn-nav');
+    let off = 0;
+    const slide = v => {
+      off = Math.max(0, Math.min(maxOff, v));
+      track.style.transform = `translateX(${-off}px)`;
+      prev.disabled = off <= 0; next.disabled = off >= maxOff;
+    };
+    const step = d => { const v = (Math.round(off/CELL) + 2*d)*CELL; slide(v > maxOff - CELL/2 ? maxOff : v); SFX.clink(); };
+    prev.onclick = () => step(-1);
+    next.onclick = () => step(1);
+    root.querySelector('.chn-strip').addEventListener('wheel', e => { e.preventDefault(); slide(off + (e.deltaX || e.deltaY)); }, {passive:false});
+    root.querySelector('.chn-band').classList.toggle('fits', !maxOff);
+    slide(0);
+
+    function unselect(){ if(sel) sel.classList.remove('chn-sel'); sel = null; }
+    root.querySelectorAll('.chn-flask').forEach(el => dragify(el, 'chflask', {w:ART_W, h:ART_H, enabled: () => !busy,
+      ghostHTML: () => art(el.dataset.f),
+      onDrop: z => put(+z.slice(2), el.dataset.f),
+      onClick: () => {                                                // bấm để chọn bình; bấm lại thì bỏ chọn
+        if(busy) return;
+        const again = sel === el;
+        unselect();
+        if(!again){ sel = el; el.classList.add('chn-sel'); SFX.clink(); }
+      }}));
+    // bấm vào nhãn đã dán do dragify của nhãn lo (xem draw), ở đây chỉ nhận bấm vào ô trống
+    slots.forEach((s, k) => s.onclick = e => { if(!busy && sel && !e.target.closest('.chn-lbl')) put(k, sel.dataset.f); });
+
+    // vẽ lại ô k theo fill[k]; nhãn đã dán kéo được sang ô khác, kéo ra ngoài hoặc bấm vào thì gỡ
+    function draw(k, pop){
+      const s = slots[k];
+      s.classList.remove('ok', 'bad');
+      s.classList.toggle('full', !!fill[k]);
+      s.innerHTML = fill[k] ? lblHTML(fill[k]) : '';
+      const l = s.firstElementChild;
+      if(!l) return;
+      tapeLabel(l);
+      if(pop) l.classList.add('pop');
+      dragify(l, 'chlbl', {w:146, h:56, enabled: () => !busy,
+        ghostHTML: () => l.outerHTML,
+        onDrop: z => move(k, +z.slice(2)),
+        onLoose: () => { take(k); return true; },
+        onClick: () => { if(busy) return; if(sel) put(k, sel.dataset.f); else take(k); }});
+    }
+    function put(k, f){
+      if(busy) return;
+      unselect();
+      fill[k] = f; draw(k, true); SFX.pour();
+      if(fill.every(Boolean)){ busy = true; setTimeout(check, 450); }
+    }
+    function take(k){ if(busy) return; fill[k] = null; draw(k); SFX.clink(); }
+    function move(a, b){                                              // ô đích đã có nhãn thì hai nhãn đổi chỗ
+      if(busy || a === b) return;
+      [fill[a], fill[b]] = [fill[b], fill[a]];
+      draw(a, true); draw(b, true); SFX.clink();
+    }
+
+    function check(){
+      if(!root.isConnected) return;
+      const walk = chainWalk(ch.start, fill, ch.target);
+      if(walk) return solved(walk, true);
+      // ô sai = ô khác với cách giải (trong khay) giống bài làm nhất
+      const agree = s => s.reduce((a, f, k) => a + (f === fill[k]), 0);
+      const best = sols.reduce((b, s) => agree(s) > agree(b) ? s : b, sols[0] || []);
+      const bad = fill.map((f, k) => f !== best[k]);
+      slots.forEach((s, k) => s.classList.add(bad[k] ? 'bad' : 'ok'));
+      lost++; pts--; score(); SFX.err();
+      hud.classList.remove('flash-bad'); void hud.offsetWidth; hud.classList.add('flash-bad');
+      const m = document.createElement('div'), g = G.getBoundingClientRect(), r = hud.getBoundingClientRect(), sc = g.width/1280;
+      m.className = 'chn-minus'; m.textContent = '−1';                // "−1" bật ra ngay dưới ô Điểm rồi bay lên nhập vào nó
+      m.style.left = (r.left + r.width/2 - g.left)/sc + 'px'; m.style.top = (r.bottom - g.top)/sc + 'px';
+      G.appendChild(m);
+      m.onanimationend = () => m.remove();
+      const out = lost >= n;
+      say(out ? 'Sai rồi, <b>−1 điểm</b>. Chuỗi này hết điểm — xem ta làm mẫu nhé!'
+              : 'Chưa đúng — ô đỏ là chỗ sai. <b>−1 điểm</b>. Thử lại nào!', 'bad');
+      setTimeout(() => {
+        if(!root.isConnected) return;
+        if(out){
+          ch.ans.forEach((f, k) => { fill[k] = f; draw(k, true); });
+          SFX.pour();
+          setTimeout(() => solved(chainWalk(ch.start, ch.ans, ch.target), false), 700);
+          return;
+        }
+        bad.forEach((b, k) => { if(b){ fill[k] = null; draw(k); } });  // ô đúng giữ lại, vẫn tô xanh
+        busy = false;
+      }, 1500);
+    }
+
+    // mở lần lượt từng mũi tên: mũi tên sáng lên, chất sau nó hiện ra; xong thì khay nhường chỗ cho các phương trình
+    function solved(walk, mine){
+      busy = true; unselect();
+      slots.forEach(s => { s.classList.remove('bad'); s.classList.add('ok'); });
+      if(mine) say(lost ? 'Đúng rồi! Cả chuỗi đã nối liền.' : 'Chuẩn không cần chỉnh — đúng ngay lần đầu!', 'good');
+      else say('Đáp án đây — nhìn kĩ từng mắt xích nhé!');
+      const STEP = 650;
+      walk.forEach((s, k) => setTimeout(() => {
+        if(!root.isConnected) return;
+        const L = root.querySelector('.chn-link[data-l="'+k+'"]'), nd = root.querySelector('.chn-node[data-n="'+(k+1)+'"]');
+        L.classList.add('lit');
+        const over = rxOver(s.r);
+        if(over) L.querySelector('.chn-cond').textContent = '(' + (k+1) + ') ' + over;
+        if(nd.classList.contains('hid')){
+          const b = nd.querySelector('b');
+          nd.classList.replace('hid', 'show');
+          nd.style.setProperty('--lc', liq(s.f));
+          b.style.fontSize = fz(s.f) + 'px'; b.innerHTML = sub(s.f);
+          nd.querySelector('small').textContent = short(s.f);
+        } else nd.classList.add('show');
+        SFX.tinkle();
+      }, 300 + k*STEP));
+      setTimeout(() => {
+        if(!root.isConnected) return;
+        const last = ci === day.chains.length - 1, btn = root.querySelector('#chnext');
+        root.querySelector('.chn-eqs').innerHTML = '<h3>' + ico('note', 18) + ' Các phương trình</h3>'
+          + walk.map((s, k) => `<div><span>(${k+1})</span>${eqStr(s.r)}</div>`).join('');
+        btn.innerHTML = last ? ico('star') + ' Xem kết quả' : 'Chuỗi tiếp theo ' + ico('next');
+        btn.onclick = () => { if(last) showResult(i, {correct:pts, total, label:'Điểm'}); else { ci++; SFX.page(); play(); } };
+        root.classList.add('solved');
+        SFX.coin();
+      }, 300 + walk.length*STEP + 250);
+    }
+  }
+  play();
  }
 };
+
+/* Chuỗi phản ứng (ngày 31) — mỗi mũi tên là MỘT phản ứng trong REACTIONS có đúng hai chất tham gia: chất đứng trước
+   và chất thêm vào; chất đứng sau là một sản phẩm bất kì của nó. Điện phân cần nguồn điện chứ không phải thêm chất
+   nên không tính. chainStep: từ cur thêm add thì ra được gì — [{r: phản ứng, f: sản phẩm}]. */
+function chainStep(cur, add){
+  const out = [];
+  REACTIONS.forEach(r => {
+    const rg = Object.keys(r.rg);
+    if(r.elec || cur === add || rg.length !== 2 || !rg.includes(cur) || !rg.includes(add)) return;
+    Object.keys(r.pr).forEach(f => out.push({r, f}));
+  });
+  return out;
+}
+// lần lượt thêm các chất adds vào, từ start phải tới đúng target: trả về [{r, f}] cho từng mũi tên, hoặc null
+function chainWalk(start, adds, target){
+  if(!adds.length) return start === target ? [] : null;
+  for(const s of chainStep(start, adds[0])){
+    const rest = chainWalk(s.f, adds.slice(1), target);
+    if(rest) return [s].concat(rest);
+  }
+  return null;
+}
+// mọi dãy n chất lấy từ pool (được lặp lại) đi được từ start tới target
+function chainSolutions(start, target, n, pool){
+  const out = [];
+  (function go(cur, pre){
+    if(pre.length === n){ if(cur === target && !out.some(s => s.join() === pre.join())) out.push(pre); return; }
+    pool.forEach(a => chainStep(cur, a).forEach(s => go(s.f, pre.concat(a))));
+  })(start, []);
+  return out;
+}
 
 /* =====================  CHẾ ĐỘ KHÓ: PHA NỒNG ĐỘ (Cₘ & C%)  ===================== */
 // Dạy nồng độ mol (Cₘ) và nồng độ phần trăm (C%): dùng CÂN để đong khối lượng chất rắn,
