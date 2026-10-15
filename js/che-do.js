@@ -8,7 +8,7 @@
 const shuffle = a => { a = a.slice(); for(let k=a.length-1; k>0; k--){ const j = Math.floor(Math.random()*(k+1)); [a[k],a[j]] = [a[j],a[k]]; } return a; };
 
 function mgFrame(i, day, inner){
-  G.innerHTML = `<div class="scene" style="padding:0">
+  G.innerHTML = `<div class="scene" style="padding:0;${mgBgCSS(day.mg)}">
     <div class="hudboard">${sym('sym-benchtex',1240,52,'position:absolute;left:20px;top:6px;opacity:.4;pointer-events:none')}
       <span class="hud-title">Ngày ${i+1} ${ico('dice',17)} ${day.t}</span>
       <div style="flex:1"></div><span class="hudstat" id="mgscore"></span>

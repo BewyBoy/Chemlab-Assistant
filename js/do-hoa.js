@@ -1938,3 +1938,78 @@ function custArt(i){ return HD_CHARS[i+1].replace('</svg>', (CUST_PROPS[i] || ''
 function custSVG(i, exp){ return custArt(i).replace('data-exp="neutral"', 'data-exp="'+exp+'"'); }
 function custHead(i){ return custArt(i).replace(/viewBox="[^"]+"/, 'viewBox="'+HD_HEADS[i+1]+'"'); }
 function profSVG(exp){ return HD_CHARS[0].replace('data-exp="neutral"', 'data-exp="'+exp+'"'); }
+
+/* ---- NỀN MINIGAME: bốn hoạ tiết nét mực nhạt lặp lại, chia cho các minigame theo BG_OF_MG (mgFrame trong che-do.js) ----
+   Ô T×T chia lưới n×n, mỗi ô một hình nhỏ đặt lệch, xoay nghiêng; hình chạm mép thì vẽ thêm bản sao ở mép đối
+   diện nên ghép liền không thấy đường nối. Ngẫu nhiên có hạt giống cố định: lần nào mở cũng y như cũ. Cả lớp mờ
+   (op) để không tranh với thẻ, giỏ, bình phía trên. Hình vẽ quanh gốc (0,0), rộng tối đa ~±20.
+   dens: mật độ hình — 1 là mặc định, 2 gấp đôi số hình trên cùng diện tích (hình gần nhau hơn, cỡ hình giữ nguyên),
+   .5 còn một nửa. Nên giữ trong khoảng .2–2.5; dày quá thì hình chồng lên nhau. */
+const BG_INK = '#3b3025', BG_PAPER = '#fffdf5';
+const bgBall = (x, y, r, c) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`
+  + `<path d="M${x - r*.55} ${y - r*.05} Q${x - r*.5} ${y - r*.5} ${x - r*.05} ${y - r*.6}" stroke="${BG_PAPER}" stroke-width="1.3"/>`;
+const bgBubbles = '<circle cx="-6" cy="4" r="5.5"/><circle cx="5" cy="-4" r="3.5"/><circle cx="7" cy="7" r="2.2"/>';
+const BG_TILES = {
+  // phân loại: nguyên tử và phân tử bi–que, màu bi như thẻ phản ứng
+  atoms: {T:240, n:4, op:.17, dens:.2, shapes:[
+    () => bgBall(0, 0, 9, '#e0574a'),
+    () => bgBall(-6, 0, 7.5, '#7cc35a') + bgBall(6, 0, 7.5, '#7cc35a'),
+    () => bgBall(-9, 6, 5, '#fff') + bgBall(9, 6, 5, '#fff') + bgBall(0, 0, 8.5, '#e0574a'),
+    () => '<path d="M-15 0 H15"/>' + bgBall(-15, 0, 6, '#e0574a') + bgBall(15, 0, 6, '#e0574a') + bgBall(0, 0, 7, '#4a4a4a'),
+    () => '<path d="M-11 -11 L11 11 M-11 11 L11 -11"/>' + [[-11,-11],[11,11],[-11,11],[11,-11]].map(([x, y]) => bgBall(x, y, 4.5, '#fff')).join('')
+      + bgBall(0, 0, 7.5, '#4a4a4a'),
+    () => '<path d="M0 0 V-14 M0 0 L12 7 M0 0 L-12 7"/>' + [[0,-14],[12,7],[-12,7]].map(([x, y]) => bgBall(x, y, 4.5, '#fff')).join('')
+      + bgBall(0, 0, 7.5, '#5b7fe0')]},
+  // hoá trị, chất khử: electron (−), ion dương (+), nguyên tử có quỹ đạo, mũi tên chuyền electron
+  charges: {T:240, n:4, op:.15, dens:.2, shapes:[
+    () => `<circle r="6.5" fill="${BG_PAPER}"/><path d="M-3 0 H3"/>`,
+    () => `<circle r="8.5" fill="${BG_PAPER}"/><path d="M-4 0 H4 M0 -4 V4"/>`,
+    () => '<ellipse rx="18" ry="6.5"/><ellipse rx="18" ry="6.5" transform="rotate(60)"/><ellipse rx="18" ry="6.5" transform="rotate(-60)"/>'
+      + `<circle r="3.5" fill="${BG_INK}"/><circle cx="18" r="2.2" fill="${BG_INK}"/>`,
+    () => '<path d="M-10 6 Q2 -14 15 2 M9 1 L15 2 L14 -4"/>' + `<circle cx="-12" cy="8" r="4.5" fill="${BG_PAPER}"/><path d="M-14 8 H-10"/>`,
+    () => `<circle cx="-7" r="5.5" fill="${BG_PAPER}"/><path d="M-9.5 0 H-4.5"/><circle cx="8" cy="-3" r="7" fill="${BG_PAPER}"/><path d="M5 -3 H11 M8 -6 V0"/>`]},
+  // dãy hoạt động kim loại: thỏi, đai ốc, đồng xu, đinh, mắt xích, nam châm
+  metals: {T:240, n:4, op:.14, dens:.2, shapes:[
+    () => '<path d="M-14 6 L-9 -4 H9 L14 6 Z M-9 -4 L-6 -8 H12 L9 -4 M12 -8 L17 2 L14 6" fill="#e8d9a8"/>',
+    () => '<path d="M-10 0 L-5 -8.7 H5 L10 0 L5 8.7 H-5 Z" fill="#d8d8d0"/><circle r="4.5" fill="' + BG_PAPER + '"/>',
+    () => '<circle r="10" fill="#e8b84b"/><circle r="7"/><path d="M-2 -2.5 Q0 -4 2 -2.5 Q0 0 -2 2.5 Q0 4 2 2.5"/>',
+    () => '<path d="M-6 -14 H6 M0 -14 V12 L-1.5 16 M0 12 L1.5 16"/>',
+    () => '<rect x="-15" y="-5" width="17" height="10" rx="5"/><rect x="-2" y="-5" width="17" height="10" rx="5"/>',
+    () => '<path d="M-9 12 V0 A9 9 0 0 1 9 0 V12 M-4 12 V0 A4 4 0 0 1 4 0 V12" fill="none"/>'
+      + '<path d="M-9 12 V6 H-4 V12 Z M9 12 V6 H4 V12 Z" fill="#d9634f"/>']},
+  // nhận biết chất, chuỗi phản ứng: dụng cụ thuỷ tinh, mũi tên phản ứng, dấu cộng
+  glass: {T:260, n:4, op:.13, dens:.2, shapes:[
+    () => '<path d="M-4 -16 V-6 L-12 12 Q-13 15 -10 15 H10 Q13 15 12 12 L4 -6 V-16 M-6 -16 H6 M-9 6 H9"/>',
+    () => '<path d="M-4 -16 V10 A4 4 0 0 0 4 10 V-16 M-6 -16 H6 M-4 2 H4"/>',
+    () => '<path d="M-3 -16 V-5 A11 11 0 1 0 3 -5 V-16 M-5 -16 H5 M-9 4 H9"/>',
+    () => '<path d="M-12 -14 L-10 -12 V12 Q-10 14 -8 14 H8 Q10 14 10 12 V-12 M-10 -4 H-6 M-10 2 H-6 M-10 8 H-6"/>',
+    () => '<path d="M-14 0 H12 M7 -4 L12 0 L7 4"/>',
+    () => '<path d="M-6 0 H6 M0 -6 V6"/>',
+    () => bgBubbles]},
+};
+const BG_OF_MG = {bins:'atoms', valence:'charges', redox:'charges', identify:'glass', sort:'metals', chain:'glass'};
+const bgCache = {};
+// CSS cho nền của một loại minigame (dán vào style của .scene); loại lạ thì để nền chấm mặc định
+function mgBgCSS(mg){
+  const key = BG_OF_MG[mg], P = BG_TILES[key];
+  if(!P) return '';
+  if(!bgCache[key]){
+    // khoảng cách giữa các hình co theo căn bậc hai mật độ; R: tầm một hình, để chép sang mép đối diện
+    const W = Math.round(P.T/Math.sqrt(P.dens || 1)), H = W, c = W/P.n, R = 24;
+    let body = '', n = 9973;
+    const rnd = () => (n = n*16807 % 2147483647)/2147483647;
+    for(let row = 0; row < P.n; row++) for(let col = 0; col < P.n; col++){
+      // hàng lẻ lệch nửa ô cho bớt thẳng hàng; mỗi hình xoay ±25°, lệch tối đa 1/4 ô
+      const x = ((col + .5 + (row % 2)*.5 + (rnd() - .5)*.5)*c) % W, y = (row + .5 + (rnd() - .5)*.5)*c;
+      const a = Math.round((rnd() - .5)*50), g = P.shapes[Math.floor(rnd()*P.shapes.length)](rnd);
+      for(const dx of [-W, 0, W]) for(const dy of [-H, 0, H]){
+        if(x + dx < -R || x + dx > W + R || y + dy < -R || y + dy > H + R) continue;
+        body += `<g transform="translate(${(x + dx).toFixed(1)} ${(y + dy).toFixed(1)}) rotate(${a})">${g}</g>`;
+      }
+    }
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`
+      + `<g opacity="${P.op}" fill="none" stroke="${BG_INK}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${body}</g></svg>`;
+    bgCache[key] = `background:var(--paper) url('data:image/svg+xml,${encodeURIComponent(svg)}') 0 0/${W}px ${H}px`;
+  }
+  return bgCache[key];
+}
