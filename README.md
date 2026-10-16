@@ -40,6 +40,7 @@ npx --yes http-server -p 8642 -c-1 .
 | `style.css` | Toàn bộ giao diện |
 | `js/phan-ung.js` | Bảng phản ứng — sửa hoá học ở đây |
 | `js/du-lieu.js` | Hoá chất, 31 ngày, thành tựu, "Bạn có biết?" |
+| `js/lich.js` | Tên tháng trên tờ lịch và mô tả từng ngày — sửa chữ ở đây |
 | `js/do-hoa.js` | Kho SVG dụng cụ / lọ / biểu tượng, nhân vật |
 | `js/giao-dien.js` | Âm thanh & nhạc nền, lưu tiến trình, menu, lịch, cài đặt, báo cáo, kết quả |
 | `js/phong-thi-nghiem.js` | Bàn thí nghiệm, kéo–thả, phản ứng, đốt, an toàn, khách hàng |

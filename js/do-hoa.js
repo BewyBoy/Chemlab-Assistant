@@ -1738,6 +1738,22 @@ const SVG_DEFS = `
   <path d="M5.5,8.5 Q8,8 10,9 M5.5,12 Q8,11.5 10,12.5 M14,9 Q16,8 18.5,8.5 M14,12.5 Q16,11.5 18.5,12" fill="none" stroke="#3b3025" stroke-width="1.3" stroke-linecap="round" opacity="0.5"/>
 </symbol>
 
+<!-- ico-home: ngôi nhà (về menu chính) -->
+<symbol id="ico-home" viewBox="0 0 24 24">
+  <path d="M3,11.5 L12,3.5 L21,11.5" fill="none" stroke="#3b3025" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M5.5,9.5 L5.5,20.5 L18.5,20.5 L18.5,9.5" fill="#fffdf5" stroke="#3b3025" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M10,20.5 L10,15 Q10,14 11,14 L13,14 Q14,14 14,15 L14,20.5" fill="#e8c46a" stroke="#3b3025" stroke-width="1.6" stroke-linejoin="round"/>
+</symbol>
+
+<!-- ico-shop: quầy hàng có mái hiên sọc -->
+<symbol id="ico-shop" viewBox="0 0 24 24">
+  <path d="M4.5,11 L4.5,20.5 L19.5,20.5 L19.5,11" fill="#fffdf5" stroke="#3b3025" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M3,8.5 L4.5,3.5 L19.5,3.5 L21,8.5 Q21,11 18.6,11 Q16.2,11 16.2,8.5 Q16.2,11 13.8,11 Q12,11 12,8.5 Q12,11 9.8,11 Q7.8,11 7.8,8.5 Q7.8,11 5.4,11 Q3,11 3,8.5 Z" fill="#d9634f" stroke="#3b3025" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M7.8,8.5 L8.6,3.5 M12,8.5 L12,3.5 M16.2,8.5 L15.4,3.5" stroke="#3b3025" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M3,8.5 L21,8.5" stroke="#3b3025" stroke-width="1.4"/>
+  <path d="M9.5,20.5 L9.5,15 L14.5,15 L14.5,20.5" fill="#e8c46a" stroke="#3b3025" stroke-width="1.6" stroke-linejoin="round"/>
+</symbol>
+
 <!-- ico-gear -->
 <symbol id="ico-gear" viewBox="0 0 24 24">
   <path d="M10.23,4.61 L10.60,1.59 L13.40,1.59 L13.77,4.61 L15.97,5.52 L18.37,3.65 L20.35,5.63 L18.48,8.03 L19.39,10.23 L22.41,10.60 L22.41,13.40 L19.39,13.77 L18.48,15.97 L20.35,18.37 L18.37,20.35 L15.97,18.48 L13.77,19.39 L13.40,22.41 L10.60,22.41 L10.23,19.39 L8.03,18.48 L5.63,20.35 L3.65,18.37 L5.52,15.97 L4.61,13.77 L1.59,13.40 L1.59,10.60 L4.61,10.23 L5.52,8.03 L3.65,5.63 L5.63,3.65 L8.03,5.52 Z"

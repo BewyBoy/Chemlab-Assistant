@@ -263,7 +263,8 @@ function liquidSim(cv, W, H, rest, liq){
      CaCO₃); kim loại hoá trị II–III với −OH / −NO₃ thì đứng giữa, các gốc toả ra.
    Hai bóng nắm tay cách nhau đúng r₁ + r₂ + 2·VL_ARM: mỗi tay dài VL_ARM tính từ mặt bóng, hai đầu tay chạm nhau. */
 const VL_ARM = 9;
-const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+const VL_MAX = 16;                          // số bóng tối đa trên bàn tạo chất — chất nào cần nhiều hơn thì không ghép nổi
+const ROMAN =['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
 const EL_VN = {H:'hiđro', O:'oxi', C:'cacbon', N:'nitơ', Cl:'clo', S:'lưu huỳnh', P:'photpho', Na:'natri', K:'kali',
   Mg:'magie', Ca:'canxi', Ba:'bari', Al:'nhôm', Zn:'kẽm', Fe:'sắt', Cu:'đồng', Ag:'bạc'};
 // các hoá trị thường gặp (bảng hoá trị KHTN) — đề ghi đủ, tô đậm hoá trị dùng trong câu
@@ -285,7 +286,19 @@ const VL_RAD = {
   HCO3: {v:1, X:'C', xv:4, dbl:1, oh:1, nm:'hiđrocacbonat', mark:'−'},
   HPO4: {v:2, X:'P', xv:5, dbl:1, oh:1, nm:'hiđrophotphat', mark:'='},
   H2PO4:{v:1, X:'P', xv:5, dbl:1, oh:2, nm:'đihiđrophotphat', mark:'−'},
-  ClO3: {v:1, X:'Cl', xv:5, dbl:2, nm:'clorat', mark:'−'}};
+  ClO3: {v:1, X:'Cl', xv:5, dbl:2, nm:'clorat', mark:'−'},
+  // gốc hữu cơ, mỗi gốc tới 2 nguyên tử C (muối có nhiều gốc thì tổng C có thể hơn 2). org: các nguyên tử sau O neo, mỗi
+  // phần tử [nguyên tố, nút cha, hướng so với trục ra ngoài, bậc] (nút 0 = O neo); vals: số tay từng nguyên tố;
+  // lead: viết gốc trước kim loại như trong sách (CH₃COONa, (CH₃COO)₂Ca); pair: hai C nối nhau, mỗi C một O neo (oxalat)
+  HCOO:   {v:1, nm:'fomat', mark:'−', lead:1, vals:{C:4, H:1, O:2},
+    org:[['C', 0, 0, 1], ['O', 1, -60, 2], ['H', 1, 60, 1]]},
+  CH3COO: {v:1, nm:'axetat', mark:'−', lead:1, vals:{C:4, H:1, O:2},
+    org:[['C', 0, 0, 1], ['O', 1, -60, 2], ['C', 1, 60, 1], ['H', 3, -30, 1], ['H', 3, 60, 1], ['H', 3, 150, 1]]},
+  CH3O:   {v:1, nm:'metylat', mark:'−', lead:1, vals:{C:4, H:1, O:2},
+    org:[['C', 0, 0, 1], ['H', 1, 90, 1], ['H', 1, -90, 1], ['H', 1, 0, 1]]},
+  C2H5O:  {v:1, nm:'etylat', mark:'−', lead:1, vals:{C:4, H:1, O:2},
+    org:[['C', 0, 0, 1], ['H', 1, 90, 1], ['H', 1, -90, 1], ['C', 1, 0, 1], ['H', 4, 90, 1], ['H', 4, -90, 1], ['H', 4, 0, 1]]},
+  C2O4:   {v:2, nm:'oxalat', mark:'=', pair:1, vals:{C:4, O:2}, org:[]}};
 const radStr = R => VL_RAD[R].mark + sub(R);
 const gcd = (a, b) => b ? gcd(b, a % b) : a;
 const fmlOf = (A, x, B, y) => (x ? A + (x > 1 ? x : '') : '') + (y ? B + (y > 1 ? y : '') : '');
@@ -300,6 +313,11 @@ function vlQuestion(q){
     return {kind:'bin', name, A, a, B, b, f:valFormula(A, a, B, b).f, vals:{[A]:a, [B]:b}, els:[A, B]};
   }
   const [M, m, R, name] = q, rd = VL_RAD[R], g = gcd(m, rd.v), x = rd.v/g, y = m/g;
+  if(rd.vals){                              // gốc hữu cơ: không có X ở giữa, thành phần ghi sẵn ở rd.vals
+    const rs = y > 1 ? '(' + R + ')' + y : R;
+    return {kind:'ter', name, M, m, R, f:rd.lead ? rs + M : M + (x > 1 ? x : '') + rs,
+      vals:Object.assign({[M]:m}, rd.vals), els:[M].concat(Object.keys(rd.vals).filter(e => e !== M))};
+  }
   return {kind:'ter', name, M, m, R, f:M + (x > 1 ? x : '') + (y > 1 ? '(' + R + ')' + y : R),
     vals:R === 'OH' ? {[M]:m, O:2, H:1} : Object.assign({[M]:m, [rd.X]:rd.xv, O:2}, rd.oh ? {H:1} : {}),
     els:R === 'OH' ? [M, 'O', 'H'] : [M, rd.X, 'O'].concat(rd.oh && M !== 'H' ? ['H'] : [])};
@@ -382,7 +400,35 @@ function terLayout(M, m, R){
   }
   return L.done();
 }
-const vlLayout = q => q.kind === 'bin' ? valLayout(q.A, q.a, q.B, q.b) : terLayout(q.M, q.m, q.R);
+// gốc hữu cơ (VL_RAD có org): hoá trị I → chuỗi M–O–gốc, kim loại hoá trị m ≥ 2 đứng giữa cho m gốc toả ra;
+// oxalat (hoá trị II): hai kim loại hoá trị I mỗi bên, hoặc một kim loại hoá trị II ôm cả hai O neo
+function orgLayout(M, m, R){
+  const rd = VL_RAD[R], g = gcd(m, rd.v), x = rd.v/g, y = m/g, L = vlBuilder();
+  const tail = (o, dir) => { const id = [o]; rd.org.forEach(([el, p, d, ord]) => id.push(L.at(id[p], el, dir + d, ord))); };
+  if(!rd.pair){
+    if(m === 1){ L.add('O', 0, 0); L.at(0, M, 180); tail(0, 0); return L.done(); }
+    L.add(M, 0, 0);
+    (m === 2 ? [180, 0] : Array.from({length:m}, (_, k) => -90 + 360*k/m)).forEach(d => tail(L.at(0, 'O', d, 1), d));
+    return L.done();
+  }
+  if(x > 1 && y > 1) return null;
+  L.add('C', 0, 0);
+  const c2 = L.at(0, 'C', 0, 1);
+  if(x === 2){                              // kim loại hoá trị I: O–C(=O)–C(=O)–O, mỗi đầu một kim loại
+    [[0, 120, -120], [c2, 60, -60]].forEach(([c, a, d]) => { L.at(c, 'O', d, 2); L.at(L.at(c, 'O', a, 1), M, a, 1); });
+    return L.done();
+  }
+  if(x === 1 && y === 1){                   // kim loại hoá trị II nằm dưới, nắm cả hai O neo
+    const o1 = L.at(0, 'O', 90, 1), o2 = L.at(c2, 'O', 90, 1);
+    L.at(0, 'O', -90, 2); L.at(c2, 'O', -90, 2);
+    const p = L.nodes[o1], q = L.nodes[o2], d = atomR('O') + atomR(M) + 2*VL_ARM, h = (q.x - p.x)/2;
+    L.bonds.push([o1, L.add(M, (p.x + q.x)/2, p.y + Math.sqrt(d*d - h*h)), 1]);
+    L.bonds.push([o2, L.nodes.length - 1, 1]);
+    return L.done();
+  }
+  return null;
+}
+const vlLayout = q => q.kind === 'bin' ? valLayout(q.A, q.a, q.B, q.b) : VL_RAD[q.R].org ? orgLayout(q.M, q.m, q.R) : terLayout(q.M, q.m, q.R);
 // sổ chất (tạo chất tự do + khám phá): mọi câu trong pools + freeExtra, mỗi công thức một lần
 const vlBook = day => day.pools.flatMap(([, list]) => list).concat(day.freeExtra || []).map(vlQuestion)
   .filter((q, k, all) => all.findIndex(o => o.f === q.f) === k);
@@ -407,7 +453,8 @@ const VL_EGG = {
     ['O', 3, 210, 2], ['O', 4, -30, 2]], v:{0:2, 3:3, 4:3}},
   S2O7:   {nm:'gốc đisunfat (hoá trị II) trong oleum', a:[['O'], ['S', 0, 180], ['S', 0, 0], ['O', 1, 90, 2], ['O', 1, 270, 2],
     ['O', 1, 180], ['O', 2, 90, 2], ['O', 2, 270, 2], ['O', 2, 0]], free:[[5, 180], [8, 0]]}};
-// chất đã biết vẽ tay: hữu cơ tới 2 nguyên tử C (nhiều C hơn cấu tạo phức tạp mà ít ích), cùng kiểu khai báo với chất bí mật
+// chất đã biết vẽ tay: hữu cơ tới 2 nguyên tử C (nhiều C hơn cấu tạo phức tạp mà ít ích; muối hữu cơ thì tính từng gốc,
+// xem VL_RAD), cùng kiểu khai báo với chất bí mật
 const VL_MOL = {
   CH4O:   {nm:'metanol (rất độc)', show:'CH3OH', a:[['C'], ['H', 0, 90], ['H', 0, 180], ['H', 0, 270], ['O', 0, 0], ['H', 4, -60]]},
   CH2O:   {nm:'fomanđehit (fomon)', show:'HCHO', a:[['C'], ['O', 0, 0, 2], ['H', 0, 120], ['H', 0, 240]]},
@@ -428,13 +475,32 @@ const eggLayout = f => handLayout(VL_EGG[f]);
 // mọi chất được công nhận khi tạo chất tự do / khám phá: sổ chất + chất vẽ tay (chất bí mật tính riêng)
 const vlKnown = day => vlBook(day).map(q => ({f:q.f, name:q.name, L:() => vlLayout(q)}))
   .concat(Object.keys(VL_MOL).map(f => ({f, name:VL_MOL[f].nm, L:() => handLayout(VL_MOL[f])})));
+// đơn chất — chỉ nhận ở khám phá (tạo chất tự do vẫn đòi hợp chất): phân tử vẽ tay như VL_MOL; kim loại, C, S, P là một
+// nguyên tử đứng riêng, viết như trong sách (Fe, Cu, C…). arms: số tay của mỗi nguyên tử
+const VL_ELEM = {
+  H2:  {nm:'khí hiđro', arms:1, a:[['H'], ['H', 0, 0]]},
+  O2:  {nm:'khí oxi', arms:2, a:[['O'], ['O', 0, 0, 2]]},
+  N2:  {nm:'khí nitơ', arms:3, a:[['N'], ['N', 0, 0, 3]]},
+  Cl2: {nm:'khí clo', arms:1, a:[['Cl'], ['Cl', 0, 0]]},
+  S8:  {nm:'lưu huỳnh — vòng 8 nguyên tử', arms:2, b:[[7, 0, 1]],
+    a:[['S'], ['S', 0, 0], ['S', 1, 45], ['S', 2, 90], ['S', 3, 135], ['S', 4, 180], ['S', 5, 225], ['S', 6, 270]]}};
+['Na', 'K', 'Ag', 'Mg', 'Ca', 'Ba', 'Zn', 'Al', 'Fe', 'Cu', 'C', 'S', 'P'].forEach(e => VL_ELEM[e] = {arms:0, a:[[e]],
+  nm:e === 'C' ? 'cacbon (than, kim cương)' : e === 'P' ? 'photpho đỏ' : e === 'S' ? 'lưu huỳnh' : EL_VN[e] + ' (kim loại)'});
+const vlElems = () => Object.keys(VL_ELEM).map(f => ({f, name:VL_ELEM[f].nm, L:() => handLayout(VL_ELEM[f])}));
+// chất ghép đúng hoá trị nhưng không tồn tại: tạo chất tự do / khám phá báo "phân huỷ ngay lập tức" (kèm sản phẩm) thay cho
+// "chưa có trong sổ". Giá trị: sản phẩm
+const VL_GONE = {
+  'Al2(CO3)3':'thành Al(OH)3 và CO2 khi gặp nước', 'Fe2(CO3)3':'thành Fe(OH)3 và CO2 khi gặp nước',
+  'Al2(SO3)3':'thành Al(OH)3 và SO2 khi gặp nước', 'Fe2(SO3)3':'thành Fe(OH)3 và SO2 khi gặp nước',
+  'Al(HCO3)3':'thành Al(OH)3 và CO2 khi gặp nước', 'Fe(HCO3)3':'thành Fe(OH)3 và CO2 khi gặp nước',
+  CuCO3:'thành muối bazơ Cu2(OH)2CO3 và CO2 khi gặp nước', AgOH:'thành Ag2O và H2O', CuOH:'thành Cu2O và H2O', Fe2S3:'thành FeS và S'};
 // hoá trị từng nguyên tố trong một mô hình, đếm tay của từng bóng: "Fe: II, III · O: II" (chú thích khi rê chuột)
 function vlValText(L){
   const arms = L.nodes.map(() => 0), m = {};
   L.bonds.forEach(([p, q, o]) => { arms[p] += o; arms[q] += o; });
   (L.free || []).forEach(([p]) => arms[p]++);
   L.nodes.forEach((n, k) => (m[n.el] = m[n.el] || new Set()).add(arms[k]));
-  return Object.keys(m).map(e => e + ': ' + [...m[e]].sort().map(v => ROMAN[v]).join(', ')).join(' · ');
+  return Object.keys(m).map(e => e + ': ' + [...m[e]].sort().map(v => ROMAN[v] || 'không nắm tay').join(', ')).join(' · ');
 }
 // các lớp svg cho một nhóm bóng, cùng thứ tự với molDraw (viền mực mờ → sticker trắng → que) để sticker các bóng chạm
 // nhau liền thành một miếng. Tay là một nét mọc từ tâm bóng: a = hướng, d = lệch ngang (liên kết đôi / ba là 2 / 3 nét
@@ -575,13 +641,14 @@ const MG = {
         "Hoàn thành!" với Kết thúc / Tiếp tục. Tiếp tục → tạo chất tự do (mode 'free') bằng số giây còn lại: mỗi lượt một
         bộ nguyên tố, tạo chất nào có thật cũng được (vlKnown — không ép về chất của đề), mỗi chất +PTS một lần, chất bí
         mật thưởng thêm EGG_BONUS. Khám phá (explore, mở khi ngày 4 đạt 3 sao, startVlExplore): bảng 17 nguyên tố, ghép
-        bừa không tính giờ; số chất đã khám phá lưu ở save.vlSeen.
+        bừa không tính giờ; số chất đã khám phá lưu ở save.vlSeen. Chỉ khám phá nhận thêm đơn chất (VL_ELEM: H₂, O₂,
+        N₂, Cl₂, S₈, kim loại, C, S, P). Cả hai phần tự do đều báo chất không tồn tại (VL_GONE) là "phân huỷ ngay".
         Cả khu vực vẽ lại mỗi khung hình trên MỘT svg (vlLayers), bóng là các .atom đè lên trên. --- */
  valence(i, day, explore){
-  const known = vlKnown(day), EGGS = Object.keys(VL_EGG), qs = [];     // qs: 8 câu, bốc theo từng nhóm, không lặp chất
+  const known = vlKnown(day).concat(explore ? vlElems() : []), EGGS = Object.keys(VL_EGG), qs = [];   // qs: 8 câu, bốc theo từng nhóm, không lặp chất; đơn chất chỉ nhận ở khám phá
   if(!explore) day.pools.forEach(([n, list]) => shuffle(list).map(vlQuestion).filter(q => !qs.some(o => o.f === q.f)).slice(0, n).forEach(q => qs.push(q)));
   const TOTAL_T = 90, PTS = 10, EGG_BONUS = 20;
-  const ZW = 840, ZH = 430, SC = 2.2, PSC = 1.9, MAX = 16;             // SC: cỡ bóng trên bàn, PSC: ở cột trái
+  const ZW = 840, ZH = 430, SC = 2.2, PSC = 1.9, MAX = VL_MAX;         // SC: cỡ bóng trên bàn, PSC: ở cột trái
   // bóng trôi DRIFT px/s, hướng lắc ngẫu nhiên (NOISE·√dt — đổi hướng sau vài giây, không phụ thuộc số khung hình);
   // mỗi giây bị kéo về giữa sân PULL phần khoảng cách → cả cụm trôi chừng 4–5 px/s quanh giữa sân
   const DRIFT = 6, PULL = .03, NOISE = 2.5;
@@ -629,7 +696,7 @@ const MG = {
   const hud = (txt, el) => { G.querySelector(el || '#mgscore').textContent = txt; };
   const seen = () => known.filter(k => (save.vlSeen || []).includes(k.f)).length;
   const AGAIN = 'Hãy tạo chất với ít nguyên tử nhất để qua màn ;)';   // nhắc sau khi ra chất bí mật
-  const ORG = 'Chất hữu cơ (C, H, O, N) mới hỗ trợ tới 2 nguyên tử C thôi — nhiều C hơn thì cấu tạo phức tạp lắm!';
+  const ORG = 'Chất hữu cơ mới hỗ trợ mỗi nhóm tới 2 nguyên tử C thôi — nhiều C hơn thì cấu tạo phức tạp lắm!';
 
   // bộ sưu tập chất bí mật (lưu qua các lượt): chỉ bật lên lúc vừa tìm được một chất, vài giây sau tự tắt.
   // Mỗi chất một ngôi sao, chưa tìm thì mờ; rê chuột lên ngôi sao đã sáng để xem công thức và hoá trị
@@ -771,7 +838,7 @@ const MG = {
   function exploreSetup(){
     keys = Object.keys(VL_VALS);
     t1.innerHTML = '<span class="vl-qn">Khám phá</span>';
-    t2.innerHTML = '<span>Chất hữu cơ (C, H, O, N): tối đa 2 nguyên tử C</span>';
+    t2.innerHTML = '<span>Chất hữu cơ: mỗi nhóm tối đa 2 nguyên tử C</span>';
     setPal(true);
     hud('Sổ chất: ' + seen() + '/' + known.length);
     setGo(true); lock(false); refresh();
@@ -838,9 +905,13 @@ const MG = {
   function checkKnown(c){
     const hit = known.find(k => same(c, atomCounts(k.f))), egg = !hit && EGGS.find(e => same(c, atomCounts(e)));
     if(!hit && !egg){
-      const els = Object.keys(c);
-      return reject(els.length === 1 ? `Mới có ${els[0]} — hãy ghép thành hợp chất nhé!`
-        : (c.C || 0) >= 3 && els.every(e => ['C', 'H', 'O', 'N'].includes(e)) ? ORG : 'Chưa có chất này trong sổ — thử chất khác!', true);
+      const els = Object.keys(c), n = c[els[0]], gone = Object.keys(VL_GONE).find(g => same(c, atomCounts(g)));
+      const org = (c.C || 0) >= 3 && c.H && els.every(e => ['C', 'H', 'O', 'N', 'Na', 'K', 'Ag', 'Mg', 'Ca', 'Ba', 'Zn', 'Al', 'Fe', 'Cu'].includes(e));
+      return reject(gone ? sub(`${gone} không tồn tại — phân huỷ ngay lập tức ${VL_GONE[gone]}!`)
+        : els.length > 1 ? (org ? ORG : 'Chưa có chất này trong sổ — thử chất khác!')
+        : mode !== 'explore' ? `Mới có ${els[0]} — hãy ghép thành hợp chất nhé!`   // đơn chất chỉ nhận ở khám phá
+        : n === 1 ? `Một nguyên tử ${els[0]} lẻ loi chưa thành chất — ghép thêm bạn nhé!`
+        : sub(`${els[0]}${n}`) + ' chưa phải chất quen thuộc — thử số nguyên tử khác nhé!', true);
     }
     const f = hit ? hit.f : egg, L = hit ? hit.L() : eggLayout(egg), nm = hit ? hit.name : VL_EGG[egg].nm;
     if(mode === 'free'){
@@ -857,7 +928,10 @@ const MG = {
     if(hit){ save.vlSeen = save.vlSeen || []; if(!save.vlSeen.includes(f)){ save.vlSeen.push(f); persist(); fresh = true; } }
     if(!found.includes(f)){
       found.push(f);
-      G.querySelector('.vl-found').insertAdjacentHTML('beforeend', `<span class="vl-tag${egg ? ' egg' : ''}" title="${vlValText(L)}">${sub(fShow(f))}</span>`);
+      const list = G.querySelector('.vl-found');
+      list.insertAdjacentHTML('beforeend', `<span class="vl-tag${egg ? ' egg' : ''}" title="${vlValText(L)}">${sub(fShow(f))}</span>`);
+      const tag = list.lastElementChild;                    // công thức dài như (CH₃COO)₂Ca: thu nhỏ chữ cho vừa ô, cột vẫn thẳng hàng
+      for(let s = 15; tag.scrollWidth > tag.clientWidth && s > 9; ) tag.style.fontSize = (s -= .5) + 'px';
     }
     hud('Sổ chất: ' + seen() + '/' + known.length);
     assemble(L, () => {
@@ -905,7 +979,7 @@ const MG = {
       Object.assign(A, {tx:P[j].x, ty:P[j].y, ts:sc, arms:slots[j].map(s => Object.assign({g:0, tg:0}, s))});
       A.div.style.pointerEvents = 'none';
       A.div.querySelector('.vl-val')?.remove();
-      A.div.insertAdjacentHTML('beforeend', `<span class="vl-val">${ROMAN[slots[j].length]}</span>`);
+      if(slots[j].length) A.div.insertAdjacentHTML('beforeend', `<span class="vl-val">${ROMAN[slots[j].length]}</span>`);   // nguyên tử đứng riêng không có nhãn
     });
     setTimeout(() => own.forEach(A => A.arms.forEach(m => m.tg = 1)), 380);
     setTimeout(() => {
@@ -1645,7 +1719,7 @@ function serveConc(){
     <div class="center" style="margin-top:12px"><button class="btn big" id="cnext">${last?'Xem kết quả':'Câu tiếp '+ico('next')}</button></div>
   </div>`;
   G.appendChild(ov);
-  ov.querySelector('#cnext').onclick = () => { ov.remove(); if(last) go(concResult); else { conc.ci++; renderConc(); } };
+  ov.querySelector('#cnext').onclick = () => { closeOv(ov); if(last) go(concResult); else { conc.ci++; renderConc(); } };
 }
 function concResult(){
   const n = conc.list.length, cor = conc.correct, r = cor/n;
@@ -1721,11 +1795,11 @@ function askDose(f, cb){
     const units = RQ(k.toUnits(v));
     if(units < 0.01){ msg.textContent = 'Ít quá, cân không đo nổi — kiểm tra lại phép tính.'; return; }
     if(units > 40){ msg.textContent = 'Nhiều quá — cốc chỉ chứa nổi cỡ 4 mol thôi. Kiểm tra lại phép tính.'; return; }
-    ov.remove(); cb(units);
+    closeOv(ov); cb(units);
   };
   ov.querySelector('#dok').onclick = ok;
-  ov.querySelector('#dno').onclick = () => ov.remove();
-  inp.addEventListener('keydown', e => { if(e.key === 'Enter') ok(); else if(e.key === 'Escape') ov.remove(); });
+  ov.querySelector('#dno').onclick = () => closeOv(ov);
+  inp.addEventListener('keydown', e => { if(e.key === 'Enter') ok(); else if(e.key === 'Escape') closeOv(ov); });
 }
 // con đường dùng để giải mẫu: đốt nếu phiếu là đơn đốt, không thì phản ứng ra đúng chất từ kệ
 function hardRoute(od){
@@ -1997,7 +2071,7 @@ function showRxCard(r, opt){
   };
   play();
   ov.querySelector('#rxagain').onclick = play;
-  ov.querySelector('#rxgo').onclick = () => { timers.forEach(clearTimeout); ov.remove(); if(opt.onClose) opt.onClose(); };
+  ov.querySelector('#rxgo').onclick = () => { timers.forEach(clearTimeout); closeOv(ov); if(opt.onClose) opt.onClose(); };
   SFX.bell();
 }
 /* Trong ca: thẻ xếp hàng, mỗi lần một thẻ; đồng hồ ca đứng yên lúc xem — học không bị trừ giờ */

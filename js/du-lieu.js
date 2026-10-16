@@ -140,18 +140,19 @@ function o(who, chem, n, opts){
   return Object.assign({who, chem, n}, opts||{});
 }
 
-/* ---- 31 days, 5 chương. Lab day: {t, story, chems, tools, dur, orders, s1}. Minigame day: {t, story, mg, ...data} ---- */
+/* ---- 31 days, 5 chương. Lab day: {story, chems, tools, dur, orders, s1}. Minigame day: {story, mg, ...data} ---- */
+/* tên / mô tả từng ngày (day.t) nằm ở js/lich.js — sửa ở đó */
 /* tools: spoon, book, quy, gas, heat, filter, elec (sink + đũa thuỷ tinh luôn có sẵn) */
 const DAYS = [
  // ================= CHƯƠNG 1: NHẬP MÔN & OXI (1–7) =================
- {t:'Ngày đầu tiên ở tiệm',
+ {
   story:'Chào mừng trò đến với tiệm hoá chất của ta! Ta là giáo sư Hoffmann. Hôm nay trò học pha DUNG DỊCH: cho chất tan vào cốc rồi thêm nước. Chất nào ÍT TAN sẽ lắng dưới đáy — lấy ĐŨA THUỶ TINH bên cạnh cốc, kéo vào rồi khuấy tròn cho tan hết nhé!',
   chems:['H2O','NaCl','C12H22O11','MgSO4'], tools:[], dur:300, s1:2,
   orders:[ o(2,'C12H22O11',1,{water:1,pname:'nước đường'}),
            o(0,'NaCl',1,{water:1,pname:'nước muối'}),
            o(4,'MgSO4',1,{water:1,pname:'nước muối tắm Epsom (khuấy cho tan!)'}) ]},
 
- {t:'Khái niệm mol',
+ {
   story:'MOL là "tá" của nhà hoá học: 1 mol = 6,022×10²³ hạt! Mỗi lần trò nghiêng lọ là thêm đúng 0,1 mol. Khách hỏi 0,3 mol thì nghiêng 3 lần. Ta tặng trò cái THÌA KHUẤY — bấm để đảo đều cốc. Hôm nay có mấy vị khách "cuồng số" ghé đấy…',
   chems:['H2O','NaCl','C12H22O11'], tools:['spoon'], dur:300, s1:3,
   orders:[ o(3,'C12H22O11',2,{water:1,pname:'nước đường (0,2 mol đường)'}),
@@ -161,12 +162,12 @@ const DAYS = [
              line:SPECIAL_LINES.avogadroTro}),
            o(7,'NaCl',2,{water:1,pname:'nước muối (0,2 mol NaCl)'}) ]},
 
- {t:'Nguyên tử hay phân tử?', mg:'bins',
+ {mg:'bins',
   story:'NGUYÊN TỬ là hạt nhỏ nhất của nguyên tố (Fe, Cu…). Nhiều nguyên tử gắn lại thành PHÂN TỬ. Phân tử của một nguyên tố là ĐƠN CHẤT (O₂, N₂…), của nhiều nguyên tố là HỢP CHẤT (H₂O, CO₂…). Phân loại các thẻ này nào!',
   bins:['Nguyên tử','Phân tử đơn chất','Phân tử hợp chất'], binNotes:['kim loại'],
   items:[['Fe',0],['Cu',0],['Na',0],['Ag',0],['O2',1],['H2',1],['N2',1],['Cl2',1],['H2O',2],['CO2',2],['NaCl',2],['H2SO4',2]]},
 
- {t:'Hoá trị — những "cánh tay" nguyên tử', mg:'valence',
+ {mg:'valence',
   story:'HOÁ TRỊ là số "cánh tay" một nguyên tử dùng để nắm tay nguyên tử khác. Công thức đúng khi MỌI bàn tay đều có bạn nắm, không tay nào thừa: Na 1 tay, O 2 tay → 2 Na nắm 1 O thành Na₂O. Có nguyên tố nhiều hoá trị (N từ I tới V!) — đề ghi đủ và tô đậm hoá trị dùng trong câu. GỐC AXIT (=SO₄, −NO₃…) và nhóm −OH cũng có hoá trị, coi như một nguyên tố: mấy câu đầu ta ráp sẵn gốc cho, từ câu 4 trò tự ráp từ từng nguyên tử. Kéo bóng vào khu vực tạo chất rồi bấm KIỂM TRA. Cả màn chỉ có 90 giây — làm nhanh nhé! Xong sớm thì giây còn lại để trò tự do tạo chất lấy điểm.',
   // mỗi lượt bốc theo thứ tự: [số câu, danh sách]. Hai nguyên tố: [A, hoá trị A, B, hoá trị B, tên];
   // axit / bazơ / muối: [kim loại hoặc H, hoá trị, gốc, tên] — câu trước buildFrom có gốc dựng sẵn, từ đó ráp từ nguyên tử
@@ -204,9 +205,21 @@ const DAYS = [
    ['Na',1,'HCO3','natri hiđrocacbonat (thuốc muối)'], ['K',1,'HCO3','kali hiđrocacbonat'], ['Ca',2,'HCO3','canxi hiđrocacbonat'],
    ['Na',1,'HSO4','natri hiđrosunfat'], ['K',1,'HSO4','kali hiđrosunfat'], ['Na',1,'H2PO4','natri đihiđrophotphat'],
    ['Na',1,'HPO4','natri hiđrophotphat'], ['Ca',2,'HPO4','canxi hiđrophotphat'],
-   ['K',1,'ClO3','kali clorat'], ['Na',1,'ClO3','natri clorat'], ['H',1,'ClO3','axit cloric']]},
+   ['K',1,'ClO3','kali clorat'], ['Na',1,'ClO3','natri clorat'], ['H',1,'ClO3','axit cloric'],
+   // muối hữu cơ: mỗi gốc tới 2 nguyên tử C (tính từng gốc — (CH₃COO)₂Ca có 4 C vẫn nhận). Chất nào cần quá 16 bóng
+   // (MAX ở MG.valence, vd. Al(CH₃COO)₃ = 22) thì không ghép nổi nên không đưa vào
+   ['Na',1,'HCOO','natri fomat'], ['K',1,'HCOO','kali fomat'], ['Ag',1,'HCOO','bạc fomat'], ['Mg',2,'HCOO','magie fomat'],
+   ['Ca',2,'HCOO','canxi fomat'], ['Ba',2,'HCOO','bari fomat'], ['Zn',2,'HCOO','kẽm fomat'], ['Fe',2,'HCOO','sắt(II) fomat'],
+   ['Cu',2,'HCOO','đồng(II) fomat'],
+   ['Na',1,'CH3COO','natri axetat'], ['K',1,'CH3COO','kali axetat'], ['Ag',1,'CH3COO','bạc axetat'], ['Mg',2,'CH3COO','magie axetat'],
+   ['Ca',2,'CH3COO','canxi axetat'], ['Ba',2,'CH3COO','bari axetat'], ['Zn',2,'CH3COO','kẽm axetat'], ['Fe',2,'CH3COO','sắt(II) axetat'],
+   ['Cu',2,'CH3COO','đồng(II) axetat'],
+   ['Na',1,'CH3O','natri metylat'], ['K',1,'CH3O','kali metylat'], ['Na',1,'C2H5O','natri etylat'], ['K',1,'C2H5O','kali etylat'],
+   ['H',1,'C2O4','axit oxalic'], ['Na',1,'C2O4','natri oxalat'], ['K',1,'C2O4','kali oxalat'], ['Ag',1,'C2O4','bạc oxalat'],
+   ['Mg',2,'C2O4','magie oxalat'], ['Ca',2,'C2O4','canxi oxalat'], ['Ba',2,'C2O4','bari oxalat'], ['Zn',2,'C2O4','kẽm oxalat'],
+   ['Fe',2,'C2O4','sắt(II) oxalat'], ['Cu',2,'C2O4','đồng(II) oxalat']]},
 
- {t:'Oxi gặp kim loại',
+ {
   story:'OXI duy trì sự cháy — kim loại cháy trong oxi tạo OXIT: 2Mg + O₂ —t°→ 2MgO sáng chói! Sắt thì đặc biệt: 3Fe + 2O₂ → Fe₃O₄ oxit sắt từ, cháy tóe hoa lửa. Đốt thì không bỏ vào cốc đâu nhé — ba bước với MUÔI ĐỐT: nạp O₂ vào LỌ KHÍ → kim loại lên muôi, hơ ĐÈN CỒN cho bén lửa → đưa nhanh vào lọ. Nhìn công thức oxit là thấy hoá trị hôm qua! Đong oxi cho đúng tỉ lệ — thiếu thì lửa tắt giữa chừng!',
   chems:['Mg','Cu','Zn','Fe','O2'], tools:['spoon','book','heat','gas','burn'], dur:320, s1:3,
   orders:[ o(4,'MgO',2,{pname:'magie oxit'}),
@@ -214,14 +227,14 @@ const DAYS = [
            o(6,'ZnO',2,{pname:'kẽm oxit'}),
            o(8,'Fe3O4',1,{pname:'oxit sắt từ'}) ]},
 
- {t:'Oxi gặp phi kim',
+ {
   story:'Không chỉ kim loại — than, lưu huỳnh, photpho đều cháy trong oxi! C + O₂ —t°→ CO₂: khí sinh ra nằm ngay trong lọ, đậy nắp muôi lại là giao được cả lọ. Lưu huỳnh cháy lửa XANH LAM ra SO₂ hắc mũi. Photpho cháy tạo khói trắng P₂O₅ — bột rắn rơi ra đĩa. Nhớ: oxi dư cũng là "hàng lẫn" đấy!',
   chems:['S','P','C','O2'], tools:['spoon','book','heat','gas','burn'], dur:320, s1:2,
   orders:[ o(2,'CO2',1,{pname:'khí cacbonic'}),
            o(9,'SO2',1,{pname:'khí sunfurơ'}),
            o(5,'P2O5',2,{pname:'điphotpho pentaoxit'}) ]},
 
- {t:'Luyện tập chương 1',
+ {
   story:'Hết chương đầu rồi! Bài kiểm tra nhỏ: pha dung dịch đúng số mol, rồi đốt vài thứ trong oxi. Bình tĩnh làm từng đơn, ta đứng sau quầy cổ vũ trò đây.',
   chems:['H2O','NaCl','Mg','C','S','O2'], tools:['spoon','book','heat','gas','burn'], dur:360, s1:3,
   orders:[ o(0,'NaCl',2,{water:1,pname:'nước muối (0,2 mol)'}),
@@ -230,14 +243,14 @@ const DAYS = [
            o(9,'SO2',1,{pname:'khí sunfurơ'}) ]},
 
  // ================= CHƯƠNG 2: HIĐRO – NƯỚC – AXIT BAZƠ (8–14) =================
- {t:'Hiđro — chất khử cừ khôi',
+ {
   story:'Chương mới, nhân vật mới: KHÍ HIĐRO — nhẹ nhất vũ trụ! Dẫn H₂ qua CuO nung nóng, nó "cướp" oxi tạo Cu đỏ rực: CuO + H₂ —t°→ Cu + H₂O. Đó gọi là PHẢN ỨNG KHỬ. Cho oxit + H₂ vào cốc, BẬT ĐÈN, rồi lọc lấy kim loại.',
   chems:['H2O','CuO','Fe2O3','H2'], tools:['spoon','book','heat','filter'], dur:320, s1:2,
   orders:[ o(8,'Cu',1,{pname:'đồng kim loại'}),
            o(9,'Fe',2,{pname:'sắt kim loại'}),
            o(4,'Cu',2,{pname:'đồng kim loại (0,2 mol)'}) ]},
 
- {t:'Điều chế hiđro',
+ {
   story:'Hôm qua dùng H₂, hôm nay tự làm ra nó! Kim loại + axit → muối + H₂↑: Zn + 2HCl → ZnCl₂ + H₂. Khí sẽ bay mất nếu không hứng — bật BÌNH THU KHÍ lên TRƯỚC khi bỏ kim loại vào nhé.',
   chems:['H2O','HCl','Zn','Fe','Mg','Al'], tools:['spoon','book','quy','gas'], dur:340, s1:3,
   orders:[ o(6,'H2',1,{pname:'khí hiđro'}),
@@ -246,7 +259,7 @@ const DAYS = [
            o(7,'FeCl2',1,{pname:'sắt(II) clorua'}),
            o(5,'MgCl2',1,{pname:'magie clorua'}) ]},
 
- {t:'Ai là chất khử?', mg:'redox',
+ {mg:'redox',
   story:'Sự OXI HOÁ là chiếm lấy oxi; sự KHỬ là nhường oxi đi. CHẤT KHỬ là chất chiếm oxi của chất khác (nó bị oxi hoá). Nhìn từng phương trình và chỉ ra chất khử nhé!',
   quiz:[
    {q:'CuO + H₂ —t°→ Cu + H₂O', opts:['CuO','H₂'], ans:1, why:'H₂ chiếm oxi của CuO nên H₂ là chất khử'},
@@ -256,28 +269,28 @@ const DAYS = [
    {q:'Zn + CuSO₄ → ZnSO₄ + Cu', opts:['Zn','CuSO₄'], ans:0, why:'Zn nhường electron, đẩy Cu ra → chất khử'},
    {q:'2Cu + O₂ —t°→ 2CuO', opts:['Cu','O₂'], ans:0, why:'Cu kết hợp với oxi → chất khử'}]},
 
- {t:'Nước — hợp chất kỳ diệu',
+ {
   story:'NƯỚC là hợp chất của hiđro và oxi. Nó hiền mà không hiền: thả NATRI vào là chạy vòng vòng sủi bọt — 2Na + 2H₂O → 2NaOH + H₂↑! Vôi sống gặp nước cũng nóng rực: CaO + H₂O → Ca(OH)₂. (Còn muốn TÁCH nước ngược lại thành H₂ và O₂? Chờ đến ngày 29 nhé — bí mật!)',
   chems:['H2O','Na','CaO'], tools:['spoon','book','quy','gas','filter'], dur:320, s1:2,
   orders:[ o(8,'H2',1,{pname:'khí hiđro (hứng từ Na + nước!)'}),
            o(4,'NaOH',2,{pname:'natri hiđroxit'}),
            o(0,'Ca(OH)2',1,{pname:'nước vôi trong'}) ]},
 
- {t:'Axit hay bazơ? — Thám tử quỳ tím', mg:'identify',
+ {mg:'identify',
   story:'AXIT có H đứng đầu, làm quỳ tím hoá ĐỎ. BAZƠ có nhóm OH, làm quỳ hoá XANH. Chất trung tính thì… vẫn TÍM. Hai lọ cùng đỏ thì sao? Gọi thêm trợ thủ: BaCl₂ cho kết tủa trắng với gốc =SO₄, AgNO₃ cho kết tủa trắng với gốc −Cl, Na₂CO₃ sủi bọt khi gặp axit. Ba lọ này bong hết nhãn rồi — nhỏ thử từng mẫu, ghi lại hiện tượng, rồi dán nhãn giúp ta!',
   // mỗi lượt bốc ngẫu nhiên MỘT bộ 3 lọ; bộ nào cũng phải phân biệt được bằng quỳ + reagents (khoi-dong.js kiểm tra)
   reagents:['BaCl2','AgNO3','Na2CO3'],
   sets:[['HCl','H2SO4','NaOH'], ['HCl','NaCl','NaOH'], ['H2SO4','Na2SO4','NaCl'],
         ['HCl','NaCl','H2O'], ['NaOH','Ca(OH)2','NaCl'], ['H2SO4','NaOH','Na2SO4']]},
 
- {t:'Oxit gặp nước',
+ {
   story:'Vài oxit phản ứng luôn với nước: CaO (vôi sống) + H₂O → Ca(OH)₂ là BAZƠ, còn P₂O₅ + 3H₂O → 2H₃PO₄ là AXIT. Quy luật: oxit kim loại + nước → bazơ, oxit phi kim + nước → axit. Thử quỳ để kiểm tra sản phẩm nhé!',
   chems:['H2O','CaO','Na2O','P2O5'], tools:['spoon','book','quy','filter'], dur:300, s1:2,
   orders:[ o(0,'Ca(OH)2',1,{pname:'nước vôi trong'}),
            o(4,'NaOH',2,{pname:'natri hiđroxit'}),
            o(9,'H3PO4',2,{pname:'axit photphoric'}) ]},
 
- {t:'Luyện tập chương 2',
+ {
   story:'Kiểm tra tay nghề chương 2: điều chế H₂, dùng H₂ khử oxit, và cho oxit gặp nước. Nhiều bước một tí nhưng trò làm được — trò đã là thợ phụ cứng tay rồi!',
   chems:['H2O','HCl','Zn','CuO','CaO','H2'], tools:['spoon','book','quy','gas','heat','filter'], dur:360, s1:3,
   orders:[ o(2,'H2',1,{pname:'khí hiđro (Zn + axit)'}),
@@ -288,7 +301,7 @@ const DAYS = [
 
 DAYS.push(
  // ================= CHƯƠNG 3: AXIT – BAZƠ – MUỐI (15–21) =================
- {t:'Tính chất của axit',
+ {
   story:'AXIT = hiđro + GỐC AXIT: −Cl (clorua), =SO₄ (sunfat), −NO₃ (nitrat). Axit tác dụng kim loại → muối + H₂↑, tác dụng oxit bazơ → muối + nước. Tên muối đi theo gốc axit — nhìn đơn hàng là biết cần axit nào! Và nhớ QUY TẮC VÀNG khi pha axit: rót AXIT vào NƯỚC, đừng bao giờ rót nước vào axit.',
   chems:['H2O','HCl','H2SO4','Zn','Fe','CuO'], tools:['spoon','book','quy','gas','filter'], dur:340, s1:3,
   orders:[ o(0,'CuCl2',1,{pname:'đồng(II) clorua (gốc −Cl)'}),
@@ -296,7 +309,7 @@ DAYS.push(
            o(7,'FeSO4',1,{pname:'sắt(II) sunfat'}),
            o(3,'H2',1,{pname:'khí hiđro'}) ]},
 
- {t:'Tính chất của bazơ',
+ {
   story:'BAZƠ tan (kiềm) làm quỳ hoá xanh; bazơ KHÔNG TAN thì sắc màu rực rỡ: Cu(OH)₂ XANH LAM, Fe(OH)₃ NÂU ĐỎ. Và đun Cu(OH)₂ trên đèn cồn thì nó phân huỷ thành CuO đen! Hoá học là một hộp màu vẽ đấy trò ạ.',
   chems:['H2O','CuSO4','FeCl3','NaOH'], tools:['spoon','book','quy','heat','filter'], dur:340, s1:3,
   orders:[ o(2,'Cu(OH)2',1,{pname:'đồng(II) hiđroxit xanh lam'}),
@@ -304,12 +317,12 @@ DAYS.push(
            o(5,'CuO',1,{pname:'đồng(II) oxit (nung Cu(OH)₂)'}),
            o(3,'Na2SO4',1,{pname:'natri sunfat (nước lọc)'}) ]},
 
- {t:'Phân loại chất', mg:'bins',
+ {mg:'bins',
   story:'Bốn họ nhà hoá chất: OXIT (nguyên tố + oxi), AXIT (H + gốc axit), BAZƠ (kim loại + OH), MUỐI (kim loại + gốc axit). Phân loại chuẩn thì học gì cũng nhanh — kéo từng thẻ vào đúng giỏ nhé!',
   bins:['Oxit','Axit','Bazơ','Muối'], binScale:1.3,
   items:[['CO2',0],['CaO',0],['Fe2O3',0],['SO2',0],['HCl',1],['H2SO4',1],['HNO3',1],['NaOH',2],['KOH',2],['Cu(OH)2',2],['NaCl',3],['CuSO4',3],['Na2CO3',3],['NaHCO3',3]]},
 
- {t:'Axit mạnh: H₂SO₄ & HNO₃',
+ {
   story:'Hai "đại ca" nhà axit! H₂SO₄ HAI nấc: một phân tử "ăn" được HAI phân tử NaOH — muốn Na₂SO₄ phải trộn 1:2. HNO₃ tạo muối nitrat. Mẹo nhận biết gốc sunfat: nhỏ BaCl₂ vào là kết tủa trắng BaSO₄ ngay!',
   chems:['H2O','H2SO4','HNO3','NaOH','KOH','BaCl2'], tools:['spoon','book','quy','filter'], dur:340, s1:3,
   orders:[ o(4,'Na2SO4',1,{pname:'natri sunfat (tỉ lệ 1:2!)'}),
@@ -317,7 +330,7 @@ DAYS.push(
            o(9,'K2SO4',1,{pname:'kali sunfat'}),
            o(1,'BaSO4',1,{pname:'bari sunfat trắng (nhận biết gốc =SO₄)'}) ]},
 
- {t:'Muối (1) — con của axit và bazơ',
+ {
   story:'AXIT + BAZƠ → MUỐI + NƯỚC — phản ứng TRUNG HOÀ! HCl gặp NaOH cho ra muối ăn NaCl. Muối mang tên "họ bố mẹ": kim loại của bazơ + gốc của axit. Trộn đúng tỉ lệ nhé!',
   chems:['H2O','HCl','H2SO4','NaOH','KOH'], tools:['spoon','book','quy'], dur:300, s1:3,
   orders:[ o(0,'NaCl',1,{pname:'muối ăn'}),
@@ -325,7 +338,7 @@ DAYS.push(
            o(4,'Na2SO4',1,{pname:'natri sunfat'}),
            o(5,'NaCl',2,{pname:'muối ăn (0,2 mol)'}) ]},
 
- {t:'Muối (2) — trao đổi và kết tủa',
+ {
   story:'Hai dung dịch trong suốt đổ vào nhau — BỤP! — trắng xoá như tuyết: AgNO₃ + NaCl → AgCl↓ + NaNO₃. Đó là phản ứng TRAO ĐỔI: hai muối "đổi bạn nhảy" cho nhau. Lọc kết tủa xong, phần nước lọc còn lại cũng bán được — không bỏ phí thứ gì!',
   chems:['H2O','AgNO3','NaCl','BaCl2','Na2SO4'], tools:['spoon','book','filter'], dur:320, s1:2,
   orders:[ o(0,'AgCl',1,{pname:'bạc clorua trắng'}),
@@ -333,7 +346,7 @@ DAYS.push(
            o(8,'NaNO3',1,{pname:'natri nitrat (nước lọc sau kết tủa)'}),
            o(1,'NaCl',2,{pname:'muối ăn (nước lọc sau kết tủa)'}) ]},
 
- {t:'Luyện tập chương 3',
+ {
   story:'Hôm nay khách đông và khó tính lắm — toàn đơn lắt léo về axit, bazơ, muối! Bình tĩnh, đọc kỹ đơn, nhớ tỉ lệ. Ta đứng sau quầy cổ vũ trò đây.',
   chems:['H2O','Zn','Fe','NaCl','HCl','H2SO4','NaOH','CuSO4','AgNO3','BaCl2'], tools:['spoon','book','quy','gas','heat','filter'], dur:340, s1:3,
   orders:[ o(9,'Cu(OH)2',1,{pname:'đồng(II) hiđroxit'}),
@@ -343,14 +356,14 @@ DAYS.push(
            o(7,'FeSO4',1,{pname:'sắt(II) sunfat'}) ]},
 
  // ================= CHƯƠNG 4: KIM LOẠI & PHI KIM (22–28) =================
- {t:'Nhôm — kim loại quốc dân',
+ {
   story:'NHÔM nhẹ, bền, làm từ nồi niêu đến máy bay! Hoá trị III nên phương trình hơi "xoắn": 2Al + 6HCl → 2AlCl₃ + 3H₂. Nhôm cũng cháy trong khí clo: 2Al + 3Cl₂ —t°→ 2AlCl₃ — nạp Cl₂ vào lọ khí rồi đốt nhôm trên muôi. Hai con đường, một sản phẩm! (Lọ khí cũng là bình thu khí: dùng xong nhớ xả sạch trước khi hứng H₂.)',
   chems:['H2O','HCl','Al','Cl2'], tools:['spoon','book','quy','heat','gas','burn'], dur:340, s1:2,
   orders:[ o(3,'AlCl3',2,{pname:'nhôm clorua (đường axit)'}),
            o(6,'H2',3,{pname:'khí hiđro (0,3 mol — nhôm hào phóng!)'}),
            o(1,'AlCl3',2,{pname:'nhôm clorua (đốt trong clo)'}) ]},
 
- {t:'Sắt — hoá trị II và III',
+ {
   story:'SẮT có tính "hai mặt": gặp axit HCl chỉ chịu hoá trị II (FeCl₂), nhưng cháy trong lọ khí clo thì lên hẳn hoá trị III (FeCl₃, khói nâu đỏ)! Đốt trong lọ oxi lại ra Fe₃O₄. Cùng một kim loại, ba bộ mặt — đó là sắt.',
   chems:['H2O','HCl','Cl2','Fe','O2','CuSO4'], tools:['spoon','book','heat','gas','burn','filter'], dur:360, s1:3,
   orders:[ o(7,'FeCl2',1,{pname:'sắt(II) clorua — Fe + axit'}),
@@ -358,11 +371,11 @@ DAYS.push(
            o(8,'Fe3O4',1,{pname:'oxit sắt từ'}),
            o(0,'Cu',1,{pname:'đồng (Fe đẩy khỏi muối)'}) ]},
 
- {t:'May áo giáp sắt', mg:'sort',
+ {mg:'sort',
   story:'Thợ rèn của làng cần may áo giáp — nhưng kim loại nào bền, kim loại nào "yếu bóng vía"? "Khi Nào May Áo Záp Sắt Đồng Bạc" — dãy hoạt động đấy! Kim loại đứng TRƯỚC mạnh hơn, đẩy được kim loại đứng SAU ra khỏi muối. Xếp từ MẠNH NHẤT đến YẾU NHẤT.',
   metals:['K','Na','Mg','Al','Zn','Fe','Cu','Ag']},
 
- {t:'Halogen — khí clo vàng lục',
+ {
   story:'Gặp gỡ họ HALOGEN — nghĩa là "sinh ra muối"! Đại diện: khí clo Cl₂ vàng lục, độc, phản ứng mãnh liệt: natri đốt trên muôi rồi đưa vào lọ clo là 2Na + Cl₂ → 2NaCl (muối ăn từ khí độc, kỳ diệu chưa!). Còn H₂ + Cl₂ là hai khí: trộn trong cốc rồi châm lửa → 2HCl. Cẩn thận khi thao tác nhé!',
   chems:['H2O','Na','Fe','Cu','H2','Cl2'], tools:['spoon','book','quy','heat','gas','burn'], dur:340, s1:3,
   orders:[ o(0,'NaCl',2,{pname:'muối ăn (từ Na + Cl₂!)'}),
@@ -370,14 +383,14 @@ DAYS.push(
            o(1,'CuCl2',1,{pname:'đồng(II) clorua'}),
            o(8,'HCl',2,{pname:'axit clohiđric (H₂ + Cl₂)'}) ]},
 
- {t:'Nitơ — khí trơ mà quý',
+ {
   story:'NITƠ chiếm 78% không khí mà lười phản ứng số một — trơ như đá! Nhưng ép nó với H₂ ở nhiệt độ cao: N₂ + 3H₂ ⇌ 2NH₃ — amoniac, nguyên liệu phân đạm nuôi cả thế giới. NH₃ gặp HCl là "khói trắng" NH₄Cl bay mù mịt!',
   chems:['N2','H2','NH3','HCl'], tools:['spoon','book','quy','gas','heat'], dur:340, s1:2,
   orders:[ o(8,'NH3',2,{pname:'khí amoniac (tổng hợp N₂ + H₂)'}),
            o(4,'NH4Cl',1,{pname:'amoni clorua (khói trắng)'}),
            o(2,'NH4Cl',2,{pname:'amoni clorua (0,2 mol)'}) ]},
 
- {t:'Cacbon — từ than đến đá vôi',
+ {
   story:'CACBON đa tài: than đốt trong lọ oxi cho CO₂, than nóng còn KHỬ được oxit kim loại — 2CuO + C —t°→ 2Cu + CO₂ (bí quyết lò luyện kim từ nghìn năm!). Còn đá vôi CaCO₃ nung già lửa thành vôi sống, gặp axit thì sủi bọt "đá sôi".',
   chems:['H2O','C','O2','CuO','CaCO3','HCl'], tools:['spoon','book','heat','gas','burn','filter'], dur:360, s1:3,
   orders:[ o(2,'CO2',1,{pname:'khí cacbonic (đốt than)'}),
@@ -385,7 +398,7 @@ DAYS.push(
            o(7,'CaO',1,{pname:'vôi sống (nung đá vôi)'}),
            o(0,'CaCl2',1,{pname:'canxi clorua'}) ]},
 
- {t:'Luyện tập lớn — Lễ hội hoá học',
+ {
   story:'Ngày tốt nghiệp khoá chính! Cả thị trấn đến chúc mừng trò. Mọi kệ hoá chất đều mở, mọi dụng cụ sẵn sàng. Hãy cho ta thấy tất cả những gì trò đã học — và nhận danh hiệu NHÀ HOÁ HỌC NHÍ! (Nghe đồn sau lễ hội còn ba ngày bí mật trong phòng thí nghiệm nâng cao…)',
   chems:['H2O','Zn','Fe','Cu','C','O2','CO2','HCl','H2SO4','NaOH','KOH','Ca(OH)2','CuSO4','AgNO3','NaCl','BaCl2','Na2SO4'],
   tools:['spoon','book','quy','gas','heat','filter'], dur:420, s1:4,
@@ -397,21 +410,21 @@ DAYS.push(
            o(5,'BaSO4',1,{pname:'bari sunfat trắng'}) ]},
 
  // ================= CHƯƠNG 5: PHÒNG THÍ NGHIỆM NÂNG CAO (29–31) =================
- {t:'Điện phân — tách chất bằng điện',
+ {
   story:'Chào mừng đến phòng thí nghiệm nâng cao! Đây là NGUỒN ĐIỆN PHÂN — kéo hai điện cực vào cốc. Nước bị dòng điện tách đôi: 2H₂O —đp→ 2H₂↑ (cực âm, hứng được) + O₂↑ (cực dương, thoát ra). Còn điện phân CuCl₂ thì đồng bám cực âm, khí clo sủi ở cực dương! Nguồn điện có bảng định lượng ở mép bàn: chọn chất, vặn số mol rồi bấm — nó tách đúng chừng ấy thôi, nên trò cân được chính xác từng đơn.',
   chems:['H2O','CuCl2'], tools:['spoon','book','gas','filter','elec'], dur:360, s1:2,
   orders:[ o(8,'H2',2,{pname:'khí hiđro (điện phân nước)'}),
            o(3,'Cu',1,{pname:'đồng (điện phân CuCl₂)'}),
            o(9,'Cl2',1,{pname:'khí clo (hứng ở cực dương)'}) ]},
 
- {t:'Thuốc tím — nhà máy oxi tí hon',
+ {
   story:'KMnO₄ — thuốc tím — là chất oxi hoá siêu siêu mạnh! Khuấy tan tinh thể tím (ít tan lắm đấy, dùng đũa!), rồi ĐUN GIÀ LỬA: 2KMnO₄ —t°→ K₂MnO₄ + MnO₂ + O₂↑. Trò vừa tự điều chế OXI! Hứng đầy lọ O₂ đó rồi đốt đồng trên muôi đốt mà xem.',
   chems:['H2O','KMnO4','Cu'], tools:['spoon','book','heat','gas','burn','filter'], dur:380, s1:2,
   orders:[ o(4,'O2',1,{pname:'khí oxi (nhiệt phân thuốc tím)'}),
            o(6,'MnO2',1,{pname:'mangan đioxit (bã rắn — lọc lấy)'}),
            o(1,'CuO',2,{pname:'đồng oxit (đốt Cu bằng O₂ tự chế!)'}) ]},
 
- {t:'Chuỗi phản ứng — Nối mắt xích', mg:'chain',
+ {mg:'chain',
   story:'Thử thách cuối cùng! Trên bảng chỉ có chất ĐẦU và chất ĐÍCH — mấy chất ở giữa ta giấu đi rồi. Kéo bình hoá chất trong khay vào ô trên từng mũi tên. Điền đủ thì ta chấm: đúng cả chuỗi thì hiện ra hết các chất, sai thì mất điểm đấy! Toàn bộ 31 ngày dồn vào đây. Sẵn sàng chưa, NHÀ HOÁ HỌC NHÍ?',
   // Mỗi chuỗi: chất đầu → … → chất đích. ans = chất thêm vào ở từng mũi tên, more = bình gây nhiễu trong khay.
   // Chất ở giữa không ghi ở đây — MG.chain tự dò theo REACTIONS (khoi-dong.js kiểm tra ans đi tới được đích).

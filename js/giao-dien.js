@@ -195,6 +195,10 @@ function unlockAch(id){
   toast(ico('trophy',18)+' Thành tựu mới: <b>'+ACH[id].n+'</b>! +1 '+ico('coinred',15));
   SFX.bell();
 }
+// sao trên lịch: sao chế độ khó tô đỏ, sao thường vàng, còn lại sao rỗng
+function dayStars(st, sth){
+  return [0,1,2].map(k => k < sth ? '<b class="sh">★</b>' : k < st ? '★' : '☆').join('');
+}
 function starStr(n){ return '★★★'.slice(0,n) + '☆☆☆'.slice(0,3-n); }
 function starConds(day){
   return day.mg
@@ -202,14 +206,25 @@ function starConds(day){
     : ['Hoàn thành ít nhất '+day.s1+' đơn hàng','Hoàn thành tất cả '+day.orders.length+' đơn hàng',
        'Không giao sai, không phạm lỗi an toàn'];
 }
+// Đóng một lớp phủ: thẻ trượt xuống, nền nhạt dần, rồi mới gỡ khỏi trang; after() chạy sau khi gỡ.
+const OV_CLOSE_MS = 280;
+function closeOv(ov, after){
+  if(ov.classList.contains('closing')) return;
+  ov.classList.add('closing');
+  // đang trượt xuống: nuốt mọi cú bấm/phím để nút không bị bấm lần hai (lớp phủ vẫn che cảnh phía sau)
+  ['click', 'keydown'].forEach(t => ov.addEventListener(t, e => e.stopPropagation(), true));
+  if(document.activeElement && ov.contains(document.activeElement)) document.activeElement.blur();
+  setTimeout(() => { ov.remove(); if(after) after(); }, OV_CLOSE_MS);
+}
 function modal(html, onclose, cls){
   SFX.page();
   const ov = document.createElement('div');
   ov.className = 'overlay';
   ov.innerHTML = cls ? '<div class="modal '+cls+'"><button class="xbtn" id="mclose" aria-label="Đóng">'+ico('close',16)+'</button>'+html+'</div>'
     : '<div class="modal">'+html+'<div class="center" style="margin-top:12px"><button class="btn" id="mclose">Đóng</button></div></div>';
-  ov.querySelector('#mclose').onclick = () => { ov.remove(); if(onclose) onclose(); };
+  ov.querySelector('#mclose').onclick = () => { closeOv(ov); if(onclose) onclose(); };
   G.appendChild(ov);
+  return ov;
 }
 // styled replacement for the browser's native confirm() message box
 function confirmModal(html, onYes, yesLabel, noLabel){
@@ -220,8 +235,8 @@ function confirmModal(html, onYes, yesLabel, noLabel){
     + '<div class="row" style="justify-content:center;gap:12px;margin-top:18px">'
     + '<button class="btn warn" id="myes">'+(yesLabel||'Đồng ý')+'</button>'
     + '<button class="btn" id="mno">'+(noLabel||'Huỷ')+'</button></div></div>';
-  ov.querySelector('#myes').onclick = () => { ov.remove(); onYes(); };
-  ov.querySelector('#mno').onclick = () => ov.remove();
+  ov.querySelector('#myes').onclick = () => { closeOv(ov); onYes(); };
+  ov.querySelector('#mno').onclick = () => closeOv(ov);
   G.appendChild(ov);
 }
 
@@ -345,7 +360,7 @@ function showReport(d){
   const box = ov.querySelector('#rbox');
   const name = ov.querySelector('#rname');
   if(name) name.oninput = () => { save.student = name.value.trim(); persist(); };
-  ov.querySelector('#rclose').onclick = () => ov.remove();
+  ov.querySelector('#rclose').onclick = () => closeOv(ov);
   ov.querySelector('#rcsv').onclick = () => {
     if(own) d = reportData();
     const csv = reportCSV(d);
@@ -384,45 +399,39 @@ function showReport(d){
   };
 }
 
-const WEEKS = ['Chương 1 · Nhập môn & Oxi','Chương 2 · Hiđro – Nước – Axit bazơ','Chương 3 · Axit – Bazơ – Muối','Chương 4 · Kim loại & Phi kim','Chương 5 · Phòng thí nghiệm nâng cao'];
 const themeOf = i => 1 + Math.min(4, Math.floor(i/7));   // nhạc nền theo chương (SFX.music)
 function showMap(){
   SFX.music(0);
   // hand-drawn red pen loop, revealed by stroke-dashoffset when an unplayed day is picked
   const circ = '<svg class="dnc" viewBox="0 0 48 40"><path d="M9,21 C6,9 20,4 30,6 C42,8 46,15 42,25 C37,36 15,39 8,31 C3,25 7,15 15,11" pathLength="100"/></svg>';
   let cells = '';
-  for(let w=0; w*7 < DAYS.length; w++){
-    cells += `<div class="calnote">${WEEKS[w]}</div>`;
-    for(let d=w*7; d<w*7+7; d++){
-      if(d === DAYS.length){   // hết 31 ngày thì sang tháng mới: ngày 1 là ca tự do, chơi mãi
-        const fo = DEBUG || (save.stars[DAYS.length]||0) >= 1;
-        cells += `<div class="day-card freecard${fo?'':' locked'}" data-free="1">
-          <div class="dn"><span class="dnw">1</span>${fo?'':' '+ico('lock',11)}</div>
-          <div class="dt">Ca tự do — tháng sau</div>
-          <div class="st">${fo?ico('dice',14):''}</div></div>`;
-        continue;
-      }
-      if(d > DAYS.length){ cells += '<div class="day-card blank"></div>'; continue; } // trailing blanks, like a real month page
-      const day = DAYS[d], num = d+1;
-      const open = DEBUG || num <= save.unlocked;
-      const st = save.stars[num] || 0, sth = save.starsHard[num] || 0;
-      cells += `<div class="day-card${open?'':' locked'}${d%7===6?' sun':''}" data-d="${d}">
-        <div class="dn"><span class="dnw">${num}${open && !st && !sth ? circ : ''}</span>${open?'':' '+ico('lock',11)}</div>
-        <div class="dt">${day.t}</div>
-        ${sth ? '<div class="sth" title="Sao chế độ khó">khó '+starStr(sth)+'</div>' : ''}
-        <div class="st">${open||st?starStr(st):''}</div></div>`;
+  for(let d=0; d < Math.ceil(DAYS.length/7)*7; d++){
+    if(d === DAYS.length){   // hết 31 ngày thì sang tháng mới: ngày 1 là ca tự do, chơi mãi
+      const fo = DEBUG || (save.stars[DAYS.length]||0) >= 1;
+      cells += `<div class="day-card freecard${fo?'':' locked'}" data-free="1">
+        <div class="dt">${LICH.tuDo}</div>
+        <div class="dn"><span class="dnw">1</span>${fo?'':' '+ico('lock',14)}</div>
+        <div class="st">${fo?ico('dice',18):''}</div></div>`;
+      continue;
     }
+    if(d > DAYS.length){ cells += '<div class="day-card blank"></div>'; continue; } // trailing blanks, like a real month page
+    const day = DAYS[d], num = d+1;
+    const open = DEBUG || num <= save.unlocked;
+    const st = save.stars[num] || 0, sth = save.starsHard[num] || 0;
+    cells += `<div class="day-card${open?'':' locked'}${d%7===6?' sun':''}" data-d="${d}">
+      <div class="dt">${day.t}</div>
+      <div class="dn"><span class="dnw">${num}${open && !st && !sth ? circ : ''}</span>${open?'':' '+ico('lock',14)}</div>
+      <div class="st">${open||st?dayStars(st, sth):''}</div></div>`;
   }
   const wd = ['T2','T3','T4','T5','T6','T7','CN'].map((x,k)=>'<div'+(k===6?' class="sun"':'')+'>'+x+'</div>').join('');
-  G.innerHTML = `<div class="scene" style="overflow-y:auto">
-    <div class="row" style="justify-content:space-between">
-      <h2>${ico('map',22)} Lịch làm việc</h2>
-      <div class="row"><button class="btn" id="bshop" style=" font-family: var(--fh)">${ico('note',14)} Cửa hàng</button>
-        <button class="btn" id="bback">${ico('back')} Menu</button></div>
+  G.innerHTML = `<div class="scene mapscene">
+    <div class="row" style="justify-content:flex-start">
+      <button class="btn icobtn" id="bback" aria-label="Về menu" title="Về menu">${ico('home',26)}</button>
+      <button class="btn icobtn" id="bshop" aria-label="Cửa hàng" title="Cửa hàng">${ico('shop',26)}</button>
     </div>
     <div class="calsheet">
       <div class="calrings">${'<span></span>'.repeat(14)}</div>
-      <div class="calhead">THÁNG HOÁ HỌC<small>Tiệm hoá chất của giáo sư Hoffmann · 31 ngày làm việc</small></div>
+      <div class="calhead">THÁNG ${LICH.thang}</div>
       <div class="calwd">${wd}</div>
       <div class="map-grid">${cells}</div>
     </div>
@@ -597,8 +606,7 @@ function showShop(){
     }
 
     ov.querySelector('#mclose').onclick = () => {
-      ov.remove();
-      showMap();
+      closeOv(ov, showMap);   // vẽ lại bản đồ (số đồng) sau khi thẻ trượt xuống xong
     };
   };
   
@@ -678,6 +686,19 @@ function dayEqs(day){
   return day._eqs;
 }
 
+// Chữ viết tay trên giấy cân bằng: font viết tay không có ký tự ₂₃… và →, nên chỉ số dưới
+// viết bằng <sub> và mũi tên vẽ bằng SVG (điều kiện như t° ghi phía trên mũi tên).
+const handSub = s => s.replace(/[₀-₉]+/g, d => '<sub>'+[...d].map(c => SUBS.indexOf(c)).join('')+'</sub>');
+const handArrow = r => '<span class="harr"><i>'+handSub(rxOver(r))+'</i>'
+  + '<svg viewBox="0 0 64 14"><path d="M3 7.5 Q20 6 58 7 M50 2 L59 7 L50 12"/></svg></span>';
+// Các phương trình đã cân bằng, lưới 3 cột (vế trái | mũi tên | vế phải) để mũi tên thẳng hàng.
+function handEqRows(eqs){
+  return '<div class="hrows">' + eqs.map(idx => {
+    const r = REACTIONS[idx], s = eqStr(r), a = s.indexOf(' —'), b = s.indexOf('→ ', a);
+    return '<span>'+handSub(s.slice(0, a))+'</span>' + handArrow(r) + '<span>'+handSub(s.slice(b+2))+'</span>';
+  }).join('') + '</div>';
+}
+
 // Một vế phương trình với ô nhập hệ số cho TỪNG chất (kể cả hệ số 1).
 // n: số ô chất của vế này (bằng nhau ở mọi dòng để dấu + và mũi tên thẳng cột);
 // lead: ô trống dồn lên đầu (vế trái, sát mũi tên) hay xuống cuối (vế phải).
@@ -687,7 +708,7 @@ function eqEditableTerms(obj, mark, eid, n, lead){
     if(mark){ if(CHEMS[f].s==='k') m='↑'; else if(isPrecip(f)) m='↓'; }
     return '<span class="bterm"><input class="bcoef" type="number" min="1" inputmode="numeric"'
       + ' data-eid="'+eid+'" data-want="'+obj[f]+'" aria-label="hệ số của '+f+'">'
-      + sub(f) + m + '</span>';
+      + '<span>' + handSub(sub(f)) + m + '</span></span>';   // bọc riêng: trong flex, <sub> rời ra thành ô riêng
   });
   const pad = new Array(n - terms.length).fill('');
   const slots = lead ? pad.concat(terms) : terms.concat(pad);
@@ -698,10 +719,10 @@ function eqEditableRow(idx, eid, nl, np){
   const r = REACTIONS[idx];
   return '<div class="beq" data-eid="'+eid+'">'
     + eqEditableTerms(r.rg, false, eid, nl, true)
-    + '<span class="barrow">—'+rxOver(r)+'→</span>'
+    + handArrow(r)
     + eqEditableTerms(r.pr, true, eid, np, false)
-    + '<span class="bmark"></span>'
-    + '</div><div class="beqmsg" data-msg="'+eid+'"></div>';
+    + '<span class="bmark" data-msg="'+eid+'"></span>'   // ✔ hoặc lời nhắc, ngay cuối dòng
+    + '</div>';
 }
 // Cho mỗi cột (chất, dấu +, mũi tên) cùng bề rộng ở mọi dòng.
 function alignEqCols(){
@@ -778,7 +799,7 @@ function showBalance(i, next){
     const np = Math.max(...eqs.map(idx => Object.keys(REACTIONS[idx].pr).length));
     rows = eqs.map((idx,k)=>eqEditableRow(idx,k,nl,np)).join('');
   } else {
-    rows = eqs.map(idx => '<div class="beq ok">'+eqStr(REACTIONS[idx])+'</div>').join('');
+    rows = handEqRows(eqs);
   }
   const sub2 = editable
     ? ''
@@ -788,8 +809,8 @@ function showBalance(i, next){
   G.innerHTML = '<div class="scene" style="display:flex;flex-direction:column">'
     + '<div style="margin:auto 0">'
     + '<h2 class="center">Ngày '+num+': Giấy cân bằng phương trình</h2>'
-    + '<div class="row" style="justify-content:center;margin-top:8px"><div style="max-width:760px;width:100%">'
-    + '<div class="bnote"><h3>'+ico('note',18)+' Giấy nháp của trợ lý</h3>'
+    + '<div class="row" style="justify-content:center;margin-top:8px"><div style="width:1200px">'
+    + '<div class="bnote hpaper"><h3>'+ico('note',18)+' Giấy nháp của trợ lý</h3>'
     + (sub2 ? '<p class="bsub">'+sub2+'</p>' : '') + rows + '</div>'
     + '<div class="row" style="justify-content:flex-end;align-items:stretch;margin-top:16px;gap:12px">'
     + '<button class="btn" id="bbackmap">'+ico('back')+' Bản đồ</button>'
@@ -818,27 +839,24 @@ function showBalance(i, next){
     const row = G.querySelector('.beq[data-eid="'+eid+'"]');
     row.classList.add('ok');
     row.querySelectorAll('.bcoef').forEach(inp => { inp.readOnly = true; inp.classList.remove('bad'); });
-    row.querySelector('.bmark').textContent = '✔ Cân bằng đúng!';
     refresh();
   };
   const checkRow = (eid) => {
     if(done[eid]) return;
     const inputs = [...G.querySelectorAll('.bcoef[data-eid="'+eid+'"]')];
-    const msg = G.querySelector('.beqmsg[data-msg="'+eid+'"]');
-    if(inputs.some(inp => inp.value.trim() === '')){ msg.textContent = ''; return; } // chưa điền đủ
+    const msg = G.querySelector('.bmark[data-msg="'+eid+'"]');
+    const say = (t, c) => { msg.textContent = t; msg.style.color = c || ''; };
+    if(inputs.some(inp => inp.value.trim() === '')) return say(''); // chưa điền đủ
     const want = inputs.map(inp => +inp.dataset.want);
     const got  = inputs.map(inp => +inp.value);
-    if(got.some(v => !Number.isInteger(v) || v < 1)){
-      msg.textContent = 'Hệ số phải là số nguyên từ 1 trở lên.'; return;
-    }
+    if(got.some(v => !Number.isInteger(v) || v < 1)) return say('Hệ số phải là số nguyên từ 1 trở lên.', '#c9524b');
     const k = got[0] / want[0];
     const exact = got.every((v,j) => v === want[j]);
     const multiple = Number.isInteger(k) && k > 1 && got.every((v,j) => v === want[j]*k);
-    if(exact){ msg.textContent=''; SFX.clink(); lockRow(eid); }
-    else if(multiple){ msg.style.color='#b9812f'; msg.textContent='Đúng rồi! Lần sau thử dùng hệ số nhỏ nhất nhé.'; SFX.clink(); lockRow(eid); }
+    if(exact){ say('✔ Cân bằng đúng!'); SFX.clink(); lockRow(eid); }
+    else if(multiple){ say('✔ Đúng rồi! Lần sau thử dùng hệ số nhỏ nhất nhé.', '#b9812f'); SFX.clink(); lockRow(eid); }
     else {
-      msg.style.color='#c9524b';
-      msg.textContent='Số nguyên tử hai vế chưa bằng nhau — đếm lại rồi thử tiếp nào.';
+      say('Số nguyên tử hai vế chưa bằng nhau — đếm lại rồi thử tiếp nào.', '#c9524b');
       inputs.forEach(inp => inp.classList.add('bad'));
     }
   };
@@ -849,12 +867,30 @@ function showBalance(i, next){
 }
 
 // Xem lại tờ giấy (chỉ đọc, đã cân bằng sẵn) — mở từ màn hình ngày hoặc lúc tạm nghỉ.
-function reviewBalance(i){
+function reviewBalance(i, onclose){
   const day = DAYS[i], eqs = dayEqs(day);
-  if(!eqs.length){ modal('<h2>'+ico('note',22)+' Giấy cân bằng</h2><p>Ngày này chưa có phản ứng để cân bằng.</p>'); return; }
-  const rows = eqs.map(idx => '<div class="beq ok" style="padding-left:20px">'+eqStr(REACTIONS[idx])+'</div>').join('');
+  if(!eqs.length){ modal('<h2>'+ico('note',22)+' Giấy cân bằng</h2><p>Ngày này chưa có phản ứng để cân bằng.</p>', onclose); return; }
   modal('<h2>'+ico('note',22)+' Giấy cân bằng — Ngày '+(i+1)+'</h2>'
-    + '<div class="bnote" style="margin-top:6px;background:#fffdf5">'+rows+'</div>');
+    + '<div class="hpaper">'+handEqRows(eqs)+'</div>', onclose).querySelector('.modal').classList.add('rvcard');
+}
+
+// hai thanh âm lượng (Âm thanh, Nhạc nền) — dùng chung cho Cài đặt và thẻ Tạm nghỉ
+function volSliders(){
+  const lbl = 'font-family:var(--fh);font-size:16px';
+  const pct = k => SFX.isMuted() ? 0 : Math.round(SFX.getVol(k)*100);
+  const slider = (id, ic, name, k) => '<div class="settingrow vol"><div><b style="'+lbl+'">'+ico(ic,15)+' '+name+'</b></div>'
+    + '<div class="volbar"><input type="range" min="0" max="100" step="1" id="'+id+'" value="'+pct(k)+'"><b class="volpct" id="'+id+'p">'+pct(k)+'%</b></div></div>';
+  return slider('volSfx','sound','Âm thanh','sfx') + slider('volMus','bell','Nhạc nền','music');
+}
+function bindVolSliders(root){
+  const bar = (id, k) => {
+    const el = root.querySelector('#'+id), out = root.querySelector('#'+id+'p');
+    const paint = () => { el.style.setProperty('--v', el.value+'%'); el.classList.toggle('zero', +el.value === 0); out.textContent = el.value+'%'; };
+    el.oninput = () => { SFX.setVol(k, el.value/100); paint(); };
+    el.onchange = () => { if(k === 'sfx') SFX.clink(); };
+    paint();
+  };
+  bar('volSfx', 'sfx'); bar('volMus', 'music');
 }
 
 function settingsModal(){
@@ -862,16 +898,12 @@ function settingsModal(){
   const ov = document.createElement('div');
   ov.className = 'overlay';
   const lbl = 'font-family:var(--fh);font-size:16px';
-  const pct = k => SFX.isMuted() ? 0 : Math.round(SFX.getVol(k)*100);
-  const slider = (id, ic, name, k) => '<div class="settingrow vol"><div><b style="'+lbl+'">'+ico(ic,15)+' '+name+'</b></div>'
-    + '<div class="volbar"><input type="range" min="0" max="100" step="1" id="'+id+'" value="'+pct(k)+'"><b class="volpct" id="'+id+'p">'+pct(k)+'%</b></div></div>';
   const tgl = (id, ic, name, on, locked) => '<div class="settingrow'+(locked?' locked':'')+'"><div><b style="'+lbl+'">'+ico(locked?'lock':ic,15)+' '+name+'</b></div>'
     + '<div class="toggle'+(on&&!locked?' on':'')+'" id="'+id+'" role="switch" aria-checked="'+(on&&!locked)+'"></div></div>';
   ov.innerHTML = '<div class="modal hcard"><button class="xbtn" id="mclose" aria-label="Đóng">'+ico('close',16)+'</button>'
     + '<h2>'+ico('gear',22)+' Cài đặt</h2>'
     + '<div class="hgrid"><div>'
-    + slider('volSfx','sound','Âm thanh','sfx')
-    + slider('volMus','bell','Nhạc nền','music')
+    + volSliders()
     + '<div class="settingrow"><div><b style="'+lbl+'">'+ico('trash',15)+' Xoá dữ liệu trò chơi</b></div>'
     + '<button class="btn danger" id="breset">Xoá</button></div>'
     + '</div><div>'
@@ -892,18 +924,11 @@ function settingsModal(){
   else lockedTgl('#tglHard', 'Hoàn thành trò chơi lần đầu để mở khoá chế độ khó!');
   if(nobalOwned()) flip('#tglBalance', 'balance', () => !balanceOn());
   else lockedTgl('#tglBalance', 'Mua vật phẩm ở Cửa hàng để mở khoá!');
-  const bar = (id, k) => {
-    const el = ov.querySelector('#'+id), out = ov.querySelector('#'+id+'p');
-    const paint = () => { el.style.setProperty('--v', el.value+'%'); el.classList.toggle('zero', +el.value === 0); out.textContent = el.value+'%'; };
-    el.oninput = () => { SFX.setVol(k, el.value/100); paint(); };
-    el.onchange = () => { if(k === 'sfx') SFX.clink(); };
-    paint();
-  };
-  bar('volSfx', 'sfx'); bar('volMus', 'music');
-  ov.querySelector('#mclose').onclick = () => ov.remove();
+  bindVolSliders(ov);
+  ov.querySelector('#mclose').onclick = () => closeOv(ov);
   ov.querySelector('#breset').onclick = () => confirmModal(
     '<h2>'+ico('trash',22)+' Xoá dữ liệu?</h2><p style="margin:8px 0">Toàn bộ tiến trình, sao và thành tựu sẽ bị xoá và không thể khôi phục.</p>',
-    () => { save = {unlocked:1, stars:{}, starsHard:{}, ach:[], served:0, spent:0, rx:[], hist:[], settings:{balance:true}}; persist(); ov.remove(); toast('Đã xoá dữ liệu.'); showMenu(); },
+    () => { save = {unlocked:1, stars:{}, starsHard:{}, ach:[], served:0, spent:0, rx:[], hist:[], settings:{balance:true}}; persist(); closeOv(ov); toast('Đã xoá dữ liệu.'); showMenu(); },
     'Xoá hết', 'Giữ lại');
   G.appendChild(ov);
 }

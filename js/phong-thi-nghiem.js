@@ -632,17 +632,20 @@ function pauseLab(){
   if(!lab || !lab.timer) return;
   clearInterval(lab.timer); lab.timer = null;
   const ov = document.createElement('div');
-  ov.className = 'overlay';
+  ov.className = 'overlay pauseov';
   const free = lab.day.free;
   const hasEqs = !free && balanceOn() && dayEqs(lab.day).length;
   ov.innerHTML = `<div class="pausecard"><h2>Tạm nghỉ</h2>
     <button class="btn big" id="presume">${ico('play')} Tiếp tục</button>
     ${hasEqs ? `<button class="btn" id="pnote">${ico('note')} Giấy cân bằng</button>` : ''}
     <button class="btn" id="prestart">${ico('retry')} Chơi lại từ đầu</button>
-    <button class="btn" id="pmap">${ico('map')} ${free ? 'Kết thúc ca' : 'Về bản đồ'}</button></div>`;
+    <button class="btn" id="pmap">${ico('map')} ${free ? 'Kết thúc ca' : 'Về bản đồ'}</button>
+    <div class="pausevol">${volSliders()}</div></div>`;
   G.appendChild(ov);
-  if(hasEqs) ov.querySelector('#pnote').onclick = () => reviewBalance(lab.i);
-  ov.querySelector('#presume').onclick = () => { ov.remove(); lab.timer = setInterval(labTick, 1000); };
+  bindVolSliders(ov);
+  if(hasEqs) ov.querySelector('#pnote').onclick = () => { ov.classList.add('under'); reviewBalance(lab.i, () => ov.classList.remove('under')); };
+  ov.querySelector('#presume').onclick = () =>   // thẻ trượt xuống xong mới chạy lại đồng hồ
+    closeOv(ov, () => { if(lab && lab.timer === null) lab.timer = setInterval(labTick, 1000); });
   ov.querySelector('#prestart').onclick = () => { const i = lab.i; lab = null; go(free ? startFree : ()=>showIntro(i)); };
   ov.querySelector('#pmap').onclick = () => {
     if(free){ // bank the shift: serve count feeds the same save fields the campaign uses

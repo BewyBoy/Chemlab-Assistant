@@ -8,6 +8,7 @@
 // ponytail: dev-time sanity check — every order must be reachable from that day's shelf
 if(DEBUG){
   console.assert(DAYS.length === 31, 'DAYS phải đủ 31 ngày');
+  console.assert(LICH.ngay.length === DAYS.length && DAYS.every(d => d.t), 'js/lich.js: cần đúng một mô tả cho mỗi ngày');
   DAYS.forEach((day, i) => {
     if(day.mg) return;
     const have = new Set(day.chems);          // bao đóng: pha ra được gì từ kệ của ngày đó
@@ -80,6 +81,7 @@ if(DEBUG){
     vlBook(d).forEach(q => {
       console.assert(!vlAll.some(c => same(c, atomCounts(q.f))), 'sổ chất: '+q.f+' trùng số nguyên tử với chất khác');
       vlAll.push(atomCounts(q.f));
+      console.assert(Object.values(atomCounts(q.f)).reduce((s, n) => s + n, 0) <= VL_MAX, 'sổ chất: '+q.f+' cần nhiều bóng hơn bàn chứa được');
       console.assert(q.name && Object.keys(q.vals).every(e => EL_VN[e] && ATOM_STYLE[e] && (VL_VALS[e]||[]).includes(q.vals[e])), 'hoá trị: thiếu dữ liệu cho '+q.f);
       vlCheck(q.f, vlLayout(q), q.vals);
     });
@@ -98,6 +100,14 @@ if(DEBUG){
     vlAll.push(atomCounts(f));                       // hai chất bí mật cũng không được trùng nhau
     vlCheck(f, eggLayout(f), BASE, VL_EGG[f].v);
   });
+  // đơn chất (chỉ khám phá): đúng số tay, không trùng chất nào; chất không tồn tại (VL_GONE) cũng không được trùng chất có thật
+  Object.keys(VL_ELEM).forEach(f => {
+    const el = Object.keys(atomCounts(f))[0];
+    console.assert(Object.keys(atomCounts(f)).length === 1 && !vlAll.some(c => same(c, atomCounts(f))), 'đơn chất '+f+' trùng chất khác hoặc không phải một nguyên tố');
+    vlAll.push(atomCounts(f));
+    vlCheck(f, handLayout(VL_ELEM[f]), {[el]:VL_ELEM[f].arms});
+  });
+  Object.keys(VL_GONE).forEach(f => console.assert(!vlAll.some(c => same(c, atomCounts(f))), 'chất không tồn tại '+f+' lại trùng một chất có thật'));
   // xác định chất: mỗi bộ 3 lọ phải phân biệt được — hai mẫu khác nhau thì khác ít nhất một ô trong sổ ghi chép
   DAYS.filter(d => d.mg === 'identify').forEach(d => {
     const st = ['quy'].concat(d.reagents);

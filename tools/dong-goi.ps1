@@ -20,6 +20,7 @@ $canShip = @(
   'js\nhan-vat.js',         # đa dạng hoá dàn khách
   'js\phan-ung.js',         # bảng phản ứng — thiếu là cốc không phản ứng gì
   'js\du-lieu.js',          # hoá chất, 31 ngày, thành tựu
+  'js\lich.js',             # tên tháng + mô tả 31 ngày (nạp ngay sau du-lieu.js)
   'js\do-hoa.js',           # kho SVG + nhân vật
   'js\giao-dien.js',        # âm thanh, menu, lịch, cài đặt, báo cáo
   'js\phong-thi-nghiem.js', # bàn thí nghiệm, phản ứng, khách hàng
