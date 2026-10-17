@@ -219,18 +219,20 @@ const DAYS = [
    ['Mg',2,'C2O4','magie oxalat'], ['Ca',2,'C2O4','canxi oxalat'], ['Ba',2,'C2O4','bari oxalat'], ['Zn',2,'C2O4','kẽm oxalat'],
    ['Fe',2,'C2O4','sắt(II) oxalat'], ['Cu',2,'C2O4','đồng(II) oxalat']]},
 
- {
-  story:'OXI duy trì sự cháy — kim loại cháy trong oxi tạo OXIT: 2Mg + O₂ —t°→ 2MgO sáng chói! Sắt thì đặc biệt: 3Fe + 2O₂ → Fe₃O₄ oxit sắt từ, cháy tóe hoa lửa. Đốt thì không bỏ vào cốc đâu nhé — ba bước với MUÔI ĐỐT: nạp O₂ vào LỌ KHÍ → kim loại lên muôi, hơ ĐÈN CỒN cho bén lửa → đưa nhanh vào lọ. Nhìn công thức oxit là thấy hoá trị hôm qua! Đong oxi cho đúng tỉ lệ — thiếu thì lửa tắt giữa chừng!',
-  chems:['Mg','Cu','Zn','Fe','O2'], tools:['spoon','book','heat','gas','burn'], dur:320, s1:3,
-  orders:[ o(4,'MgO',2,{pname:'magie oxit'}),
-           o(1,'CuO',2,{pname:'đồng(II) oxit đen'}),
-           o(6,'ZnO',2,{pname:'kẽm oxit'}),
-           o(8,'Fe3O4',1,{pname:'oxit sắt từ'}) ]},
+ {mg:'balance',
+  story:'Hôm qua trò lập được công thức, hôm nay ta ghép chúng thành PHƯƠNG TRÌNH HOÁ HỌC. Trong phản ứng, nguyên tử KHÔNG tự sinh ra cũng không mất đi — liên kết cũ đứt, các nguyên tử đổi bạn nắm tay thành chất mới. Vì thế số nguyên tử mỗi nguyên tố TRƯỚC và SAU phản ứng phải bằng nhau. Số đứng trước công thức là HỆ SỐ = số phân tử của chất đó. Kéo đúng số phân tử mỗi chất vào KHAY PHẢN ỨNG — chất tham gia bên trái mũi tên, sản phẩm bên phải — rồi bấm PHẢN ỨNG, ta sẽ đếm từng nguyên tử và kết luận. Nhớ: chỉ thêm bớt phân tử, không sửa công thức, và chọn bộ hệ số NHỎ NHẤT. Mỗi câu 2 điểm, chưa cân bằng thì mất 1 điểm. Từ mai trò tự cân bằng trên giấy trước mỗi ca đấy!',
+  // mỗi lượt bốc theo thứ tự: [số câu, danh sách]. Viết 'chất + chất = sản phẩm + …', không ghi hệ số — hệ số đúng lấy
+  // từ dòng có đúng các chất đó trong REACTIONS (phan-ung.js), khoi-dong.js kiểm tra dòng đó có thật và hệ số ≤ BAL_BIG
+  pools:[[2, ['H2 + O2 = H2O', 'Mg + O2 = MgO', 'Cu + O2 = CuO', 'Zn + O2 = ZnO', 'H2 + Cl2 = HCl', 'Na + Cl2 = NaCl']],
+         [2, ['Fe + O2 = Fe3O4', 'Na + O2 = Na2O', 'Zn + HCl = ZnCl2 + H2', 'Na + H2O = NaOH + H2', 'H2O = H2 + O2']],
+         [2, ['Al + O2 = Al2O3', 'P + O2 = P2O5', 'Fe2O3 + H2 = Fe + H2O', 'Fe + Cl2 = FeCl3', 'N2 + H2 = NH3']]]},
 
  {
-  story:'Không chỉ kim loại — than, lưu huỳnh, photpho đều cháy trong oxi! C + O₂ —t°→ CO₂: khí sinh ra nằm ngay trong lọ, đậy nắp muôi lại là giao được cả lọ. Lưu huỳnh cháy lửa XANH LAM ra SO₂ hắc mũi. Photpho cháy tạo khói trắng P₂O₅ — bột rắn rơi ra đĩa. Nhớ: oxi dư cũng là "hàng lẫn" đấy!',
-  chems:['S','P','C','O2'], tools:['spoon','book','heat','gas','burn'], dur:320, s1:2,
-  orders:[ o(2,'CO2',1,{pname:'khí cacbonic'}),
+  story:'OXI duy trì sự cháy — kim loại hay phi kim cháy trong oxi đều tạo OXIT. Kim loại: 2Mg + O₂ —t°→ 2MgO sáng chói; sắt cháy tóe hoa lửa ra oxit sắt từ, 3Fe + 2O₂ → Fe₃O₄. Phi kim: than cháy thành khí CO₂ nằm ngay trong lọ — đậy nắp muôi lại là giao được cả lọ; lưu huỳnh cháy lửa XANH LAM ra SO₂ hắc mũi; photpho tạo khói trắng P₂O₅ rơi ra đĩa. Đốt thì không bỏ vào cốc đâu nhé — ba bước với MUÔI ĐỐT: nạp O₂ vào LỌ KHÍ → chất rắn lên muôi, hơ ĐÈN CỒN cho bén lửa → đưa nhanh vào lọ. Hệ số hôm qua trò cân bằng chính là tỉ lệ đong oxi: thiếu thì lửa tắt giữa chừng, dư thì oxi lẫn vào hàng!',
+  chems:['Mg','Fe','C','S','P','O2'], tools:['spoon','book','heat','gas','burn'], dur:420, s1:3,
+  orders:[ o(4,'MgO',2,{pname:'magie oxit'}),
+           o(2,'CO2',1,{pname:'khí cacbonic'}),
+           o(8,'Fe3O4',1,{pname:'oxit sắt từ'}),
            o(9,'SO2',1,{pname:'khí sunfurơ'}),
            o(5,'P2O5',2,{pname:'điphotpho pentaoxit'}) ]},
 
@@ -371,9 +373,36 @@ DAYS.push(
            o(8,'Fe3O4',1,{pname:'oxit sắt từ'}),
            o(0,'Cu',1,{pname:'đồng (Fe đẩy khỏi muối)'}) ]},
 
- {mg:'sort',
-  story:'Thợ rèn của làng cần may áo giáp — nhưng kim loại nào bền, kim loại nào "yếu bóng vía"? "Khi Nào May Áo Záp Sắt Đồng Bạc" — dãy hoạt động đấy! Kim loại đứng TRƯỚC mạnh hơn, đẩy được kim loại đứng SAU ra khỏi muối. Xếp từ MẠNH NHẤT đến YẾU NHẤT.',
-  metals:['K','Na','Mg','Al','Zn','Fe','Cu','Ag']},
+ // Ngày 24 TẠM THỜI là minigame bảng tuần hoàn. Bản gốc (xếp dãy hoạt động kim loại) cất ở DAY24_SORT cuối danh
+ // sách — muốn trả lại thì thay mục này bằng DAY24_SORT và đổi tên ngày 24 trong js/lich.js về 'May áo giáp sắt'.
+ {mg:'ptable',
+  story:'Hôm nay ta treo lên tường tấm BẢNG TUẦN HOÀN — bản đồ của mọi nguyên tố! Mỗi Ô ghi SỐ HIỆU NGUYÊN TỬ Z (= số proton = số electron), KÍ HIỆU và NGUYÊN TỬ KHỐI. Mỗi HÀNG là một CHU KÌ: số thứ tự chu kì = số LỚP electron. Mỗi CỘT là một NHÓM: nguyên tố nhóm A có số electron LỚP NGOÀI CÙNG = số thứ tự nhóm. Màu ô cho biết kim loại, phi kim hay khí hiếm. Còn KÍCH THƯỚC nguyên tử? Cùng chu kì, đi sang PHẢI nhỏ dần; cùng nhóm, đi XUỐNG to dần. Bấm vào ô nào thì KÍNH LÚP soi ô đó, có cả tên nguyên tố. 12 câu hỏi liền tay — đọc bảng mà trả lời nhé!',
+  // 12 câu, bốc theo từng nhóm dạng câu: [số câu, các dạng]. Trong một nhóm, dạng nào chưa ra thì được bốc trước.
+  // Cách sinh từng dạng câu: PT_Q trong che-do.js
+  rounds:[[3, ['mass', 'proton', 'symbol', 'findZ', 'findMass']],     // đọc ô
+          [3, ['outer', 'kind', 'same']],                             // nhóm, chu kì, màu ô (số lớp electron: chế độ khó)
+          [3, ['bigger']],                                            // so sánh bán kính nguyên tử
+          [3, ['mr', 'ratio', 'heavier']]],                           // tính toán với nguyên tử khối
+  // đề chỉ hỏi về các nguyên tố quen thuộc này (riêng câu so sánh bán kính dùng bảng PT_RAD)
+  pool:['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Cl','Ar','K','Ca','Mn','Fe','Cu','Zn','Br','Ag','I','Ba'],
+  // chất để hỏi phân tử khối — chỉ gồm nguyên tố có trong ATOM
+  mr:['H2O','CO2','NaCl','O2','N2','NH3','CH4','HCl','NaOH','MgO','SO2','CaCO3','H2SO4','HNO3','Fe2O3','CuSO4','Al2O3','Ca(OH)2','KCl','P2O5'],
+  // CHẾ ĐỘ KHÓ: mỗi ô ghi thêm độ âm điện và cấu hình electron, không có kính lúp (chỉ một ô hướng dẫn có chú thích; màn
+  // hình vừa và nhỏ thì bấm ô để xem to ở đó); các mục dưới đây thay cho mục cùng tên ở trên
+  hard:{
+   note:'Mỗi ô ghi thêm <b>độ âm điện</b> và <b>cấu hình electron</b>; không có kính lúp, tự đọc trên bảng (màn hình nhỏ: bấm ô để xem to). 12 câu khác hẳn: neutron, lớp electron, ion, độ âm điện, loại liên kết.',
+   story:'CHẾ ĐỘ KHÓ! Hôm nay không có kính lúp — mọi thứ ghi sẵn trên ô, xem ô nhôm phóng to để biết chỗ nào ghi gì (màn hình nhỏ thì bấm vào ô để xem to hơn). Số tím cạnh kí hiệu là ĐỘ ÂM ĐIỆN χ — sức hút electron của nguyên tử: cùng chu kì, đi sang PHẢI thì tăng; cùng nhóm, đi XUỐNG thì giảm (khí hiếm không xét). Dòng dưới cùng là CẤU HÌNH ELECTRON, như oxi 1s² 2s² 2p⁴: số đứng đầu là LỚP, chữ là phân lớp, số mũ là số electron. Từ chu kì 3 có cách viết gọn: [Ne] là phần giống khí hiếm Ne, nên natri 1s² 2s² 2p⁶ 3s¹ viết là [Ne] 3s¹. Kim loại dễ NHƯỜNG hết electron lớp ngoài, phi kim dễ NHẬN thêm cho đủ 8 — thành ION có các lớp giống một khí hiếm. Hạt nhân có proton và NEUTRON: nguyên tử khối ≈ số proton + số neutron. Còn HIỆU độ âm điện Δχ của hai nguyên tử cho biết loại liên kết: từ 1,7 trở lên là liên kết ION, từ 0,4 đến dưới 1,7 là CỘNG HOÁ TRỊ CÓ CỰC, dưới 0,4 là CỘNG HOÁ TRỊ KHÔNG CỰC. Soi kĩ rồi hẵng trả lời!',
+   rounds:[[3, ['neutron', 'shells', 'shell', 'config']],            // hạt và lớp electron
+           [3, ['ion', 'ionGas']],                                   // ion
+           [3, ['en', 'enMax']],                                     // độ âm điện
+           [3, ['bond']]],                                           // loại liên kết
+   // hỏi số neutron: nguyên tử khối làm tròn trùng số khối của đồng vị chính (bỏ Cl 35,5, Cu, Zn, Br, Ag, Ba)
+   neutron:['H','He','Li','Be','B','C','N','O','F','Ne','Na','Mg','Al','Si','P','S','Ar','K','Ca','Mn','Fe','I'],
+   // hỏi ion: kim loại nhóm IA–IIIA và phi kim nhóm VA–VIIA, ion có lớp electron giống khí hiếm
+   ion:['Li','Na','K','Mg','Ca','Al','N','O','F','P','S','Cl','Br'],
+   // hỏi loại liên kết — đủ cả ba loại; khoi-dong.js kiểm tra không chất nào có Δχ sát ngưỡng 0,4 / 1,7
+   bond:['NaCl','KCl','NaF','LiF','MgO','CaO','Na2O','MgCl2','CaCl2','KBr','HCl','HBr','H2O','NH3','CO2','SO2','PCl3','CCl4','AlCl3',
+         'H2','N2','O2','F2','Cl2','Br2','CH4']}},
 
  {
   story:'Gặp gỡ họ HALOGEN — nghĩa là "sinh ra muối"! Đại diện: khí clo Cl₂ vàng lục, độc, phản ứng mãnh liệt: natri đốt trên muôi rồi đưa vào lọ clo là 2Na + Cl₂ → 2NaCl (muối ăn từ khí độc, kỳ diệu chưa!). Còn H₂ + Cl₂ là hai khí: trộn trong cốc rồi châm lửa → 2HCl. Cẩn thận khi thao tác nhé!',
@@ -435,6 +464,10 @@ DAYS.push(
    {start:'CuO', target:'AgCl',      ans:['H2','Cl2','AgNO3'],   more:['HCl','O2','H2O','NaCl','H2SO4']}
   ]}
 );
+// bản gốc của ngày 24 (đang tạm thay bằng minigame bảng tuần hoàn) — xem ghi chú ở mục ngày 24 trong DAYS
+const DAY24_SORT = {mg:'sort',
+  story:'Thợ rèn của làng cần may áo giáp — nhưng kim loại nào bền, kim loại nào "yếu bóng vía"? "Khi Nào May Áo Záp Sắt Đồng Bạc" — dãy hoạt động đấy! Kim loại đứng TRƯỚC mạnh hơn, đẩy được kim loại đứng SAU ra khỏi muối. Xếp từ MẠNH NHẤT đến YẾU NHẤT.',
+  metals:['K','Na','Mg','Al','Zn','Fe','Cu','Ag']};
 
 /* ---- achievements ---- */
 const ACH = {
@@ -461,7 +494,7 @@ const ACH = {
 };
 
 // days where a perfect no-dump run is possible → star 3 also requires "no waste"
-[0,1,4,5,7,8,10,11,12,13,14,15,21,24].forEach(i => DAYS[i].clean = 1);
+[0,1,5,7,8,10,11,12,13,14,15,21,24].forEach(i => DAYS[i].clean = 1);
 
 const TOOLNAMES = {spoon:'Khuấy', book:'Sổ tay', quy:'Giấy quỳ', gas:'Bình thu khí', heat:'Đèn cồn', filter:'Phễu lọc', elec:'Nguồn điện phân', burn:'Muôi đốt'};
 const TOOLSYM   = {spoon:'sym-stirrod', book:'sym-notebook', quy:'sym-litmusbox', gas:'sym-gasbottle', heat:'sym-lamp', filter:'sym-funnel', elec:'sym-electro', burn:'sym-burnspoon'};

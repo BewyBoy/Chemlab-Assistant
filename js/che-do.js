@@ -1,5 +1,5 @@
 /* =====================================================================
-   CÁC CHẾ ĐỘ PHỤ — 7 minigame, thử thách pha nồng độ, chế độ khó trong ca (tự cân đong),
+   CÁC CHẾ ĐỘ PHỤ — 8 minigame, thử thách pha nồng độ, chế độ khó trong ca (tự cân đong),
    thẻ phản ứng hoạt hình.
    ===================================================================== */
 'use strict';
@@ -20,6 +20,15 @@ function mgFrame(i, day, inner){
     () => go(showMap), 'Bỏ dở', 'Chơi tiếp');
 }
 const mgScore = (c,t) => { G.querySelector('#mgscore').textContent = 'Đúng: '+c+'/'+t; };
+// mất điểm: ô Điểm nháy đỏ, "−1" bật ra ngay dưới nó rồi bay lên nhập vào (chuỗi phản ứng, cân bằng phương trình)
+function mgMinus(hud){
+  hud.classList.remove('flash-bad'); void hud.offsetWidth; hud.classList.add('flash-bad');
+  const m = document.createElement('div'), g = G.getBoundingClientRect(), r = hud.getBoundingClientRect(), sc = g.width/1280;
+  m.className = 'chn-minus'; m.textContent = '−1';
+  m.style.left = (r.left + r.width/2 - g.left)/sc + 'px'; m.style.top = (r.bottom - g.top)/sc + 'px';
+  G.appendChild(m);
+  m.onanimationend = () => m.remove();
+}
 
 function startMinigame(i){
   SFX.music(themeOf(i));
@@ -1303,6 +1312,180 @@ const MG = {
   });
  },
 
+ /* --- ngày 24: bảng tuần hoàn. Trên: bảng 7 chu kì × 18 cột (PT), ô tô màu kim loại / phi kim / khí hiếm. Rê chuột
+        hoặc bấm vào ô thì KÍNH LÚP (khoảng trống giữa bảng, cột 3–12 × chu kì 1–3) phóng to ô đó kèm tên nguyên tố,
+        nhãn chu kì / nhóm của ô sáng lên. Rê chuột / bấm vào nhãn chu kì hay nhóm thì cả hàng / cột sáng lên (bấm là
+        ghim). Dưới: 12 câu liền tay (ptQuiz). Câu có nút thì bấm nút; câu "tìm trên bảng" thì bấm ô rồi Chốt. Đúng → tô
+        xanh, chỉ báo "Đúng!" / "Chính xác!", tự sang câu sau; sai → tô đỏ chỗ chọn, tô xanh đáp án, hiện lời giải, bấm
+        Câu tiếp.
+        Chế độ khó (day.hard, bật bằng công tắc chế độ khó chung): ô ghi đủ như bảng in trong sách — nguyên tử khối lên góc
+        phải, độ âm điện (tím) cạnh kí hiệu, cấu hình electron dưới cùng. KHÔNG có kính lúp: chỗ đó là ô hướng dẫn — ô
+        nhôm phóng to, không khung, vạch đứt chỉ từng thông tin nằm ở đâu. Màn hình vừa và nhỏ (khung game hiện nhỏ hơn
+        PT_ZOOM_MIN lần, chữ trên ô khó đọc): bấm ô nào thì số liệu ô đó hiện vào ô hướng dẫn và các nhãn chú thích ẩn
+        đi; sang câu mới (bỏ chọn) thì trở lại ô nhôm có chú thích. Kính lúp chi tiết của chế độ khó (độ âm điện, các lớp
+        electron, hình các lớp — ptBohr) vẫn giữ trong code, bật lại bằng PT_HARD_LENS. 12 câu theo day.hard.rounds; sao
+        lưu vào cột sao chế độ khó. --- */
+ ptable(i, day){
+  const hard = !!day.hard && hardOn(), D = hard ? Object.assign({}, day, day.hard) : day;
+  const lensOn = !hard || PT_HARD_LENS;                               // kính lúp đổi theo ô đang soi
+  const qs = ptQuiz(D), total = qs.length;
+  const X = c => PT_X0 + (c - 1)*PT_STEP, Y = p => PT_Y0 + (p - 1)*PT_STEP;
+  const cellIn = e => `<span class="z">${e.z}</span><b class="s">${e.s}</b><span class="m">${e.fam ? '' : ptMass(e)}</span>`
+    + (hard && !e.fam ? `<span class="en">${ptEN(e.en)}</span><span class="cfg">${ptCfgHTML(e)}</span>` : '');
+  const cell = e => `<div class="pt-cell k-${e.k}${e.fam ? ' fam' : ''}" data-s="${e.s}" style="left:${X(e.c)}px;top:${Y(e.p)}px">${cellIn(e)}</div>`;
+  const hint = '<p class="pt-hint">Rê chuột hoặc bấm vào một ô để soi bằng kính lúp.</p>';   // chỉ còn ở kính lúp chi tiết (PT_HARD_LENS)
+  // ô hướng dẫn của chế độ khó: cùng nội dung với ô thật (không có data-s nên không bấm chọn được); top của mỗi nhãn =
+  // tâm dòng thông tin trong ô 60 px × 2,6 (xem .pt-ex trong style.css) trừ nửa chiều cao nhãn — cấu hình của Al một dòng
+  const exKey = `<div class="pt-ex"><div class="pt-cell k-${PT_BY.Al.k}">${cellIn(PT_BY.Al)}</div>
+       <span class="l" style="top:24px">Số hiệu nguyên tử</span><span class="l" style="top:64px">Kí hiệu hoá học</span>
+       <span class="l" style="top:111px">Cấu hình electron</span>
+       <span class="r" style="top:24px">Nguyên tử khối</span><span class="r" style="top:64px">Độ âm điện χ</span></div>`;
+  const lensIn = !lensOn ? exKey : hard
+    ? `<div class="pt-big"><span class="z"></span><span class="en"></span><b class="s"></b><span class="n"></span><span class="m"></span></div>
+       <div class="pt-info"><div class="pt-kind"></div><p>Độ âm điện χ: <b class="i-en"></b></p><p>Lớp electron: <b class="i-sh"></b></p>${hint}</div>
+       <svg class="pt-bohr" width="176" height="176" viewBox="0 0 176 176"></svg>`
+    : `<div class="pt-big"><span class="z"></span><b class="s"></b><span class="n"></span><span class="m"></span></div>
+       <div class="pt-key"><span style="top:19px">Số hiệu nguyên tử (Z)</span><span style="top:62px">Kí hiệu hoá học</span>
+         <span style="top:105px">Tên nguyên tố</span><span style="top:143px">Nguyên tử khối (amu)</span></div>
+       <div class="pt-kind"></div>`;
+  mgFrame(i, day, `<div class="pt${hard ? ' hard' : ''}"><div class="pt-tab">
+      <span class="pt-axis g">Nhóm</span><span class="pt-axis p">Chu kì</span>
+      ${PT_GROUP.map((g, k) => `<span class="pt-gl" data-c="${k + 1}" style="left:${X(k + 1)}px">${g}</span>`).join('')}
+      ${[1, 2, 3, 4, 5, 6, 7].map(p => `<span class="pt-pl" data-p="${p}" style="top:${Y(p)}px">${p}</span>`).join('')}
+      ${PT.map(cell).join('')}
+      <div class="pt-lens${lensOn ? '' : ' plain'}" style="left:${X(3)}px;top:${Y(1)}px">${lensIn}</div>
+      <div class="pt-legend" style="left:${X(13)}px;top:${Y(1)}px">${'mng'.split('').map(k => `<span><i class="k-${k}"></i>${PT_KIND[k]}</span>`).join('')}</div>
+    </div>
+    <div class="pt-bar">
+      <div class="pt-tag"></div>
+      <div class="pt-row"><div class="pt-q"></div><div class="pt-ans"></div></div>
+      <div class="pt-foot"><p class="pt-why"></p><button class="btn" id="ptnext" hidden></button></div>
+    </div></div>`);
+  const root = G.querySelector('.pt'), lens = root.querySelector('.pt-lens'), big = lens.querySelector('.pt-big');
+  const [tagEl, qEl, ansEl, whyEl, next] = ['.pt-tag', '.pt-q', '.pt-ans', '.pt-why', '#ptnext'].map(s => root.querySelector(s));
+  const cells = {}, ptOf = {};
+  root.querySelectorAll('.pt-cell[data-s]').forEach(c => cells[c.dataset.s] = c);
+  PT.forEach(e => ptOf[e.s] = e);
+  let qi = 0, correct = 0, streak = 0, sel = null, done = false;
+  mgScore(0, total);
+  if(hard) G.querySelector('.hud-title').insertAdjacentHTML('beforeend', ' · <span style="color:#a8331f">khó</span>');
+
+  // kính lúp soi ô s (null: ô mẫu để chú thích) — khi đang bật (lensOn); nhãn chu kì và nhóm của ô đó luôn sáng lên
+  function look(s){
+    const e = s && ptOf[s];
+    if(lensOn){
+      big.className = 'pt-big ' + (e ? 'k-' + e.k : 'idle') + (e && e.fam ? ' fam' : '');
+      [['.z', 'z', 'Z'], ['.s', 's', 'X'], ['.n', 'nm', 'tên'], ['.m', 'm', '?']].forEach(([q, k, d]) =>
+        big.querySelector(q).textContent = e ? (k === 'm' ? ptMass(e) : e[k]) : d);
+      lens.querySelector('.pt-kind').innerHTML = e ? `<i class="k-${e.k}"></i>${e.fam ? 'Kim loại (cả họ)' : PT_KIND[e.k]}` : '';
+    }
+    if(lensOn && hard){
+      big.querySelector('.en').textContent = e ? ptEN(e.en) : 'χ';
+      lens.querySelector('.i-en').textContent = e ? ptEN(e.en) : '?';
+      lens.querySelector('.i-sh').textContent = e ? (e.fam ? '—' : e.sh.join(', ')) : '?';
+      const bohr = lens.querySelector('.pt-bohr');
+      bohr.setAttribute('class', 'pt-bohr' + (e ? ' k-' + e.k : ''));
+      bohr.innerHTML = ptBohr(e);
+    }
+    root.querySelectorAll('.pt-gl.on, .pt-pl.on').forEach(x => x.classList.remove('on'));
+    if(e){ root.querySelector(`.pt-gl[data-c="${e.c}"]`).classList.add('on'); root.querySelector(`.pt-pl[data-p="${e.p}"]`).classList.add('on'); }
+  }
+  // ô hướng dẫn (chế độ khó): màn hình vừa và nhỏ thì hiện số liệu ô s vừa bấm, ẩn nhãn chú thích; s = null hoặc màn hình
+  // lớn thì là ô nhôm có chú thích. Đo cỡ khung game lúc bấm, nên đổi cỡ cửa sổ giữa chừng vẫn đúng
+  function exShow(s){
+    if(lensOn) return;
+    const e = s && G.getBoundingClientRect().width/1280 < PT_ZOOM_MIN ? ptOf[s] : null, show = e || PT_BY.Al;
+    const ex = lens.querySelector('.pt-ex'), c = ex.querySelector('.pt-cell');
+    c.className = 'pt-cell k-' + show.k + (show.fam ? ' fam' : '');
+    c.innerHTML = cellIn(show);
+    ex.classList.toggle('zoom', !!e);
+  }
+  // bấm ô: chọn ô đó (viền đậm) — với câu "tìm trên bảng" thì đây là đáp án sắp chốt
+  function choose(s){
+    if(sel) cells[sel].classList.remove('sel');
+    sel = s; cells[s].classList.add('sel'); look(s); exShow(s); SFX.clink();
+    if(qs[qi].pick && !done) drawPick();
+  }
+  Object.values(cells).forEach(c => { c.onmouseenter = () => look(c.dataset.s); c.onclick = () => choose(c.dataset.s); });
+  root.querySelector('.pt-tab').onmouseleave = () => look(sel);
+
+  // nhãn chu kì / nhóm: rê chuột lên thì cả hàng / cột sáng (hov); bấm thì ghim lại (pin), bấm lần nữa để bỏ — màn hình
+  // cảm ứng chỉ có bấm. Hàng ghim và hàng đang rê sáng cùng lúc được; sang câu mới thì bỏ ghim
+  let pin = null, hov = null;
+  const lineOf = lb => Object.values(cells).filter(c => lb.dataset.p ? ptOf[c.dataset.s].p === +lb.dataset.p : ptOf[c.dataset.s].c === +lb.dataset.c);
+  function lines(){
+    root.querySelectorAll('.pt-cell.line, .pt-gl.lit, .pt-pl.lit').forEach(x => x.classList.remove('line', 'lit'));
+    [pin, hov].forEach(lb => { if(lb){ lb.classList.add('lit'); lineOf(lb).forEach(c => c.classList.add('line')); } });
+  }
+  root.querySelectorAll('.pt-gl, .pt-pl').forEach(lb => {
+    lb.onmouseenter = () => { hov = lb; lines(); };
+    lb.onmouseleave = () => { hov = null; lines(); };
+    lb.onclick = () => { if(pin === lb){ pin = null; hov = null; } else pin = lb; lines(); SFX.clink(); };
+  });
+
+  function drawPick(){
+    const ok = sel && PT_BY[sel];                                       // ô gộp một họ thì không chốt được
+    ansEl.innerHTML = `<span class="pt-chip${ok ? '' : ' empty'}">${ok ? `Đã chọn: <b>${sel}</b> · ${PT_BY[sel].nm}`
+      : sel ? 'Hãy chọn một nguyên tố cụ thể' : 'Chưa chọn ô nào'}</span>`
+      + `<button class="btn go" id="ptgo"${ok ? '' : ' disabled'}>${ico('check')} Chốt</button>`;
+    if(ok) ansEl.querySelector('#ptgo').onclick = () => grade(qs[qi].pick.includes(sel), null);
+  }
+  function ask(){
+    const q = qs[qi];
+    done = false;
+    root.querySelectorAll('.pt-cell.ok, .pt-cell.bad, .pt-cell.peek').forEach(c => c.classList.remove('ok', 'bad', 'peek'));
+    root.querySelectorAll('.pt-gl.hint, .pt-pl.hint').forEach(x => x.classList.remove('hint'));
+    if(sel){ cells[sel].classList.remove('sel'); sel = null; }
+    look(null); exShow(null);
+    pin = hov = null; lines();
+    tagEl.innerHTML = `Câu ${qi + 1}/${total} · ${q.tag}` + (streak >= 2 ? ` <span class="pt-streak">${ico('star', 13)} ${streak} câu đúng liền!</span>` : '');
+    qEl.innerHTML = q.q;
+    whyEl.className = 'pt-why'; whyEl.innerHTML = ''; next.hidden = true;
+    if(q.pick) drawPick();
+    else {
+      ansEl.innerHTML = q.opts.map((o, x) => `<button class="btn${q.els ? ' el' : ''}${q.eq ? ' eq' : ''}" data-x="${x}">${o.t}</button>`).join('');
+      ansEl.querySelectorAll('.btn').forEach(b => {
+        const s = q.els && q.opts[+b.dataset.x].v;
+        b.onclick = () => grade(+b.dataset.x === q.ans, b);
+        if(s){ b.onmouseenter = () => cells[s].classList.add('peek'); b.onmouseleave = () => cells[s].classList.remove('peek'); }
+      });
+    }
+    const row = root.querySelector('.pt-row');
+    row.classList.remove('enter'); void row.offsetWidth; row.classList.add('enter');
+  }
+  function grade(ok, btn){
+    if(done) return;
+    done = true;
+    const q = qs[qi], last = qi === total - 1;
+    if(ok){ correct++; streak++; SFX.coin(); } else { streak = 0; SFX.err(); }
+    mgScore(correct, total);
+    ansEl.querySelectorAll('.btn').forEach(b => b.disabled = true);
+    root.querySelectorAll('.pt-cell.peek').forEach(c => c.classList.remove('peek'));
+    if(q.opts){
+      ansEl.querySelector(`[data-x="${q.ans}"]`).classList.add('ok');
+      if(!ok){ btn.classList.add('bad'); if(q.els) cells[q.opts[+btn.dataset.x].v].classList.add('bad'); }
+    }
+    else if(!ok) cells[sel].classList.add('bad');
+    q.show.forEach(s => cells[s].classList.add('ok'));
+    if(q.row) root.querySelector(`.pt-pl[data-p="${q.row}"]`).classList.add('hint');
+    if(q.col) root.querySelector(`.pt-gl[data-c="${q.col}"]`).classList.add('hint');
+    whyEl.className = 'pt-why ' + (ok ? 'good' : 'bad');            // đúng: chỉ khen ngắn; sai: kèm lời giải
+    whyEl.innerHTML = ok ? ico('check', 16) + ' ' + pick(['Đúng!', 'Chính xác!']) : ico('close', 16) + ' Chưa đúng. ' + q.why;
+    const go = () => {
+      if(!root.isConnected) return;
+      if(last) showResult(i, {correct, total, hard});
+      else { qi++; SFX.page(); ask(); }
+    };
+    if(ok) setTimeout(go, 1300);                                        // đúng: tự sang câu sau (không có lời giải phải đọc)
+    else {                                                              // sai: đọc lời giải rồi tự bấm sang
+      next.innerHTML = last ? ico('star') + ' Xem kết quả' : 'Câu tiếp ' + ico('next');
+      next.onclick = () => { next.onclick = null; go(); };
+      next.hidden = false;
+    }
+  }
+  ask();
+ },
+
  /* --- ngày 31: chuỗi phản ứng. Trên: chất đầu ○ —▭→ ? —▭→ ? —▭→ ○ chất đích; dưới: băng chọn chất (dải vàng).
         Kéo bình (hoặc bấm bình rồi bấm ô) vào ô trên mũi tên. Điền đủ ô thì chấm ngay: đúng cả chuỗi thì các chất
         ở giữa lần lượt hiện ra kèm phương trình; sai thì ô sai đỏ lên rồi bật ra, mất 1 điểm. Mỗi chuỗi mất tối đa
@@ -1433,13 +1616,7 @@ const MG = {
       const best = sols.reduce((b, s) => agree(s) > agree(b) ? s : b, sols[0] || []);
       const bad = fill.map((f, k) => f !== best[k]);
       slots.forEach((s, k) => s.classList.add(bad[k] ? 'bad' : 'ok'));
-      lost++; pts--; score(); SFX.err();
-      hud.classList.remove('flash-bad'); void hud.offsetWidth; hud.classList.add('flash-bad');
-      const m = document.createElement('div'), g = G.getBoundingClientRect(), r = hud.getBoundingClientRect(), sc = g.width/1280;
-      m.className = 'chn-minus'; m.textContent = '−1';                // "−1" bật ra ngay dưới ô Điểm rồi bay lên nhập vào nó
-      m.style.left = (r.left + r.width/2 - g.left)/sc + 'px'; m.style.top = (r.bottom - g.top)/sc + 'px';
-      G.appendChild(m);
-      m.onanimationend = () => m.remove();
+      lost++; pts--; score(); SFX.err(); mgMinus(hud);
       const out = lost >= n;
       say(out ? 'Sai rồi, <b>−1 điểm</b>. Chuỗi này hết điểm — xem ta làm mẫu nhé!'
               : 'Chưa đúng — ô đỏ là chỗ sai. <b>−1 điểm</b>. Thử lại nào!', 'bad');
@@ -1491,8 +1668,286 @@ const MG = {
     }
   }
   play();
+ },
+
+ /* --- ngày 5: cân bằng phương trình. Trên: KHAY PHẢN ỨNG, không chữ — chất tham gia bên trái mũi tên, sản phẩm bên phải
+        (vẽ mờ: chỗ chờ phản ứng tạo ra). Giữa: phương trình, mỗi hệ số là một ô gạch chân gõ số được; gõ tới đâu phân tử
+        nhảy từ ô vào khay tới đó (quá BAL_BIG phân tử thì khay vẽ một phân tử kèm "n ×"). Dưới: hàng chất — kéo (hoặc bấm)
+        một chất là thêm MỘT phân tử; bấm phân tử trong khay hoặc kéo nó ra ngoài là bớt. Bấm PHẢN ỨNG (hay Enter trong ô):
+        liên kết của chất tham gia đứt, từng nguyên tử bay sang chỗ của nó trong các sản phẩm đang chờ; sản phẩm nào đủ
+        nguyên tử thì thành hình. Vừa khít với bộ hệ số nhỏ nhất thì phương trình được gạch chân, ô hệ số thành chữ (hệ số 1
+        biến mất). Lệch thì nguyên tử thừa ở lại viền đỏ, chỗ thiếu hiện vòng đỏ, dòng trên cùng ghi "thừa n × ●, thiếu
+        n × ◌", −1 điểm; sửa là khay dọn về như cũ. Lệch lần nữa thì giáo sư làm mẫu. Vừa khít nhưng hệ số còn rút gọn
+        được thì chỉ nhắc, không trừ điểm. Mỗi câu BAL_PTS điểm. --- */
+ balance(i, day){
+  const qs = day.pools.flatMap(([n, list]) => shuffle(list).slice(0, n).map(balRx));
+  const total = qs.length*BAL_PTS;
+  let qi = 0, pts = total;
+  mgFrame(i, day, '<div class="bal"></div>');
+  const root = G.querySelector('.bal'), hud = G.querySelector('#mgscore');
+  const score = () => { hud.textContent = 'Điểm: ' + pts + '/' + total; };
+  score();
+
+  function play(){
+    const r = qs[qi], fs = Object.keys(r.rg).concat(Object.keys(r.pr)), nL = Object.keys(r.rg).length;
+    const ks = fs.map((f, k) => k), isR = k => k >= nL;              // chất thứ k là sản phẩm (vế phải)?
+    const want = fs.map((f, k) => isR(k) ? r.pr[f] : r.rg[f]), cnt = fs.map(() => 0);
+    const big = k => cnt[k] > BAL_BIG;                                // khay vẽ "n ×" + một phân tử
+    let busy = false, lost = 0, timers = [], flyT = [];
+    const later = (ms, fn, T) => (T || timers).push(setTimeout(() => { if(root.isConnected) fn(); }, ms));
+    // khay: mỗi vế chia bề ngang cho các chất của vế đó theo độ rộng thật của phân tử (Fe₂O₃ rộng hơn H₂ nhiều); mỗi chất
+    // xếp số phân tử đang có thành lưới 1–5 cột (chọn số cột cho phân tử to nhất); cả khay chung MỘT tỉ lệ để bi cùng
+    // nguyên tố ở hai vế to bằng nhau — nhiều phân tử thì cả khay thu nhỏ lại. NW: chỗ cho nhãn "n ×"
+    const SIDE_W = (BAL_ZW - BAL_ARW)/2 - 20, MOL_H = BAL_ZH - 28, NW = 78;
+    const wide = fs.map(f => { const g = molFit(f, 1e4, 1e4, 1); return Math.max(70, g.x1 - g.x0); });
+    const sideW = right => ks.filter(k => isR(k) === right).reduce((s, k) => s + wide[k], 0);
+    function grid(){
+      const cell = fs.map((f, k) => {
+        const cw = Math.floor(SIDE_W*wide[k]/sideW(isR(k))), n = big(k) ? 1 : Math.max(1, cnt[k]), aw = cw - (big(k) ? NW : 0);
+        let best = null;
+        for(let c = 1; c <= Math.min(n, 5); c++){
+          const w = Math.floor(aw/c), h = Math.floor(MOL_H/Math.ceil(n/c)), s = molFit(f, w, h, BAL_SC).sc;
+          // cùng cỡ bi (thường do chạm BAL_SC) thì chọn lưới gần vuông nhất: 4 phân tử xếp 2×2 chứ không thành cột dài
+          const sq = x => Math.abs(x - Math.sqrt(n));
+          if(!best || s > best.s + 1e-6 || (s > best.s - 1e-6 && sq(c) < sq(best.c))) best = {cw, c, w, h, s};
+        }
+        return best;
+      });
+      return {cell, sc:Math.min(...cell.map(c => c.s))};
+    }
+    let lay = grid();
+    const box = k => `<div class="bal-box" style="width:${lay.cell[k].w}px;height:${lay.cell[k].h}px">${molHTML(fs[k], lay.cell[k].w, lay.cell[k].h, lay.sc)}</div>`;
+    // phương trình: ô hệ số gạch chân + công thức; sản phẩm khí / kết tủa có sẵn dấu ↑ / ↓, chỉ hiện khi đã cân bằng xong
+    const mark = f => CHEMS[f].s === 'k' ? '↑' : isPrecip(f) ? '↓' : '';
+    const term = k => (k && k !== nL ? '<span class="bal-op">+</span>' : '') + (k === nL ? handArrow(r) : '')
+      + `<span class="bal-term"><input class="bal-in" type="text" inputmode="numeric" maxlength="2" autocomplete="off" `
+      + `aria-label="hệ số của ${fs[k]}"><span>${sub(fs[k])}</span>`
+      + (isR(k) && mark(fs[k]) ? `<i class="bal-mk">${mark(fs[k])}</i>` : '') + '</span>';
+    const card = k => `<div class="bal-card" data-k="${k}"><div class="bal-cmol">${molHTML(fs[k], 116, 62, 1.3)}</div><b>${sub(fs[k])}</b></div>`;
+    const ARR = '<svg width="84" height="24" viewBox="0 0 84 24"><path d="M4 12 Q30 10 76 12 M64 4 L77 12 L64 20"/></svg>';
+    const col = k => `<div class="bal-col" data-k="${k}"></div>`;
+    const L = ks.filter(k => !isR(k)), R = ks.filter(isR);
+    root.innerHTML = `<p class="bal-say"></p>
+      <div class="bal-zone" data-dz="bzone">
+        <div class="bal-side l">${L.map(col).join('')}</div>
+        <div class="bal-arrow">${ARR}</div>
+        <div class="bal-side r">${R.map(col).join('')}</div>
+        <div class="bal-fly"></div>
+      </div>
+      <div class="bal-eq"><div class="bal-eqin">${ks.map(term).join('')}
+        <svg class="bal-ul" viewBox="0 0 400 12" preserveAspectRatio="none"><path pathLength="1" d="M4 7 Q110 3 210 6 T396 5"/></svg></div></div>
+      <div class="bal-band">
+        <div class="bal-pick">
+          <div class="bal-grp">${L.map(card).join('')}</div>
+          <div class="bal-arrow">${ARR}</div>
+          <div class="bal-grp">${R.map(card).join('')}</div>
+          <div class="bal-btns"><button class="btn big" id="balgo" disabled>${ico('flask')} Phản ứng</button>
+            <button class="btn" id="balhelp">${ico('book')} Cách cân bằng</button></div>
+        </div>
+        <div class="bal-done"></div>
+      </div>`;
+    const zone = root.querySelector('.bal-zone'), band = root.querySelector('.bal-band'), done = root.querySelector('.bal-done');
+    const layer = zone.querySelector('.bal-fly'), ins = [...root.querySelectorAll('.bal-in')];
+    const sayEl = root.querySelector('.bal-say'), go = root.querySelector('#balgo');
+    // dòng chữ trên cùng chỉ hiện khi có điều cần báo (sai, hệ số chưa gọn, giáo sư làm mẫu); trò sửa khay thì xoá đi
+    const say = (html, cls) => { sayEl.innerHTML = html || ''; sayEl.className = 'bal-say' + (cls ? ' ' + cls : ''); };
+    const mols = k => [...zone.querySelectorAll(`.bal-col[data-k="${k}"] .bal-mol`)];
+    function setBusy(b){
+      busy = b; root.classList.toggle('busy', b);
+      ins.forEach(x => x.readOnly = b);
+      go.disabled = b || cnt.some(n => !n);
+    }
+
+    // ô hệ số theo số phân tử; nút Phản ứng chỉ bấm được khi chất nào cũng có mặt
+    function sync(){
+      ins.forEach((x, k) => { const v = cnt[k] ? String(cnt[k]) : ''; if(x.value !== v) x.value = v; });
+      go.disabled = busy || cnt.some(n => !n);
+    }
+    // vẽ lại cả khay (đổi số phân tử là có thể đổi lưới và tỉ lệ chung). Phân tử mới của chất k nhảy từ src (ô hệ số hoặc
+    // chất ở hàng dưới) vào chỗ của nó; không có src (kéo thả vào khay) thì nảy ra tại chỗ
+    function render(k0, prev, src){
+      lay = grid();
+      ks.forEach(k => {
+        const c = lay.cell[k], el = zone.querySelector(`.bal-col[data-k="${k}"]`), n = big(k) ? 1 : cnt[k];
+        el.style.width = c.cw + 'px';
+        el.innerHTML = (big(k) ? `<span class="bal-n">${cnt[k]} ×</span>` : '')
+          + `<div class="bal-mols" style="width:${c.c*c.w}px;height:${MOL_H}px">`
+          + Array.from({length:n}, (_, j) => `<div class="bal-mol${isR(k) ? ' ghost' : ''}`
+            + `${k === k0 && !src && !big(k) && j >= prev ? ' pop' : ''}">${box(k)}</div>`).join('') + '</div>';
+        el.querySelectorAll('.bal-mol').forEach(m => dragify(m, 'balout', {w:c.w, h:c.h, enabled: () => !busy,
+          ghostHTML: () => box(k), onDrop: () => {}, onLoose: () => { setCount(k, cnt[k] - 1); return true; },
+          onClick: () => setCount(k, cnt[k] - 1)}));
+      });
+      if(src && !big(k0)) jump(mols(k0).slice(prev), src);
+    }
+    function jump(els, src){
+      const s = G.getBoundingClientRect().width/1280, a = src.getBoundingClientRect(), ax = a.left + a.width/2, ay = a.top + a.height/2;
+      els.forEach((el, j) => {
+        const b = el.getBoundingClientRect(), dx = (ax - b.left - b.width/2)/s, dy = (ay - b.top - b.height/2)/s;
+        el.animate([{transform:`translate(${dx}px,${dy}px) scale(.35)`, opacity:0},
+          {transform:`translate(${dx*.45}px,${dy*.45 - 70}px) scale(.85)`, opacity:1, offset:.55},
+          {transform:'none', opacity:1}], {duration:520, delay:j*60, easing:'ease-out', fill:'backwards'});
+      });
+    }
+    // auto: giáo sư đang làm mẫu (trò bị khoá tay). Sửa khay sau một lần phản ứng hụt thì khay dọn về như cũ
+    function setCount(k, n, src, auto){
+      if(busy && !auto) return;
+      n = Math.max(0, Math.min(BAL_IN, n | 0));
+      if(n === cnt[k]) return sync();
+      reset();
+      if(!auto) say();
+      const prev = cnt[k];
+      cnt[k] = n;
+      render(k, prev, n > prev ? src : null);
+      sync(); SFX.clink();
+    }
+    ins.forEach((x, k) => {
+      x.oninput = () => { const v = x.value.replace(/\D/g, '').slice(0, 2); if(v !== x.value) x.value = v; setCount(k, +v || 0, x); };
+      x.onkeydown = e => { if(e.key === 'Enter'){ x.blur(); react(); } };
+    });
+    root.querySelectorAll('.bal-card').forEach(el => { const k = +el.dataset.k;
+      dragify(el, 'balmol', {get w(){ return lay.cell[k].w; }, get h(){ return lay.cell[k].h; }, enabled: () => !busy, ghostHTML: () => box(k),
+        onDrop: () => setCount(k, cnt[k] + 1), onClick: () => setCount(k, cnt[k] + 1, el)}); });
+    go.onclick = react;
+    root.querySelector('#balhelp').onclick = () => { if(!busy) balanceTutorial(); };
+    render(-1, 0, null);
+
+    function react(){
+      if(busy || cnt.some(n => !n)) return;
+      run(false);
+    }
+    // số nguyên tử mỗi nguyên tố: trước − sau (dương: thừa, âm: thiếu)
+    function tally(){
+      const d = {};
+      ks.forEach(k => { const a = atomCounts(fs[k]); Object.keys(a).forEach(e => d[e] = (d[e] || 0) + (isR(k) ? -1 : 1)*cnt[k]*a[e]); });
+      return Object.keys(d).map(e => ({e, d:d[e]}));
+    }
+    // cho phản ứng chạy rồi chấm theo kết quả: vừa khít (không thừa, không thiếu) + bộ hệ số nhỏ nhất là đúng.
+    // byProf: giáo sư vừa làm mẫu
+    function run(byProf){
+      setBusy(true);
+      if(!byProf) say();
+      SFX.fizz();
+      const ms = fly();
+      later(ms + 250, () => {
+        const T = tally(), g = cnt.reduce(gcd);
+        if(T.every(t => !t.d)){
+          if(g === 1) return solved(byProf);
+          setBusy(false);
+          return say(`Vừa khít, nhưng mọi hệ số còn chia hết cho ${g} — rút gọn nhé!`);
+        }
+        lost++; pts--; score(); SFX.err(); mgMinus(hud);
+        // thừa / thiếu ghi kiểu hệ số × chất: một bi màu nguyên tố (thừa: viền đỏ như bi ở lại; thiếu: vòng đỏ đứt nét)
+        const dot = (e, miss) => `<span class="bal-dot${miss ? ' miss' : ''}" style="--c:${(ATOM_STYLE[e] || ['#ccc'])[0]}"></span>`;
+        const part = (w, list, miss) => list.length ? w + ' ' + list.map(t => Math.abs(t.d) + ' × ' + dot(t.e, miss)).join(', ') : '';
+        const msg = 'Chưa cân bằng — ' + [part('thừa', T.filter(t => t.d > 0)), part('thiếu', T.filter(t => t.d < 0), 1)].filter(Boolean).join(' · ');
+        if(lost < BAL_PTS){ setBusy(false); return say(msg, 'bad'); }
+        say(msg + '. Hết điểm câu này — xem ta làm mẫu nhé!', 'bad');
+        later(2800, demo);
+      });
+    }
+    // đúng: phương trình được gạch chân — ô hệ số thu vừa con số và mất gạch, hệ số 1 biến mất, hiện dấu ↑ / ↓; hàng chất
+    // nhường chỗ cho hai nút xem lại / đi tiếp
+    function solved(byProf){
+      say(byProf ? 'Ta làm mẫu đây — đếm lại số phân tử mỗi chất nhé!' : '');
+      SFX.bell();
+      const meas = document.createElement('span');
+      meas.className = 'bal-meas';
+      root.appendChild(meas);
+      ins.forEach((x, k) => { meas.textContent = x.value; x.style.width = (cnt[k] === 1 ? 0 : meas.offsetWidth + 2) + 'px'; });
+      meas.remove();
+      root.querySelector('.bal-eq').classList.add('final');
+      const last = qi === qs.length - 1;
+      done.innerHTML = `<div class="row">`
+        + `<button class="btn bal-ib" id="balagain" aria-label="Xem lại" title="Xem lại">${ico('retry', 26)}</button>`
+        + `<button class="btn big bal-ib" id="balnext" aria-label="${last ? 'Xem kết quả' : 'Câu tiếp theo'}" title="${last ? 'Xem kết quả' : 'Câu tiếp theo'}">`
+        + `${ico(last ? 'star' : 'next', 26)}</button></div>`;
+      band.classList.add('done');
+      done.querySelector('#balagain').onclick = () => { SFX.clink(); fly(); };
+      done.querySelector('#balnext').onclick = () => { timers.concat(flyT).forEach(clearTimeout);
+        if(last) showResult(i, {correct:pts, total, label:'Điểm'}); else { qi++; SFX.page(); play(); } };
+    }
+    // hết điểm: giáo sư sửa từng ô hệ số (phân tử nhảy vào / ra theo) cho đủ đúng số rồi cho phản ứng chạy
+    function demo(){
+      reset();
+      say('Ta đặt lại số phân tử cho đúng nhé…');
+      const steps = [];
+      ks.forEach(k => {
+        for(let n = cnt[k]; n > want[k]; n--) steps.push(() => setCount(k, cnt[k] - 1, null, true));
+        for(let n = cnt[k]; n < want[k]; n++) steps.push(() => setCount(k, cnt[k] + 1, ins[k], true));
+      });
+      steps.forEach((s, j) => later(350 + j*280, s));
+      later(350 + steps.length*280 + 450, () => run(true));
+    }
+    // dọn khay về lúc chưa phản ứng: chất tham gia hiện lại, sản phẩm về dạng chờ, bỏ bi bay và vòng đánh dấu
+    function reset(){
+      flyT.forEach(clearTimeout); flyT = [];
+      zone.classList.remove('split');
+      layer.innerHTML = '';
+      zone.querySelectorAll('.bal-mol.made').forEach(m => m.classList.remove('made'));
+    }
+    // phản ứng thật: que và sticker của chất tham gia mờ đi (liên kết đứt), từng nguyên tử tách xa nhau, rồi bay vào chỗ
+    // của nó trong các sản phẩm đang chờ. Ghép theo từng nguyên tố: bi thứ n (từ trên xuống) bên trái vào chỗ thứ n bên
+    // phải, chỗ xếp theo thứ tự phân tử — thiếu bi thì các phân tử sau cùng hụt, thừa bi thì bi dưới cùng ở lại. Tới nơi:
+    // sản phẩm nào đủ bi thì thành hình; bi không có chỗ viền đỏ, chỗ không có bi tới hiện vòng đỏ. Toạ độ đo từ khay thật
+    // (cột xếp bằng flex) nên khớp khít với các phân tử đang nằm trên khay. Khay có chất ghi "n ×" thì không cho từng bi
+    // bay (một phân tử vẽ thay cho nhiều): chất tham gia mờ đi, vừa khít thì sản phẩm thành hình. Trả về thời gian chạy.
+    function fly(){
+      reset();
+      zone.classList.add('split');
+      SFX.crackle();
+      if(ks.some(big)){
+        const fit = tally().every(t => !t.d);
+        later(700, () => { if(fit){ zone.querySelectorAll('.bal-side.r .bal-mol').forEach(m => m.classList.add('made')); SFX.tinkle(); } }, flyT);
+        return 800;
+      }
+      const o = layer.getBoundingClientRect(), s = o.width/layer.offsetWidth;
+      const pos = right => ks.filter(k => isR(k) === right).flatMap(k => mols(k).map(m => {
+        const c = lay.cell[k], b = m.firstElementChild.getBoundingClientRect(), x0 = (b.left - o.left)/s, y0 = (b.top - o.top)/s;
+        return {m, P:molPts(fs[k], c.w, c.h, lay.sc).P.map(a => ({el:a.el, r:a.r, x:x0 + a.x, y:y0 + a.y, cx:x0 + c.w/2, cy:y0 + c.h/2}))};
+      }));
+      const A = pos(false).flatMap(p => p.P), prod = pos(true);
+      const B = prod.flatMap((p, mi) => p.P.map(a => Object.assign(a, {mi})));
+      const byY = (a, b) => a.y - b.y || a.x - b.x, dest = A.map(() => null), got = new Set();
+      [...new Set(A.map(a => a.el))].forEach(e => {
+        const to = B.filter(b => b.el === e);
+        A.map((a, j) => j).filter(j => A[j].el === e).sort((p, q) => byY(A[p], A[q]))
+          .forEach((j, n) => { if(to[n]){ dest[j] = to[n]; got.add(to[n]); } });
+      });
+      const miss = B.filter(b => !got.has(b)), full = prod.map((p, mi) => !miss.some(b => b.mi === mi));
+      layer.innerHTML = A.map(a => atomBall(a, 'mv', '', true)).join('');
+      const balls = [...layer.children];
+      later(450, () => balls.forEach((el, j) => { const a = A[j];
+        el.style.transition = 'left .45s ease-out, top .45s ease-out';
+        el.style.left = a.cx + (a.x - a.cx)*1.6 + 'px'; el.style.top = a.cy + (a.y - a.cy)*1.6 + 'px'; }), flyT);
+      const spread = Math.min(balls.length*30, 450), ms = 1150 + 1100 + spread + 60;
+      later(1150, () => balls.forEach((el, j) => { const b = dest[j]; if(!b) return;
+        el.style.transition = ''; el.style.transitionDelay = Math.min(j*30, 450) + 'ms';
+        el.style.left = b.x + 'px'; el.style.top = b.y + 'px'; }), flyT);
+      later(ms, () => {
+        balls.forEach((el, j) => { el.style.transitionDelay = '';
+          if(!dest[j]) el.classList.add('extra'); else if(full[dest[j].mi]) el.classList.add('in'); });
+        prod.forEach((p, mi) => { if(full[mi]) p.m.classList.add('made'); });
+        layer.insertAdjacentHTML('beforeend', miss.map(b => `<div class="bal-miss" style="left:${b.x}px;top:${b.y}px;`
+          + `width:${2*b.r + 6}px;height:${2*b.r + 6}px"></div>`).join(''));
+        if(full.some(Boolean)) SFX.tinkle();
+      }, flyT);
+      return ms;
+    }
+  }
+  play();
  }
 };
+
+/* Cân bằng phương trình (ngày 5). Đề viết 'H2 + O2 = H2O', hệ số lấy từ dòng trong REACTIONS có đúng các chất tham gia
+   và sản phẩm đó — nên đáp án luôn khớp thẻ phản ứng và sổ tay. khoi-dong.js kiểm tra mỗi đề khớp đúng một dòng. */
+const BAL_PTS = 2, BAL_SC = 2;                    // điểm mỗi câu; tỉ lệ bi tối đa trong khay
+const BAL_BIG = 10, BAL_IN = 99;                  // quá BAL_BIG phân tử thì khay ghi "n ×"; ô hệ số gõ tới BAL_IN
+const BAL_ZW = 1232, BAL_ZH = 330, BAL_ARW = 120; // khay phản ứng: rộng, cao, chỗ mũi tên ở giữa — khớp .bal-zone trong style.css
+const balKey = fs => fs.map(f => f.trim()).sort().join();
+const balRxs = s => { const [a, b] = s.split('=').map(x => balKey(x.split('+')));
+  return REACTIONS.filter(r => balKey(Object.keys(r.rg)) === a && balKey(Object.keys(r.pr)) === b); };
+const balRx = s => balRxs(s)[0];
 
 /* Chuỗi phản ứng (ngày 31) — mỗi mũi tên là MỘT phản ứng trong REACTIONS có đúng hai chất tham gia: chất đứng trước
    và chất thêm vào; chất đứng sau là một sản phẩm bất kì của nó. Điện phân cần nguồn điện chứ không phải thêm chất
@@ -1523,6 +1978,435 @@ function chainSolutions(start, target, n, pool){
     pool.forEach(a => chainStep(cur, a).forEach(s => go(s.f, pre.concat(a))));
   })(start, []);
   return out;
+}
+
+/* =====================  BẢNG TUẦN HOÀN (ngày 24)  ===================== */
+/* Bảng rút gọn 7 chu kì × 18 cột như sách KHTN: họ lantan (57–71) và họ actini (89–103) gộp thành MỘT ô ở cột IIIB.
+   Mỗi chu kì một hàng, mỗi nguyên tố [kí hiệu, tên, nguyên tử khối, loại] — loại m: kim loại, n: phi kim, g: khí hiếm;
+   chuỗi là ô gộp một họ. Số hiệu nguyên tử tự đếm theo thứ tự (ô gộp chiếm 15 số). Nguyên tử khối làm tròn như sách
+   (Cl = 35,5) và phải khớp ATOM (khoi-dong.js kiểm tra); nguyên tố phóng xạ không có nguyên tử khối chuẩn thì ghi số
+   khối của đồng vị bền nhất trong ngoặc vuông. */
+const PT_DATA = [
+ [['H','hiđro',1,'n'], ['He','heli',4,'g']],
+ [['Li','liti',7,'m'], ['Be','beri',9,'m'], ['B','bo',11,'n'], ['C','cacbon',12,'n'], ['N','nitơ',14,'n'], ['O','oxi',16,'n'],
+  ['F','flo',19,'n'], ['Ne','neon',20,'g']],
+ [['Na','natri',23,'m'], ['Mg','magie',24,'m'], ['Al','nhôm',27,'m'], ['Si','silic',28,'n'], ['P','photpho',31,'n'],
+  ['S','lưu huỳnh',32,'n'], ['Cl','clo',35.5,'n'], ['Ar','agon',40,'g']],
+ [['K','kali',39,'m'], ['Ca','canxi',40,'m'], ['Sc','scanđi',45,'m'], ['Ti','titan',48,'m'], ['V','vanađi',51,'m'],
+  ['Cr','crom',52,'m'], ['Mn','mangan',55,'m'], ['Fe','sắt',56,'m'], ['Co','coban',59,'m'], ['Ni','niken',59,'m'],
+  ['Cu','đồng',64,'m'], ['Zn','kẽm',65,'m'], ['Ga','gali',70,'m'], ['Ge','gemani',73,'m'], ['As','asen',75,'n'],
+  ['Se','selen',79,'n'], ['Br','brom',80,'n'], ['Kr','kripton',84,'g']],
+ [['Rb','rubiđi',85.5,'m'], ['Sr','stronti',88,'m'], ['Y','ytri',89,'m'], ['Zr','ziriconi',91,'m'], ['Nb','niobi',93,'m'],
+  ['Mo','molipđen',96,'m'], ['Tc','tecneti','[98]','m'], ['Ru','ruteni',101,'m'], ['Rh','rođi',103,'m'], ['Pd','palađi',106,'m'],
+  ['Ag','bạc',108,'m'], ['Cd','cađimi',112,'m'], ['In','inđi',115,'m'], ['Sn','thiếc',119,'m'], ['Sb','antimon',122,'m'],
+  ['Te','telu',128,'n'], ['I','iot',127,'n'], ['Xe','xenon',131,'g']],
+ [['Cs','xesi',133,'m'], ['Ba','bari',137,'m'], 'La–Lu', ['Hf','hafini',178,'m'], ['Ta','tantan',181,'m'], ['W','vonfram',184,'m'],
+  ['Re','reni',186,'m'], ['Os','osimi',190,'m'], ['Ir','iriđi',192,'m'], ['Pt','platin',195,'m'], ['Au','vàng',197,'m'],
+  ['Hg','thuỷ ngân',201,'m'], ['Tl','tali',204,'m'], ['Pb','chì',207,'m'], ['Bi','bitmut',209,'m'], ['Po','poloni','[209]','m'],
+  ['At','atatin','[210]','n'], ['Rn','rađon','[222]','g']],
+ [['Fr','franxi','[223]','m'], ['Ra','rađi','[226]','m'], 'Ac–Lr', ['Rf','rutherfordi','[267]','m'], ['Db','dubni','[268]','m'],
+  ['Sg','seaborgi','[269]','m'], ['Bh','bohri','[270]','m'], ['Hs','hassi','[269]','m'], ['Mt','meitneri','[278]','m'],
+  ['Ds','darmstadti','[281]','m'], ['Rg','roentgeni','[282]','m'], ['Cn','copernixi','[285]','m'], ['Nh','nihoni','[286]','m'],
+  ['Fl','flerovi','[289]','m'], ['Mc','moscovi','[290]','m'], ['Lv','livermori','[293]','m'], ['Ts','tennessin','[294]','n'],
+  ['Og','oganesson','[294]','g']]
+];
+// lưới bảng: ô 60 px (style.css .pt-cell), bước 64 px; chừa cột số chu kì bên trái và hàng nhãn nhóm ở trên
+const PT_STEP = 64, PT_X0 = 26, PT_Y0 = 22;
+const PT_GROUP = ['IA','IIA','IIIB','IVB','VB','VIB','VIIB','VIIIB','VIIIB','VIIIB','IB','IIB','IIIA','IVA','VA','VIA','VIIA','VIIIA'];
+const PT_KIND = {m:'Kim loại', n:'Phi kim', g:'Khí hiếm'};
+const PT_COLOR = {m:'xanh lam', n:'hồng', g:'vàng'};          // màu ô (style.css .k-m / .k-n / .k-g), dùng trong lời giải
+const PT_LATIN = {Na:'natrium', K:'kalium', Fe:'ferrum', Cu:'cuprum', Ag:'argentum'};   // kí hiệu "lạ" so với tên tiếng Việt
+// độ âm điện χ (thang Pauling) — chế độ khó. Nhóm A lấy đúng bảng độ âm điện SGK Hoá 10; khí hiếm không xét và nguyên
+// tố siêu nặng chưa đo được thì không ghi (bảng hiện "—")
+const PT_EN = {
+ H:2.20, Li:0.98, Be:1.57, B:2.04, C:2.55, N:3.04, O:3.44, F:3.98, Na:0.93, Mg:1.31, Al:1.61, Si:1.90, P:2.19, S:2.58, Cl:3.16,
+ K:0.82, Ca:1.00, Sc:1.36, Ti:1.54, V:1.63, Cr:1.66, Mn:1.55, Fe:1.83, Co:1.88, Ni:1.91, Cu:1.90, Zn:1.65, Ga:1.81, Ge:2.01,
+ As:2.18, Se:2.55, Br:2.96, Rb:0.82, Sr:0.95, Y:1.22, Zr:1.33, Nb:1.60, Mo:2.16, Tc:1.90, Ru:2.20, Rh:2.28, Pd:2.20, Ag:1.93,
+ Cd:1.69, In:1.78, Sn:1.96, Sb:2.05, Te:2.10, I:2.66, Cs:0.79, Ba:0.89, Hf:1.30, Ta:1.50, W:2.36, Re:1.90, Os:2.20, Ir:2.20,
+ Pt:2.28, Au:2.54, Hg:2.00, Tl:1.62, Pb:2.33, Bi:2.02, Po:2.00, At:2.20, Fr:0.70, Ra:0.90};
+// cấu hình electron: [[lớp n, phân lớp l (0 s, 1 p, 2 d, 3 f), số electron]…]. Điền các phân lớp theo thứ tự năng lượng
+// (1s 2s 2p 3s 3p 4s 3d 4p…), sửa ngoại lệ rồi viết lại theo thứ tự lớp như SGK (Fe: 1s² 2s² 2p⁶ 3s² 3p⁶ 3d⁶ 4s²).
+// PT_SHELL_FIX: số electron chuyển từ phân lớp s ngoài cùng vào phân lớp d sát trong (Cr, Cu: 3dⁿ⁺¹ 4s¹; Pd chuyển cả 2 nên
+// chỉ còn 4 lớp dù ở chu kì 5)
+const PT_SHELL_FIX = {Cr:1, Cu:1, Nb:1, Mo:1, Ru:1, Rh:1, Pd:2, Ag:1, Pt:1, Au:1};
+function ptConfig(z, s){
+  const subs = [], cfg = [];
+  for(let n = 1; n <= 7; n++) for(let l = 0; l < Math.min(n, 4); l++) subs.push([n, l]);
+  subs.sort((a, b) => a[0] + a[1] - b[0] - b[1] || a[0] - b[0]);
+  let left = z;
+  subs.forEach(([n, l]) => { const k = Math.min(left, 4*l + 2); if(k){ cfg.push([n, l, k]); left -= k; } });
+  const mv = PT_SHELL_FIX[s];
+  if(mv){
+    const ns = cfg.filter(x => x[1] === 0).pop();
+    ns[2] -= mv; cfg.find(x => x[0] === ns[0] - 1 && x[1] === 2)[2] += mv;
+  }
+  return cfg.filter(x => x[2]).sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+}
+// cấu hình viết ra HTML (số electron là chữ mũ), các phân lớp cách nhau dấu cách để ô hẹp tự xuống dòng. Từ chu kì 3 viết
+// gọn phần giống khí hiếm đứng trước: Na = [Ne] 3s¹, K = [Ar] 4s¹ (full = true thì viết đủ). cfg: chỉ viết các phân lớp này
+const PT_CORE = {3:'Ne', 4:'Ar', 5:'Kr', 6:'Xe', 7:'Rn'};
+function ptCfgHTML(e, full, cfg){
+  const core = !full && PT_CORE[e.p] && PT_BY[PT_CORE[e.p]];
+  const rest = (cfg || e.cfg).filter(x => !core || !core.cfg.some(c => c[0] === x[0] && c[1] === x[1]));
+  return (core ? '[' + core.s + '] ' : '') + rest.map(([n, l, k]) => n + 'spdf'[l] + '<sup>' + k + '</sup>').join(' ');
+}
+// các phân lớp của lớp n, có nhiều phân lớp thì kèm phép cộng: "3s² 3p⁵ = 2 + 5"
+const ptLayer = (e, n) => { const L = e.cfg.filter(x => x[0] === n);
+  return ptCfgHTML(e, true, L) + (L.length > 1 ? ' = ' + L.map(x => x[2]).join(' + ') : ''); };
+// cấu hình như ghi trên ô; ô viết gọn thì kèm bản đầy đủ (lời giải)
+const ptCfgSay = e => PT_CORE[e.p] ? ptCfgHTML(e) + ' (đầy đủ: ' + ptCfgHTML(e, true) + ')' : ptCfgHTML(e);
+// PT: mọi ô theo thứ tự {s, z, nm, m, k, p: chu kì, c: cột 1–18, en: độ âm điện hoặc null, cfg: cấu hình electron, sh:
+// số electron từng lớp}; ô gộp có fam = 1. PT_BY: tra theo kí hiệu, PT_Z: theo số hiệu
+const PT = [], PT_BY = {}, PT_Z = {};
+(() => {
+  let z = 0;
+  PT_DATA.forEach((row, r) => row.forEach((e, k) => {
+    const p = r + 1, c = row.length === 2 ? [1, 18][k] : row.length === 8 ? [1, 2, 13, 14, 15, 16, 17, 18][k] : k + 1;
+    if(typeof e === 'string'){
+      PT.push({fam:1, s:e, z:(z + 1) + '–' + (z + 15), nm:p === 6 ? 'họ lantan' : 'họ actini', m:'15 nguyên tố', k:'m', p, c});
+      z += 15; return;
+    }
+    const el = {s:e[0], z:++z, nm:e[1], m:e[2], k:e[3], p, c, en:PT_EN[e[0]] || null};
+    el.cfg = ptConfig(el.z, el.s);
+    el.sh = [];
+    el.cfg.forEach(([n, , k]) => el.sh[n - 1] = (el.sh[n - 1] || 0) + k);
+    PT.push(el); PT_BY[el.s] = el; PT_Z[el.z] = el;
+  }));
+})();
+const ptMain = e => e.c <= 2 || e.c >= 13;                    // nguyên tố nhóm A
+const ptOuter = e => e.c <= 2 ? e.c : e.c - 10;               // nhóm A: số electron lớp ngoài cùng = số thứ tự nhóm
+const ptMass = e => typeof e.m === 'number' ? fmt(e.m, 1) : e.m;
+const ptName = e => e.nm + ' (' + e.s + ')';
+// bán kính cộng hoá trị (pm, Cordero 2008) của các nguyên tố nhóm A trừ khí hiếm — chỉ để chọn đề so sánh kích thước:
+// chỉ hỏi cặp mà quy luật trên bảng (cùng chu kì: trái → phải nhỏ dần; cùng nhóm: trên → dưới to dần) khớp với số liệu
+// thật và chênh ít nhất PT_RAD_GAP pm. Cặp sát nhau / ngược quy luật như Al–Ga, Se–Br, Te–I tự bị loại.
+const PT_RAD = {H:31, Li:128, Be:96, B:84, C:76, N:71, O:66, F:57, Na:166, Mg:141, Al:121, Si:111, P:107, S:105, Cl:102,
+  K:203, Ca:176, Ga:122, Ge:120, As:119, Se:120, Br:120, Rb:220, Sr:195, In:142, Sn:139, Sb:139, Te:138, I:139, Cs:244, Ba:215};
+const PT_RAD_GAP = 3;
+// a to hơn b theo quy luật nào? 'p': cùng chu kì, a bên trái · 'g': cùng nhóm, a ở dưới · 'd': a vừa ở dưới vừa bên trái
+function ptBig(a, b){
+  const A = PT_BY[a], B = PT_BY[b];
+  const how = A.p === B.p ? A.c < B.c && 'p' : A.c === B.c ? A.p > B.p && 'g' : A.p > B.p && A.c < B.c && 'd';
+  return how && PT_RAD[a] - PT_RAD[b] >= PT_RAD_GAP ? how : null;
+}
+// mọi đề so sánh bán kính: cặp theo từng quy luật, bộ ba cùng chu kì / cùng nhóm; mỗi đề xếp sẵn từ to đến nhỏ
+let ptBigSets = null;
+function ptBigAll(){
+  if(ptBigSets) return ptBigSets;
+  const K = Object.keys(PT_RAD), S = {p2:[], g2:[], d2:[], p3:[], g3:[]};
+  K.forEach(a => K.forEach(b => {
+    const h = ptBig(a, b);
+    if(!h) return;
+    S[h + 2].push([a, b]);
+    if(h !== 'd') K.forEach(c => { if(ptBig(b, c) === h && ptBig(a, c) === h) S[h + 3].push([a, b, c]); });
+  }));
+  return ptBigSets = S;
+}
+// phương án trả lời: đáp án + phương án nhiễu theo thứ tự ưu tiên trong wrong (bỏ trùng, bỏ khác kiểu, bỏ số ≤ 0) cho
+// đủ 4; đáp án là số mà còn thiếu thì bù bằng số gần đáp án. show: cách ghi một phương án
+function ptChoice(right, wrong, show){
+  const vals = [right];
+  const add = v => { if(vals.length < 4 && typeof v === typeof right && !(typeof v === 'number' && !(v > 0)) && !vals.includes(v)) vals.push(v); };
+  wrong.forEach(add);
+  if(typeof right === 'number') for(let d = 1; vals.length < 4; d++){ add(right + d); add(right - d); }
+  const opts = shuffle(vals);
+  return {opts:opts.map(v => ({t:show ? show(v) : String(v), v})), ans:opts.indexOf(right)};
+}
+const ptOr = c => c.length === 2 ? c.join(' hay ') : c.slice(0, -1).join(', ') + ' hay ' + c[c.length - 1];   // "Na, Mg hay Al"
+// —— dùng cho chế độ khó ——
+const ptEN = v => v == null ? '—' : v.toFixed(2).replace('.', ',');
+const ptGroupNum = e => ({I:1, II:2, III:3, IV:4, V:5, VI:6, VII:7, VIII:8})[PT_GROUP[e.c - 1].slice(0, -1)];
+const PT_SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+const ptCharge = q => (Math.abs(q) > 1 ? PT_SUP[Math.abs(q)] : '') + (q > 0 ? '⁺' : '⁻');
+// ion của nguyên tố nhóm A: kim loại nhường hết electron lớp ngoài, phi kim nhận thêm cho đủ 8 → các lớp electron (sh)
+// giống một khí hiếm (gas)
+function ptIon(e){
+  const n = ptOuter(e), give = e.k === 'm', k = give ? n : 8 - n, q = give ? k : -k;
+  const sh = give ? e.sh.slice(0, -1) : e.sh.slice(0, -1).concat(8);
+  return {q, k, give, sh, ion:e.s + ptCharge(q), gas:PT.find(x => x.k === 'g' && x.sh.join() === sh.join())};
+}
+// đề so sánh độ âm điện theo quy luật: cặp / bộ ba cùng chu kì (χ tăng sang phải) hoặc cặp cùng nhóm (χ giảm xuống dưới)
+// mà số liệu khớp quy luật, chênh ít nhất 0,1 — cặp ngược như Al–Ga (1,61 – 1,81) tự bị loại. Mỗi đề xếp từ χ lớn đến nhỏ
+let ptEnSets = null;
+function ptEnAll(){
+  if(ptEnSets) return ptEnSets;
+  const K = Object.keys(PT_RAD), S = {p2:[], g2:[], p3:[]};
+  const hi = (a, b) => {
+    const A = PT_BY[a], B = PT_BY[b];
+    const how = A.p === B.p ? A.c > B.c && 'p' : A.c === B.c ? A.p < B.p && 'g' : null;
+    return how && Math.round((A.en - B.en)*100) >= 10 ? how : null;
+  };
+  K.forEach(a => K.forEach(b => {
+    const h = hi(a, b);
+    if(!h) return;
+    S[h + 2].push([a, b]);
+    if(h === 'p') K.forEach(c => { if(hi(b, c) === 'p' && hi(a, c) === 'p') S.p3.push([a, b, c]); });
+  }));
+  return ptEnSets = S;
+}
+// kính lúp chi tiết của chế độ khó (độ âm điện, các lớp electron, hình các lớp ptBohr bên dưới). Đang TẮT: chế độ khó ghi
+// mọi thông tin ngay trên ô, chỗ kính lúp chỉ là một ô ví dụ có chú thích. Để dành làm tính năng "học thêm" — đổi thành
+// true là kính lúp này hiện lại, đổi theo ô đang soi
+const PT_HARD_LENS = false;
+// chế độ khó: khung game hiện nhỏ hơn mức này (cỡ thật / 1280) là "màn hình vừa và nhỏ" — chữ cấu hình 8,5 px trên ô còn
+// dưới ~9 px — thì bấm ô sẽ hiện số liệu ô đó vào ô hướng dẫn. Full HD toàn màn hình ≈ 1,3; laptop ≈ 0,9; điện thoại ≈ 0,5
+const PT_ZOOM_MIN = 1.1;
+// các lớp electron vẽ trong kính lúp (chế độ khó): hạt nhân +Z ở giữa, mỗi lớp một vòng, electron chia đều trên vòng.
+// Khung 176×176; lớp ngoài cùng cách mép 4 px, nhiều lớp thì các vòng xích lại
+function ptBohr(e){
+  const C = 88, R0 = 16, sh = e && !e.fam ? e.sh : [], f = n => n.toFixed(1);
+  const step = Math.min(22, (C - 4 - R0)/Math.max(1, sh.length)), dot = sh.length > 4 ? 2.4 : 3.2;
+  let g = '';
+  sh.forEach((n, j) => {
+    const r = R0 + step*(j + 1);
+    g += `<circle cx="${C}" cy="${C}" r="${f(r)}" fill="none" stroke="#3b302566" stroke-width="1.2"/>`;
+    for(let t = 0; t < n; t++){
+      const a = -Math.PI/2 + j*.4 + 2*Math.PI*t/n;
+      g += `<circle cx="${f(C + r*Math.cos(a))}" cy="${f(C + r*Math.sin(a))}" r="${dot}" fill="#3b3025"/>`;
+    }
+  });
+  const lbl = e && !e.fam ? '+' + e.z : '?';
+  return g + `<circle cx="${C}" cy="${C}" r="${R0}" style="fill:var(--kc,#fff)" stroke="#3b3025" stroke-width="1.5"/>`
+    + `<text x="${C}" y="${C + 4.5}" text-anchor="middle" style="font:${lbl.length > 3 ? 11 : 13}px var(--fh)" fill="#3b3025">${lbl}</text>`;
+}
+/* Các dạng câu (day.rounds chọn dạng). Mỗi hàm trả về một câu: key (không cho ra hai câu trùng key), tag (nhãn nhỏ),
+   q (đề, HTML), why (lời giải hiện sau khi trả lời), show (ô tô xanh khi giải), row / col (nhãn chu kì / nhóm tô vàng khi
+   giải), và MỘT trong hai cách trả lời:
+   – opts + ans: bấm nút (els: các nút là kí hiệu nguyên tố — rê chuột lên nút thì ô đó trên bảng sáng viền; eq: các nút
+     cùng cỡ, chữ trên nút xuống dòng theo <br>);
+   – pick: các kí hiệu được chấp nhận — bấm ô trên bảng rồi Chốt. */
+const PT_Q = {
+ // —— đọc ô ——
+ mass(day){
+  const e = PT_BY[pick(day.pool)], near = [PT_Z[e.z + 1], PT_Z[e.z - 1]].map(x => x && x.m);
+  return {key:'mass' + e.s, tag:'Đọc ô nguyên tố', q:`Nguyên tử khối của <b>${ptName(e)}</b> là bao nhiêu?`,
+   ...ptChoice(e.m, [e.z].concat(shuffle(near.concat(2*e.z, e.m + 2))), v => fmt(v, 1) + ' amu'),
+   why:`Ô ${e.s}: số nhỏ ở góc trên là số hiệu nguyên tử (${e.z}), số dưới cùng là nguyên tử khối — <b>${fmt(e.m, 1)} amu</b>.`, show:[e.s]};
+ },
+ proton(day){
+  const e = PT_BY[pick(day.pool)], el = Math.random() < .5, A = Math.round(e.m);
+  return {key:'proton' + e.s, tag:'Đọc ô nguyên tố', q:`Nguyên tử <b>${ptName(e)}</b> có bao nhiêu ${el ? 'electron' : 'proton trong hạt nhân'}?`,
+   ...ptChoice(e.z, [A, A - e.z, e.z + 1, e.z - 1]),
+   why:`Số proton = số electron = số hiệu nguyên tử. ${e.s} nằm ở ô số ${e.z} → <b>${e.z} ${el ? 'electron' : 'proton'}</b>.`, show:[e.s]};
+ },
+ // tên chỉ hiện trong kính lúp, nên phải soi ô mới tìm ra; phương án nhiễu là kí hiệu cùng chữ đầu với đáp án / với tên
+ symbol(day){
+  const e = PT_BY[pick(day.pool)], first = e.nm[0].toUpperCase();
+  const like = PT.filter(x => !x.fam && x !== e && (x.s[0] === e.s[0] || x.s[0] === first)).map(x => x.s);
+  return {key:'symbol' + e.s, tag:'Đọc ô nguyên tố', els:1, q:`Kí hiệu hoá học của nguyên tố <b>${e.nm}</b> là gì?`,
+   ...ptChoice(e.s, shuffle(like).concat(shuffle(day.pool))),
+   why:`Kí hiệu của ${e.nm} là <b>${e.s}</b>` + (PT_LATIN[e.s] ? ` — lấy từ tên Latinh <i>${PT_LATIN[e.s]}</i>.` : ': chữ cái đầu viết hoa, chữ sau (nếu có) viết thường.'),
+   show:[e.s]};
+ },
+ findZ(day){
+  const e = PT_BY[pick(day.pool)], el = Math.random() < .5;
+  return {key:'find' + e.s, tag:'Tìm trên bảng', pick:[e.s],
+   q:`Hãy chọn nguyên tố có <b>${e.z} ${el ? 'electron' : 'proton'}</b> trong nguyên tử.`,
+   why:`Số ${el ? 'electron' : 'proton'} = số hiệu nguyên tử → ô số ${e.z} là <b>${ptName(e)}</b>.`, show:[e.s]};
+ },
+ findMass(day){
+  const e = PT_BY[pick(day.pool.filter(s => PT.filter(x => x.m === PT_BY[s].m).length === 1))];   // nguyên tử khối không trùng ô khác
+  return {key:'find' + e.s, tag:'Tìm trên bảng', pick:[e.s],
+   q:`Hãy chọn nguyên tố có nguyên tử khối <b>${fmt(e.m, 1)} amu</b>.`,
+   why:`Ô có nguyên tử khối ${fmt(e.m, 1)} là <b>${ptName(e)}</b>.`, show:[e.s]};
+ },
+ // —— chu kì, nhóm, màu ô ——
+ // số lớp electron: chỉ có ở chế độ khó (day.hard.rounds), nên lời giải dẫn cả cấu hình ghi trên ô
+ shells(day){
+  const e = PT_BY[pick(day.pool)];
+  return {key:'shells' + e.s, tag:'Chu kì & lớp electron', q:`Nguyên tử <b>${ptName(e)}</b> có mấy lớp electron?`,
+   ...ptChoice(e.p, [ptMain(e) ? ptOuter(e) : null, e.p + 1, e.p - 1]),
+   why:`Số lớp electron = số thứ tự chu kì. ${e.s} nằm ở hàng chu kì ${e.p} → <b>${e.p} lớp electron</b>`
+     + ` (cấu hình ${ptCfgHTML(e)}: phân lớp ngoài cùng bắt đầu bằng số ${e.p}).`, show:[e.s], row:e.p};
+ },
+ outer(day){
+  const e = PT_BY[pick(day.pool.filter(s => s !== 'He' && ptMain(PT_BY[s])))], n = ptOuter(e);
+  return {key:'outer' + e.s, tag:'Nhóm & electron lớp ngoài cùng', q:`Nguyên tử <b>${ptName(e)}</b> có mấy electron ở lớp ngoài cùng?`,
+   ...ptChoice(n, [e.p, n + 1, n - 1, e.z]),
+   why:`Nhóm A: số electron lớp ngoài cùng = số thứ tự nhóm. ${e.s} ở cột nhóm ${PT_GROUP[e.c - 1]} → <b>${n} electron</b>.`, show:[e.s], col:e.c};
+ },
+ kind(day){
+  const e = PT_BY[pick(day.pool)], K = ['m', 'n', 'g'];
+  return {key:'kind' + e.s, tag:'Kim loại hay phi kim?', q:`<b>${ptName(e).replace(/^./, ch => ch.toUpperCase())}</b> là kim loại, phi kim hay khí hiếm?`,
+   opts:K.map(k => ({t:PT_KIND[k], v:k})), ans:K.indexOf(e.k),
+   why:`Nhìn màu ô: ${e.s} tô màu ${PT_COLOR[e.k]} → ${e.s} là <b>${PT_KIND[e.k].toLowerCase()}</b>.`, show:[e.s]};
+ },
+ // cùng nhóm chỉ hỏi nguyên tố nhóm A (nhóm VIIIB có tới ba cột)
+ same(day){
+  const e = PT_BY[pick(day.pool)], grp = ptMain(e) && Math.random() < .5;
+  const all = PT.filter(x => !x.fam && (grp ? x.c === e.c : x.p === e.p)).map(x => x.s);
+  const list = all.length > 8 ? all.slice(0, 3).join(', ') + ', …, ' + all[all.length - 1] : all.join(', ');
+  return {key:'same' + e.s, tag:'Tìm trên bảng', pick:all.filter(s => s !== e.s),
+   q:`Hãy chọn một nguyên tố <b>cùng ${grp ? 'nhóm' : 'chu kì'}</b> với ${ptName(e)}.`,
+   why:grp ? `Cùng nhóm = cùng CỘT. Nhóm ${PT_GROUP[e.c - 1]} gồm ${list}.` : `Cùng chu kì = cùng HÀNG. Chu kì ${e.p} gồm ${list}.`,
+   show:all.filter(s => s !== e.s), ...(grp ? {col:e.c} : {row:e.p})};
+ },
+ // —— so sánh bán kính: cặp / bộ ba cùng chu kì, cùng nhóm, hoặc cặp chéo (vừa ở dưới vừa bên trái) ——
+ bigger(){
+  const S = ptBigAll(), kind = pick(['p2', 'g2', 'd2', 'p3', 'g3']), set = pick(S[kind]), big = Math.random() < .5;
+  const A = PT_BY[set[0]], B = PT_BY[set[1]], ans = big ? set[0] : set[set.length - 1], cand = shuffle(set);
+  const why = kind[0] === 'p' ? `Cùng chu kì ${A.p}: đi từ trái sang phải, bán kính nguyên tử giảm dần`
+    : kind[0] === 'g' ? `Cùng nhóm ${PT_GROUP[A.c - 1]}: đi từ trên xuống, nguyên tử thêm lớp electron nên bán kính tăng dần`
+    : `${A.s} vừa ở chu kì dưới (nhiều lớp electron hơn) vừa nằm bên trái ${B.s}`;
+  return {key:'big' + set.slice().sort().join(), tag:'So sánh kích thước nguyên tử', els:1,
+   q:`Nguyên tử nào có bán kính <b>${big ? 'LỚN' : 'NHỎ'} ${set.length === 2 ? 'hơn' : 'nhất'}</b>: ${ptOr(cand)}?`,
+   opts:cand.map(s => ({t:s, v:s})), ans:cand.indexOf(ans),
+   why:why + ' → ' + set.join(' > ') + `. Nguyên tử ${big ? 'lớn' : 'nhỏ'} ${set.length === 2 ? 'hơn' : 'nhất'} là <b>${ans}</b>.`,
+   show:[ans], ...(kind[0] === 'p' ? {row:A.p} : kind[0] === 'g' ? {col:A.c} : {})};
+ },
+ // —— tính toán với nguyên tử khối ——
+ mr(day){
+  const f = pick(day.mr), cnt = atomCounts(f), els = Object.keys(cnt), M = molarMass(f);
+  const terms = els.map(e => (cnt[e] > 1 ? cnt[e] + '×' : '') + fmt(ATOM[e], 1)).join(' + ');
+  const noSub = els.reduce((s, e) => s + ATOM[e], 0), byZ = els.reduce((s, e) => s + PT_BY[e].z*cnt[e], 0);
+  return {key:'mr' + f, tag:'Tính phân tử khối', q:`Phân tử khối của <b>${sub(f)}</b> là bao nhiêu? Đọc nguyên tử khối trên bảng rồi cộng lại.`,
+   ...ptChoice(M, [noSub, byZ, M + 16, M - 16, M + 2], v => fmt(v, 1) + ' amu'),
+   why:`${sub(f)} = ${terms} = <b>${fmt(M, 1)} amu</b>.`, show:els};
+ },
+ ratio(day){
+  const ps = [];
+  day.pool.forEach(a => day.pool.forEach(b => { const r = PT_BY[a].m/PT_BY[b].m; if(r >= 1.5 && r <= 16 && Number.isInteger(r*2)) ps.push([a, b, r]); }));
+  const [a, b, r] = pick(ps), A = PT_BY[a], B = PT_BY[b];
+  return {key:'ratio' + a + b, tag:'So sánh khối lượng', q:`Nguyên tử <b>${a}</b> nặng gấp mấy lần nguyên tử <b>${b}</b>?`,
+   ...ptChoice(r, [r + 1, 2*r, r - .5, Math.round(A.z/B.z*2)/2], v => fmt(v, 1) + ' lần'),
+   why:`Nguyên tử khối: ${a} = ${fmt(A.m, 1)}, ${b} = ${fmt(B.m, 1)} → ${fmt(A.m, 1)} : ${fmt(B.m, 1)} = <b>${fmt(r, 1)} lần</b>.`, show:[a, b]};
+ },
+ // 30%: câu bẫy Ar–K / Te–I — chất đứng trước trong bảng lại nặng hơn
+ heavier(day){
+  const trap = Math.random() < .3;
+  let c = trap ? pick([['Ar', 'K'], ['Te', 'I']]) : null;
+  while(!c || new Set(c.map(s => PT_BY[s].m)).size < c.length) c = shuffle(day.pool).slice(0, 3);
+  const heavy = trap || Math.random() < .5, by = c.slice().sort((x, y) => PT_BY[y].m - PT_BY[x].m);
+  const ans = heavy ? by[0] : by[by.length - 1], cand = shuffle(c), hn = c.length === 2 ? 'hơn' : 'nhất';
+  return {key:'heavy' + by.join(), tag:'So sánh khối lượng', els:1, q:`Nguyên tử nào <b>${heavy ? 'NẶNG' : 'NHẸ'} ${hn}</b>: ${ptOr(cand)}?`,
+   opts:cand.map(s => ({t:s, v:s})), ans:cand.indexOf(ans),
+   why:'Nguyên tử khối: ' + by.map(s => s + ' = ' + fmt(PT_BY[s].m, 1)).join(', ') + ` → <b>${ans}</b> ${heavy ? 'nặng' : 'nhẹ'} ${hn}.`
+     + (trap ? ` ${by[1]} đứng SAU ${by[0]} trong bảng mà lại nhẹ hơn — bảng xếp theo số hiệu nguyên tử, không theo khối lượng!` : ''),
+   show:[ans]};
+ },
+
+ // ———— chế độ khó: neutron, lớp electron, ion, độ âm điện, loại liên kết (danh sách nguyên tố / chất trong day.hard) ————
+ neutron(day){
+  const e = PT_BY[pick(day.neutron)], n = e.m - e.z;
+  return {key:'neu' + e.s, tag:'Hạt trong nguyên tử', q:`Nguyên tử <b>${ptName(e)}</b> có bao nhiêu neutron trong hạt nhân?`,
+   ...ptChoice(n, [e.m, e.z, e.m + e.z, n + 1]),
+   why:`Khối lượng nguyên tử ≈ số proton + số neutron (electron nhẹ, coi như không đáng kể). ${e.s}: ${e.m} − ${e.z} = <b>${n} neutron</b>.`, show:[e.s]};
+ },
+ // đọc lớp thứ k từ cấu hình trên ô (cộng các phân lớp cùng số lớp); riêng nguyên tố nhóm B mà lớp ngoài cùng khác số thứ
+ // tự nhóm (Mn, Fe) thì hỏi lớp ngoài cùng — bẫy quy tắc nhóm A, và bẫy 3d viết trước 4s
+ shell(day){
+  const e = PT_BY[pick(day.pool.filter(s => PT_BY[s].sh.length >= 2))], sh = e.sh, L = sh.length, out = sh[L - 1];
+  if(!ptMain(e) && ptGroupNum(e) !== out)
+    return {key:'shell' + e.s, tag:'Cấu hình electron', q:`<b>${ptName(e).replace(/^./, ch => ch.toUpperCase())}</b> thuộc nhóm ${PT_GROUP[e.c - 1]}. Lớp ngoài cùng của nguyên tử này có mấy electron?`,
+     ...ptChoice(out, [ptGroupNum(e), sh[L - 2], 8, out + 1]),
+     why:`${e.s} thuộc nhóm B nên KHÔNG dùng được quy tắc "số electron lớp ngoài = số thứ tự nhóm". Cấu hình ${ptCfgSay(e)}: lớp ngoài cùng là lớp ${L} (${ptLayer(e, L)}) → <b>${out} electron</b>. Phân lớp ${L - 1}d thuộc lớp ${L - 1}, không phải lớp ngoài!`,
+     show:[e.s], col:e.c};
+  const k = 2 + Math.floor(Math.random()*(L - 1));                  // từ lớp thứ 2 — lớp 1 lúc nào cũng 2 electron
+  return {key:'shell' + e.s, tag:'Cấu hình electron', q:`Lớp electron thứ <b>${k}</b> của nguyên tử <b>${ptName(e)}</b> có mấy electron?`,
+   ...ptChoice(sh[k - 1], sh.concat(8, e.z > 20 ? 18 : e.p, sh[k - 1] + 1, sh[k - 1] - 1)),   // 18 chỉ nhiễu được khi có lớp 18
+   why:`Cấu hình ${ptCfgSay(e)}. Lớp ${k} gồm các phân lớp có số ${k} đứng đầu: ${ptLayer(e, k)} → <b>${sh[k - 1]} electron</b>.`, show:[e.s]};
+ },
+ // đề ghi cấu hình ĐẦY ĐỦ; từ chu kì 3 ô trên bảng viết gọn [Ne]… nên phải hiểu cách viết gọn mới tìm ra
+ config(day){
+  const e = PT_BY[pick(day.pool.filter(s => s !== 'He' && ptMain(PT_BY[s]) && PT_BY[s].sh.length >= 2))];
+  return {key:'find' + e.s, tag:'Tìm trên bảng', pick:[e.s],
+   q:`Hãy chọn nguyên tố có cấu hình electron <b>${ptCfgHTML(e, true)}</b>.`,
+   why:`Cộng các số mũ: ${e.cfg.map(x => x[2]).join(' + ')} = ${e.z} electron → Z = ${e.z} → <b>${ptName(e)}</b>`
+     + (PT_CORE[e.p] ? `; trên bảng ô ${e.s} viết gọn là ${ptCfgHTML(e)}.` : '.'),
+   show:[e.s], row:e.p, col:e.c};
+ },
+ ion(day){
+  const e = PT_BY[pick(day.ion)], I = ptIon(e), n = ptOuter(e), s = Math.sign(I.q), L = e.sh.length;
+  const wrong = [I.give ? n - 8 : n, I.q + s, -I.q, I.q - s].filter(q => q && Math.abs(q) <= 7);   // sai chiều, sai số electron
+  return {key:'ion' + e.s, tag:'Ion', q:`Để có lớp electron ngoài cùng bền như khí hiếm, nguyên tử <b>${ptName(e)}</b> sẽ tạo thành ion nào?`,
+   ...ptChoice(I.ion, wrong.map(q => e.s + ptCharge(q))),
+   why:`${e.s}: ${ptCfgHTML(e)} — lớp ngoài cùng (${ptLayer(e, L)}) có ${n} electron → dễ ${I.give ? 'NHƯỜNG' : 'NHẬN thêm'} ${I.k} electron → <b>${I.ion}</b> có cấu hình ${ptCfgHTML(I.gas)} giống ${I.gas.s}.`,
+   show:[e.s, I.gas.s]};
+ },
+ // cùng key với ion: một nguyên tố không bị hỏi hai lần (câu sau sẽ lộ đáp án câu trước)
+ ionGas(day){
+  const e = PT_BY[pick(day.ion)], I = ptIon(e), verb = I.give ? 'nhường' : 'nhận thêm';
+  if(Math.random() < .5){
+    const G4 = ['He', 'Ne', 'Ar', 'Kr'];
+    return {key:'ion' + e.s, tag:'Ion', els:1, q:`Ion <b>${I.ion}</b> có cấu hình electron giống nguyên tử khí hiếm nào?`,
+     opts:G4.map(s => ({t:s, v:s})), ans:G4.indexOf(I.gas.s),
+     why:`${e.s} (${ptCfgHTML(e)}) ${verb} ${I.k} electron → ${I.ion}: ${ptCfgHTML(I.gas)} — y như <b>${I.gas.s}</b>.`, show:[e.s, I.gas.s]};
+  }
+  const N = e.z - I.q;
+  return {key:'ion' + e.s, tag:'Ion', q:`Ion <b>${I.ion}</b> có tất cả bao nhiêu electron?`,
+   ...ptChoice(N, [e.z, e.z + I.q, N + 2, N - 2]),
+   why:`Nguyên tử ${e.s} có ${e.z} electron (= Z), ${verb} ${I.k} → ${I.ion} có ${e.z} ${I.give ? '−' : '+'} ${I.k} = <b>${N} electron</b>.`, show:[e.s]};
+ },
+ // so sánh độ âm điện: theo quy luật (ptEnAll) hoặc hai, ba nguyên tố bất kì trong pool — khi đó chỉ đọc số liệu
+ en(day){
+  const kind = pick(['p2', 'g2', 'p3', 'x2', 'x3']), big = Math.random() < .5;
+  let set;
+  if(kind[0] === 'x'){
+    const P = day.pool.filter(s => PT_BY[s].en);
+    do set = shuffle(P).slice(0, +kind[1]);
+    while(set.some((a, j) => set.some((b, t) => t > j && Math.abs(PT_BY[a].en - PT_BY[b].en) < .1)));
+    set.sort((a, b) => PT_BY[b].en - PT_BY[a].en);
+  } else set = pick(ptEnAll()[kind]);
+  const A = PT_BY[set[0]], ans = big ? set[0] : set[set.length - 1], cand = shuffle(set), hn = set.length === 2 ? 'hơn' : 'nhất';
+  const rule = kind[0] === 'p' ? ` — cùng chu kì ${A.p}, χ tăng dần từ trái sang phải` : kind[0] === 'g' ? ` — cùng nhóm ${PT_GROUP[A.c - 1]}, χ giảm dần từ trên xuống` : '';
+  return {key:'en' + set.slice().sort().join(), tag:'Độ âm điện', els:1, q:`Nguyên tố nào có độ âm điện <b>${big ? 'LỚN' : 'NHỎ'} ${hn}</b>: ${ptOr(cand)}?`,
+   opts:cand.map(s => ({t:s, v:s})), ans:cand.indexOf(ans),
+   why:`Độ âm điện: ${set.map(s => s + ' = ' + ptEN(PT_BY[s].en)).join(', ')}${rule} → ${big ? 'lớn' : 'nhỏ'} ${hn} là <b>${ans}</b>.`,
+   show:[ans], ...(kind[0] === 'p' ? {row:A.p} : kind[0] === 'g' ? {col:A.c} : {})};
+ },
+ // độ âm điện lớn / nhỏ nhất của một chu kì (2–5) hoặc lớn nhất của một nhóm A — khoi-dong.js kiểm tra đáp án khớp quy luật
+ enMax(){
+  const v = pick(['pMax', 'pMin', 'gMax']), c = pick([1, 2, 13, 14, 15, 16, 17]), p = 2 + Math.floor(Math.random()*4);
+  const line = PT.filter(x => x.en && (v === 'gMax' ? x.c === c : x.p === p)).sort((a, b) => b.en - a.en);
+  const e = v === 'pMin' ? line[line.length - 1] : line[0];
+  return {key:'enMax' + v + (v === 'gMax' ? c : p), tag:'Độ âm điện', pick:[e.s],
+   q:v === 'gMax' ? `Hãy chọn nguyên tố có độ âm điện <b>LỚN NHẤT</b> trong nhóm <b>${PT_GROUP[c - 1]}</b>.`
+     : `Hãy chọn nguyên tố có độ âm điện <b>${v === 'pMin' ? 'NHỎ NHẤT' : 'LỚN NHẤT'}</b> trong chu kì <b>${p}</b>.`,
+   why:(v === 'gMax' ? 'Cùng nhóm, χ giảm dần từ trên xuống → lớn nhất là nguyên tố trên cùng'
+     : 'Cùng chu kì, χ tăng dần từ trái sang phải (khí hiếm không xét) → ' + (v === 'pMin' ? 'nhỏ nhất ở đầu hàng' : 'lớn nhất ở cuối hàng, ngay trước khí hiếm'))
+     + `: <b>${ptName(e)}</b>, χ = ${ptEN(e.en)}.`,
+   show:[e.s], ...(v === 'gMax' ? {col:c} : {row:p})};
+ },
+ // loại liên kết theo hiệu độ âm điện (SGK Hoá 10): bốc loại trước rồi mới bốc chất, cho ba loại ra đều nhau
+ bond(day){
+  const K = ['Liên kết ion', 'Cộng hoá trị có cực', 'Cộng hoá trị không cực'], cls = pick([0, 1, 2]);
+  const b = pick(ptBonds(day).filter(x => x.cls === cls)), by = b.els.slice().sort((x, y) => PT_BY[y].en - PT_BY[x].en);
+  const metal = cls && b.els.find(s => PT_BY[s].k === 'm');
+  return {key:'bond' + b.f, tag:'Liên kết hoá học',
+   q:`Dựa vào hiệu độ âm điện Δχ, liên kết trong <b>${sub(b.f)}</b> thuộc loại nào?`
+     + '<small class="pt-rule">Δχ ≥ 1,7: ion · 0,4 ≤ Δχ < 1,7: cộng hoá trị có cực · Δχ < 0,4: cộng hoá trị không cực</small>',
+   opts:K.map((t, x) => ({t:t.replace('trị ', 'trị<br>'), v:x})), ans:cls, eq:1,       // nút cùng cỡ, xuống dòng sau "Cộng hoá trị"
+   why:(by.length === 1 ? `${sub(b.f)}: các nguyên tử giống nhau → Δχ = 0`
+       : `Δχ = ${ptEN(PT_BY[by[0]].en)} (${by[0]}) − ${ptEN(PT_BY[by[1]].en)} (${by[1]}) = ${ptEN(b.d)}`)
+     + ` → <b>${K[cls].toLowerCase()}</b>.` + (metal ? ` Dù ${metal} là kim loại, Δχ vẫn chưa tới 1,7!` : ''),
+   show:b.els};
+ }
+};
+// chất trong day.bond kèm hiệu độ âm điện d và loại liên kết cls (0 ion, 1 cộng hoá trị có cực, 2 không cực)
+function ptBonds(day){
+  return day.bond.map(f => {
+    const els = Object.keys(atomCounts(f)), x = els.map(s => PT_BY[s].en);
+    const d = Math.round((Math.max(...x) - Math.min(...x))*100)/100;
+    return {f, els, d, cls:d >= 1.7 ? 0 : d >= .4 ? 1 : 2};
+  });
+}
+// 12 câu theo day.rounds; trong một nhóm, dạng nào chưa ra thì bốc trước; không có hai câu trùng key
+function ptQuiz(day){
+  const qs = [];
+  day.rounds.forEach(([n, kinds]) => {
+    const used = [];
+    for(let k = 0; k < n; k++){
+      const left = kinds.filter(x => !used.includes(x));
+      let q;
+      for(let t = 0; t < 40; t++){
+        const kind = pick(left.length ? left : kinds);
+        q = PT_Q[kind](day); q.kind = kind;
+        if(!qs.some(o => o.key === q.key)) break;
+      }
+      used.push(q.kind); qs.push(q);
+    }
+  });
+  return qs;
 }
 
 /* =====================  CHẾ ĐỘ KHÓ: PHA NỒNG ĐỘ (Cₘ & C%)  ===================== */
@@ -1918,17 +2802,32 @@ const MOL_2D = {
   'Na2CO3': {a:[['C',0,0],['O',0,-1],['O',-.87,.5],['O',.87,.5],['Na',-1.73,0],['Na',1.73,0]], b:[[0,1,2],[0,2],[0,3],[2,4],[3,5]]},
   'NaHCO3': {a:[['C',0,0],['O',0,-1],['O',-.87,.5],['O',.87,.5],['H',-1.6,.08],['Na',1.73,0]], b:[[0,1,2],[0,2],[0,3],[2,4],[3,5]]},
 };
-// toạ độ bi (px, nguyên tử đầu ở gốc) của một chất. MOL_2D: đi theo cây liên kết, giữ hướng que nhưng rút
-// khe hở giữa hai bi còn MOL_GAP (bi sát nhau hơn mà không chồng lên nhau); chất khác: chùm bi molAtoms.
+// mô hình bi–que kiểu ngày 4 cho chất không có trong MOL_2D: đơn chất / chất vẽ tay, rồi hợp chất hai nguyên tố hoặc
+// axit / bazơ / muối dựng theo hoá trị (thử các hoá trị trong VL_VALS tới khi ra đúng công thức). null: chưa dựng được
+function vlModel(f){
+  const hand = VL_ELEM[f] || VL_EGG[f] || VL_MOL[f];
+  if(hand) return handLayout(hand);
+  const els = Object.keys(atomCounts(f));
+  for(const A of els) for(const a of VL_VALS[A] || []){
+    if(els.length === 2){ const B = els.find(e => e !== A);
+      for(const b of VL_VALS[B] || []) if(valFormula(A, a, B, b).f === f) return valLayout(A, a, B, b); }
+    for(const R in VL_RAD){ const q = vlQuestion([A, a, R]); if(q.f === f) return vlLayout(q); }
+  }
+  return null;
+}
+// toạ độ bi (px, nguyên tử đầu ở gốc) của một chất. MOL_2D hoặc mô hình ngày 4 (vlModel): đi theo cây liên kết, giữ
+// hướng que nhưng rút khe hở giữa hai bi còn MOL_GAP (bi sát nhau hơn mà không chồng lên nhau); không dựng được mô
+// hình thì để chùm bi molAtoms.
 const MOL_GAP = 0.3;
 function molGeom(f){
-  const m = MOL_2D[f], BL = 34;
-  if(!m) return {atoms:molAtoms(f).map(a => ({el:a.el, x:a.x, y:a.y, r:atomR(a.el)})), bonds:[]};
-  const raw = m.a.map(([el, x, y]) => ({el, x:x*BL, y:y*BL, r:atomR(el)}));
+  const m = MOL_2D[f], BL = 34, L = m ? null : vlModel(f);
+  if(!m && !L) return {atoms:molAtoms(f).map(a => ({el:a.el, x:a.x, y:a.y, r:atomR(a.el)})), bonds:[]};
+  const raw = m ? m.a.map(([el, x, y]) => ({el, x:x*BL, y:y*BL, r:atomR(el)})) : L.nodes.map(n => ({el:n.el, x:n.x, y:n.y, r:atomR(n.el)}));
+  const bonds = m ? m.b : L.bonds;
   const atoms = raw.map(a => ({el:a.el, x:0, y:0, r:a.r})), seen = [0];
   for(let k = 0; k < seen.length; k++){
     const i = seen[k];
-    m.b.forEach(([p, q]) => {
+    bonds.forEach(([p, q]) => {
       const j = p === i ? q : q === i ? p : -1;
       if(j < 0 || seen.includes(j)) return;
       const dx = raw[j].x - raw[i].x, dy = raw[j].y - raw[i].y, d = Math.hypot(dx, dy), rr = raw[i].r + raw[j].r;
@@ -1937,7 +2836,7 @@ function molGeom(f){
       seen.push(j);
     });
   }
-  return {atoms, bonds:m.b};
+  return {atoms, bonds};
 }
 // vẽ các bi đã có toạ độ px trong khung W×H: mỗi que là một nét liền (liên kết đôi / ba: 2 / 3 nét song song),
 // bi trơn không ghi kí hiệu; stagger: bi nảy ra lần lượt rồi que mới hiện.
@@ -1968,11 +2867,15 @@ function molFit(f, W, H, maxSc){
   const x0 = -ext('x', -1), x1 = ext('x', 1), y0 = -ext('y', -1), y1 = ext('y', 1);
   return {...g, x0, x1, y0, y1, sc:Math.min(maxSc, (W - 4)/(x1 - x0), (H - 4)/(y1 - y0))};
 }
+// toạ độ px các bi của một chất căn giữa khung W×H (minigame cân bằng dùng để cho bi bay đúng chỗ)
+function molPts(f, W, H, maxSc){
+  const {atoms, bonds, x0, x1, y0, y1, sc} = molFit(f, W, H, maxSc);
+  return {bonds, sc, P:atoms.map(a => ({el:a.el, x:W/2 + (a.x - (x0 + x1)/2)*sc, y:H/2 + (a.y - (y0 + y1)/2)*sc, r:a.r*sc}))};
+}
 // một chất đứng riêng, căn giữa khung W×H
 function molHTML(f, W, H, maxSc){
-  const {atoms, bonds, x0, x1, y0, y1, sc} = molFit(f, W, H, maxSc);
-  return molDraw(atoms.map(a => ({el:a.el, x:W/2 + (a.x - (x0 + x1)/2)*sc, y:H/2 + (a.y - (y0 + y1)/2)*sc, r:a.r*sc})),
-    bonds, W, H, sc, true);
+  const {P, bonds, sc} = molPts(f, W, H, maxSc);
+  return molDraw(P, bonds, W, H, sc, true);
 }
 // khung phân tử rộng W, cao vừa khít sticker (tối đa maxH) — công thức đặt ngay bên dưới là sát sticker
 function molBox(f, W, maxH, maxSc){

@@ -169,7 +169,7 @@ const hardOn  = () => hardUnlocked() && save.settings.hard === true;     // ch�
 const cardsOn = () => save.settings.cards !== false;   // thẻ phản ứng khi khám phá: bật mặc định
 // sổ ghi chép ở màn xác định chất: phải mua ở Cửa hàng; mua rồi bật/tắt ngay trong Cửa hàng (mặc định bật)
 const labbookOn = () => !!(save.items && save.items.labbook) && save.settings.labbook !== false;
-const BALANCE_FROM_DAY = 5; // từ ngày này trở đi người chơi tự cân bằng; trước đó giáo sư làm hộ
+const BALANCE_FROM_DAY = 6; // từ ngày này trở đi người chơi tự cân bằng; trước đó giáo sư làm hộ (ngày 5 học cân bằng)
 // đồng đỏ: one copper coin per unlocked achievement, minus what was spent in the shop
 const achCoins = () => save.ach.length - (save.spent||0);
 // persist() được gọi rải khắp game (mở khoá, đổi liều lượng…) — không bọc thì storage bị
@@ -632,19 +632,21 @@ function showIntro(i){
     + '<p style="margin:6px 0"><b>An toàn:</b> ' + sym('sym-goggles',26,18,'vertical-align:-4px') + ' đeo kính & găng trước khi lấy hoá chất'
     + ([...dayHave(day)].some(f => TOXIC.includes(f)) ? ' · <b style="color:#a8331f">có khí độc — nhớ bật tủ hút</b>' : '') + '</p>';
   const shelf = day.mg ? '' : '<p style="margin:6px 0"><b>Trên kệ:</b> ' + day.chems.map(sub).join(', ') + '</p>';
+  // minigame có chế độ khó riêng (day.hard, vd. bảng tuần hoàn) thì giáo sư dặn lời khác khi công tắc khó đang bật
+  const story = () => '“' + (day.hard && hardOn() ? day.hard.story : day.story) + '”';
   G.innerHTML = `<div class="scene" style="padding-top:24px">
     <h2 class="center">Ngày ${i+1}: ${day.t} ${day.mg?ico('dice',20):''}</h2>
     <div class="row" style="align-items:flex-start;justify-content:center;gap:0;margin-top:6px">
       <div id="introprof" style="flex:none;margin-top:26px"></div>
       <div class="paper" style="max-width:720px;text-align:left">
         <b style="font-size:18px;font-family:var(--fh)">Giáo sư Hoffmann:</b>
-        <p class="hand" style="font-size:16px;line-height:1.5;margin:6px 0">“${day.story}”</p>
+        <p class="hand" id="introstory" style="font-size:16px;line-height:1.5;margin:6px 0">${story()}</p>
         ${shelf}${tools}
         <div style="border-top:1.2px dashed var(--ink);margin-top:8px;padding-top:8px">
           <b>Điều kiện sao:</b><div class="condlist">${conds}</div></div>
-        ${(day.mg || !hardUnlocked()) ? '' : `<div class="settingrow hardrow"><div>
+        ${((day.mg && !day.hard) || !hardUnlocked()) ? '' : `<div class="settingrow hardrow"><div>
           <b style="font-family:var(--fh);font-size:16px">${ico('flask',15)} Chế độ khó${save.starsHard[i+1] ? ' <span style="color:#d9634f">'+starStr(save.starsHard[i+1])+'</span>' : ''}</b>
-          <div style="font-size:13px;color:#6b5d4a;margin-top:2px">Đơn hàng ghi theo <b>gam</b> và <b>lít khí</b>; trò tự tính rồi cân, đong từng chất. Sai số cho phép 5%. Thêm 50% thời gian.</div>
+          <div style="font-size:13px;color:#6b5d4a;margin-top:2px">${day.hard ? day.hard.note : 'Đơn hàng ghi theo <b>gam</b> và <b>lít khí</b>; trò tự tính rồi cân, đong từng chất. Sai số cho phép 5%. Thêm 50% thời gian.'}</div>
         </div><div class="toggle${hardOn()?' on':''}" id="tglHardIntro" role="switch" aria-checked="${hardOn()}"></div></div>`}
       </div>
     </div>
@@ -665,7 +667,8 @@ function showIntro(i){
   bindExplore(i);
   G.querySelector('#bmap').onclick = () => go(showMap);
   const th = G.querySelector('#tglHardIntro');
-  if(th) th.onclick = () => { save.settings.hard = !hardOn(); persist(); th.classList.toggle('on', hardOn()); th.setAttribute('aria-checked', hardOn()); SFX.clink(); };
+  if(th) th.onclick = () => { save.settings.hard = !hardOn(); persist(); th.classList.toggle('on', hardOn()); th.setAttribute('aria-checked', hardOn()); SFX.clink();
+    G.querySelector('#introstory').textContent = story(); };
 }
 
 /* =====================  CÂN BẰNG PHƯƠNG TRÌNH  ===================== */
@@ -958,7 +961,7 @@ function showResult(i, st){
   if(stars > (book[num] || 0)) book[num] = stars;
   if(stars >= 1 && num >= save.unlocked && num < DAYS.length) save.unlocked = num + 1;
   // nhật ký từng lượt chơi — nguồn cho báo cáo học tập (giữ 400 lượt gần nhất)
-  save.hist.push(day.mg ? {d:num, s:stars, w:st.total - st.correct, t:Date.now()}
+  save.hist.push(day.mg ? {d:num, h:st.hard ? 1 : 0, s:stars, w:st.total - st.correct, t:Date.now()}
     : {d:num, h:st.hard ? 1 : 0, s:stars, sv:st.served, w:st.wrong, sf:st.safety||0, m:st.mistakes||{}, t:Date.now()});
   if(save.hist.length > 400) save.hist.splice(0, save.hist.length - 400);
   persist();

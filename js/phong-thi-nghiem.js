@@ -158,7 +158,9 @@ const DZ_ACCEPT = {
   vlatom: ['vbuild'],                         // hoá trị: bi từ khay → khu vực tạo chất
   vlmove: ['vbuild'],                         // hoá trị: dời bi trong khu vực (thả ra ngoài = bỏ bi)
   chflask:['cs0','cs1','cs2'],                // chuỗi phản ứng: bình trong khay → ô trên mũi tên
-  chlbl:  ['cs0','cs1','cs2']                 // chuỗi phản ứng: dời nhãn sang ô khác (thả ra ngoài = gỡ nhãn)
+  chlbl:  ['cs0','cs1','cs2'],                // chuỗi phản ứng: dời nhãn sang ô khác (thả ra ngoài = gỡ nhãn)
+  balmol: ['bzone'],                          // cân bằng: chất trong dải → thêm một phân tử vào khay phản ứng
+  balout: ['bzone']                           // cân bằng: phân tử trong khay (thả ra ngoài khay = bớt phân tử đó)
 };
 let drag = null;
 function gameXY(e){

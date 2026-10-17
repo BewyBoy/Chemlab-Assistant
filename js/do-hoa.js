@@ -2003,7 +2003,7 @@ const BG_TILES = {
     () => '<path d="M-6 0 H6 M0 -6 V6"/>',
     () => bgBubbles]},
 };
-const BG_OF_MG = {bins:'atoms', valence:'charges', redox:'charges', identify:'glass', sort:'metals', chain:'glass'};
+const BG_OF_MG = {bins:'atoms', valence:'charges', redox:'charges', identify:'glass', sort:'metals', chain:'glass', ptable:'atoms', balance:'atoms'};
 const bgCache = {};
 // CSS cho nền của một loại minigame (dán vào style của .scene); loại lạ thì để nền chấm mặc định
 function mgBgCSS(mg){

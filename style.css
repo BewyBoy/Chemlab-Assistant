@@ -445,12 +445,114 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .idf-tips{margin:auto 0 0;padding:8px 10px 8px 26px;background:#fdf3d7;border:1.2px dashed var(--ink);border-radius:6px;font-size:13.5px;line-height:1.55}
 .seqslot{display:inline-block;border:1.2px dashed var(--ink);border-radius:6px;min-width:56px;height:44px;margin:3px;font-size:20px;font-weight:bold;line-height:40px;background:#fff;font-family:var(--fh);text-align:center}
 .seqslot.filled{border-style:solid;background:#c9e3b4}
+/* bảng tuần hoàn (ngày 24): bảng 7 chu kì × 18 cột ở trên — ô 60 px, bước 64 px (PT_STEP trong che-do.js), cột số chu
+   kì bên trái, hàng nhãn nhóm ở trên. Kính lúp nằm trong khoảng trống giữa bảng (cột 3–12 × chu kì 1–3), chú thích màu
+   ở khoảng trống chu kì 1 (cột 13–17). Thanh câu hỏi dưới cùng. Màu ô: .k-m kim loại, .k-n phi kim, .k-g khí hiếm */
+.pt{position:absolute;inset:0}
+.k-m{--kc:#d3e4f3}.k-n{--kc:#f7d6cc}.k-g{--kc:#f3e1a4}
+.pt-tab{position:absolute;left:34px;top:0;width:1174px;height:466px}
+.pt-cell{position:absolute;width:60px;height:60px;border:1.2px solid var(--ink);border-radius:5px;background:var(--kc);font-family:var(--fh);cursor:pointer;transition:transform .1s,box-shadow .15s}
+.pt-cell .z{position:absolute;left:4px;top:1px;font-size:11.5px}
+.pt-cell .s{position:absolute;left:0;right:0;top:15px;text-align:center;font-size:23px;line-height:26px}
+.pt-cell .m{position:absolute;left:0;right:0;bottom:2px;text-align:center;font-size:11px}
+.pt-cell.fam .z{font-size:10px}
+.pt-cell.fam .s{font-size:15px;top:19px}
+.pt-cell:hover{transform:translateY(-2px);box-shadow:0 3px 0 #3b302530}
+.pt-cell.sel{outline:3px solid var(--ink);outline-offset:1px;z-index:2}
+.pt-cell.peek{outline:3px dashed #c98f1c;outline-offset:1px;z-index:2}
+.pt-cell.ok,.pt-cell.bad{z-index:2;animation:ptpop .45s}
+.pt-cell.ok{box-shadow:0 0 0 4px var(--green)}
+.pt-cell.bad{box-shadow:0 0 0 4px var(--red)}
+@keyframes ptpop{50%{transform:scale(1.14)}}
+.pt-gl{position:absolute;top:1px;width:60px;text-align:center;font:bold 12px/18px var(--fh);border-radius:4px}
+.pt-pl{position:absolute;left:0;width:20px;height:60px;line-height:60px;text-align:center;font:bold 14px var(--fh);border-radius:4px}
+.pt-gl.on,.pt-pl.on{background:#3b30251c}
+/* rê / bấm nhãn chu kì hoặc nhóm: nhãn tô vàng nhạt, mọi ô của hàng / cột phủ lớp vàng trong suốt có viền trong — lớp
+   phủ là ::after nên không đè viền chọn (outline) hay viền đúng / sai (box-shadow) của ô */
+.pt-gl,.pt-pl{cursor:pointer}
+.pt-gl.lit,.pt-pl.lit{background:#e8b84b8c}
+.pt-cell.line::after{content:'';position:absolute;inset:-1.2px;border-radius:5px;background:#f2c94c33;box-shadow:inset 0 0 0 2px #dca42c;pointer-events:none}
+.pt-gl.hint,.pt-pl.hint{background:var(--accent)}
+.pt-axis{position:absolute;font:12px var(--fh);opacity:.65;white-space:nowrap}
+.pt-axis.g{right:calc(100% - 22px);top:1px;line-height:18px}
+.pt-axis.p{left:-24px;top:22px;height:444px;text-align:center;writing-mode:vertical-rl;transform:rotate(180deg)}
+/* kính lúp: ô phóng to bên trái, chú thích từng dòng của ô (vạch đứt) ở giữa, loại chất + mẹo bên phải */
+.pt-lens{position:absolute;width:636px;height:188px;background:var(--card);border:1.2px solid var(--ink);border-radius:8.4px;box-shadow:0 2px 0 #3b302522}
+.pt-big{position:absolute;left:12px;top:9px;width:136px;height:168px;border:1.6px solid var(--ink);border-radius:8px;background:var(--kc);font-family:var(--fh)}
+.pt-big .z{position:absolute;left:10px;top:6px;font-size:21px}
+.pt-big .s{position:absolute;left:0;right:0;top:34px;text-align:center;font-size:54px;line-height:56px}
+.pt-big .n{position:absolute;left:0;right:0;top:96px;text-align:center;font-size:17px;line-height:20px}
+.pt-big .m{position:absolute;left:0;right:0;top:132px;text-align:center;font-size:21px;line-height:24px}
+.pt-big.fam .s{font-size:34px}
+.pt-big.fam .z{font-size:17px}
+.pt-big.idle{--kc:#fff;border-style:dashed}
+.pt-big.idle>*{opacity:.4}
+.pt-key span{position:absolute;left:150px;display:flex;align-items:center;gap:7px;font:15px/18px var(--fh);white-space:nowrap}
+.pt-key span::before{content:'';width:30px;border-top:1.6px dashed var(--ink)}
+.pt-kind{position:absolute;left:390px;top:16px;display:flex;align-items:center;gap:8px;font:bold 21px var(--fh)}
+.pt-hint{position:absolute;left:390px;right:14px;bottom:10px;margin:0;font-size:13.5px;line-height:1.4;opacity:.65}
+.pt-legend{position:absolute;width:316px;height:60px;display:flex;align-items:center;justify-content:space-around;font:15px var(--fh)}
+.pt-legend span{display:flex;align-items:center;gap:6px}
+.pt-legend i,.pt-kind i{width:18px;height:18px;border:1.2px solid var(--ink);border-radius:4px;background:var(--kc)}
+.pt-kind i{width:22px;height:22px}
+/* chế độ khó: ô ghi đủ như bảng in — Z góc trái, nguyên tử khối góc phải, kí hiệu bên trái và độ âm điện (tím) bên phải,
+   cấu hình electron dưới cùng (tối đa 2 dòng, các phân lớp cách nhau dấu cách nên tự xuống dòng) */
+.pt .en{color:#7a3b8f}
+.pt.hard .pt-cell .z{left:3px;font-size:10px}
+.pt.hard .pt-cell .m{left:auto;right:3px;top:1px;bottom:auto;font-size:9.5px}
+.pt.hard .pt-cell .s{left:4px;right:auto;top:12px;font-size:20px;line-height:22px;text-align:left}
+.pt.hard .pt-cell.fam .s{left:0;right:0;top:19px;font-size:15px;text-align:center}
+.pt-cell .en{position:absolute;right:3px;top:18px;font-size:9.5px}
+.pt-cell .cfg{position:absolute;left:1px;right:1px;top:35px;font-size:8.5px;line-height:10px;text-align:center}
+.pt-cell .cfg sup{font-size:6.5px;line-height:0;vertical-align:3px}
+/* chỗ kính lúp ở chế độ khó (.plain: không khung, không nền): ô hướng dẫn — ô thật phóng to 2,6 lần (156 px, cách mép
+   trái 240 px, mép trên 16 px), nhãn hai bên có vạch đứt chỉ vào từng dòng thông tin, nhãn trái kết thúc, nhãn phải bắt
+   đầu cách ô vài px. .zoom: đang hiện ô vừa bấm (màn hình vừa và nhỏ) nên ẩn nhãn */
+.pt-lens.plain{background:transparent;border-color:transparent;box-shadow:none}
+.pt-ex .pt-cell{left:240px;top:16px;transform:scale(2.6);transform-origin:0 0;pointer-events:none}
+.pt-ex .l,.pt-ex .r{position:absolute;height:18px;display:flex;align-items:center;gap:6px;font:15px var(--fh);white-space:nowrap}
+.pt-ex .l{right:400px}
+.pt-ex .r{left:400px}
+.pt-ex .l::after,.pt-ex .r::before{content:'';width:30px;border-top:1.6px dashed var(--ink)}
+.pt-ex.zoom .l,.pt-ex.zoom .r{display:none}
+/* kính lúp chi tiết của chế độ khó (PT_HARD_LENS, đang tắt): cột thông tin + hình các lớp electron (svg 176×176) */
+.pt-big .en{position:absolute;right:10px;top:8px;font-size:17px}
+.pt-info{position:absolute;left:166px;top:12px;width:262px;font:16px/1.55 var(--fh)}
+.pt-info p{margin:0}
+.pt-info b{font-size:17px}
+.pt-info .i-en{color:#7a3b8f}
+.pt-lens .pt-info .pt-kind{position:static;margin-bottom:4px}
+.pt-lens .pt-info .pt-hint{position:static;margin-top:10px}
+.pt-bohr{position:absolute;right:12px;top:6px}
+.pt-rule{display:block;margin-top:4px;font:13px/1.3 var(--fh);color:#3b3025a8}
+/* thanh câu hỏi: nhãn câu, đề + phương án (hoặc ô đã chọn + Chốt), lời giải + Câu tiếp */
+.pt-bar{position:absolute;left:34px;right:34px;top:478px;bottom:0;display:flex;flex-direction:column;background:var(--card);border:1.2px solid var(--ink);border-radius:8.4px;padding:7px 18px 8px}
+.pt-tag{font:13.5px/18px var(--fh);color:#3b3025a8}
+.pt-streak{color:#b8862a;font-weight:bold}
+.pt-row{flex:1;display:flex;align-items:center;gap:18px}
+.pt-row.enter{animation:ptin .35s ease-out}
+@keyframes ptin{from{opacity:0;transform:translateY(8px)}}
+.pt-q{flex:1;font:21px/1.3 var(--fh)}
+.pt-ans{flex:none;display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px;max-width:600px}
+.pt-ans .btn{min-width:64px;padding:7px 14px}
+.pt-ans .btn.el{min-width:74px;font-size:21px;padding:4px 14px}
+.pt-ans .btn.eq{width:150px;height:56px;padding:2px 8px;line-height:1.25}
+.pt-ans .btn.go{background:var(--accent)}
+.pt-ans .btn.ok{background:#c9e3b4;opacity:1}
+.pt-ans .btn.bad{background:#f3b8ac;opacity:1}
+.pt-chip{font:17px var(--fh);background:#fff;border:1.2px dashed var(--ink);border-radius:6px;padding:6px 12px}
+.pt-chip.empty{opacity:.6}
+.pt-foot{display:flex;align-items:center;gap:12px;min-height:40px}
+.pt-why{flex:1;margin:0;font-size:15.5px;line-height:1.35}
+.pt-why .ico{vertical-align:-3px}
+.pt-why.good{color:#4d7a33}
+.pt-why.bad{color:#b8432f}
 /* chuỗi phản ứng (ngày 31): hàng chất ○ —▭→ ○ ở trên (ô ▭ nằm trên mũi tên), băng chọn chất (dải vàng) ở dưới.
    Vòng tròn chất như bình cầu: phần dưới tô màu chất (--lc); chất ở giữa giấu sau dấu ? viền đứt đến khi giải xong */
 .chn{position:absolute;inset:0}
-.chn-say{position:absolute;left:0;right:0;top:2px;margin:0;font-family:var(--fh);font-size:19px;line-height:1.35;text-align:center}
-.chn-say.bad{color:#b8432f}
-.chn-say.good{color:#4d7a33}
+.chn-say,.bal-say{position:absolute;left:0;right:0;top:2px;margin:0;font-family:var(--fh);font-size:19px;line-height:1.35;text-align:center}
+.chn-say.bad,.bal-say.bad{color:#b8432f}
+.chn-say.good,.bal-say.good{color:#4d7a33}
 .chn-row{position:absolute;left:0;right:0;top:100px;display:flex;justify-content:center;align-items:center}
 .chn-node{--lc:transparent;position:relative;width:128px;display:flex;justify-content:center}
 .chn-ball{width:116px;height:116px;box-sizing:border-box;border-radius:50%;border:2.4px solid var(--ink);display:flex;align-items:center;justify-content:center;
@@ -517,6 +619,77 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .chn-eqs{background:var(--card);border:1.2px solid var(--ink);border-radius:4.8px;padding:10px 26px 12px;font-family:var(--fh);font-size:22px;line-height:1.5;white-space:nowrap;box-shadow:0 3px 0 #3b302533}
 .chn-eqs h3{margin:0 0 2px;font-size:17px}
 .chn-eqs span{display:inline-block;width:44px;opacity:.6}
+/* cân bằng phương trình (ngày 5): trên là khay phản ứng 1232×330 (BAL_ZW × BAL_ZH trong che-do.js), không chữ — chất tham
+   gia bên trái, sản phẩm bên phải vẽ mờ, bi viền đứt (chỗ chờ phản ứng tạo ra), chất quá 10 phân tử ghi "n ×" (.bal-n);
+   giữa là phương trình với ô hệ số gạch chân gõ được; dưới là hàng chất để kéo (mô hình + công thức, không khung) và nút
+   Phản ứng. Bấm Phản ứng: .split (chất tham gia mờ đi, bi tách ra ở lớp .bal-fly), bi bay tới chỗ trong sản phẩm; tới nơi
+   thì sản phẩm đủ bi .made hiện rõ, bi không có chỗ .extra viền đỏ, chỗ không có bi .bal-miss vòng đỏ đứt nét. Đúng thì
+   phương trình .final được gạch chân, hàng dưới (.done) đổi sang nút xem lại / đi tiếp */
+.bal{position:absolute;inset:0}
+.bal-eq{position:absolute;left:0;right:0;top:383px;height:58px;display:flex;align-items:center;justify-content:center;font-family:var(--fh);font-size:30px;white-space:nowrap}
+.bal-eqin{position:relative;display:flex;align-items:center;gap:2px;padding:5px 30px}
+.bal-term{display:inline-flex;align-items:center;gap:6px;transition:gap .4s}
+.bal-in{width:46px;height:44px;padding:0;border:none;border-bottom:2.6px solid var(--ink);border-radius:0;background:transparent;font:inherit;color:var(--ink);
+  text-align:center;outline:none;-webkit-user-select:text;user-select:text;transition:width .4s,border-color .3s,background .2s}
+.bal-in:focus{border-bottom-color:var(--blue);background:#6f9ec91a}
+.bal-in:read-only{cursor:default}
+.bal-meas{position:absolute;visibility:hidden;font-family:var(--fh);font-size:30px;white-space:pre}
+.bal-eq.final .bal-term{gap:0}
+.bal-eq.final .bal-in{border-bottom-color:transparent;background:transparent}
+.bal-mk{font-style:normal;display:inline-block;max-width:0;opacity:0;overflow:hidden;transition:max-width .4s,opacity .4s}
+.bal-eq.final .bal-mk{max-width:30px;opacity:1}
+.bal-op{margin:0 10px;opacity:.6}
+.bal-eq .harr{margin:0 4px}
+/* gạch chân cả phương trình khi đúng: nét vẽ tay chạy từ trái sang phải */
+.bal-ul{position:absolute;left:18px;bottom:-6px;width:calc(100% - 36px);height:12px;overflow:visible;pointer-events:none}
+.bal-ul path{fill:none;stroke:#4d9a3e;stroke-width:4;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1}
+.bal-eq.final .bal-ul path{stroke-dashoffset:0;transition:stroke-dashoffset .6s .3s ease-in-out}
+.bal-zone{position:absolute;left:10px;top:40px;width:1232px;height:330px;display:flex;border:1.2px solid var(--ink);border-radius:9px;
+  background:repeating-linear-gradient(#fffdf5 0 27px,#efe8d6 27px 28px)}
+.bal-zone.dropready{outline-offset:4px;border-radius:9px}
+.bal-side{flex:1;display:flex;justify-content:center;padding:14px 10px}
+.bal-zone>.bal-arrow{width:120px}
+.bal-arrow{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.bal-arrow path{fill:none;stroke:var(--ink);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.bal-col{display:flex;align-items:center;justify-content:center}
+.bal-n{font-family:var(--fh);font-size:30px;white-space:nowrap;margin-right:8px}
+.bal-mols{display:flex;flex-wrap:wrap;justify-content:center;align-content:center}
+.bal-mol{position:relative;transition:opacity .35s,filter .35s,transform .15s}
+.bal-box{position:relative}
+.bal-mol.pop .atom,.bal-cmol .atom,.dragghost .bal-box .atom{animation:atomin .4s cubic-bezier(.3,1.6,.5,1) backwards}
+.bal-mol.pop .bonds,.bal-cmol .bonds{animation:bondin .3s backwards}
+.bal:not(.busy) .bal-mol:hover{transform:scale(1.07)}
+.bal-mol.ghost{opacity:.4;filter:grayscale(.7)}
+.bal-mol.ghost .atom{border-style:dashed}
+.bal-zone.split .bal-side.l .bal-mol{opacity:.12}
+.bal-mol.ghost.made{opacity:1;filter:none;animation:balpop .45s cubic-bezier(.3,1.6,.5,1)}
+.bal-mol.ghost.made .atom{border-style:solid}
+.bal-fly{position:absolute;inset:0;pointer-events:none;z-index:2}
+.bal-zone.split .bal-fly .atom{animation:jig .3s 2}
+.bal-fly .atom.in{opacity:0}
+.bal-zone.split .bal-fly .atom.extra{box-shadow:0 0 0 3px #fffdf5,0 0 0 6px #d9634f;animation:balwarn .9s ease-in-out infinite}
+.bal-miss{position:absolute;transform:translate(-50%,-50%);border-radius:50%;border:3px dashed #c9524b;background:#d9634f1f;animation:balwarn .9s ease-in-out infinite}
+@keyframes balwarn{50%{transform:translate(-50%,-50%) scale(1.18)}}
+@keyframes balpop{50%{transform:scale(1.16)}}
+/* bi trong dòng báo thừa / thiếu ("thừa 2 × ●"): màu nguyên tố; thừa viền đỏ như bi ở lại, thiếu vòng đỏ đứt nét */
+.bal-dot{display:inline-block;width:22px;height:22px;border-radius:50%;vertical-align:-4px;background:var(--c);border:2px solid var(--ink);
+  box-shadow:0 0 0 2px #fffdf5,0 0 0 4px #d9634f;margin:0 4px}
+.bal-dot.miss{border:2.5px dashed #c9524b;box-shadow:none;opacity:.75}
+.bal-band{position:absolute;left:-14px;right:-14px;top:446px;height:168px}
+.bal-pick,.bal-done{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;transition:opacity .3s,transform .3s}
+.bal-pick{gap:20px}
+.bal-band.done .bal-pick{opacity:0;pointer-events:none;transform:translateY(-14px)}
+.bal-done{opacity:0;pointer-events:none;transform:translateY(14px)}
+.bal-band.done .bal-done{opacity:1;pointer-events:auto;transform:none;transition-delay:.4s}
+.bal-grp{display:flex;gap:12px}
+.bal-card{width:136px;height:124px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:transform .12s}
+.bal-card:hover{transform:translateY(-4px)}
+.bal-card:active{transform:translateY(1px)}
+.bal-card b{font-family:var(--fh);font-size:23px;font-weight:normal}
+.bal-cmol{position:relative;width:116px;height:62px}
+.bal-btns{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-left:26px}
+/* nút chỉ có biểu tượng (Xem lại / Câu tiếp theo): cùng cỡ, chữ để ở title cho rê chuột */
+.bal-ib{width:64px;height:56px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .devbadge{position:absolute;right:16px;top:10px;font-size:12px;background:#d9634f;color:#fff;border-radius:4.8px;padding:2px 8px;z-index:50}
 /* ---------- FX layers ---------- */
 .bubble{position:absolute;border:2px solid var(--ink);border-radius:50%;background:#ffffffcc;animation:bub 1.2s ease-in forwards;pointer-events:none}

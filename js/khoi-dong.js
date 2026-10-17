@@ -125,6 +125,80 @@ if(DEBUG){
     console.assert(ch.ans.length >= 2 && ch.ans.length <= 3, tag + ': cần 2–3 mũi tên');
     console.assert(chainWalk(ch.start, ch.ans, ch.target), tag + ': đáp án không đi tới đích');
   }));
+  // cân bằng phương trình: mỗi đề khớp đúng MỘT phản ứng, hệ số không quá BAL_BIG (đáp án vẽ đủ từng phân tử, không phải
+  // ghi "n ×") và đã tối giản,
+  // mỗi nhóm đủ đề để bốc
+  DAYS.filter(d => d.mg === 'balance').forEach(d => d.pools.forEach(([n, list]) => {
+    console.assert(list.length >= n, 'cân bằng: nhóm đề ít hơn ' + n + ' câu');
+    list.forEach(s => {
+      const m = balRxs(s);
+      console.assert(m.length === 1, 'cân bằng: "' + s + '" khớp ' + m.length + ' phản ứng');
+      if(!m.length) return;
+      const k = Object.values(m[0].rg).concat(Object.values(m[0].pr));
+      console.assert(Math.max(...k) <= BAL_BIG && k.reduce(gcd) === 1, 'cân bằng: hệ số của "' + s + '" quá lớn / chưa tối giản');
+      // mọi chất đều vẽ được bi–que (MOL_2D hoặc mô hình ngày 4), đủ nguyên tử theo công thức, bi không chồng nhau
+      Object.keys(m[0].rg).concat(Object.keys(m[0].pr)).forEach(f => {
+        const g = molGeom(f), want = atomCounts(f), n = {};
+        g.atoms.forEach(a => n[a.el] = (n[a.el] || 0) + 1);
+        console.assert(MOL_2D[f] || vlModel(f), 'cân bằng: chưa có mô hình bi–que cho ' + f);
+        console.assert(Object.keys(want).every(e => want[e] === n[e]) && g.atoms.length === Object.values(want).reduce((a, b) => a + b),
+          'cân bằng: mô hình ' + f + ' lệch số nguyên tử');
+        g.atoms.forEach((p, a) => g.atoms.forEach((q, b) => { if(b > a)
+          console.assert(Math.hypot(p.x - q.x, p.y - q.y) >= p.r + q.r - .01, 'cân bằng: mô hình ' + f + ' có bi chồng nhau'); }));
+      });
+    });
+  }));
+  // bảng tuần hoàn: đủ 118 số hiệu (90 ô vì hai họ gộp), không trùng ô, nguyên tử khối khớp ATOM; đề sinh ra luôn có đáp
+  // án, phương án không trùng nhau, ô được tô khi giải đều có thật
+  console.assert(PT.length === 90 && Object.keys(PT_Z).length === 88 && PT_Z[118].s === 'Og', 'bảng tuần hoàn: lệch số hiệu');
+  console.assert(new Set(PT.map(e => e.p + '-' + e.c)).size === PT.length, 'bảng tuần hoàn: hai ô trùng chỗ');
+  Object.keys(ATOM).forEach(e => console.assert(PT_BY[e] && PT_BY[e].m === ATOM[e], 'bảng tuần hoàn: nguyên tử khối ' + e + ' lệch ATOM'));
+  Object.keys(PT_RAD).forEach(e => console.assert(PT_BY[e] && ptMain(PT_BY[e]) && PT_BY[e].k !== 'g', 'PT_RAD: ' + e + ' không phải nhóm A / là khí hiếm'));
+  // lớp electron: tổng = Z; nhóm A có số lớp = chu kì và lớp ngoài = số thứ tự nhóm (He: 2); nhóm B cũng số lớp = chu kì
+  // trừ Pd (4 lớp ở chu kì 5). Độ âm điện: khí hiếm không ghi, mọi nguyên tố khác tới Z = 88 đều có
+  PT.filter(e => !e.fam).forEach(e => {
+    console.assert(e.sh.reduce((a, n) => a + n, 0) === e.z && e.sh.every(n => n > 0), 'lớp electron ' + e.s + ': tổng lệch Z');
+    console.assert(e.sh.length === e.p || e.s === 'Pd', 'lớp electron ' + e.s + ': số lớp khác chu kì');
+    if(ptMain(e) && e.z <= 88) console.assert(e.sh[e.sh.length - 1] === (e.s === 'He' ? 2 : ptOuter(e)), 'lớp electron ' + e.s + ': lớp ngoài lệch nhóm');
+    console.assert(e.k === 'g' ? e.en === null : (e.en !== null) === (e.z <= 88), 'độ âm điện ' + e.s + ': thiếu / thừa');
+    // cấu hình: tổng số mũ = Z, không phân lớp nào quá sức chứa (s 2, p 6, d 10, f 14), xếp theo lớp; phần viết gọn [Ar]…
+    // phải là nguyên cấu hình của khí hiếm đó nằm trong cấu hình nguyên tố
+    console.assert(e.cfg.reduce((a, x) => a + x[2], 0) === e.z && e.cfg.every(([n, l, k]) => l < n && k > 0 && k <= 4*l + 2)
+      && e.cfg.every((x, j) => !j || e.cfg[j - 1][0] < x[0] || e.cfg[j - 1][1] < x[1]), 'cấu hình electron ' + e.s + ': sai');
+    const core = PT_CORE[e.p] && PT_BY[PT_CORE[e.p]];
+    if(core) console.assert(core.cfg.every(c => e.cfg.some(x => x[0] === c[0] && x[1] === c[1] && x[2] === c[2])), 'cấu hình electron ' + e.s + ': không chứa [' + core.s + ']');
+  });
+  console.assert(ptCfgHTML(PT_BY.O) === '1s<sup>2</sup> 2s<sup>2</sup> 2p<sup>4</sup>' && ptCfgHTML(PT_BY.Na) === '[Ne] 3s<sup>1</sup>'
+    && ptCfgHTML(PT_BY.Fe) === '[Ar] 3d<sup>6</sup> 4s<sup>2</sup>'
+    && ptCfgHTML(PT_BY.Cu) === '[Ar] 3d<sup>10</sup> 4s<sup>1</sup>' && ptCfgHTML(PT_BY.Pd) === '[Kr] 4d<sup>10</sup>', 'cấu hình electron: O / Na / Fe / Cu / Pd viết sai');
+  // độ âm điện lớn nhất / nhỏ nhất (enMax) đúng như lời giải: chu kì 2–5 lớn nhất ở nhóm VIIA, nhỏ nhất ở IA; nhóm A lớn nhất ở trên cùng
+  [2, 3, 4, 5].forEach(p => { const L = PT.filter(x => x.en && x.p === p).sort((a, b) => b.en - a.en);
+    console.assert(L[0].c === 17 && L[L.length - 1].c === 1 && L[0].en > L[1].en && L[L.length - 2].en > L[L.length - 1].en, 'độ âm điện chu kì ' + p + ': lệch quy luật'); });
+  [1, 2, 13, 14, 15, 16, 17].forEach(c => { const L = PT.filter(x => x.en && x.c === c).sort((a, b) => b.en - a.en);
+    console.assert(L[0].p === Math.min(...L.map(x => x.p)) && L[0].en > L[1].en, 'độ âm điện nhóm ' + PT_GROUP[c - 1] + ': lệch quy luật'); });
+  DAYS.filter(d => d.mg === 'ptable').forEach(d => {
+    const H = Object.assign({}, d, d.hard);
+    console.assert(d.hard && d.hard.story && d.hard.note, 'bảng tuần hoàn: thiếu lời dặn chế độ khó');
+    H.neutron.forEach(s => console.assert(PT_BY[s] && Number.isInteger(PT_BY[s].m), 'neutron: nguyên tử khối ' + s + ' không nguyên'));
+    H.ion.forEach(s => { const e = PT_BY[s];
+      console.assert(e && ptMain(e) && e.k !== 'g' && ptIon(e).gas, 'ion: ' + s + ' không ra cấu hình khí hiếm'); });
+    const B = ptBonds(H);
+    B.forEach(b => console.assert(b.els.length <= 2 && b.els.every(s => PT_BY[s].en)
+      && Math.abs(b.d - .4) >= .05 && Math.abs(b.d - 1.7) >= .05, 'liên kết ' + b.f + ': không đủ số liệu hoặc Δχ sát ngưỡng'));
+    [0, 1, 2].forEach(c => console.assert(B.some(b => b.cls === c), 'liên kết: thiếu loại ' + c));
+    d.pool.forEach(s => console.assert(PT_BY[s] && typeof PT_BY[s].m === 'number', 'bảng tuần hoàn: nguyên tố lạ trong pool ' + s));
+    d.mr.forEach(f => console.assert(Object.keys(atomCounts(f)).every(e => ATOM[e]), 'phân tử khối: thiếu nguyên tử khối cho ' + f));
+    d.rounds.concat(H.rounds).forEach(([n, kinds]) => kinds.forEach(k => console.assert(PT_Q[k], 'bảng tuần hoàn: chưa có dạng câu ' + k)));
+    for(let t = 0; t < 300; t++) ptQuiz(t % 2 ? H : d).forEach(q => {
+      const tag = 'bảng tuần hoàn (' + q.kind + '): ';
+      if(q.pick) console.assert(q.pick.length && q.pick.every(s => PT_BY[s]), tag + 'câu chọn ô không có đáp án');
+      else {
+        console.assert(q.opts.length >= 2 && q.opts[q.ans], tag + 'thiếu phương án / đáp án — ' + q.q);
+        console.assert(new Set(q.opts.map(o => o.t)).size === q.opts.length, tag + 'trùng phương án — ' + q.q);
+      }
+      console.assert(q.why && q.show.every(s => PT_BY[s]), tag + 'thiếu lời giải / ô tô sai');
+    });
+  });
   // hard mode: molar mass parser + tolerance + generated challenges are self-consistent
   console.assert(molarMass('NaCl') === 58.5, 'Mr NaCl');
   console.assert(molarMass('Ca(OH)2') === 74, 'Mr Ca(OH)2');

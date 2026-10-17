@@ -20,8 +20,8 @@ const LICH = {
     'Khái niệm mol',                         // 2
     'Nguyên tử hay phân tử?',                // 3
     'Hoá trị — những "cánh tay" nguyên tử',  // 4
-    'Oxi gặp kim loại',                      // 5
-    'Oxi gặp phi kim',                       // 6
+    'Cân bằng phương trình hoá học',         // 5
+    'Oxi gặp kim loại và phi kim',           // 6
     'Luyện tập chương 1',                    // 7
     'Hiđro — chất khử cừ khôi',              // 8
     'Điều chế hiđro',                        // 9
@@ -39,7 +39,7 @@ const LICH = {
     'Luyện tập chương 3',                    // 21
     'Nhôm — kim loại quốc dân',              // 22
     'Sắt — hoá trị II và III',               // 23
-    'May áo giáp sắt',                       // 24
+    'Bảng tuần hoàn — bản đồ nguyên tố',     // 24 (tạm thời; tên cũ: 'May áo giáp sắt')
     'Halogen — khí clo vàng lục',            // 25
     'Nitơ — khí trơ mà quý',                 // 26
     'Cacbon — từ than đến đá vôi',           // 27
