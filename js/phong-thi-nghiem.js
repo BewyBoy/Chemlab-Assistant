@@ -349,7 +349,7 @@ function finishLab(){
   const i = lab.i, st = {served:lab.served, wrong:lab.wrong, waste:lab.waste, hard:lab.hard,
                          safety:lab.safety, mistakes:lab.mistakes};
   lab = null;
-  go(()=>showResult(i, st));
+  showResult(i, st);   // thẻ kết quả nảy lên ngay trên bàn thí nghiệm vừa đứng hình
 }
 
 function lerpHex(a, b, t){
@@ -540,6 +540,7 @@ function renderLab(){
       <div class="wallitem safetyhook" id="goggles" style="left:466px;top:86px" title="Bấm để đeo kính bảo hộ và găng tay">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>
       ${lab.hoodDay ? `<div class="wallitem hoodsw" id="hoodsw" style="left:464px;top:180px" title="Bấm để bật / tắt tủ hút">${HOOD_SVG}<div class="wallcap">Tủ hút: tắt</div></div>` : ''}
       ${stickyNoteHtml}
+      ${!day.free && dayEqs(day).length ? `<div class="wallitem balpaper" id="balpaper" style="left:600px;top:116px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
     </div>
     ${benchSVG()}
     <div class="custcol">
@@ -573,6 +574,14 @@ function renderLab(){
   const hb = G.querySelector('#bhbook'); if(hb) hb.onclick = showHardBook;
   G.querySelector('#goggles').onclick = () => { if(lab.goggles) return; wearGoggles(); toast('Đã đeo kính bảo hộ và găng tay — an toàn là trên hết!'); };
   const hs = G.querySelector('#hoodsw'); if(hs) hs.onclick = () => setHood(!lab.hood);
+  const bp = G.querySelector('#balpaper'); if(bp) bp.onclick = () => {
+    if(!lab) return;
+    if(lab.timer){ clearInterval(lab.timer); lab.timer = null; }   // cân bằng là việc thêm — không bị tính giờ
+    balanceSheet(lab.i, () => {
+      refreshBalPaper();
+      if(lab && lab.timer === null && !lab.cardOpen && !G.querySelector('.pausecard')) lab.timer = setInterval(labTick, 1000);
+    });
+  };
   // hoá chất trong tủ
   G.querySelectorAll('.chem').forEach(c => { const gt = chemDragTool(c.dataset.f);
     dragify(c, 'chem', {
@@ -630,22 +639,36 @@ function renderLab(){
   updateBeaker();
 }
 
+// Tờ giấy cân bằng ghim trên tường: mỗi phương trình của ngày là một dòng nguệch ngoạc; phương trình nào trò
+// đã cân bằng đúng (save.balanced) thì có ✓ đỏ cuối dòng, góc dưới đếm số đã xong. Giáo sư làm hộ thì không đếm.
+function balPaperFace(){
+  const eqs = dayEqs(lab.day), edit = balanceEditable(lab.i), done = eqs.filter(isBalanced).length;
+  return '<i class="bppin"></i><b>Cân bằng</b>'
+    + eqs.map(idx => '<span class="bpl' + (edit && isBalanced(idx) ? ' ok' : '') + '"></span>').join('')
+    + (edit ? '<em' + (done === eqs.length ? ' class="all"' : '') + '>' + done + '/' + eqs.length + '</em>' : '');
+}
+function refreshBalPaper(){ const f = G.querySelector('#balpaper .bpface'); if(f && lab) f.innerHTML = balPaperFace(); }
+
 function pauseLab(){
   if(!lab || !lab.timer) return;
   clearInterval(lab.timer); lab.timer = null;
   const ov = document.createElement('div');
   ov.className = 'overlay pauseov';
   const free = lab.day.free;
-  const hasEqs = !free && balanceOn() && dayEqs(lab.day).length;
+  const hasEqs = !free && dayEqs(lab.day).length;
+  const hasLesson = !free && BAI_GIANG[lab.i];
   ov.innerHTML = `<div class="pausecard"><h2>Tạm nghỉ</h2>
     <button class="btn big" id="presume">${ico('play')} Tiếp tục</button>
+    ${hasLesson ? `<button class="btn" id="plesson">${ico('book')} Xem lại bài giảng</button>` : ''}
     ${hasEqs ? `<button class="btn" id="pnote">${ico('note')} Giấy cân bằng</button>` : ''}
-    <button class="btn" id="prestart">${ico('retry')} Chơi lại từ đầu</button>
+    <button class="btn" id="prestart">${ico('retry')} Chơi lại</button>
     <button class="btn" id="pmap">${ico('map')} ${free ? 'Kết thúc ca' : 'Về bản đồ'}</button>
     <div class="pausevol">${volSliders()}</div></div>`;
   G.appendChild(ov);
   bindVolSliders(ov);
-  if(hasEqs) ov.querySelector('#pnote').onclick = () => { ov.classList.add('under'); reviewBalance(lab.i, () => ov.classList.remove('under')); };
+  // bài giảng phủ lên ca đang dừng; đóng lại thì thẻ Tạm nghỉ hiện ra như cũ
+  if(hasLesson) ov.querySelector('#plesson').onclick = () => { ov.classList.add('under'); showLesson(lab.i, () => ov.classList.remove('under')); };
+  if(hasEqs) ov.querySelector('#pnote').onclick = () => { ov.classList.add('under'); balanceSheet(lab.i, () => { ov.classList.remove('under'); refreshBalPaper(); }); };
   ov.querySelector('#presume').onclick = () =>   // thẻ trượt xuống xong mới chạy lại đồng hồ
     closeOv(ov, () => { if(lab && lab.timer === null) lab.timer = setInterval(labTick, 1000); });
   ov.querySelector('#prestart').onclick = () => { const i = lab.i; lab = null; go(free ? startFree : ()=>showIntro(i)); };

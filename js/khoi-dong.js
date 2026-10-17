@@ -9,6 +9,7 @@
 if(DEBUG){
   console.assert(DAYS.length === 31, 'DAYS phải đủ 31 ngày');
   console.assert(LICH.ngay.length === DAYS.length && DAYS.every(d => d.t), 'js/lich.js: cần đúng một mô tả cho mỗi ngày');
+  console.assert(BAI_GIANG.length === DAYS.length && BAI_GIANG.every(d => d.length), 'js/bai-giang.js: cần đúng một bài giảng (ít nhất một câu) cho mỗi ngày');
   DAYS.forEach((day, i) => {
     if(day.mg) return;
     const have = new Set(day.chems);          // bao đóng: pha ra được gì từ kệ của ngày đó

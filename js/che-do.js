@@ -2603,29 +2603,19 @@ function serveConc(){
     <div class="center" style="margin-top:12px"><button class="btn big" id="cnext">${last?'Xem kết quả':'Câu tiếp '+ico('next')}</button></div>
   </div>`;
   G.appendChild(ov);
-  ov.querySelector('#cnext').onclick = () => { closeOv(ov); if(last) go(concResult); else { conc.ci++; renderConc(); } };
+  ov.querySelector('#cnext').onclick = () => { closeOv(ov); if(last) concResult(); else { conc.ci++; renderConc(); } };
 }
 function concResult(){
   const n = conc.list.length, cor = conc.correct, r = cor/n;
   const stars = r>=1 ? 3 : r>=.75 ? 2 : r>=.5 ? 1 : 0;
   if(cor > (save.hardBest||0)){ save.hardBest = cor; persist(); }
-  const stamps = [0,1,2].map(k => '<span class="starstamp '+(k<stars?'go':'off')+'">'+ico('star',60)+'</span>').join('');
-  G.innerHTML = `<div class="scene center" style="padding-top:50px">
-    <h2>Kết thúc chế độ khó</h2>
-    <div class="stamprow">${stamps}</div>
-    <div class="paper" style="max-width:520px;margin:10px auto">
+  resultCard('Kết thúc chế độ khó', stars, `<div class="resbody">
       <p style="font-size:18px">Đúng <b>${cor}/${n}</b> câu · Kỷ lục: <b>${Math.max(cor, save.hardBest||0)}/${n}</b></p>
-      <div class="row" style="justify-content:center"><div id="cresprof"></div>
-      <p class="hand" style="text-align:left">“${stars===3?'Bậc thầy nồng độ — không lệch một li!':stars>=1?'Khá lắm! Luyện thêm cho chắc công thức nhé.':'Ôn lại Cₘ và C% rồi thử lại nào, trò làm được mà!'}”</p></div>
+      <p class="hand">“${stars===3?'Bậc thầy nồng độ — không lệch một li!':stars>=1?'Khá lắm! Luyện thêm cho chắc công thức nhé.':'Ôn lại Cₘ và C% rồi thử lại nào, trò làm được mà!'}”</p>
     </div>
-    <div class="row" style="justify-content:center;margin-top:8px">
-      <button class="btn" id="cagain">${ico('retry')} Chơi lại</button>
-      <button class="btn big" id="cmenu">${ico('map')} Về menu</button>
-    </div></div>`;
-  G.querySelector('#cresprof').innerHTML = profSVG(stars>=2?'happy':stars>=1?'neutral':'annoy').replace('viewBox','height="120" viewBox');
+    <div class="row resbtns">${resBtn('cagain', 'retry', 'Chơi lại')}${resBtn('cmenu', 'home', 'Về menu', ' main')}</div>`);
   G.querySelector('#cagain').onclick = () => go(startConc);
   G.querySelector('#cmenu').onclick = () => go(showMenu);
-  if(stars > 0) SFX.bell();
 }
 
 /* =====================  CHẾ ĐỘ KHÓ TRONG CA: TỰ TÍNH GAM / ML / LÍT  =====================

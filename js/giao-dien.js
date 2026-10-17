@@ -108,7 +108,8 @@ const SFX = (() => {
     coin(){ tone(988,.08,'square',.045); setTimeout(()=>tone(1319,.16,'square',.045),70); },
     bell(){ tone(880,.25,'sine',.08); setTimeout(()=>tone(1175,.3,'sine',.07),140); },
     page(){ noise(.26,.06,900,.6); },
-    stamp(){ noise(.09,.13,300,1); tone(140,.12,'sine',.11,90); },
+    talk(){ tone(480+Math.random()*160,.035,'triangle',.02); },              // giáo sư đang nói (chữ hiện dần)
+    fill(){ for(let n=0;n<7;n++) setTimeout(()=>tone(260+n*70,.08,'sine',.05,330+n*80), n*130); setTimeout(()=>tone(1568,.2,'triangle',.04), 1000); }, // rót đầy sao: ọc ọc cao dần rồi "ting"
     err(){ tone(320,.18,'sawtooth',.05,180); },
     splash(){ noise(.3,.1,500,.7); setTimeout(()=>noise(.15,.05,900,.8),100); }
   };
@@ -495,8 +496,8 @@ function showShop(){
 
         <div class="shop-item" style="border: 1.2px solid var(--ink); border-radius: 4.8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; background: #fffdf5">
           <div style="flex: 1; padding-right: 12px">
-            <b style="font-size: 16px; color: var(--accent)">${ico('note', 16)} Giấy Phép Bỏ Cân Bằng</b>
-            <div style="font-size: 13px; color: #555; margin-top: 4px">Mở khoá công tắc "Tắt cân bằng phương trình" trong Cài đặt: giáo sư cân bằng hộ toàn bộ phương trình.</div>
+            <b style="font-size: 16px; color: var(--accent)">${ico('note', 16)} Giấy Cân Bằng Sẵn</b>
+            <div style="font-size: 13px; color: #555; margin-top: 4px">Giáo sư điền sẵn hệ số cho mọi phương trình trên tờ giấy cân bằng. Bật / tắt bằng công tắc "Giấy cân bằng sẵn" trong Cài đặt.</div>
           </div>
           <div>
             ${hasNobal
@@ -572,7 +573,7 @@ function showShop(){
           save.items.nobalance = true;
           persist();
           SFX.page();
-          toast('Đã sở hữu Giấy Phép Bỏ Cân Bằng!');
+          toast('Đã sở hữu Giấy Cân Bằng Sẵn!');
           refresh();
         } else {
           toast('Chưa đủ đồng đỏ — mở thêm thành tựu nhé!');
@@ -620,10 +621,116 @@ function showShop(){
 }
 
 // chế độ khám phá của minigame hoá trị (che-do.js): mở khi ngày đó đạt 3 sao — nút ở màn giới thiệu và màn kết quả
-const exploreBtn = (day, i) => day.mg === 'valence' && (save.stars[i+1] || 0) >= 3 ? `<button class="btn" id="bexplore">${ico('flask')} Khám phá</button>` : '';
+const exploreBtn = (day, i, iconOnly) => day.mg === 'valence' && (save.stars[i+1] || 0) >= 3
+  ? (iconOnly ? resBtn('bexplore', 'flask', 'Khám phá') : `<button class="btn" id="bexplore">${ico('flask')} Khám phá</button>`) : '';
 function bindExplore(i){ const b = G.querySelector('#bexplore'); if(b) b.onclick = () => go(() => startVlExplore(i)); }
 
+/* =====================  BÀI GIẢNG KIỂU VISUAL NOVEL  =====================
+   Lần đầu trò mở một ngày, giáo sư đứng cạnh bảng đen giảng lý thuyết (lời ở js/bai-giang.js) rồi mới
+   tới màn giới thiệu ngày. Bấm / phím cách / Enter / → sang câu kế (đang gõ dở thì hiện hết câu), ← xem lại
+   câu trước. Ngày đã chơi trước khi có bài giảng (có sao hoặc có trong nhật ký) thì coi như đã nghe.
+   Có onEnd (xem lại từ thẻ Tạm nghỉ): bài giảng phủ lên trên ca đang dừng, xong thì gỡ đi rồi gọi onEnd. */
+const lessonSeen = num => (save.lessons || []).includes(num) || save.hist.some(h => h.d === num)
+  || (save.stars[num] || 0) > 0 || (save.starsHard[num] || 0) > 0;
+function parseLesson(s){
+  let e = 'neutral';
+  if(s.startsWith(':)')){ e = 'happy'; s = s.slice(2); }
+  else if(s.startsWith(':(')){ e = 'annoy'; s = s.slice(2); }
+  const [t, b] = s.split('||');
+  return {e, t: t.trim().normalize('NFC').replace(/\*([^*]+)\*/g, '<b>$1</b>'), b: b ? b.trim() : ''};
+}
+function showLesson(i, onEnd){
+  SFX.music(themeOf(i));
+  const lines = BAI_GIANG[i].map(parseLesson);
+  const html = `<div class="scene vnscene${onEnd ? ' vnover' : ''}">
+    <div class="vnboard"><div class="vnbtitle">Ngày ${i+1} · ${DAYS[i].t}</div><div class="vnbody"></div></div>
+    <div class="vnbox"><div class="vnname"><span>Giáo sư Hoffmann</span></div><p class="vntext"></p>
+      <div class="vndots">${lines.map(() => '<span></span>').join('')}</div></div>
+    <div class="vnprof">${profSVG('neutral')}</div>
+    <button class="btn vnskip">${onEnd ? 'Đóng ' + ico('close') : 'Bỏ qua ' + ico('next')}</button></div>`;
+  if(onEnd){
+    // nút vừa bấm ở thẻ Tạm nghỉ vẫn giữ focus: phím cách lúc này sẽ bấm lại nó thay vì sang câu
+    if(document.activeElement) document.activeElement.blur();
+    G.insertAdjacentHTML('beforeend', html);
+  } else G.innerHTML = html;
+  const root = onEnd ? G.lastElementChild : G.querySelector('.vnscene'), box = root.querySelector('.vnbox'), text = root.querySelector('.vntext'),
+        body = root.querySelector('.vnbody'), prof = root.querySelector('.vnprof'), dots = root.querySelectorAll('.vndots span');
+  let k = -1, chars = [], shown = 0, timer = 0, board = '', ended = false;
+  // bảng giữ dòng gần nhất (tính cả câu đang nói) có ghi bảng; đổi thì viết lại bằng phấn
+  const drawBoard = () => {
+    let b = '';
+    for(let j = k; j >= 0 && !b; j--) b = lines[j].b;
+    if(b === board) return;
+    board = b;
+    body.style.fontSize = '';
+    body.innerHTML = b.split(';').map(x => '<div>' + handSub(x.trim()) + '</div>').join('');
+    for(let fs = 34; fs > 18 && body.scrollWidth > body.clientWidth; fs -= 2) body.style.fontSize = fs + 'px';
+    body.classList.remove('write'); void body.offsetWidth; body.classList.add('write');
+    if(b) SFX.grain();
+  };
+  const finish = () => {
+    clearInterval(timer); timer = 0;
+    chars.forEach(c => c.classList.remove('h'));
+    shown = chars.length;
+    box.classList.add('done');
+  };
+  const tick = () => {
+    if(!root.isConnected){ clearInterval(timer); return; }
+    if(shown >= chars.length) return finish();
+    const c = chars[shown++];
+    c.classList.remove('h');
+    if(shown % 3 === 0 && c.textContent.trim()) SFX.talk();
+  };
+  const say = n => {
+    k = n;
+    const L = lines[k];
+    prof.firstElementChild.dataset.exp = L.e;
+    prof.classList.remove('talk'); void prof.offsetWidth; prof.classList.add('talk');
+    drawBoard();
+    dots.forEach((d, j) => d.classList.toggle('on', j <= k));
+    // tách từng chữ thành <span> ẩn rồi hiện dần: chữ đã dàn trang sẵn nên không nhảy dòng khi đang gõ
+    text.innerHTML = L.t;
+    chars = [];
+    const split = node => [...node.childNodes].forEach(c => {
+      if(c.nodeType !== 3) return split(c);
+      const frag = document.createDocumentFragment();
+      for(const ch of c.textContent){
+        const s = document.createElement('span');
+        s.className = 'h'; s.textContent = ch;
+        frag.appendChild(s); chars.push(s);
+      }
+      c.replaceWith(frag);
+    });
+    split(text);
+    shown = 0;
+    box.classList.remove('done');
+    clearInterval(timer); timer = setInterval(tick, 28);
+  };
+  const end = () => {
+    if(ended) return;
+    ended = true;
+    clearInterval(timer);
+    removeEventListener('keydown', onKey);
+    if(onEnd){ root.classList.add('closing'); setTimeout(() => { root.remove(); onEnd(); }, OV_CLOSE_MS); return; }
+    if(!(save.lessons || []).includes(i+1)){ save.lessons = [...(save.lessons || []), i+1]; persist(); }
+    go(() => showIntro(i));
+  };
+  const next = () => { if(ended) return; if(timer) finish(); else if(k < lines.length - 1) say(k + 1); else end(); };
+  const back = () => { if(!ended && k > 0){ say(k - 1); finish(); } };
+  const onKey = e => {
+    if(!root.isConnected) return removeEventListener('keydown', onKey);
+    if(e.target.closest && e.target.closest('button')) return;   // phím cách trên nút "Bỏ qua" là bấm nút đó
+    if([' ', 'Enter', 'ArrowRight'].includes(e.key)){ e.preventDefault(); next(); }
+    else if(e.key === 'ArrowLeft'){ e.preventDefault(); back(); }
+  };
+  addEventListener('keydown', onKey);
+  root.onclick = e => { if(!e.target.closest('button')) next(); };
+  root.querySelector('.vnskip').onclick = end;
+  setTimeout(() => { if(root.isConnected && k < 0) say(0); }, 550);   // đợi thẻ thoại trượt lên xong
+}
+
 function showIntro(i){
+  if(BAI_GIANG[i] && !lessonSeen(i+1)) return showLesson(i);
   SFX.music(themeOf(i));
   const day = DAYS[i];
   const conds = starConds(day).map((c,k)=>'<div>'+ico('star',15).repeat(k+1)+' '+c+'</div>').join('');
@@ -652,18 +759,17 @@ function showIntro(i){
     </div>
     <div class="row" style="justify-content:center;margin-top:14px">
       <button class="btn big" id="bgo">${ico(day.mg?'dice':'flask')} ${day.mg?'Chơi ngay':'Mở tiệm'}</button>
-      ${(!day.mg && balanceOn() && dayEqs(day).length) ? `<button class="btn" id="bnote2">${ico('note')} Giấy cân bằng</button>` : ''}
+      ${(!day.mg && dayEqs(day).length) ? `<button class="btn" id="bnote2">${ico('note')} Giấy cân bằng</button>` : ''}
       ${exploreBtn(day, i)}
       <button class="btn" id="bmap">${ico('back')} Bản đồ</button>
     </div></div>`;
   G.querySelector('#introprof').innerHTML = profSVG('happy').replace('viewBox','height="270" viewBox');
   G.querySelector('#bgo').onclick = () => {
     if(day.mg) return go(()=>startMinigame(i));
-    if(balanceOn() && dayEqs(day).length) return go(()=>showBalance(i, ()=>startLab(i)));
     return go(()=>startLab(i));
   };
   const bnote2 = G.querySelector('#bnote2');
-  if(bnote2) bnote2.onclick = () => reviewBalance(i);
+  if(bnote2) bnote2.onclick = () => balanceSheet(i);
   bindExplore(i);
   G.querySelector('#bmap').onclick = () => go(showMap);
   const th = G.querySelector('#tglHardIntro');
@@ -790,64 +896,52 @@ function balanceTutorial(){
   render(0);
 }
 
-// Màn hình giấy cân bằng trước khi vào ca. next() chạy khi trò đã xong.
-function showBalance(i, next){
-  const day = DAYS[i], num = i+1, eqs = dayEqs(day);
-  if(!eqs.length) return next();
-  const editable = num >= BALANCE_FROM_DAY;
-
-  let rows;
+// Tờ giấy cân bằng — KHÔNG bắt buộc. Mở từ tờ giấy ghim trên tường lúc làm ca, màn giới thiệu ngày
+// hoặc thẻ Tạm nghỉ. Từ ngày BALANCE_FROM_DAY trò tự điền hệ số: dòng nào đúng thì khoá lại, có dấu ✓ đỏ
+// ở lề và được nhớ mãi (save.balanced = chỉ số phản ứng trong REACTIONS). Trước ngày đó, hoặc khi đã tắt
+// công tắc Giấy cân bằng sẵn (vật phẩm Cửa hàng), giáo sư viết sẵn đáp án. onclose chạy ngay khi bấm đóng.
+const isBalanced = idx => (save.balanced || []).includes(idx);
+const balanceEditable = i => i + 1 >= BALANCE_FROM_DAY && balanceOn();
+function balanceSheet(i, onclose){
+  const num = i+1, eqs = dayEqs(DAYS[i]);
+  if(!eqs.length){ modal('<h2>'+ico('note',22)+' Giấy cân bằng</h2><p>Ngày này chưa có phản ứng để cân bằng.</p>', onclose); return; }
+  const editable = balanceEditable(i);
+  let rows, hint;
   if(editable){
     const nl = Math.max(...eqs.map(idx => Object.keys(REACTIONS[idx].rg).length));
     const np = Math.max(...eqs.map(idx => Object.keys(REACTIONS[idx].pr).length));
-    rows = eqs.map((idx,k)=>eqEditableRow(idx,k,nl,np)).join('');
+    rows = eqs.map((idx,k) => eqEditableRow(idx,k,nl,np)).join('');
+    hint = 'Không bắt buộc — điền hệ số cho từng phương trình, đúng thì được đánh dấu ✓.';
   } else {
     rows = handEqRows(eqs);
+    hint = num < BALANCE_FROM_DAY ? 'Giáo sư đã cân bằng giúp trò rồi — từ <b>ngày '+BALANCE_FROM_DAY+'</b> trở đi trò sẽ tự làm nhé!'
+      : 'Giáo sư đã điền sẵn hệ số (đang bật “Giấy cân bằng sẵn” trong Cài đặt).';
   }
-  const sub2 = editable
-    ? ''
-    : 'Giáo sư đã cân bằng giúp trò rồi — từ <b>ngày '+BALANCE_FROM_DAY+'</b> trở đi trò sẽ tự làm nhé!';
-
-  // tiêu đề + tờ giấy + nút được căn giữa theo chiều dọc (margin:auto trong cột flex)
-  G.innerHTML = '<div class="scene" style="display:flex;flex-direction:column">'
-    + '<div style="margin:auto 0">'
-    + '<h2 class="center">Ngày '+num+': Giấy cân bằng phương trình</h2>'
-    + '<div class="row" style="justify-content:center;margin-top:8px"><div style="width:1200px">'
-    + '<div class="bnote hpaper"><h3>'+ico('note',18)+' Giấy nháp của trợ lý</h3>'
-    + (sub2 ? '<p class="bsub">'+sub2+'</p>' : '') + rows + '</div>'
-    + '<div class="row" style="justify-content:flex-end;align-items:stretch;margin-top:16px;gap:12px">'
-    + '<button class="btn" id="bbackmap">'+ico('back')+' Bản đồ</button>'
-    + '<button class="btn big" id="bgolab" '+(editable?'disabled style="opacity:.5"':'')+'>'+ico('flask')+' Mở tiệm</button>'
-    + '</div></div></div></div>'
-    + (editable ? '<button class="btn icobtn helpbtn" id="bhelp" aria-label="Hướng dẫn cân bằng">?</button>' : '')
-    + '</div>';
-
-  const golab = G.querySelector('#bgolab');
-  G.querySelector('#bbackmap').onclick = () => go(showMap);
-  G.querySelector('#bgolab').onclick = () => { if(!golab.disabled) go(next); };
-
-  if(!editable) return; // giáo sư làm hộ — chỉ cần bấm Mở tiệm
-  G.querySelector('#bhelp').onclick = balanceTutorial;
+  const ov = modal('<h2>'+ico('note',22)+' Giấy cân bằng — Ngày '+num
+    + (editable ? ' <button class="btn icobtn helpbtn" id="bhelp" aria-label="Hướng dẫn cân bằng" title="Hướng dẫn cân bằng">?</button>' : '') + '</h2>'
+    + '<div class="bnote hpaper"><p class="bsub">'+hint+'</p>'+rows+'</div>', onclose, 'bsheet');
+  if(!editable) return;
+  ov.querySelector('#bhelp').onclick = balanceTutorial;
   alignEqCols();
   if(document.fonts) document.fonts.ready.then(alignEqCols);   // đo lại khi phông tải xong
 
-  const done = new Array(eqs.length).fill(false);
-  const refresh = () => {
-    const all = done.every(Boolean);
-    golab.disabled = !all;
-    golab.style.opacity = all ? '' : '.5';
-  };
-  const lockRow = (eid) => {
-    done[eid] = true;
-    const row = G.querySelector('.beq[data-eid="'+eid+'"]');
+  const lockRow = (eid, msg, color) => {
+    const row = ov.querySelector('.beq[data-eid="'+eid+'"]'), mark = row.querySelector('.bmark');
     row.classList.add('ok');
     row.querySelectorAll('.bcoef').forEach(inp => { inp.readOnly = true; inp.classList.remove('bad'); });
-    refresh();
+    mark.textContent = msg; mark.style.color = color || '';
   };
+  // phương trình đã cân bằng từ trước: điền sẵn hệ số đúng và khoá lại
+  eqs.forEach((idx, eid) => {
+    if(!isBalanced(idx)) return;
+    ov.querySelectorAll('.bcoef[data-eid="'+eid+'"]').forEach(inp => inp.value = inp.dataset.want);
+    lockRow(eid, '✔ Cân bằng đúng!');
+    ov.querySelector('.beq[data-eid="'+eid+'"]').classList.add('was');   // không phát lại hiệu ứng đóng dấu
+  });
   const checkRow = (eid) => {
-    if(done[eid]) return;
-    const inputs = [...G.querySelectorAll('.bcoef[data-eid="'+eid+'"]')];
-    const msg = G.querySelector('.bmark[data-msg="'+eid+'"]');
+    if(isBalanced(eqs[eid])) return;
+    const inputs = [...ov.querySelectorAll('.bcoef[data-eid="'+eid+'"]')];
+    const msg = ov.querySelector('.bmark[data-msg="'+eid+'"]');
     const say = (t, c) => { msg.textContent = t; msg.style.color = c || ''; };
     if(inputs.some(inp => inp.value.trim() === '')) return say(''); // chưa điền đủ
     const want = inputs.map(inp => +inp.dataset.want);
@@ -856,25 +950,19 @@ function showBalance(i, next){
     const k = got[0] / want[0];
     const exact = got.every((v,j) => v === want[j]);
     const multiple = Number.isInteger(k) && k > 1 && got.every((v,j) => v === want[j]*k);
-    if(exact){ say('✔ Cân bằng đúng!'); SFX.clink(); lockRow(eid); }
-    else if(multiple){ say('✔ Đúng rồi! Lần sau thử dùng hệ số nhỏ nhất nhé.', '#b9812f'); SFX.clink(); lockRow(eid); }
-    else {
+    if(exact || multiple){
+      save.balanced = [...(save.balanced || []), eqs[eid]]; persist();
+      SFX.clink();
+      if(exact) lockRow(eid, '✔ Cân bằng đúng!');
+      else lockRow(eid, '✔ Đúng rồi! Lần sau thử dùng hệ số nhỏ nhất nhé.', '#b9812f');
+    } else {
       say('Số nguyên tử hai vế chưa bằng nhau — đếm lại rồi thử tiếp nào.', '#c9524b');
       inputs.forEach(inp => inp.classList.add('bad'));
     }
   };
-  G.querySelectorAll('.bcoef').forEach(inp => {
+  ov.querySelectorAll('.bcoef').forEach(inp => {
     inp.addEventListener('input', () => { inp.classList.remove('bad'); checkRow(+inp.dataset.eid); });
   });
-  refresh();
-}
-
-// Xem lại tờ giấy (chỉ đọc, đã cân bằng sẵn) — mở từ màn hình ngày hoặc lúc tạm nghỉ.
-function reviewBalance(i, onclose){
-  const day = DAYS[i], eqs = dayEqs(day);
-  if(!eqs.length){ modal('<h2>'+ico('note',22)+' Giấy cân bằng</h2><p>Ngày này chưa có phản ứng để cân bằng.</p>', onclose); return; }
-  modal('<h2>'+ico('note',22)+' Giấy cân bằng — Ngày '+(i+1)+'</h2>'
-    + '<div class="hpaper">'+handEqRows(eqs)+'</div>', onclose).querySelector('.modal').classList.add('rvcard');
 }
 
 // hai thanh âm lượng (Âm thanh, Nhạc nền) — dùng chung cho Cài đặt và thẻ Tạm nghỉ
@@ -911,7 +999,7 @@ function settingsModal(){
     + '<button class="btn danger" id="breset">Xoá</button></div>'
     + '</div><div>'
     + tgl('tglCards','star','Thẻ phản ứng',cardsOn())
-    + tgl('tglBalance','note','Tắt cân bằng phương trình',!balanceOn(),!nobalOwned())
+    + tgl('tglBalance','note','Giấy cân bằng sẵn',!balanceOn(),!nobalOwned())
     + tgl('tglHard','flask','Chế độ khó',hardOn(),!hardUnlocked())
     + '</div></div></div>';
   const flip = (id, key, get, after) => ov.querySelector(id).onclick = e => {
@@ -937,7 +1025,43 @@ function settingsModal(){
 }
 
 /* =====================  RESULT & GRADING  ===================== */
-const SPLAT = '<svg class="inksplat" width="240" height="96" viewBox="0 0 240 96"><path fill="#3b3025" d="M22,50 q8,-28 44,-24 q18,-18 46,-9 q30,-14 52,4 q38,-2 44,24 q-12,30 -46,24 q-24,16 -52,6 q-32,12 -52,-5 q-32,6 -36,-20 z"/></svg>';
+/* Thẻ kết quả: cảnh vừa chơi đứng hình, tối lại phía sau; thẻ nảy vào giữa, rồi từng sao được
+   rót đầy như chất lỏng (mặt sóng dâng trong viền sao). Dùng chung cho mọi ngày và pha nồng độ. */
+const STAR_PTS = '12,2 15.1,8.3 22,9.3 17,14.1 18.2,21 12,17.8 5.8,21 7,14.1 2,9.3 8.9,8.3';   // = ico-star
+// mặt sóng chu kỳ 12, trải từ x=-24 tới 48 để trượt ngang đúng một chu kỳ mà không hở mép
+const wavePath = y => 'M-24 '+y+'q3 -2.2 6 0'+' t6 0'.repeat(11)+'V26H-24Z';
+// id khuôn cắt phải duy nhất toàn trang: nền chụp lại có thể còn sao của thẻ trước
+let lsSeq = 0;
+const liqStar = s => `<svg class="lstar" width="${s}" height="${s}" viewBox="0 0 24 24">
+  <clipPath id="lsclip${++lsSeq}"><polygon points="${STAR_PTS}"/></clipPath>
+  <polygon points="${STAR_PTS}" fill="#efe5cc"/>
+  <g clip-path="url(#lsclip${lsSeq})"><g class="lsliq">
+    <path class="lsw2" d="${wavePath(-.8)}"/><path class="lsw1" d="${wavePath(0)}"/>
+    <circle class="lsbub" cx="9" cy="15" r=".9"/><circle class="lsbub" cx="14.5" cy="18" r=".6"/>
+  </g></g>
+  <polygon points="${STAR_PTS}" fill="none" stroke="#3b3025" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+// nút trên thẻ kết quả: chỉ có hình, cùng một cỡ vuông; chữ nằm ở title / aria-label
+const resBtn = (id, icon, label, cls = '') =>
+  `<button class="btn icobtn resbtn${cls}" id="${id}" aria-label="${label}" title="${label}">${ico(icon, 30)}</button>`;
+function resultCard(title, stars, body){
+  // chụp lại cảnh đang có làm nền (canvas không tự chép hình khi clone nên vẽ lại từ bản gốc)
+  const bg = document.createElement('div');
+  bg.className = 'resbg'; bg.inert = true;
+  [...G.children].forEach(c => {
+    if(c.matches('.overlay, .toast, .pagewipe')) return;
+    const cp = bg.appendChild(c.cloneNode(true)), dst = cp.querySelectorAll('canvas');
+    c.querySelectorAll('canvas').forEach((cv, n) => { if(cv.width && cv.height) dst[n].getContext('2d').drawImage(cv, 0, 0); });
+  });
+  G.innerHTML = `<div class="scene resscene"><div class="rescard"><h2>${title}</h2>
+    <div class="lstars">${[74, 92, 74].map(liqStar).join('')}</div>${body}</div></div>`;
+  const card = G.querySelector('.rescard');
+  card.after(bg);   // nằm sau thẻ: querySelector('#id') luôn trúng nút của thẻ trước
+  SFX.page();
+  card.querySelectorAll('.lstar').forEach((el, k) => {
+    if(k < stars) setTimeout(() => { el.classList.add('fill'); SFX.fill(); }, 650 + k*620);
+    else setTimeout(() => el.classList.add('off'), 650 + stars*620);
+  });
+}
 function showResult(i, st){
   const day = DAYS[i], num = i+1;
   let stars = 0, detail = '';
@@ -955,7 +1079,6 @@ function showResult(i, st){
     save.served += st.served;
     if(st.served === all) unlockAch('clean');
   }
-  const conds = starConds(day).map((c,k)=>'<div>'+ico(stars>k?'check':'close',15)+' '+ico('star',14).repeat(k+1)+' '+c+'</div>').join('');
   // save progress — chế độ khó có cột sao riêng, nhưng qua được thì vẫn mở ngày kế tiếp
   const book = st.hard ? save.starsHard : save.stars;
   if(stars > (book[num] || 0)) book[num] = stars;
@@ -981,29 +1104,10 @@ function showResult(i, st){
   if(num === 28 && stars === 3) unlockAch('master');
   persist();
   const cheer = stars===3?'Xuất sắc! Không chê vào đâu được!':stars===2?'Làm tốt lắm, gần hoàn hảo rồi!':stars===1?'Ổn đấy! Luyện thêm chút nữa nhé.':'Đừng nản — thử lại nào, ta tin trò!';
-  const stamps = [0,1,2].map(k=>'<span class="starstamp" id="stamp'+k+'">'+ico('star',68)+'</span>').join('');
-  G.innerHTML = `<div class="scene center" style="padding-top:40px">
-    <h2>Ngày ${num} kết thúc${st.hard ? ' <span style="color:#d9634f">· chế độ khó</span>' : ''}</h2>
-    <div class="stamprow">${SPLAT}${stamps}</div>
-    <div class="paper" style="max-width:620px;margin:6px auto">
-      ${detail}<div class="condlist">${conds}</div>
-      <div class="row" style="margin-top:8px"><div id="resprof"></div>
-        <p class="hand" style="text-align:left">“${cheer}”</p></div>
-    </div>
-    <div class="row" style="justify-content:center;margin-top:14px">
-      <button class="btn" id="bretry">${ico('retry')} Chơi lại</button>
-      <button class="btn" id="bmap">${ico('map')} Bản đồ</button>
-      ${exploreBtn(day, i)}
-      ${(stars>=1 && num<DAYS.length)?'<button class="btn big" id="bnext">Ngày tiếp theo '+ico('next')+'</button>':''}
-    </div></div>`;
-  G.querySelector('#resprof').innerHTML = profSVG(stars>=2?'happy':stars>=1?'neutral':'annoy').replace('viewBox','height="120" viewBox');
-  const splatEl = G.querySelector('.inksplat');
-  if(stars > 0) splatEl.classList.add('go');
-  for(let k=0;k<3;k++){
-    const el = G.querySelector('#stamp'+k);
-    if(k < stars) setTimeout(()=>{ el.classList.add('go'); SFX.stamp(); }, 380+k*450);
-    else setTimeout(()=>el.classList.add('off'), 380+stars*450);
-  }
+  resultCard(`Ngày ${num} kết thúc${st.hard ? ' <span style="color:#d9634f">· chế độ khó</span>' : ''}`, stars,
+    `<div class="resbody">${detail}<p class="hand">“${cheer}”</p></div>
+    <div class="row resbtns">${resBtn('bretry', 'retry', 'Chơi lại')}${resBtn('bmap', 'map', 'Bản đồ')}${exploreBtn(day, i, true)}
+      ${(stars>=1 && num<DAYS.length) ? resBtn('bnext', 'next', 'Ngày tiếp theo', ' main') : ''}</div>`);
   G.querySelector('#bretry').onclick = () => go(()=>showIntro(i));
   G.querySelector('#bmap').onclick = () => go(showMap);
   bindExplore(i);
