@@ -20,7 +20,7 @@ Bạn, học trò của giáo sư Hoffmann, đã được thầy giao cho một 
 
 Đọc đơn hàng → kéo lọ hoá chất vào cốc (mỗi lần = 0,1 mol) → đun, khuấy, lọc hoặc hứng khí → kéo cốc cho khách. Phản ứng cháy làm như thật: nạp O₂ / Cl₂ vào lọ khí, cho chất rắn lên muôi đốt, hơ qua đèn cồn rồi đưa vào lọ. Sai thì đổ vào bồn rửa, làm lại — cốc không phản ứng thì giáo sư nói lý do. Mỗi ngày chấm tối đa 3 sao; 1 sao là mở khoá ngày kế tiếp.
 
-**Chế độ khó** (bật ở màn hình ngày hoặc Cài đặt): phiếu hàng ghi khối lượng / thể tích khí, mỗi lần lấy hoá chất phải tự cân, đong; sai số cho phép 5%, giao sai thì mở dần gợi ý. Thêm **Thử thách pha nồng độ** (Cₘ, C%) ở menu chính.
+**Chế độ khó** (bật ở màn hình ngày hoặc Cài đặt): phiếu hàng ghi khối lượng / thể tích khí, mỗi lần lấy hoá chất phải tự cân, đong; sai số cho phép 5%, giao sai thì mở dần gợi ý. Ngày 3 khó thành bài **tạo ion**: mỗi câu một nguyên tử vẽ đủ các lớp electron (lớp ngoài cùng xếp theo sơ đồ Lewis), tự cho nguyên tử nhường electron lớp ngoài hoặc nhận các electron tự do trôi quanh cho thành ion bền như khí hiếm. Ngày 4 khó thành bài **sơ đồ Lewis**: nối hai chấm electron thành liên kết cộng hoá trị, kéo electron của kim loại sang phi kim thành liên kết ion. Thêm **Thử thách pha nồng độ** (Cₘ, C%) ở menu chính.
 
 **An toàn phòng thí nghiệm** là luật chơi: đeo kính & găng trước khi lấy hoá chất, bật tủ hút khi làm với khí độc (Cl₂, SO₂, NH₃), pha axit thì rót axit vào nước. Phạm lỗi thì mất sao thứ ba.
 

@@ -620,8 +620,9 @@ function showShop(){
   setupHandlers();
 }
 
-// chế độ khám phá của minigame hoá trị (che-do.js): mở khi ngày đó đạt 3 sao — nút ở màn giới thiệu và màn kết quả
-const exploreBtn = (day, i, iconOnly) => day.mg === 'valence' && (save.stars[i+1] || 0) >= 3
+// chế độ khám phá của minigame hoá trị (che-do.js): mở khi ngày đó đạt 3 sao, ở chế độ thường hay chế độ khó (sơ đồ
+// Lewis) đều được — nút ở màn giới thiệu và màn kết quả
+const exploreBtn = (day, i, iconOnly) => day.mg === 'valence' && Math.max(save.stars[i+1] || 0, save.starsHard[i+1] || 0) >= 3
   ? (iconOnly ? resBtn('bexplore', 'flask', 'Khám phá') : `<button class="btn" id="bexplore">${ico('flask')} Khám phá</button>`) : '';
 function bindExplore(i){ const b = G.querySelector('#bexplore'); if(b) b.onclick = () => go(() => startVlExplore(i)); }
 

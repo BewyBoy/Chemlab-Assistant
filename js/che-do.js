@@ -20,6 +20,9 @@ function mgFrame(i, day, inner){
     () => go(showMap), 'Bỏ dở', 'Chơi tiếp');
 }
 const mgScore = (c,t) => { G.querySelector('#mgscore').textContent = 'Đúng: '+c+'/'+t; };
+// đồng hồ minigame (lập công thức, sơ đồ Lewis, tạo ion) đứng yên khi có lớp phủ trên màn: đang hỏi "Bỏ dở trò chơi?"
+// sau nút ✕ thì coi như tạm dừng, bấm Chơi tiếp mới chạy lại
+const mgHeld = () => !!G.querySelector('.overlay');
 // mất điểm: ô Điểm nháy đỏ, "−1" bật ra ngay dưới nó rồi bay lên nhập vào (chuỗi phản ứng, cân bằng phương trình)
 function mgMinus(hud){
   hud.classList.remove('flash-bad'); void hud.offsetWidth; hud.classList.add('flash-bad');
@@ -441,7 +444,28 @@ const vlLayout = q => q.kind === 'bin' ? valLayout(q.A, q.a, q.B, q.b) : VL_RAD[
 // sổ chất (tạo chất tự do + khám phá): mọi câu trong pools + freeExtra, mỗi công thức một lần
 const vlBook = day => day.pools.flatMap(([, list]) => list).concat(day.freeExtra || []).map(vlQuestion)
   .filter((q, k, all) => all.findIndex(o => o.f === q.f) === k);
-function startVlExplore(i){ SFX.music(themeOf(i)); MG.valence(i, DAYS[i], true); }
+// khám phá ghép bằng bóng có tay (MG.valence) hay bằng sơ đồ Lewis (MG.lewis): công tắc ở đầu màn, nhớ ở save.settings.lewis
+function startVlExplore(i){ SFX.music(themeOf(i)); MG[save.settings.lewis ? 'lewis' : 'valence'](i, DAYS[i], true); }
+const vlLewisSwitch = () => `<span class="vl-mode">Sơ đồ Lewis<span class="toggle${save.settings.lewis ? ' on' : ''}" id="tglLewis" `
+  + `role="switch" aria-checked="${!!save.settings.lewis}"></span></span>`;
+function bindLewisSwitch(i){                // gạt xong mới đổi màn (bàn đang ghép bỏ đi, hai kiểu ghép khác hẳn nhau)
+  const t = G.querySelector('#tglLewis');
+  t.onclick = () => {
+    t.onclick = null;
+    save.settings.lewis = !save.settings.lewis; persist(); SFX.clink();
+    t.classList.toggle('on', save.settings.lewis); t.setAttribute('aria-checked', save.settings.lewis);
+    setTimeout(() => { if(t.isConnected) startVlExplore(i); }, 220);
+  };
+}
+// thẻ công thức trong danh sách chất đã ghép ở màn khám phá; công thức dài như (CH₃COO)₂Ca thì thu nhỏ chữ cho vừa ô,
+// cột vẫn thẳng hàng
+function vlFoundTag(f, egg, title){
+  const list = G.querySelector('.vl-found');
+  list.insertAdjacentHTML('beforeend', `<span class="vl-tag${egg ? ' egg' : ''}" title="${title}">${sub(fShow(f))}</span>`);
+  const tag = list.lastElementChild;
+  for(let s = 15; tag.scrollWidth > tag.clientWidth && s > 9; ) tag.style.fontSize = (s -= .5) + 'px';
+}
+const VL_ORG = 'Chất hữu cơ mới hỗ trợ mỗi nhóm tới 2 nguyên tử C thôi — nhiều C hơn thì cấu tạo phức tạp lắm!';
 // chất bí mật: chất có thật mà không theo kiểu "hai nhóm nắm nhau" của đề, ghép được từ bóng của câu.
 // a: [nguyên tố, nút nắm tay, hướng, bậc liên kết]; b: liên kết thêm (khép vòng); free: tay rảnh [nút, hướng];
 // v: số tay của nút ngoại lệ (Fe hoá trị II / III trong Fe₃O₄, liên kết cho–nhận trong O₃); show: cách viết công thức
@@ -548,6 +572,59 @@ function vlPiece(key, sc, bare){             // bare: bóng trơn, không ghi k�
   return `<div class="vl-one" style="width:${S}px;height:${S}px"><svg class="bonds" width="${S}" height="${S}">${vlLayers(P)}</svg>`
     + P.map(p => atomBall({el:p.el, x:p.x, y:p.y, r:atomR(p.el)*sc}, '', '', bare)).join('') + '</div>';
 }
+// bộ sưu tập chất bí mật (lưu qua các lượt) ở cột phải trò lập công thức (cả chế độ thường lẫn sơ đồ Lewis): chỉ bật lên
+// lúc vừa tìm được một chất, vài giây sau tự tắt. Mỗi chất một ngôi sao, chưa tìm thì mờ; rê chuột lên ngôi sao đã sáng
+// để xem công thức và hoá trị
+function vlEggBox(el){
+  const EGGS = Object.keys(VL_EGG);
+  let t = 0;
+  const hide = () => el.classList.remove('show');
+  function show(){
+    const got = EGGS.filter(f => (save.eggs || []).includes(f));
+    el.innerHTML = '<small>Chất bí mật</small><div>' + EGGS.map(f => got.includes(f)
+      ? `<span class="on" title="${sub(fShow(f))} — ${vlValText(eggLayout(f))}">${ico('star', 17)}</span>` : `<span title="???">${ico('star', 17)}</span>`).join('')
+      + `</div><b>${got.length}/${EGGS.length}</b>`;
+    el.classList.remove('show'); void el.offsetWidth; el.classList.add('show');
+    clearTimeout(t); t = setTimeout(hide, 5000);
+  }
+  function collect(f){
+    save.eggs = save.eggs || [];
+    if(!save.eggs.includes(f)){ save.eggs.push(f); persist(); }
+    unlockAch('egg'); show();
+  }
+  return {hide, collect};
+}
+
+/* Sơ đồ Lewis (ngày 4, chế độ khó — MG.lewis). Bóng nguyên tử như ở trò lập công thức, quanh bóng là các electron lớp
+   ngoài cùng vẽ thành chấm ở bốn phía: 0 phải, 1 dưới, 2 trái, 3 trên (y hướng xuống), mỗi phía tối đa 2 chấm. Điền như
+   sách: mỗi phía một chấm trước (phải, trái, trên, dưới), còn thừa thì ghép đôi (trên, dưới, trái) — O có hai chấm độc
+   thân hai bên, hai cặp trên dưới (H–O–H nằm ngang); N một cặp trên, ba chấm độc thân. Hai bóng góp chung electron đứng
+   cách nhau đúng như hai bóng nắm tay ở chế độ thường (gạch nối vẽ bằng tay của vlLayers); hai ion đứng xa hơn một chút
+   cho vừa ngoặc vuông. */
+const LW_E = {H:1, C:4, N:5, O:6, S:6, P:5, Cl:7, Na:1, K:1, Mg:2, Ca:2, Ba:2, Al:3};   // số electron lớp ngoài cùng
+const LW_METAL = ['Na', 'K', 'Mg', 'Ca', 'Ba', 'Al'];
+const LW_SC = 2, LW_DOT = 11, LW_GAP = 6, LW_DOT_R = 4.2;   // cỡ bóng; chấm cách mặt bóng; nửa khoảng cách hai chấm một cặp; bán kính chấm
+const LW_BOND = 2*VL_ARM*LW_SC, LW_ION = 2*LW_DOT + 16;     // khoảng hở giữa hai mặt bóng: góp chung electron / cặp ion
+const lwNeed = el => el === 'H' ? 2 : 8;                    // H đủ 2 electron như He, các phi kim khác đủ 8
+function lwSides(el){                                       // số chấm từng phía lúc nguyên tử còn đứng riêng
+  const c = [0, 0, 0, 0];
+  for(let k = 0; k < LW_E[el]; k++) c[k < 4 ? [0, 2, 3, 1][k] : [3, 1, 2][k - 4]]++;
+  return c;
+}
+// chỗ một chấm quanh bóng tâm (x, y) bán kính r; k = −1 / 1: hai chấm của một cặp; z: co khoảng cách chấm (bóng nhỏ ở cột trái)
+function lwDot(x, y, r, side, rot, k, z = 1){
+  const t = side*Math.PI/2 + rot, c = Math.cos(t), s = Math.sin(t), d = r + LW_DOT*z, o = k*LW_GAP*z;
+  return {x:x + c*d - s*o, y:y + s*d + c*o};
+}
+// kí hiệu Lewis đứng riêng (cột trái, bóng đang kéo): bóng + chấm electron; nhỏ hơn cỡ trên bàn (LW_SC) thì chấm sát lại theo
+const lwPieceSize = (el, sc) => Math.ceil(2*(atomR(el)*sc + (LW_DOT + LW_DOT_R + 3)*sc/LW_SC));
+function lwPiece(el, sc){
+  const S = lwPieceSize(el, sc), c = S/2, r = atomR(el)*sc, z = sc/LW_SC;
+  const dots = lwSides(el).flatMap((n, s) => Array.from({length:n}, (_, k) => lwDot(c, c, r, s, 0, n > 1 ? 2*k - 1 : 0, z)));
+  return `<div class="vl-one" style="width:${S}px;height:${S}px"><svg class="bonds" width="${S}" height="${S}">${vlLayers([{el, x:c, y:c, s:sc, arms:[]}])}`
+    + dots.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${(LW_DOT_R*z).toFixed(1)}" fill="#3b3025"/>`).join('') + '</svg>'
+    + atomBall({el, x:c, y:c, r}, '') + '</div>';
+}
 
 const MG = {
  /* --- phân loại (ngày 3: nguyên tử/phân tử; ngày 17: oxit/axit/bazơ/muối). Mỗi lúc chỉ MỘT chất: thẻ vẽ
@@ -555,6 +632,7 @@ const MG = {
         thành vật thật, va chạm với các chất đã nằm đó. Sai giỏ: giỏ nhả thẻ, thẻ văng ra ngoài màn hình —
         mỗi chất chỉ được chọn MỘT lần. --- */
  bins(i, day){
+  if(day.hard && hardOn()) return MG.ion(i, day);                    // ngày 3, chế độ khó: tạo ion
   const items = shuffle(day.items), notes = day.binNotes || [];
   const bins = day.bins.map((b,k)=>`<div class="bincol"><div class="bin" data-b="${k}" data-dz="bin${k}"><span class="binlbl">${b}</span></div>
     <div class="binnote">${notes[k] || ''}</div></div>`).join('');
@@ -649,11 +727,12 @@ const MG = {
         Cả màn chỉ có TOTAL_T giây, chạy từ câu đầu; hết giờ là kết thúc. Xong 8 câu thì đồng hồ dừng, cột phải hiện
         "Hoàn thành!" với Kết thúc / Tiếp tục. Tiếp tục → tạo chất tự do (mode 'free') bằng số giây còn lại: mỗi lượt một
         bộ nguyên tố, tạo chất nào có thật cũng được (vlKnown — không ép về chất của đề), mỗi chất +PTS một lần, chất bí
-        mật thưởng thêm EGG_BONUS. Khám phá (explore, mở khi ngày 4 đạt 3 sao, startVlExplore): bảng 17 nguyên tố, ghép
+        mật thưởng thêm EGG_BONUS. Khám phá (explore, mở khi ngày 4 đạt 3 sao thường hoặc khó, startVlExplore): bảng 17 nguyên tố, ghép
         bừa không tính giờ; số chất đã khám phá lưu ở save.vlSeen. Chỉ khám phá nhận thêm đơn chất (VL_ELEM: H₂, O₂,
         N₂, Cl₂, S₈, kim loại, C, S, P). Cả hai phần tự do đều báo chất không tồn tại (VL_GONE) là "phân huỷ ngay".
         Cả khu vực vẽ lại mỗi khung hình trên MỘT svg (vlLayers), bóng là các .atom đè lên trên. --- */
  valence(i, day, explore){
+  if(!explore && day.hard && hardOn()) return MG.lewis(i, day);       // chế độ khó: sơ đồ Lewis
   const known = vlKnown(day).concat(explore ? vlElems() : []), EGGS = Object.keys(VL_EGG), qs = [];   // qs: 8 câu, bốc theo từng nhóm, không lặp chất; đơn chất chỉ nhận ở khám phá
   if(!explore) day.pools.forEach(([n, list]) => shuffle(list).map(vlQuestion).filter(q => !qs.some(o => o.f === q.f)).slice(0, n).forEach(q => qs.push(q)));
   const TOTAL_T = 90, PTS = 10, EGG_BONUS = 20;
@@ -688,7 +767,7 @@ const MG = {
   // tLeft: số giây còn lại của cả màn (paused: đang chờ chọn Kết thúc / Tiếp tục); solved: số câu đã xong;
   // made / found: chất đã tạo ở phần tự do (khám phá: chất đã ghép lượt này)
   let mode = explore ? 'explore' : 'quiz', qi = -1, correct = 0, solved = 0, q = null, keys = [], phase = 'build', missed = false, afterEgg = false;
-  let pieces = [], atoms = [], shakeT = 0, tLeft = TOTAL_T, paused = false, score = 0, made = 0, found = [], ended = false, shownT = -1, lastSet = '', eggT = 0;
+  let pieces = [], atoms = [], shakeT = 0, tLeft = TOTAL_T, paused = false, score = 0, made = 0, found = [], ended = false, shownT = -1, lastSet = '';
   const live = () => pieces.filter(p => !p.leaving);                   // phase: build → check (hoạt cảnh) → done / egg / next
   // toạ độ trong khu vực tạo chất: tâm một phần tử / điểm thả (ngón tay: vật nổi trên đầu ngón, xem dragify).
   // Cửa sổ thu về 0×0 thì fit() co game về tỉ lệ 0 — chia cho 0 ra NaN lây sang mọi bóng qua relax, nên đặt sàn 1
@@ -705,24 +784,8 @@ const MG = {
   const hud = (txt, el) => { G.querySelector(el || '#mgscore').textContent = txt; };
   const seen = () => known.filter(k => (save.vlSeen || []).includes(k.f)).length;
   const AGAIN = 'Hãy tạo chất với ít nguyên tử nhất để qua màn ;)';   // nhắc sau khi ra chất bí mật
-  const ORG = 'Chất hữu cơ mới hỗ trợ mỗi nhóm tới 2 nguyên tử C thôi — nhiều C hơn thì cấu tạo phức tạp lắm!';
 
-  // bộ sưu tập chất bí mật (lưu qua các lượt): chỉ bật lên lúc vừa tìm được một chất, vài giây sau tự tắt.
-  // Mỗi chất một ngôi sao, chưa tìm thì mờ; rê chuột lên ngôi sao đã sáng để xem công thức và hoá trị
-  function showEggs(){
-    const got = EGGS.filter(f => (save.eggs || []).includes(f));
-    eggsEl.innerHTML = '<small>Chất bí mật</small><div>' + EGGS.map(f => got.includes(f)
-      ? `<span class="on" title="${sub(fShow(f))} — ${vlValText(eggLayout(f))}">${ico('star', 17)}</span>` : `<span title="???">${ico('star', 17)}</span>`).join('')
-      + `</div><b>${got.length}/${EGGS.length}</b>`;
-    eggsEl.classList.remove('show'); void eggsEl.offsetWidth; eggsEl.classList.add('show');
-    clearTimeout(eggT); eggT = setTimeout(hideEggs, 5000);
-  }
-  const hideEggs = () => eggsEl.classList.remove('show');
-  function collect(f){
-    save.eggs = save.eggs || [];
-    if(!save.eggs.includes(f)){ save.eggs.push(f); persist(); }
-    unlockAch('egg'); showEggs();
-  }
+  const eggBox = vlEggBox(eggsEl);
 
   // một bóng (hoặc chùm bóng của gốc dựng sẵn) bay từ from tới to; bấm / kéo ra ngoài để bỏ, kéo trong khu vực để dời
   function spawn(key, k, from, to){
@@ -846,15 +909,16 @@ const MG = {
   }
   function exploreSetup(){
     keys = Object.keys(VL_VALS);
-    t1.innerHTML = '<span class="vl-qn">Khám phá</span>';
+    t1.innerHTML = '<span class="vl-qn">Khám phá</span>' + vlLewisSwitch();
     t2.innerHTML = '<span>Chất hữu cơ: mỗi nhóm tối đa 2 nguyên tử C</span>';
+    bindLewisSwitch(i);
     setPal(true);
     hud('Sổ chất: ' + seen() + '/' + known.length);
     setGo(true); lock(false); refresh();
   }
   // hết giờ (early: bấm ✕ dừng sớm ở phần tự do): khoá bàn, bảng tổng kết chỉ có Kết thúc — chơi lại thì làm lại từ đầu
   function endGame(early){
-    ended = true; phase = 'end'; lock(true); hideEggs(); SFX.bell();
+    ended = true; phase = 'end'; lock(true); eggBox.hide(); SFX.bell();
     const free = mode === 'free', rec = free && score > (save.vlBest || 0), eggs = found.filter(f => VL_EGG[f]).length;
     if(rec){ save.vlBest = score; persist(); }
     const ov = document.createElement('div');
@@ -903,7 +967,7 @@ const MG = {
   function eggFound(egg){
     const L = eggLayout(egg);
     assemble(L, () => {
-      SFX.tinkle(); collect(egg);
+      SFX.tinkle(); eggBox.collect(egg);
       say.innerHTML = `<span class="vl-ok">${ico('star', 20)}</span> ${fml(egg, L)} — ${VL_EGG[egg].nm}<br><small>${AGAIN}</small>`;
       finish('egg');
     });
@@ -917,7 +981,7 @@ const MG = {
       const els = Object.keys(c), n = c[els[0]], gone = Object.keys(VL_GONE).find(g => same(c, atomCounts(g)));
       const org = (c.C || 0) >= 3 && c.H && els.every(e => ['C', 'H', 'O', 'N', 'Na', 'K', 'Ag', 'Mg', 'Ca', 'Ba', 'Zn', 'Al', 'Fe', 'Cu'].includes(e));
       return reject(gone ? sub(`${gone} không tồn tại — phân huỷ ngay lập tức ${VL_GONE[gone]}!`)
-        : els.length > 1 ? (org ? ORG : 'Chưa có chất này trong sổ — thử chất khác!')
+        : els.length > 1 ? (org ? VL_ORG : 'Chưa có chất này trong sổ — thử chất khác!')
         : mode !== 'explore' ? `Mới có ${els[0]} — hãy ghép thành hợp chất nhé!`   // đơn chất chỉ nhận ở khám phá
         : n === 1 ? `Một nguyên tử ${els[0]} lẻ loi chưa thành chất — ghép thêm bạn nhé!`
         : sub(`${els[0]}${n}`) + ' chưa phải chất quen thuộc — thử số nguyên tử khác nhé!', true);
@@ -928,23 +992,17 @@ const MG = {
       const pts = egg ? PTS + EGG_BONUS : PTS;
       found.push(f); made++; score += pts; hud('Điểm: ' + score);
       return assemble(L, () => {
-        if(egg){ SFX.tinkle(); collect(egg); } else SFX.coin();
+        if(egg){ SFX.tinkle(); eggBox.collect(egg); } else SFX.coin();
         say.innerHTML = `<span class="vl-ok">${ico(egg ? 'star' : 'check', 20)}</span> ${fml(f, L)} — ${nm} <b class="vl-ok">+${pts}</b>`;
         later(900, freeRound);
       });
     }
     let fresh = false;
     if(hit){ save.vlSeen = save.vlSeen || []; if(!save.vlSeen.includes(f)){ save.vlSeen.push(f); persist(); fresh = true; } }
-    if(!found.includes(f)){
-      found.push(f);
-      const list = G.querySelector('.vl-found');
-      list.insertAdjacentHTML('beforeend', `<span class="vl-tag${egg ? ' egg' : ''}" title="${vlValText(L)}">${sub(fShow(f))}</span>`);
-      const tag = list.lastElementChild;                    // công thức dài như (CH₃COO)₂Ca: thu nhỏ chữ cho vừa ô, cột vẫn thẳng hàng
-      for(let s = 15; tag.scrollWidth > tag.clientWidth && s > 9; ) tag.style.fontSize = (s -= .5) + 'px';
-    }
+    if(!found.includes(f)){ found.push(f); vlFoundTag(f, egg, vlValText(L)); }
     hud('Sổ chất: ' + seen() + '/' + known.length);
     assemble(L, () => {
-      if(egg){ SFX.tinkle(); collect(egg); } else SFX.coin();
+      if(egg){ SFX.tinkle(); eggBox.collect(egg); } else SFX.coin();
       say.innerHTML = `<span class="vl-ok">${ico(egg ? 'star' : 'check', 20)}</span> ${fml(f, L)} — ${nm}` + (fresh ? ' <b class="vl-ok">Mới!</b>' : '');
       finish('next');
     });
@@ -1016,7 +1074,7 @@ const MG = {
   }
   bGo.onclick = () => {
     if(phase === 'build'){ if(live().length) check(); }
-    else if(phase === 'egg'){ hideEggs(); backToBuild(); }
+    else if(phase === 'egg'){ eggBox.hide(); backToBuild(); }
     else if(phase === 'next'){ clearOut(); phase = 'build'; setGo(true); lock(false); refresh(); }   // khám phá: dọn bàn
     else if(phase === 'done'){ SFX.page(); round(); }
   };
@@ -1036,7 +1094,7 @@ const MG = {
     const clk = Math.max(0, Math.min(now - last, 1000))/1000;
     last = now;
     if(!G.querySelector('.dragghost')) pieces.forEach(p => p.dragging = false);   // kéo bị huỷ giữa chừng
-    if(mode !== 'explore' && !ended && !paused){
+    if(mode !== 'explore' && !ended && !paused && !mgHeld()){
       tLeft = Math.max(0, tLeft - clk);
       const sec = Math.ceil(tLeft);
       if(sec !== shownT){ shownT = sec; hud('Còn ' + sec + ' giây', '#mgtime'); }
@@ -1074,6 +1132,844 @@ const MG = {
   })(last);
   if(explore) exploreSetup();
   else { G.querySelector('#mgtime').style.display = ''; hud('Còn ' + TOTAL_T + ' giây', '#mgtime'); mgScore(0, qs.length); round(); }
+ },
+
+ /* --- ngày 4, chế độ khó: sơ đồ Lewis (day.hard, bật bằng công tắc chế độ khó chung). Cùng khung với lập công thức
+        (cột trái: nguyên tố của câu; giữa: khu vực tạo chất; phải: Kiểm tra / Làm lại) nhưng bóng không có tay mà mang
+        các electron lớp ngoài cùng (chấm, xem lwSides). Đề chỉ ghi tên chất, số electron lớp ngoài và kim loại / phi kim
+        — trò tự suy ra cần bao nhiêu nguyên tử. Chấm kéo được thì có quầng vàng:
+        – electron độc thân của phi kim: kéo sang electron độc thân của phi kim khác (thả lên chấm hay lên bóng đều được)
+          → hai chấm thành một gạch = cặp electron dùng chung, liên kết cộng hoá trị; nối tiếp giữa hai bóng đã nối là
+          liên kết đôi, ba;
+        – electron của kim loại: thả vào phi kim còn electron độc thân → electron bay sang ghép đôi (vẽ đỏ), kim loại
+          thành ion dương, phi kim thành ion âm (ngoặc vuông + điện tích): liên kết ion.
+        Hai cụm rời vừa nối thì cụm nhỏ hơn xoay (từng góc vuông) và trượt tới cho hai phía vừa nối quay vào nhau; cụm
+        là vật rắn, kéo bóng nào cũng dời cả cụm (kéo ra ngoài khu vực = bỏ cả cụm). Bấm bóng để bỏ riêng bóng đó, bấm
+        gạch nối để tách bớt một cặp, bấm chấm đỏ để trả electron về kim loại.
+        Kiểm tra: phi kim đủ 8 electron (H đủ 2), kim loại nhường hết, cả bàn là một cụm, đúng số nguyên tử. Sai là mất
+        điểm câu đó nhưng bàn giữ nguyên (bóng chưa đủ electron nháy đỏ) để sửa tiếp; ghép ra chất bí mật (VL_EGG) thì
+        như ở chế độ thường. Cả màn day.hard.time giây; xong hết câu là Kết thúc, không có phần tạo chất tự do; sao lưu
+        vào cột sao chế độ khó. Khu vực vẽ lại mỗi khung hình trên MỘT svg (vlLayers + chấm), bóng là các .atom đè lên.
+        Khám phá (explore — công tắc "Sơ đồ Lewis" ở màn khám phá, startVlExplore): lưới các nguyên tố có trong LW_E,
+        không tính giờ, không mất điểm. Kiểm tra: mọi bóng đủ electron và cả bàn là một cụm thì tra sổ chất như khám phá
+        thường (vlKnown + đơn chất + chất bí mật), chất mới ghi vào save.vlSeen; Tiếp tục để dọn bàn. --- */
+ lewis(i, day, explore){
+  const H = day.hard, qs = [], EGGS = Object.keys(VL_EGG), found = [];
+  if(!explore) H.pools.forEach(([n, list]) => shuffle(list).slice(0, n).forEach(([f, name]) => qs.push({f, name})));
+  const known = explore ? vlKnown(day).concat(vlElems()) : [];        // khám phá: cùng sổ chất với khám phá thường
+  const TOTAL_T = H.time, ZW = 840, ZH = 430, SC = LW_SC, MAX = VL_MAX;
+  const ORDER = ['Na', 'K', 'Mg', 'Ca', 'Al', 'H', 'C', 'N', 'P', 'S', 'Cl', 'O'];      // cột trái: kim loại trước, O cuối
+  mgFrame(i, explore ? Object.assign({}, day, {t:day.t + ' · Khám phá'}) : day, `<div class="vl lw">
+    <div class="vl-task"><div class="vl-t1"></div><div class="vl-t2"></div></div>
+    <div class="vl-mid">
+      <div class="vl-pal"></div>
+      <div class="vl-zone" data-dz="vbuild" style="width:${ZW}px;height:${ZH}px">
+        <div class="vl-layer"><svg class="bonds lw-svg" width="${ZW}" height="${ZH}"></svg></div>
+        <span class="vl-zlbl">Khu vực tạo chất</span></div>
+      <div class="vl-side">
+        <div class="vl-acts"><button class="btn big" id="vlgo"></button>
+          <button class="btn" id="vlclear">${ico('retry')} Làm lại</button></div>
+        <div class="vl-donebox"><b>Hoàn thành!</b><button class="btn big" id="vlend">${ico('check')} Kết thúc</button></div>
+        <div class="vl-eggs"></div>${explore ? '<div class="vl-found"></div>' : ''}</div>
+    </div>
+    <div class="vl-say"></div></div>`);
+  if(!explore) G.querySelector('.hud-title').insertAdjacentHTML('beforeend', ' · <span style="color:#a8331f">khó</span>');
+  const t1 = G.querySelector('.vl-t1'), t2 = G.querySelector('.vl-t2'), pal = G.querySelector('.vl-pal'), side = G.querySelector('.vl-side');
+  const zone = G.querySelector('.vl-zone'), layer = zone.querySelector('.vl-layer'), svg = layer.firstElementChild;
+  const say = G.querySelector('.vl-say'), bGo = G.querySelector('#vlgo'), bClear = G.querySelector('#vlclear'), eggBox = vlEggBox(G.querySelector('.vl-eggs'));
+  tapeLabel(zone.querySelector('.vl-zlbl'));
+  // atoms: {el, metal, R (bán kính lúc xếp chỗ), x, y (đang hiện) → tx, ty (đích), s → ts (cỡ), rot (góc xoay còn lại, về
+  //   0 dần), vx (x đang vẽ, cộng cả độ rung), div, leaving, bad (nháy đỏ tới lúc nào)};
+  // els: electron {own (nguyên tử gốc), at (đang ở đâu; null = nằm trong gạch nối), side, home (phía cũ trên own, để trả
+  //   về), ox, oy (độ lệch lúc đang bay — giảm dần về 0), link (cặp ion do electron này tạo ra)};
+  // links: {kind:'cov' | 'ion', a, sa, b, sb (hai đầu và phía), order, els, grow (độ mọc của từng gạch)}.
+  // hold: thứ đang bị nhấn giữ trên bàn — electron e, gạch nối l, hoặc bóng A (cả cụm F đi theo)
+  let qi = -1, q = null, keys = [], correct = 0, solved = 0, missed = false, phase = 'build', tLeft = TOTAL_T, shownT = -1;
+  let paused = false, ended = false, shakeT = 0, atoms = [], els = [], links = [], uid = 0, hold = null;
+  const live = () => atoms.filter(A => !A.leaving);
+  const rad = A => atomR(A.el)*A.s;
+  const DIR = s => [Math.cos(s*Math.PI/2), Math.sin(s*Math.PI/2)];
+  const on = (A, s) => els.filter(e => e.at === A && e.side === s);                  // các chấm trên phía s của A
+  const bondOn = (A, s) => links.some(l => l.kind === 'cov' && (l.a === A && l.sa === s || l.b === A && l.sb === s));
+  const singles = A => [0, 1, 2, 3].filter(s => on(A, s).length === 1 && !bondOn(A, s));
+  const covOf = A => links.filter(l => l.kind === 'cov' && (l.a === A || l.b === A));
+  const around = A => els.filter(e => e.at === A).length + 2*covOf(A).reduce((n, l) => n + l.order, 0);   // electron lớp ngoài A đang có
+  const charge = A => els.filter(e => e.own === A && e.at && e.at !== A).length - els.filter(e => e.at === A && e.own !== A).length;
+  const order = (A, B) => (covOf(A).find(l => l.a === B || l.b === B) || {order:0}).order;
+  const slot = e => { const A = e.at, L = on(A, e.side); return lwDot(A.vx, A.y, rad(A), e.side, A.rot, L.length > 1 ? 2*L.indexOf(e) - 1 : 0); };
+  const here = e => { const p = slot(e); return {x:p.x + e.ox, y:p.y + e.oy}; };     // chỗ electron đang hiện
+  const fly = (e, p) => { const s = slot(e); e.ox = p.x - s.x; e.oy = p.y - s.y; };  // electron vừa đổi chỗ: bay từ p tới chỗ mới
+  const zXY = ev => { const z = layer.getBoundingClientRect(), s = z.width/ZW || 1; return {x:(ev.clientX - z.left)/s, y:(ev.clientY - z.top)/s}; };
+  const dropAt = (e, h) => { const z = layer.getBoundingClientRect(), s = z.width/ZW || 1;
+    return {x:(e.clientX - z.left)/s, y:(e.clientY - z.top)/s - (e.pointerType === 'mouse' ? 0 : h*.6 + 24)}; };
+  const palPt = k => { const z = layer.getBoundingClientRect(), r = pal.children[k].querySelector('.vl-one').getBoundingClientRect(), s = z.width/ZW || 1;
+    return {x:(r.left + r.width/2 - z.left)/s, y:(r.top + r.height/2 - z.top)/s}; };
+  const setGo = chk => { bGo.innerHTML = chk ? ico('check') + ' Kiểm tra' : 'Tiếp tục ' + ico('next'); };
+  const hud = (txt, el) => { G.querySelector(el || '#mgscore').textContent = txt; };
+  const note = (msg, err) => { say.innerHTML = err ? `<span class="vl-bad">${msg}</span>` : msg; if(err) SFX.err(); };
+  const seen = () => known.filter(k => (save.vlSeen || []).includes(k.f)).length;
+  // chip trên đề: bóng nhỏ, kí hiệu, số electron lớp ngoài cùng, kim loại hay phi kim
+  const chip = el => `<span class="vl-chip">${vlPiece(el, .7, true)}<b>${el}</b><span class="vl-vals all"><i>${LW_E[el]} e</i>`
+    + `<i>${LW_METAL.includes(el) ? 'kim loại' : 'phi kim'}</i></span></span>`;
+
+  // cụm: các bóng nối với A qua gạch nối hoặc cặp ion
+  function frag(A){
+    const F = [A];
+    for(let k = 0; k < F.length; k++) links.forEach(l => { const B = l.a === F[k] ? l.b : l.b === F[k] ? l.a : null; if(B && !F.includes(B)) F.push(B); });
+    return F;
+  }
+  // xoay cả cụm F k góc vuông theo chiều kim đồng hồ quanh bóng P: chỗ đứng, phía của từng chấm và từng đầu nối đều
+  // xoay theo; rot giữ cho chấm lúc này vẫn hiện ở chỗ cũ rồi quay dần sang chỗ mới (đường ngắn nhất)
+  function turn(F, P, k){
+    if(!k) return;
+    const c = [1, 0, -1, 0][k], s = [0, 1, 0, -1][k];
+    F.forEach(A => { const dx = A.tx - P.tx, dy = A.ty - P.ty;
+      A.tx = P.tx + dx*c - dy*s; A.ty = P.ty + dx*s + dy*c; A.rot -= (k === 3 ? -1 : k)*Math.PI/2; });
+    els.forEach(e => { if(F.includes(e.at)) e.side = (e.side + k) % 4; if(F.includes(e.own)) e.home = (e.home + k) % 4; });
+    links.forEach(l => { if(F.includes(l.a)) l.sa = (l.sa + k) % 4; if(F.includes(l.b)) l.sb = (l.sb + k) % 4; });
+  }
+  // nối A (phía sa) với B (phía sb). Hai cụm đang rời nhau thì cụm nhỏ hơn (bằng nhau: cụm của B) xoay rồi trượt tới
+  // cho hai phía vừa nối quay vào nhau, cách đúng một khoảng nối; đã chung cụm thì giữ nguyên chỗ
+  function join(kind, A, sa, B, sb, extra){
+    const FA = frag(A), FB = frag(B), l = Object.assign({id:++uid, kind, a:A, sa, b:B, sb}, extra);
+    links.push(l);
+    if(FA.includes(B)) return l;
+    const [P, Q, F] = FB.length <= FA.length ? [A, B, FB] : [B, A, FA], sd = X => X === l.a ? l.sa : l.sb;
+    turn(F, Q, (sd(P) + 6 - sd(Q)) % 4);
+    const [dx, dy] = DIR(sd(P)), d = P.R + Q.R + (kind === 'cov' ? LW_BOND : LW_ION), mx = P.tx + dx*d - Q.tx, my = P.ty + dy*d - Q.ty;
+    F.forEach(X => { X.tx += mx; X.ty += my; });
+    return l;
+  }
+  // dồn các cụm (mỗi cụm là một vật rắn) cho chấm của hai cụm khỏi chạm nhau, rồi đẩy cả cụm vào trong khu vực;
+  // cụm chứa fix (bóng vừa thả / vừa nối) ít bị đẩy
+  function relax(fix){
+    const Fs = [], pad = A => A.R + LW_DOT + 10;
+    live().forEach(A => { if(!Fs.some(F => F.includes(A))) Fs.push(frag(A)); });
+    for(let it = 0; it < 40; it++){
+      Fs.forEach((F, n) => Fs.slice(n + 1).forEach((E, m) => F.forEach(A => E.forEach(B => {
+        const dx = B.tx - A.tx, dy = B.ty - A.ty, d = Math.hypot(dx, dy), need = pad(A) + pad(B);
+        if(d >= need) return;
+        const [ux, uy] = d > .5 ? [dx/d, dy/d] : [Math.cos(n + m + it), Math.sin(n + m + it)];
+        const push = need - d, wa = F.includes(fix) ? .15 : E.includes(fix) ? .85 : .5;
+        F.forEach(X => { X.tx -= ux*push*wa; X.ty -= uy*push*wa; });
+        E.forEach(X => { X.tx += ux*push*(1 - wa); X.ty += uy*push*(1 - wa); });
+      }))));
+      Fs.forEach(F => ['tx', 'ty'].forEach(k => {
+        const W = k === 'tx' ? ZW : ZH, lo = Math.min(...F.map(A => A[k] - pad(A))), hi = Math.max(...F.map(A => A[k] + pad(A)));
+        const d = hi - lo > W ? (W - lo - hi)/2 : lo < 0 ? -lo : hi > W ? W - hi : 0;
+        if(d) F.forEach(A => A[k] += d);
+      }));
+    }
+  }
+  // đặt electron e lên A: ưu tiên phía pref nếu còn trống, rồi phía trống bất kì, rồi phía mới có một chấm (không đặt lên
+  // phía có gạch nối)
+  function place(e, A, pref){
+    const ss = [pref, 0, 1, 2, 3].filter(s => s != null && !bondOn(A, s));
+    Object.assign(e, {at:A, side:ss.find(s => !on(A, s).length) ?? ss.find(s => on(A, s).length < 2)});
+  }
+
+  function put(el, k, d){                   // d: điểm thả; null = bấm → bóng rơi vào giữa sân, các cụm cũ dạt ra nhường chỗ
+    if(phase !== 'build') return;
+    if(live().length >= MAX){ SFX.err(); toast('Khu vực tạo chất đầy rồi — bấm vào một bóng để bỏ bớt!'); return; }
+    const from = d || palPt(k), to = d || {x:ZW/2 + (Math.random() - .5)*60, y:ZH/2 + (Math.random() - .5)*40};
+    const A = {el, metal:LW_METAL.includes(el), R:atomR(el)*SC, x:from.x, y:from.y, vx:from.x, tx:to.x, ty:to.y, s:SC, ts:SC, rot:0, leaving:false, bad:0};
+    layer.insertAdjacentHTML('beforeend', atomBall({el, x:A.x, y:A.y, r:A.R}, 'lw-b'));
+    A.div = layer.lastElementChild;
+    atoms.push(A);
+    lwSides(el).forEach((n, s) => { for(let j = 0; j < n; j++) els.push({id:++uid, own:A, at:A, side:s, home:s, ox:0, oy:0, link:null}); });
+    relax(A); refresh(); SFX.clink();
+  }
+  // hai electron độc thân (của hai phi kim) thành một cặp dùng chung: thêm một gạch nối
+  function bond(e1, e2){
+    const A = e1.at, B = e2.at, sa = e1.side, sb = e2.side, old = covOf(A).find(l => l.a === B || l.b === B);
+    e1.at = e2.at = null;
+    if(old){ old.order++; old.els.push(e1, e2); old.grow.push(0); }
+    else join('cov', A, sa, B, sb, {order:1, els:[e1, e2], grow:[0]});
+  }
+  function unbond(l){                       // tách một cặp dùng chung: mỗi bên nhận lại electron của mình, bay ra từ giữa gạch
+    const m = {x:(l.a.vx + l.b.vx)/2, y:(l.a.y + l.b.y)/2}, two = l.els.splice(-2);
+    l.grow.pop();
+    if(!--l.order) links.splice(links.indexOf(l), 1);
+    two.forEach(e => { place(e, e.own, l.order ? null : e.own === l.a ? l.sa : l.sb); fly(e, m); });
+  }
+  // electron e của kim loại (đang hiện ở p) sang phía s của phi kim X; hai bên chưa chung cụm thì thành cặp ion
+  function give(e, X, s, p){
+    const M = e.at, sm = e.side;
+    Object.assign(e, {at:X, side:s, home:sm});
+    if(!frag(M).includes(X)) e.link = join('ion', M, sm, X, s);
+    fly(e, p);
+  }
+  function giveBack(e){                     // chấm đỏ bay về lại kim loại; cặp ion do nó tạo ra cũng rã
+    const p = here(e);
+    if(e.link){ links.splice(links.indexOf(e.link), 1); e.link = null; }
+    place(e, e.own, e.home); fly(e, p);
+  }
+  // bỏ A khỏi bàn: tách hết gạch nối, rã cặp ion, electron ai về nhà nấy, rồi bóng bay về cột trái
+  function drop(A){
+    if(A.leaving) return;
+    links.filter(l => l.a === A || l.b === A).forEach(l => {
+      if(l.kind === 'cov') while(links.includes(l)) unbond(l);
+      else { links.splice(links.indexOf(l), 1); els.forEach(e => { if(e.link === l) e.link = null; }); }
+    });
+    els.filter(e => e.at === A && e.own !== A).forEach(giveBack);
+    els = els.filter(e => e.own !== A);
+    const h = palPt(keys.indexOf(A.el));
+    Object.assign(A, {leaving:true, tx:h.x, ty:h.y});
+    A.div.style.pointerEvents = 'none';
+    SFX.clink();
+  }
+  const clearOut = () => { live().forEach(drop); layer.classList.remove('vl-done'); };
+  const wipe = () => { atoms.forEach(A => A.div.remove()); atoms = []; els = []; links = []; hold = null; layer.classList.remove('vl-done'); };
+  // đang nhắm vào đâu: bóng gần p nhất trong tầm (thả lên chấm hay lên bóng đều được) và phía còn chấm độc thân gần p nhất
+  function aim(e, p){
+    const d = (u, x, y) => Math.hypot(u.x - x, u.y - y);
+    const X = live().filter(B => B !== e.at && d(p, B.vx, B.y) < rad(B) + LW_DOT + 14).sort((u, w) => d(p, u.vx, u.y) - d(p, w.vx, w.y))[0];
+    if(!X) return null;
+    const near = s => { const o = slot(on(X, s)[0]); return d(p, o.x, o.y); };
+    return {X, s:X.metal ? undefined : singles(X).sort((a, b) => near(a) - near(b))[0]};
+  }
+  function why(e, {X, s}){                  // vì sao không nối / không nhường được sang X (chuỗi rỗng: được)
+    if(e.at.metal) return X.metal ? 'Electron của kim loại chỉ sang được phi kim.'
+      : s === undefined ? `${X.el} đã đủ ${lwNeed(X.el)} electron lớp ngoài, không nhận thêm nữa.` : '';
+    if(X.metal) return `${X.el} là kim loại — kim loại không góp chung mà <b>nhường</b> electron. Hãy kéo electron của ${X.el} thả vào phi kim.`;
+    if(s === undefined) return `${X.el} không còn electron độc thân để góp chung.`;
+    return order(e.at, X) >= 3 ? 'Hai nguyên tử góp chung nhiều nhất 3 cặp electron (liên kết ba).' : '';
+  }
+
+  layer.style.touchAction = 'none';
+  layer.addEventListener('pointerdown', ev => {
+    const t = ev.target.closest && ev.target.closest('[data-e],[data-l],.lw-b');
+    if(ev.button !== 0 || phase !== 'build' || hold || !t) return;
+    ev.preventDefault();
+    layer.setPointerCapture(ev.pointerId);
+    const p = zXY(ev);
+    hold = {id:ev.pointerId, sx:p.x, sy:p.y, x:p.x, y:p.y, lx:p.x, ly:p.y, moved:false,
+      e:t.dataset.e ? els.find(e => e.id === +t.dataset.e) : null, l:t.dataset.l ? links.find(l => l.id === +t.dataset.l) : null};
+    if(!t.dataset.e && !t.dataset.l){ hold.A = atoms.find(A => A.div === t); hold.F = hold.A && frag(hold.A); }
+    if(!hold.e && !hold.l && !hold.A) hold = null;
+  });
+  layer.addEventListener('pointermove', ev => {
+    if(!hold || ev.pointerId !== hold.id) return;
+    const p = zXY(ev);
+    hold.x = p.x; hold.y = p.y;
+    if(!hold.moved && Math.hypot(p.x - hold.sx, p.y - hold.sy) < 6) return;
+    hold.moved = true;
+    if(hold.F) hold.F.forEach(A => { A.x += p.x - hold.lx; A.y += p.y - hold.ly; A.tx += p.x - hold.lx; A.ty += p.y - hold.ly; });
+    hold.lx = p.x; hold.ly = p.y;
+  });
+  function up(ev){
+    if(!hold || ev.pointerId !== hold.id) return;
+    const h = hold, p = zXY(ev);
+    hold = null;
+    if(phase !== 'build') return;
+    if(h.A){                                // bấm bóng: bỏ bóng đó; kéo: dời cả cụm, kéo ra ngoài khu vực thì bỏ cả cụm
+      if(!h.moved) drop(h.A);
+      else if(p.x < 0 || p.y < 0 || p.x > ZW || p.y > ZH) h.F.forEach(drop);
+      relax(h.A); return refresh();
+    }
+    if(h.l){ if(!h.moved && links.includes(h.l)){ unbond(h.l); SFX.clink(); relax(); refresh(); } return; }
+    const e = h.e, A = e.at;
+    if(!A) return;
+    if(e.own !== A){ giveBack(e); SFX.clink(); relax(); return refresh(); }      // chấm đỏ: trả electron về kim loại
+    if(!A.metal && on(A, e.side).length > 1) return note('Hai chấm này đã là một cặp electron — chỉ chấm đứng một mình (có quầng vàng) mới góp chung được.');
+    if(!h.moved) return note(A.metal ? 'Kéo electron này thả vào một phi kim — kim loại <b>nhường</b> electron.'
+      : 'Kéo từ chấm này sang một chấm có quầng vàng của nguyên tử khác để <b>góp chung</b> thành một cặp.');
+    const tg = aim(e, p), no = tg && why(e, tg);
+    if(!tg || no){ if(A.metal) fly(e, p); return no && note(no, true); }        // electron kim loại thả hụt thì bay về chỗ cũ
+    if(A.metal) give(e, tg.X, tg.s, p); else bond(e, on(tg.X, tg.s)[0]);
+    SFX.clink(); relax(A); refresh();
+  }
+  layer.addEventListener('pointerup', up);
+  layer.addEventListener('pointercancel', up);
+
+  function refresh(){                       // nút + dòng nhắc dưới bàn (chỉ lúc đang ghép; có bóng trên bàn thì để trống)
+    if(phase !== 'build') return;
+    const n = live().length;
+    bGo.disabled = bClear.disabled = !n;
+    say.innerHTML = n ? '' : 'Kéo nguyên tử vào khu vực tạo chất. Hai phi kim: kéo từ chấm có quầng vàng sang chấm có quầng vàng'
+      + ' của nguyên tử kia để <b>góp chung</b>. Kim loại: kéo chấm electron thả vào phi kim để <b>nhường</b>.';
+  }
+  function lock(off){ pal.classList.toggle('off', off); bGo.disabled = bClear.disabled = off; }
+  // cột trái: bóng có nhãn (câu hỏi) hoặc lưới bóng nhỏ (khám phá — rê chuột: số electron lớp ngoài, kim loại / phi kim)
+  function setPal(grid){
+    pal.classList.toggle('grid', !!grid);
+    pal.innerHTML = keys.map((el, k) => `<div class="vl-pitem enter" style="animation-delay:${k*(grid ? 25 : 70)}ms">${lwPiece(el, grid ? 1.1 : SC)}`
+      + (grid ? `<span class="vl-hv">${LW_E[el]} e · ${LW_METAL.includes(el) ? 'kim loại' : 'phi kim'}</span>`
+        : `<div class="vl-plbl"><b>${el}</b> · ${EL_VN[el]}</div>`) + '</div>').join('');
+    [...pal.children].forEach((it, k) => {
+      const el = keys[k], S = lwPieceSize(el, SC);
+      if(!grid) tapeLabel(it.querySelector('.vl-plbl'));
+      dragify(it, 'vlatom', {w:S, h:S, enabled: () => phase === 'build', ghostHTML: () => lwPiece(el, SC),
+        onDrop: (z, e) => put(el, k, dropAt(e, S)), onClick: () => put(el, k, null)});
+    });
+  }
+  function round(){
+    q = qs[++qi]; phase = 'build'; missed = false;
+    wipe();
+    keys = Object.keys(atomCounts(q.f)).sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
+    t1.innerHTML = `<span class="vl-qn">Câu ${qi + 1}/${qs.length}</span>Vẽ sơ đồ Lewis: tạo <b>${q.name}</b>`;
+    t2.innerHTML = keys.map(chip).join('');
+    setPal(false);
+    setGo(true); lock(false); refresh();
+  }
+  function exploreSetup(){
+    keys = Object.keys(VL_VALS).filter(el => LW_E[el]);
+    t1.innerHTML = '<span class="vl-qn">Khám phá</span>' + vlLewisSwitch();
+    t2.innerHTML = '<span>Phi kim đủ 8 electron lớp ngoài (H đủ 2), kim loại nhường hết electron lớp ngoài</span>';
+    bindLewisSwitch(i);
+    setPal(true);
+    hud('Sổ chất: ' + seen() + '/' + known.length);
+    setGo(true); lock(false); refresh();
+  }
+  function endGame(){                       // hết giờ: khoá bàn, bảng tổng kết chỉ có Kết thúc
+    ended = true; phase = 'end'; lock(true); eggBox.hide(); SFX.bell();
+    const ov = document.createElement('div');
+    ov.className = 'overlay';
+    ov.innerHTML = `<div class="paper vl-end"><h2>${ico('flask', 24)} Hết giờ!</h2><p>Xong <b>${solved}</b>/${qs.length} câu · đúng ngay lần đầu <b>${correct}</b> câu</p>`
+      + `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn big" id="vfend">${ico('check')} Kết thúc</button></div></div>`;
+    G.appendChild(ov);
+    ov.querySelector('#vfend').onclick = () => showResult(i, {correct, total:qs.length, hard:true});
+  }
+
+  // các cụm rời nhau, tính cả kim loại với phi kim đã nhận electron của nó (cặp ion có thể đã rã khi trả bớt electron)
+  function groups(){
+    const L = live(), adj = new Map(L.map(A => [A, []])), seen = new Set();
+    const tie = (A, B) => { adj.get(A).push(B); adj.get(B).push(A); };
+    links.forEach(l => tie(l.a, l.b));
+    els.forEach(e => { if(e.at && e.at !== e.own) tie(e.at, e.own); });
+    return L.filter(A => { if(seen.has(A)) return false;
+      const st = [A]; seen.add(A);
+      while(st.length) adj.get(st.pop()).forEach(B => { if(!seen.has(B)){ seen.add(B); st.push(B); } });
+      return true; }).length;
+  }
+  function check(){
+    const L = live(), c = {}, bad = L.filter(A => A.metal ? els.some(e => e.at === A) : around(A) < lwNeed(A.el));
+    L.forEach(A => c[A.el] = (c[A.el] || 0) + 1);
+    if(bad.length){
+      const A = bad[0];
+      bad.forEach(B => B.bad = performance.now() + 1800);
+      return (explore ? nope : wrong)((A.metal ? `${A.el} vẫn còn electron lớp ngoài — kim loại phải nhường hết cho phi kim.`
+        : `${A.el} mới có ${around(A)} electron lớp ngoài — cần đủ ${lwNeed(A.el)} như khí hiếm${A.el === 'H' ? ' He' : ''}.`)
+        + (bad.length > 1 ? ` <small>(còn ${bad.length - 1} nguyên tử nữa chưa đủ)</small>` : ''));
+    }
+    if(explore) return discover(c, groups());
+    const want = atomCounts(q.f), g = groups();
+    if(g === 1 && same(c, want)) return win();
+    const egg = g === 1 && EGGS.find(f => same(c, atomCounts(f)));
+    if(egg) return eggFound(egg);
+    // nguyên tử nào cũng đủ electron mà vẫn sai: nói vì sao
+    const ks = Object.keys(want), k = (c[ks[0]] || 0)/want[ks[0]], miss = ks.filter(e => !c[e]), tot = o => Object.values(o).reduce((s, n) => s + n, 0);
+    const fml = ks.concat(Object.keys(c).filter(e => !want[e])).filter(e => c[e]).map(e => e + (c[e] > 1 ? c[e] : '')).join('');
+    wrong('Mọi nguyên tử đều đủ electron, nhưng ' + (miss.length ? `thiếu ${miss.join(', ')} — ${q.name} có đủ ${ks.length} nguyên tố.`
+      : g > 1 ? `trên bàn có ${g} cụm rời nhau — chỉ cần tạo một thôi.`
+      : Number.isInteger(k) && k > 1 && ks.every(e => c[e] === want[e]*k) ? `công thức chưa tối giản — còn chia được cho ${k}.`
+      : `${sub(fml)} chưa phải ${q.name}` + (tot(c) > tot(want) ? ' — thử với ít nguyên tử hơn.' : '.')));
+  }
+  const same = (a, b) => Object.keys(a).length === Object.keys(b).length && Object.keys(a).every(e => a[e] === b[e]);
+  function nope(msg, more){                 // bị từ chối: bàn rung nhưng giữ nguyên để sửa tiếp
+    shakeT = performance.now() + 450; SFX.err();
+    zone.classList.remove('flash-bad'); void zone.offsetWidth; zone.classList.add('flash-bad');
+    say.innerHTML = `<span class="vl-bad">${ico('close', 20)} ${msg}</span>` + (more ? '<br><small>' + more + '</small>' : '');
+  }
+  function wrong(msg){ missed = true; nope(msg, 'Câu này không còn tính điểm — sửa tiếp trên bàn rồi Kiểm tra lại nhé!'); }   // sai: mất điểm câu này
+  // tóm tắt liên kết trên bàn: các ion (ion dương trước) rồi số liên kết đơn / đôi / ba
+  function bonds(){
+    const nb = [0, 0, 0, 0], ions = [];
+    links.forEach(l => { if(l.kind === 'cov') nb[l.order]++; });
+    live().sort((A, B) => charge(B) - charge(A)).forEach(A => { const z = charge(A), t = A.el + ptCharge(z); if(z && !ions.includes(t)) ions.push(t); });
+    const cov = [1, 2, 3].filter(o => nb[o]).map(o => nb[o] + ' liên kết ' + ['', 'đơn', 'đôi', 'ba'][o]).join(', ');
+    return [ions.length ? 'Liên kết ion giữa ' + ions.join(' và ') : '', cov ? 'Liên kết cộng hoá trị: ' + cov : ''].filter(Boolean).join(' · ');
+  }
+  // khám phá: mọi bóng đã đủ electron (check lọc trước) — còn phải là một cụm và có trong sổ chất / chất bí mật
+  function discover(c, g){
+    if(g > 1) return nope(`Trên bàn có ${g} cụm rời nhau — ghép từng chất một thôi nhé!`);
+    const hit = known.find(k => same(c, atomCounts(k.f))), egg = !hit && EGGS.find(f => same(c, atomCounts(f)));
+    if(!hit && !egg){
+      const gone = Object.keys(VL_GONE).find(f => same(c, atomCounts(f)));
+      return nope(gone ? sub(`${gone} không tồn tại — phân huỷ ngay lập tức ${VL_GONE[gone]}!`)
+        : (c.C || 0) >= 3 && c.H ? VL_ORG : 'Mọi nguyên tử đều đủ electron, nhưng chưa có chất này trong sổ — thử chất khác!');
+    }
+    const f = hit ? hit.f : egg, nm = hit ? hit.name : VL_EGG[egg].nm;
+    let fresh = false;
+    if(hit){ save.vlSeen = save.vlSeen || []; if(!save.vlSeen.includes(f)){ save.vlSeen.push(f); persist(); fresh = true; } }
+    if(!found.includes(f)){ found.push(f); vlFoundTag(f, egg, nm); }
+    hud('Sổ chất: ' + seen() + '/' + known.length);
+    phase = 'next'; lock(true); pop();
+    layer.classList.add('vl-done');
+    if(egg){ SFX.tinkle(); eggBox.collect(egg); } else SFX.coin();
+    say.innerHTML = `<span class="vl-ok">${ico(egg ? 'star' : 'check', 20)}</span> <b class="vl-f">${sub(fShow(f))}</b> — ${nm}`
+      + (fresh ? ' <b class="vl-ok">Mới!</b>' : '') + `<br><small>${bonds()}</small>`;
+    setGo(false); bGo.disabled = false;
+  }
+  const pop = () => live().forEach((A, n) => setTimeout(() => { A.div.classList.remove('vl-pop'); void A.div.offsetWidth; A.div.classList.add('vl-pop'); }, n*40));
+  function win(){
+    const last = qi + 1 >= qs.length;
+    if(!missed){ correct++; mgScore(correct, qs.length); }
+    solved++;
+    phase = 'done'; lock(true); SFX.coin(); pop();
+    layer.classList.add('vl-done');
+    say.innerHTML = `<span class="vl-ok">${ico('check', 20)} Chính xác!</span> <b class="vl-f">${sub(q.f)}</b> — ${q.name}<br><small>${bonds()}</small>`;
+    if(last){ paused = true; side.classList.add('complete'); SFX.bell(); }
+    else { setGo(false); bGo.disabled = false; }
+  }
+  function eggFound(egg){
+    phase = 'egg'; lock(true); SFX.tinkle(); pop(); eggBox.collect(egg);
+    layer.classList.add('vl-done');
+    say.innerHTML = `<span class="vl-ok">${ico('star', 20)}</span> <b class="vl-f">${sub(fShow(egg))}</b> — ${VL_EGG[egg].nm}`
+      + `<br><small>Chất bí mật! Giờ hãy tạo ${q.name} nhé ;)</small>`;
+    setGo(false); bGo.disabled = false;
+  }
+  bGo.onclick = () => {
+    if(phase === 'build'){ if(live().length) check(); }
+    else if(phase === 'egg' || phase === 'next'){ eggBox.hide(); clearOut(); phase = 'build'; setGo(true); lock(false); refresh(); }   // next: khám phá dọn bàn
+    else if(phase === 'done'){ SFX.page(); round(); }
+  };
+  bClear.onclick = () => { if(phase === 'build'){ clearOut(); refresh(); } };
+  G.querySelector('#vlend').onclick = () => showResult(i, {correct, total:qs.length, hard:true});
+
+  // vẽ cả bàn: sticker + gạch nối (tay của vlLayers, co giãn cho hai đầu luôn chạm nhau), vùng bấm gạch nối, ngoặc vuông +
+  // điện tích, quầng vàng, chấm electron (chấm đỏ: electron kim loại đã nhường), dây đang kéo / electron đang mang đi
+  function draw(now){
+    const t = now/1000, sh = now < shakeT ? 7*Math.sin(t*55)*(shakeT - now)/450 : 0, f = n => n.toFixed(1);
+    atoms.forEach(A => { A.vx = A.x + (A.leaving ? 0 : sh); A.arms = []; });
+    let hitL = '', hitE = '', hitR = '', deco = '', glow = '', dots = '', top = '';
+    links.forEach(l => {
+      if(l.kind !== 'cov') return;
+      const {a:A, b:B} = l, a = Math.atan2(B.y - A.y, B.vx - A.vx), w = l.order > 1 ? 2.2 : 3.2;
+      const k = Math.hypot(B.vx - A.vx, B.y - A.y)/((atomR(A.el) + atomR(B.el) + 2*VL_ARM)*SC);
+      [[0], [-2.2, 2.2], [-4.4, 0, 4.4]][l.order - 1].forEach((d, n) => { const g = l.grow[n]*k;
+        A.arms.push({a, d, w, g}); B.arms.push({a:a + Math.PI, d, w, g}); });
+      hitL += `<line data-l="${l.id}" x1="${f(A.vx)}" y1="${f(A.y)}" x2="${f(B.vx)}" y2="${f(B.y)}" stroke="transparent" stroke-width="18"/>`;
+    });
+    live().forEach(A => {
+      const z = charge(A), r = rad(A), lab = (Math.abs(z) > 1 ? Math.abs(z) : '') + (z > 0 ? '+' : '−');
+      if(now < A.bad) deco += `<circle cx="${f(A.vx)}" cy="${f(A.y)}" r="${f(r + LW_DOT + 8)}" fill="none" stroke="#d9634f" stroke-width="3" `
+        + `stroke-dasharray="7 5" opacity="${f(Math.min(1, (A.bad - now)/600))}"/>`;
+      if(!z) return;
+      if(z > 0){ deco += `<text class="lw-q" x="${f(A.vx + r*.7 + 2)}" y="${f(A.y - r*.7 - 2)}">${lab}</text>`; return; }
+      const bx = r + LW_DOT + 9, by = r + LW_DOT + 7;
+      deco += `<path d="M${f(A.vx - bx + 5)} ${f(A.y - by)}h-5v${f(2*by)}h5M${f(A.vx + bx - 5)} ${f(A.y - by)}h5v${f(2*by)}h-5" fill="none" stroke="#3b3025" stroke-width="2"/>`
+        + `<text class="lw-q" x="${f(A.vx + bx + 2)}" y="${f(A.y - by + 8)}">${lab}</text>`;
+    });
+    const held = hold && hold.moved && hold.e && hold.e.at && hold.e.own === hold.e.at && (hold.e.at.metal || on(hold.e.at, hold.e.side).length === 1) ? hold.e : null;
+    els.forEach(e => {
+      if(!e.at || e.at.leaving) return;
+      const A = e.at, mine = e.own === A, p = e === held && A.metal ? {x:hold.x, y:hold.y} : here(e);
+      if(mine && phase === 'build' && (A.metal || on(A, e.side).length === 1))
+        glow += `<circle cx="${f(p.x)}" cy="${f(p.y)}" r="${f(8.5 + Math.sin(t*5 + e.id)*1.2)}" fill="#e8b84b" opacity=".55"/>`;
+      dots += `<circle cx="${f(p.x)}" cy="${f(p.y)}" r="${mine ? LW_DOT_R : LW_DOT_R + .5}" fill="${mine ? '#3b3025' : '#d9634f'}"${mine ? '' : ' stroke="#3b3025" stroke-width="1"'}/>`;
+      const h = `<circle data-e="${e.id}" cx="${f(p.x)}" cy="${f(p.y)}" r="13" fill="transparent"/>`;
+      if(mine) hitE += h; else hitR += h;           // vùng bấm chấm đỏ nằm trên cùng: chung cặp vẫn bấm trúng chấm đỏ
+    });
+    if(held){                               // dây nét đứt từ chấm đang kéo; nhắm đúng chỗ nối / nhận được thì đầu dây bắt vào đó, sáng xanh
+      const o = slot(held), tg = aim(held, hold), ok = tg && !why(held, tg), X = ok && tg.X;
+      const end = ok && !held.at.metal ? slot(on(X, tg.s)[0]) : hold;
+      top += `<line x1="${f(o.x)}" y1="${f(o.y)}" x2="${f(end.x)}" y2="${f(end.y)}" stroke="#3b3025" stroke-width="2.2" stroke-dasharray="5 5" stroke-linecap="round"/>`;
+      if(ok) top += held.at.metal ? `<circle cx="${f(X.vx)}" cy="${f(X.y)}" r="${f(rad(X) + LW_DOT + 8)}" fill="none" stroke="#7aa95c" stroke-width="3"/>`
+        : `<circle cx="${f(end.x)}" cy="${f(end.y)}" r="10" fill="none" stroke="#7aa95c" stroke-width="3"/>`;
+    }
+    svg.innerHTML = vlLayers(atoms.map(A => ({el:A.el, x:A.vx, y:A.y, s:A.s, arms:A.arms}))) + deco + glow + top + dots + hitL + hitE + hitR;
+    atoms.forEach(A => { const r = rad(A), st = A.div.style;
+      st.left = A.vx + 'px'; st.top = A.y + 'px'; st.width = st.height = 2*r + 'px'; st.fontSize = Math.max(7, Math.round(r*.95)) + 'px'; });
+  }
+  // vòng vẽ: đồng hồ của màn; bóng trôi êm về đích, chấm quay về phía mới, electron bay tới chỗ mới, gạch nối mọc dần
+  let last = performance.now();
+  (function frame(now){
+    if(!zone.isConnected) return;                                       // rời minigame: dừng hẳn
+    const dt = Math.max(0, Math.min(now - last, 120))/1000, e = 1 - Math.exp(-dt*9);
+    const clk = Math.max(0, Math.min(now - last, 1000))/1000;           // như trò thường: ngắt quãng quá 1 s chỉ tính 1 s
+    last = now;
+    if(!explore && !ended && !paused && !mgHeld()){
+      tLeft = Math.max(0, tLeft - clk);
+      const sec = Math.ceil(tLeft);
+      if(sec !== shownT){ shownT = sec; hud('Còn ' + sec + ' giây', '#mgtime'); }
+      if(!tLeft) endGame();
+    }
+    atoms.forEach(A => { A.x += (A.tx - A.x)*e; A.y += (A.ty - A.y)*e; A.s += (A.ts - A.s)*e; A.rot -= A.rot*e; });
+    els.forEach(x => { x.ox -= x.ox*e; x.oy -= x.oy*e; });
+    links.forEach(l => { if(l.grow) l.grow.forEach((g, n) => l.grow[n] += (1 - g)*Math.min(1, e*1.3)); });
+    atoms = atoms.filter(A => { if(!A.leaving || Math.hypot(A.tx - A.x, A.ty - A.y) > 8) return true; A.div.remove(); return false; });
+    draw(now);
+    requestAnimationFrame(frame);
+  })(last);
+  if(explore) exploreSetup();
+  else { G.querySelector('#mgtime').style.display = ''; hud('Còn ' + TOTAL_T + ' giây', '#mgtime'); mgScore(0, qs.length); round(); }
+ },
+
+ /* --- ngày 3, chế độ khó: tạo ion (day.hard, bật bằng công tắc chế độ khó chung). Mỗi câu chỉ có MỘT nguyên tử, vẽ
+        đủ các lớp electron (e.sh): bóng hạt nhân ở giữa, mỗi lớp một vòng. Lớp trong là chấm nhỏ đều quanh vòng, cố định
+        (bấm vào thì chỉ nhắc); lớp ngoài cùng là chấm to có quầng vàng, xếp như sơ đồ Lewis trên vòng ngoài: bốn phía
+        phải, dưới, trái, trên, mỗi phía tối đa 2. Dưới nguyên tử có dòng đếm mờ số electron lớp ngoài cùng (lớp ngoài bị
+        bỏ hết thì đếm lớp kế trong — vòng ngoài khi đó chỉ còn nét đứt mờ). Đề chỉ ghi tên nguyên tố — không nói kim loại
+        hay phi kim, nhường hay nhận, mấy electron. Quanh nguyên tử có vài ELECTRON TỰ DO trôi lơ lửng (đỏ; luôn còn ít
+        nhất FREE_MIN cái — thiếu thì có cái mới trôi vào từ mép), không bao giờ trôi vào vùng nguyên tử:
+        – nhường: bấm vào chấm lớp ngoài → electron bật ra, bay xa dần rồi trôi tự do; hoặc kéo chấm ra xa nguyên tử (dây
+          nét đứt đứt ra) rồi thả;
+        – nhận: bấm vào electron tự do, hoặc kéo nó thả vào nguyên tử → chấm vào phía còn trống trước (phải, trái, trên,
+          dưới), hết phía trống mới ghép đôi (trên, dưới, trái, phải), tối đa 8 chấm. Electron từ ngoài vào vẽ đỏ như ở sơ
+          đồ Lewis; electron của chính nguyên tử bật ra vẫn đen, nhận lại thì vẫn đen.
+        Số chấm lệch số ban đầu là hiện điện tích ngay (ion âm có ngoặc vuông). Kiểm tra: đúng ion có lớp electron như khí
+        hiếm (ptIon). Còn trung hoà thì chỉ nhắc; sai là mất điểm câu đó nhưng bàn giữ nguyên để sửa tiếp. Làm lại: trả
+        nguyên tử về như lúc đầu. Cả màn day.hard.time giây; xong hết câu là Kết thúc; sao lưu vào cột sao chế độ khó. --- */
+ ion(i, day){
+  const H = day.hard, qs = shuffle(H.pools.flatMap(([n, list]) => shuffle(list).slice(0, n))).map(el => {
+    const e = PT_BY[el]; return {el, e, sh:e.sh, n0:ptOuter(e), I:ptIon(e)}; });
+  // RN: bán kính bóng hạt nhân; vòng thứ j (lớp j + 1) cách tâm RING0 + j·GAP — nguyên tử càng nhiều lớp càng to (K, Ca,
+  // Br 4 lớp vừa khít khu vực); DOT_R / IN_R: chấm lớp ngoài / lớp trong; PAIR_D: nửa khoảng cách hai chấm một cặp.
+  // Không có cột trái nên khu vực rộng thêm đúng chỗ của nó (.vl-pal 180px + khoảng hở 18px): ZW = 840 + 198
+  const TOTAL_T = H.time, ZW = 1038, ZH = 430, RN = 26, RING0 = 50, GAP = 30, MAX = 8, CX = ZW/2, CY = ZH/2 - 6;
+  const DOT_R = LW_DOT_R*1.8, IN_R = 4.4, PAIR_D = 13, FILL = [0, 2, 3, 1], PAIR = [3, 1, 2, 0];
+  const f = n => n.toFixed(1);
+  const dot = (p, mine, r = DOT_R) => `<circle cx="${f(p.x)}" cy="${f(p.y)}" r="${f(mine ? r : r + .6)}" fill="${mine ? '#3b3025' : '#d9634f'}"`
+    + (mine ? '/>' : ' stroke="#3b3025" stroke-width="1.2"/>');
+  const halo = (p, r) => `<circle cx="${f(p.x)}" cy="${f(p.y)}" r="${f(Math.max(0, r))}" fill="#e8b84b" opacity=".5"/>`;
+  // electron tự do: lúc đầu câu có FREE0 cái; trôi chậm SPD px/s, bật ra khỏi nguyên tử thì bay EJECT px/s rồi chậm dần;
+  // cách mép khu vực PAD; FREE_HIT: bán kính vùng bấm vô hình (to hơn chấm nhiều cho dễ trúng)
+  const FREE0 = 4, FREE_MIN = 3, SPD = 22, EJECT = 260, PAD = 16, FREE_HIT = 22;
+  mgFrame(i, day, `<div class="vl lw io">
+    <div class="vl-task"><div class="io-row"><div class="vl-t1"></div>
+      <button class="btn io-hbtn" id="iohelp" aria-label="Cách chơi" title="Cách chơi">?</button></div></div>
+    <div class="vl-mid">
+      <div class="vl-zone" data-dz="vbuild" style="width:${ZW}px;height:${ZH}px">
+        <div class="vl-layer"><svg class="bonds lw-svg" width="${ZW}" height="${ZH}" style="overflow:visible"></svg></div>
+        <span class="vl-zlbl">Khu vực tạo ion</span></div>
+      <div class="vl-side">
+        <div class="vl-acts"><button class="btn big" id="vlgo"></button>
+          <button class="btn" id="vlclear">${ico('retry')} Làm lại</button></div>
+        <div class="vl-donebox"><b>Hoàn thành!</b><button class="btn big" id="vlend">${ico('check')} Kết thúc</button></div></div>
+    </div>
+    <div class="vl-say"></div></div>`);
+  G.querySelector('.hud-title').insertAdjacentHTML('beforeend', ' · <span style="color:#a8331f">khó</span>');
+  const t1 = G.querySelector('.vl-t1'), side = G.querySelector('.vl-side');
+  const zone = G.querySelector('.vl-zone'), layer = zone.querySelector('.vl-layer'), svg = layer.firstElementChild;
+  const say = G.querySelector('.vl-say'), bGo = G.querySelector('#vlgo'), bClear = G.querySelector('#vlclear');
+  tapeLabel(zone.querySelector('.vl-zlbl'));
+  // q: {el, e (ô bảng tuần hoàn), sh (số electron từng lớp), n0 (số electron lớp ngoài lúc đầu), I (ion đúng, ptIon)};
+  // RO: bán kính vòng ngoài cùng; g: độ nở của các vòng lúc mới ra câu (0 → 1, từ born); ax: tâm đang vẽ (cộng cả độ
+  // rung); els: electron lớp ngoài {id, mine (của chính nguyên tử / từ ngoài vào), side, ox, oy (độ lệch lúc đang bay —
+  // giảm dần về 0)}; free: electron tự do {id, x, y, vx, vy, mine, t0 (lúc hiện ra)} — một electron đổi qua lại giữa
+  // els và free vẫn giữ id; hold: chấm đang bị nhấn giữ (e: lớp ngoài, o: tự do)
+  let qi = -1, q = null, RO = 0, g = 1, born = 0, ax = CX, ball = null, correct = 0, solved = 0, missed = false, phase = 'build', tLeft = TOTAL_T, shownT = -1;
+  let paused = false, ended = false, shakeT = 0, badT = 0, els = [], free = [], uid = 0, hold = null;
+  const on = s => els.filter(e => e.side === s);
+  const sideFor = () => FILL.find(s => !on(s).length) ?? PAIR.find(s => on(s).length < 2);
+  const charge = () => q.n0 - els.length;
+  const reach = () => RO + 34;                          // kéo chấm lớp ngoài ra xa hơn chừng này là nhường; thả electron tự do gần hơn là nhận
+  const clear = () => RO + DOT_R + 52;                  // electron tự do không trôi vào trong vòng này (cả ngoặc vuông, dòng đếm)
+  const slot = e => { const L = on(e.side), r = RO*g, a = e.side*Math.PI/2 + (L.length > 1 ? (2*L.indexOf(e) - 1)*PAIR_D/RO : 0);
+    return {x:ax + r*Math.cos(a), y:CY + r*Math.sin(a)}; };
+  const nextSlot = () => { const s = sideFor(), a = s*Math.PI/2 + (on(s).length ? PAIR_D/RO : 0);   // chỗ electron nhận tiếp sẽ vào
+    return {x:ax + RO*g*Math.cos(a), y:CY + RO*g*Math.sin(a)}; };
+  // vùng bấm (vô hình, rộng hơn chấm nhiều cho dễ trúng) của chấm lớp ngoài e: hình quạt vành khăn chờm ra ngoài vòng
+  // ngoài, từ RO − HIT_IN (chưa chạm vùng bấm lớp trong, cách RO − 20) tới RO + HIT_OUT, rộng ±HIT_A quanh phía của chấm
+  // (45°: trọn góc phần tư, quạt các phía khít nhau không hở); phía có hai chấm thì chia đôi tại trục, mỗi chấm một nửa —
+  // các quạt không chồng nhau. Electron tự do không bao giờ trôi vào sâu tới đây (clear), vùng bấm của nó vẽ đè lên trên
+  const HIT_A = Math.PI/4, HIT_IN = 15, HIT_OUT = 50;
+  function hitArc(e){
+    const L = on(e.side), a = e.side*Math.PI/2, k = L.length > 1 ? 2*L.indexOf(e) - 1 : 0;
+    const a0 = k > 0 ? a : a - HIT_A, a1 = k < 0 ? a : a + HIT_A, r0 = (RO - HIT_IN)*g, r1 = (RO + HIT_OUT)*g;
+    const P = (r, t) => f(ax + r*Math.cos(t)) + ' ' + f(CY + r*Math.sin(t));
+    return `<path data-e="${e.id}" d="M${P(r1, a0)}A${f(r1)} ${f(r1)} 0 0 1 ${P(r1, a1)}L${P(r0, a1)}A${f(r0)} ${f(r0)} 0 0 0 ${P(r0, a0)}Z" fill="transparent"/>`;
+  }
+  const here = e => { const p = slot(e); return {x:p.x + e.ox, y:p.y + e.oy}; };
+  const fly = (e, p) => { const s = slot(e); e.ox = p.x - s.x; e.oy = p.y - s.y; };
+  // thêm / bớt chấm làm các chấm cùng phía dời chỗ (đứng giữa ↔ thành cặp): chấm cũ trượt êm từ chỗ đang hiện (old)
+  function settle(fn){ const old = new Map(els.map(e => [e, here(e)])); fn(old); els.forEach(e => { if(old.has(e)) fly(e, old.get(e)); }); }
+  const zXY = ev => { const z = layer.getBoundingClientRect(), s = z.width/ZW || 1; return {x:(ev.clientX - z.left)/s, y:(ev.clientY - z.top)/s}; };
+  // một electron tự do ở p; v: vận tốc đầu (không có: trôi chậm theo hướng bất kì)
+  function loose(p, mine, v, id){
+    const a = Math.random()*2*Math.PI;
+    free.push({id:id || ++uid, x:p.x, y:p.y, vx:v ? v.x : Math.cos(a)*SPD, vy:v ? v.y : Math.sin(a)*SPD, mine, t0:performance.now()});
+  }
+  function spot(){                          // chỗ trống cho electron tự do lúc đầu câu: ngoài vùng nguyên tử, không sát nhau
+    for(let k = 0; k < 80; k++){
+      const p = {x:PAD + Math.random()*(ZW - 2*PAD), y:PAD + 18 + Math.random()*(ZH - 2*PAD - 18)};
+      if(Math.hypot(p.x - CX, p.y - CY) > clear() + 10 && free.every(o => Math.hypot(o.x - p.x, o.y - p.y) > 60)) return p;
+    }
+    return {x:PAD + 20 + Math.random()*80, y:ZH/2};
+  }
+  const setGo = chk => { bGo.innerHTML = chk ? ico('check') + ' Kiểm tra' : 'Tiếp tục ' + ico('next'); };
+  const hud = (txt, el) => { G.querySelector(el || '#mgscore').textContent = txt; };
+  const note = (msg, err) => { say.innerHTML = err ? `<span class="vl-bad">${msg}</span>` : msg; if(err) SFX.err(); };
+
+  const away = (p, k) => { const dx = p.x - ax, dy = p.y - CY, d = Math.hypot(dx, dy) || 1; return {x:dx/d*k, y:dy/d*k}; };   // vận tốc hướng ra xa tâm
+  function capture(o, p){                   // nguyên tử nhận electron tự do o (đang ở p): chấm bay vào chỗ trống trên vòng ngoài
+    if(els.length >= MAX){ note(`Lớp ngoài cùng đã đủ ${MAX} electron — không nhận thêm được nữa.`, true); return false; }
+    free.splice(free.indexOf(o), 1);
+    const e = {id:o.id, mine:o.mine, ox:0, oy:0};
+    settle(() => { e.side = sideFor(); els.push(e); });
+    fly(e, p);
+    SFX.clink(); refresh();
+    return true;
+  }
+  function eject(e, p, soft){               // nguyên tử nhường electron e (đang ở p): bật ra xa (soft: kéo ra rồi thả — trôi luôn)
+    settle(() => els.splice(els.indexOf(e), 1));
+    loose(p, e.mine, soft ? away(p, SPD) : away(p, EJECT), e.id);
+    SFX.clink(); refresh();
+  }
+  // Làm lại: electron từ ngoài vào bật ra, electron của nguyên tử đang trôi tự do bay về (thiếu thì mọc từ hạt nhân), xếp
+  // lại như lúc đầu
+  function reset(){
+    if(phase !== 'build') return;
+    settle(old => {
+      els.filter(e => !e.mine).forEach(e => loose(old.get(e), false, away(old.get(e), EJECT), e.id));
+      const keep = els.filter(e => e.mine), back = free.filter(o => o.mine).slice(0, q.n0 - keep.length);
+      free = free.filter(o => !back.includes(o));
+      const ret = back.map(o => { const e = {id:o.id, mine:true, ox:0, oy:0}; old.set(e, {x:o.x, y:o.y}); return e; });
+      while(keep.length + ret.length < q.n0){ const e = {id:++uid, mine:true, ox:0, oy:0}; old.set(e, {x:ax, y:CY}); ret.push(e); }
+      els = [];
+      keep.concat(ret).forEach(e => { e.side = sideFor(); els.push(e); });
+    });
+    SFX.clink(); refresh();
+  }
+
+  layer.style.touchAction = 'none';
+  layer.addEventListener('pointerdown', ev => {
+    const t = ev.target.closest && ev.target.closest('[data-e],[data-f],[data-i]');
+    if(ev.button !== 0 || phase !== 'build' || hold || !t) return;
+    if(t.dataset.i) return note('Electron lớp trong bị hạt nhân giữ rất chặt — chỉ electron <b>lớp ngoài cùng</b> (vòng ngoài, có quầng vàng) mới nhường hay nhận được.');
+    const e = t.dataset.e && els.find(x => x.id === +t.dataset.e), o = t.dataset.f && free.find(x => x.id === +t.dataset.f);
+    if(!e && !o) return;
+    ev.preventDefault();
+    layer.setPointerCapture(ev.pointerId);
+    const p = zXY(ev);
+    hold = {id:ev.pointerId, e, o, sx:p.x, sy:p.y, x:p.x, y:p.y, moved:false};
+  });
+  layer.addEventListener('pointermove', ev => {
+    if(!hold || ev.pointerId !== hold.id) return;
+    const p = zXY(ev);
+    hold.x = p.x; hold.y = p.y;
+    if(Math.hypot(p.x - hold.sx, p.y - hold.sy) >= 6) hold.moved = true;
+  });
+  layer.addEventListener('pointerup', ev => {
+    if(!hold || ev.pointerId !== hold.id) return;
+    const {e, o, moved, x, y} = hold, near = Math.hypot(x - ax, y - CY) <= reach();
+    hold = null;
+    if(phase !== 'build') return;
+    if(o){                                  // electron tự do: bấm, hoặc kéo thả vào nguyên tử → nhận; thả chỗ khác → trôi tiếp từ đó
+      if(!free.includes(o) || (!moved || near) && capture(o, moved ? {x, y} : o)) return;
+      if(moved) Object.assign(o, {x, y, vx:0, vy:0});
+      return;
+    }
+    if(!els.includes(e)) return;
+    if(!moved) return eject(e, here(e));                               // bấm: electron bật ra
+    if(!near) return eject(e, {x, y}, true);                           // kéo ra xa rồi thả: electron trôi đi từ đó
+    fly(e, {x, y});                                                     // thả lại gần nguyên tử: chấm về chỗ cũ
+  });
+  layer.addEventListener('pointercancel', ev => {
+    if(!hold || ev.pointerId !== hold.id) return;
+    if(hold.moved && hold.e) fly(hold.e, hold);
+    if(hold.moved && hold.o) Object.assign(hold.o, {x:hold.x, y:hold.y, vx:0, vy:0});
+    hold = null;
+  });
+
+  function refresh(){                       // sau mỗi thao tác: bật nút, xoá lời nhắc cũ (cách chơi ở card mở bằng nút ? cạnh đề)
+    if(phase !== 'build') return;
+    bGo.disabled = bClear.disabled = false;
+    say.innerHTML = '';
+  }
+  function lock(off){ bGo.disabled = bClear.disabled = off; }
+  function round(){
+    q = qs[++qi]; phase = 'build'; missed = false; badT = 0;
+    RO = RING0 + (q.sh.length - 1)*GAP; g = 0; born = performance.now();  // các vòng nở ra từ hạt nhân
+    ax = CX; els = []; free = []; hold = null;
+    layer.classList.remove('vl-done');
+    if(ball) ball.remove();
+    layer.insertAdjacentHTML('beforeend', atomBall({el:q.el, x:CX, y:CY, r:RN}, 'vl-pop'));
+    ball = layer.lastElementChild;
+    for(let k = 0; k < q.n0; k++) els.push({id:++uid, mine:true, side:sideFor(), ox:0, oy:0});
+    for(let k = 0; k < FREE0; k++) loose(spot(), false);              // số electron tự do lúc đầu luôn như nhau: không lộ đáp án
+    t1.innerHTML = `<span class="vl-qn">Câu ${qi + 1}/${qs.length}</span>Tạo ion bền từ nguyên tử <b>${q.e.nm}</b>`;
+    setGo(true); lock(false); refresh();
+  }
+  function endGame(){                       // hết giờ: khoá bàn, bảng tổng kết chỉ có Kết thúc
+    ended = true; phase = 'end'; hold = null; lock(true); SFX.bell();
+    const ov = document.createElement('div');
+    ov.className = 'overlay';
+    ov.innerHTML = `<div class="paper vl-end"><h2>${ico('flask', 24)} Hết giờ!</h2><p>Xong <b>${solved}</b>/${qs.length} câu · đúng ngay lần đầu <b>${correct}</b> câu</p>`
+      + `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn big" id="vfend">${ico('check')} Kết thúc</button></div></div>`;
+    G.appendChild(ov);
+    ov.querySelector('#vfend').onclick = () => showResult(i, {correct, total:qs.length, hard:true});
+  }
+
+  function check(){
+    const {el, n0, I} = q, z = charge(), k = els.length;
+    if(!z) return note(`Nguyên tử ${el} vẫn trung hoà về điện, chưa phải ion — hãy <b>bỏ</b> hoặc <b>thêm</b> electron.`, true);
+    if(z === I.q) return win();
+    wrong(I.give
+      ? (z < 0 ? `${el} chỉ có ${n0} electron lớp ngoài — <b>nhường</b> ${n0} electron dễ hơn nhiều so với nhận thêm ${8 - n0}. Kim loại thì nhường electron.`
+               : `${el} vẫn còn ${k} electron lớp ngoài — kim loại nhường <b>hết</b> electron lớp ngoài cùng.`)
+      : z > 0 ? `${el} đã có ${n0} electron lớp ngoài — <b>nhận thêm</b> ${8 - n0} electron dễ hơn nhiều so với nhường ${n0}. Phi kim thì nhận electron.`
+      : `${el} mới có ${k} electron lớp ngoài — cần đủ 8 như khí hiếm.`);
+  }
+  function wrong(msg){                      // sai: mất điểm câu này, bàn rung, vòng đỏ quanh nguyên tử, giữ nguyên để sửa tiếp
+    missed = true;
+    shakeT = performance.now() + 450; badT = performance.now() + 1800; SFX.err();
+    zone.classList.remove('flash-bad'); void zone.offsetWidth; zone.classList.add('flash-bad');
+    say.innerHTML = `<span class="vl-bad">${ico('close', 20)} ${msg}</span><br><small>Câu này không còn tính điểm — sửa tiếp rồi Kiểm tra lại nhé!</small>`;
+  }
+  function win(){
+    const {el, e, I} = q, last = qi + 1 >= qs.length, ke = I.k + 'e';
+    if(!missed){ correct++; mgScore(correct, qs.length); }
+    solved++;
+    phase = 'done'; lock(true); SFX.coin();
+    ball.classList.remove('vl-pop'); void ball.offsetWidth; ball.classList.add('vl-pop');
+    layer.classList.add('vl-done');
+    say.innerHTML = `<span class="vl-ok">${ico('check', 20)} Chính xác!</span> <b class="vl-f">${I.give ? `${el} → ${I.ion} + ${ke}` : `${el} + ${ke} → ${I.ion}`}</b>`
+      + `<br><small>${e.nm[0].toUpperCase() + e.nm.slice(1)} ${I.give ? 'nhường' : 'nhận thêm'} ${I.k} electron → ion ${I.give ? 'dương' : 'âm'} ${I.ion}`
+      + ` có các lớp electron ${I.sh.join(', ')} — giống khí hiếm ${I.gas.s}</small>`;
+    if(last){ paused = true; side.classList.add('complete'); SFX.bell(); }
+    else { setGo(false); bGo.disabled = false; }
+  }
+  bGo.onclick = () => {
+    if(phase === 'build') check();
+    else if(phase === 'done'){ SFX.page(); round(); }
+  };
+  bClear.onclick = reset;
+  G.querySelector('#vlend').onclick = () => showResult(i, {correct, total:qs.length, hard:true});
+
+  // vẽ cả bàn trên một svg: các vòng + chấm lớp trong, sticker của bóng, vòng đỏ khi sai, điện tích (ion âm có ngoặc
+  // vuông), dòng đếm lớp ngoài cùng, quầng vàng, chấm lớp ngoài (đỏ: từ ngoài vào), electron tự do (mới hiện thì nở ra),
+  // dây nét đứt: chấm lớp ngoài đang kéo ↔ chỗ cũ (kéo quá xa thì dây đứt: thả là nhường), electron tự do đang kéo vào gần
+  // ↔ chỗ nó sẽ vào (vòng xanh); bóng hạt nhân là .atom đè lên trên
+  function draw(now){
+    const t = now/1000, sh = now < shakeT ? 7*Math.sin(t*55)*(shakeT - now)/450 : 0, z = charge(), o = RO*g, L = q.sh.length;
+    ax = CX + sh;
+    const lab = (Math.abs(z) > 1 ? Math.abs(z) : '') + (z > 0 ? '+' : '−'), held = hold && hold.moved && hold.e;
+    const out = els.length || q.sh[L - 2] || 0;                           // lớp ngoài bị bỏ hết thì lớp kế trong thành lớp ngoài cùng
+    let rings = '', inner = '', deco = '', glow = '', dots = '', hitI = '', hit = '', hitF = '', top = '';
+    q.sh.forEach((n, j) => {                // vòng ngoài trống: nét đứt mờ (vẫn là chỗ để nhận lại electron)
+      const r = (RING0 + j*GAP)*g, empty = j === L - 1 && !els.length;
+      rings += `<circle cx="${f(ax)}" cy="${CY}" r="${f(r)}" fill="none" stroke="#3b3025" stroke-width="1.5" stroke-opacity="${empty ? .22 : .38}"`
+        + (empty ? ' stroke-dasharray="4 6"/>' : '/>');
+      if(j < L - 1) for(let k = 0; k < n; k++){
+        const a = -Math.PI/2 + j*.4 + 2*Math.PI*k/n, x = f(ax + r*Math.cos(a)), y = f(CY + r*Math.sin(a));
+        inner += `<circle cx="${x}" cy="${y}" r="${IN_R}" fill="#3b3025" opacity=".8"/>`;
+        hitI += `<circle data-i="${j}" cx="${x}" cy="${y}" r="10" fill="transparent"/>`;
+      }
+    });
+    deco += `<text class="io-cnt" x="${f(ax)}" y="${f(CY + o + 44)}">lớp ngoài cùng: <tspan font-weight="bold">${out}</tspan> e</text>`;
+    if(now < badT) deco += `<circle cx="${f(ax)}" cy="${CY}" r="${f(o + DOT_R + 24)}" fill="none" stroke="#d9634f" stroke-width="3" `
+      + `stroke-dasharray="9 6" opacity="${f(Math.min(1, (badT - now)/600))}"/>`;
+    if(z > 0){                              // ion dương: điện tích bám góc lớp ngoài cùng còn electron
+      const p = els.length ? o : (RING0 + Math.max(0, L - 2)*GAP)*g;
+      deco += `<text class="lw-q" x="${f(ax + p*.72 + 10)}" y="${f(CY - p*.72 - 8)}">${lab}</text>`;
+    }
+    else if(z < 0){
+      const b = o + DOT_R + 14;
+      deco += `<path d="M${f(ax - b + 9)} ${f(CY - b)}h-9v${f(2*b)}h9M${f(ax + b - 9)} ${f(CY - b)}h9v${f(2*b)}h-9" fill="none" stroke="#3b3025" stroke-width="3"/>`
+        + `<text class="lw-q" x="${f(ax + b + 5)}" y="${f(CY - b + 18)}">${lab}</text>`;
+    }
+    els.forEach(e => {
+      const p = e === held ? hold : here(e);
+      if(phase === 'build') glow += halo(p, DOT_R + 5 + Math.sin(t*5 + e.id)*1.5);
+      dots += dot(p, e.mine);
+      hit += hitArc(e);
+    });
+    free.forEach(o => {
+      const s = Math.max(0, Math.min(1, (now - o.t0)/300));
+      if(phase === 'build') glow += halo(o, (DOT_R + 5 + Math.sin(t*4 + o.id)*1.5)*s);
+      dots += dot(o, o.mine, DOT_R*s);
+      hitF += `<circle data-f="${o.id}" cx="${f(o.x)}" cy="${f(o.y)}" r="${FREE_HIT}" fill="transparent"/>`;
+    });
+    const line = (a, b) => `<line x1="${f(a.x)}" y1="${f(a.y)}" x2="${f(b.x)}" y2="${f(b.y)}" stroke="#3b3025" stroke-width="2.2" stroke-dasharray="5 5" stroke-linecap="round"/>`;
+    const near = hold && hold.moved && Math.hypot(hold.x - ax, hold.y - CY) <= reach();
+    if(held && near) top += line(slot(held), hold);
+    if(hold && hold.moved && hold.o && near && els.length < MAX){ const s = nextSlot();
+      top += line(hold, s) + `<circle cx="${f(s.x)}" cy="${f(s.y)}" r="11" fill="none" stroke="#7aa95c" stroke-width="3"/>`; }
+    svg.innerHTML = rings + vlLayers([{el:q.el, x:ax, y:CY, s:RN/atomR(q.el), arms:[]}]) + inner + deco + glow + top + dots + hitI + hit + hitF;
+    ball.style.left = ax + 'px';
+  }
+  G.querySelector('#mgtime').style.display = ''; hud('Còn ' + TOTAL_T + ' giây', '#mgtime'); mgScore(0, qs.length); round();
+  // card "Cách chơi" (bấm nút tròn ? cạnh đề): lớp phủ nên đồng hồ đứng yên lúc đang xem (mgHeld). Con trỏ giả lặp lại
+  // ba bước trên một nguyên tử mẫu (hạt nhân không ghi kí hiệu — không lộ đáp án), chu kì GD giây, bước đang diễn sáng lên
+  // trong danh sách bên dưới: bấm chấm lớp ngoài → electron bật ra; kéo electron tự do vào → nguyên tử nhận; bấm nút
+  // Kiểm tra nhỏ trong hình. Toạ độ theo viewBox 220×100: G0 tâm nguyên tử; GA chấm lớp ngoài bên phải (bị bấm, rồi
+  // electron tự do được kéo vào đúng chỗ đó); GF electron tự do; GC con trỏ nghỉ; GO chỗ electron bật ra bay tới; GB nút
+  const GD = 8, G0 = {x:62, y:52}, GA = {x:92, y:52}, GF = {x:168, y:34}, GC = {x:204, y:52}, GO = {x:126, y:10}, GB = {x:180, y:80};
+  const GSTEPS = ['Bấm vào chấm lớp ngoài → nguyên tử <b>nhường</b> electron',
+    'Kéo (hoặc bấm) electron tự do vào → nguyên tử <b>nhận</b> electron', 'Đủ rồi thì bấm <b>Kiểm tra</b>'];
+  let gsvg = null, gli = [], gOpen = 0, gStep = -1;
+  const mix = (a, b, u) => { u = Math.max(0, Math.min(1, u)); u = u < .5 ? 2*u*u : 1 - 2*(1 - u)*(1 - u);
+    return {x:a.x + (b.x - a.x)*u, y:a.y + (b.y - a.y)*u}; };
+  const gdot = (p, red, a, hl) => (hl ? `<circle cx="${f(p.x)}" cy="${f(p.y)}" r="7.5" fill="#e8b84b" opacity="${f(.5*a)}"/>` : '')
+    + `<circle cx="${f(p.x)}" cy="${f(p.y)}" r="4" fill="${red ? '#d9634f' : '#3b3025'}" opacity="${f(a)}"${red ? ' stroke="#3b3025" stroke-width=".8"' : ''}/>`;
+  function guide(now){
+    if(!gsvg) return;
+    const T = Math.max(0, now - gOpen)/1000 % GD, seg = (a, b) => (T - a)/(b - a);
+    const cur = T < 1.1 ? mix(GC, GA, seg(.3, 1.1)) : T < 2.8 ? GA : T < 3.5 ? mix(GA, GF, seg(2.8, 3.5)) : T < 3.7 ? GF
+      : T < 4.6 ? mix(GF, GA, seg(3.7, 4.6)) : T < 5.6 ? GA : mix(GA, GB, seg(5.6, 6.4));
+    const down = T >= 1.1 && T < 1.3 || T >= 3.5 && T < 4.6 || T >= 6.6 && T < 6.8;   // đang nhấn chuột
+    const click = [1.1, 3.5, 6.6].map(c => T - c).find(d => d >= 0 && d < .45);      // gợn tròn lúc vừa nhấn
+    const step = T < 2.8 ? 0 : T < 5.6 ? 1 : 2, push = T >= 6.6 && T < 6.8;
+    if(step !== gStep){ gStep = step; gli.forEach((li, k) => li.classList.toggle('on', k === step)); }
+    let s = `<g opacity="${f(Math.max(0, Math.min(1, T/.3, (GD - T)/.4)))}">`
+      + [16, 30].map(r => `<circle cx="${G0.x}" cy="${G0.y}" r="${r}" fill="none" stroke="#3b3025" stroke-opacity=".38" stroke-width="1.2"/>`).join('')
+      + `<circle cx="${G0.x}" cy="${G0.y - 16}" r="2.2" fill="#3b3025" opacity=".8"/><circle cx="${G0.x}" cy="${G0.y + 16}" r="2.2" fill="#3b3025" opacity=".8"/>`
+      + `<circle cx="${G0.x}" cy="${G0.y}" r="8" fill="#cdbfa8" stroke="#3b3025" stroke-width="1.5"/>`
+      + gdot({x:G0.x - 30, y:G0.y}, false, 1, !step) + gdot({x:G0.x, y:G0.y - 30}, false, 1, !step)
+      + `<g transform="translate(0 ${push ? 1 : 0})"><rect x="${GB.x - 30}" y="${GB.y - 10}" width="60" height="20" rx="4" fill="${push ? '#cf9f35' : '#e8b84b'}" `
+      + `stroke="#3b3025" stroke-width="1.2"/><text x="${GB.x}" y="${GB.y + 3.5}" text-anchor="middle" style="font:10px var(--fh)" fill="#3b3025">✓ Kiểm tra</text></g>`;
+    if(T < 1.2) s += gdot(GA, false, 1, true);
+    else if(T < 2.2) s += gdot(mix(GA, GO, seg(1.2, 2.2)), false, 1 - seg(1.2, 2.2));
+    s += gdot(T < 3.5 ? {x:GF.x + Math.sin(T*2.2)*3, y:GF.y + Math.cos(T*1.7)*2} : T < 4.6 ? cur : GA, true, 1, T < 4.6);
+    if(click !== undefined) s += `<circle cx="${f(cur.x)}" cy="${f(cur.y)}" r="${f(3 + click*24)}" fill="none" stroke="#3b3025" stroke-width="1.5" opacity="${f(1 - click/.45)}"/>`;
+    gsvg.innerHTML = s + `<path transform="translate(${f(cur.x)} ${f(cur.y)}) scale(${down ? .85 : 1})" d="M0 0V15l4-3.5 2.8 6 2.4-1.1-2.7-5.8h5z" `
+      + `fill="#fff" stroke="#3b3025" stroke-width="1.3" stroke-linejoin="round"/></g>`;
+  }
+  function help(){                          // mở card Cách chơi (đóng bằng nút ✕ hoặc Đã hiểu)
+    if(ended || G.querySelector('.overlay')) return;
+    const ov = modal(`<h2>${ico('book', 22)} Cách chơi</h2><svg class="io-demo" viewBox="0 0 220 100" width="440" height="200"></svg>`
+      + `<ol class="io-steps">${GSTEPS.map(s => `<li>${s}</li>`).join('')}</ol>`
+      + `<div class="center"><button class="btn big" id="iook">${ico('check')} Đã hiểu</button></div>`, () => { gsvg = null; }, 'io-help');
+    gsvg = ov.querySelector('.io-demo'); gli = [...ov.querySelectorAll('.io-steps li')]; gOpen = performance.now(); gStep = -1;
+    ov.querySelector('#iook').onclick = () => { gsvg = null; closeOv(ov); };
+  }
+  G.querySelector('#iohelp').onclick = help;
+  // electron tự do trôi: hướng bay đổi dần ngẫu nhiên, tốc độ kéo dần về SPD (vừa bật ra thì chậm lại), bị đẩy ra khỏi
+  // vùng nguyên tử, tránh nhau, dội mép khu vực; còn ít hơn FREE_MIN thì một electron mới trôi vào từ mép trái / phải
+  function drift(dt){
+    const C = clear();
+    free.forEach(o => {
+      if(hold && hold.o === o && hold.moved){ Object.assign(o, {x:hold.x, y:hold.y, vx:0, vy:0}); return; }
+      const a = Math.atan2(o.vy, o.vx) + (Math.random() - .5)*2.4*dt, s = Math.hypot(o.vx, o.vy) || SPD, v = s + (SPD - s)*Math.min(1, dt*1.6);
+      o.vx = Math.cos(a)*v; o.vy = Math.sin(a)*v;
+      const dx = o.x - ax, dy = o.y - CY, d = Math.hypot(dx, dy) || 1;
+      if(d < C){ o.vx += dx/d*260*dt; o.vy += dy/d*260*dt; }
+      free.forEach(p => { if(p === o) return;
+        const ex = o.x - p.x, ey = o.y - p.y, m = Math.hypot(ex, ey) || 1;
+        if(m < 44){ o.vx += ex/m*70*dt; o.vy += ey/m*70*dt; } });
+      o.x += o.vx*dt; o.y += o.vy*dt;
+      if(o.x < PAD){ o.x = PAD; o.vx = Math.abs(o.vx); }
+      if(o.x > ZW - PAD){ o.x = ZW - PAD; o.vx = -Math.abs(o.vx); }
+      if(o.y < PAD + 18){ o.y = PAD + 18; o.vy = Math.abs(o.vy); }            // chừa nhãn "Khu vực tạo ion"
+      if(o.y > ZH - PAD){ o.y = ZH - PAD; o.vy = -Math.abs(o.vy); }
+    });
+    if(phase === 'build' && free.length < FREE_MIN){
+      const L = Math.random() < .5;
+      loose({x:L ? PAD : ZW - PAD, y:PAD + 40 + Math.random()*(ZH - 2*PAD - 60)}, false, {x:(L ? 1 : -1)*SPD*2, y:0});
+    }
+  }
+  // vòng vẽ: đồng hồ của màn; các vòng nở ra lúc mới ra câu; chấm lớp ngoài trượt về chỗ mới; electron tự do trôi
+  let last = performance.now();
+  (function frame(now){
+    if(!zone.isConnected) return;                                       // rời minigame: dừng hẳn
+    const dt = Math.max(0, Math.min(now - last, 120))/1000, k = 1 - Math.exp(-dt*9);
+    const clk = Math.max(0, Math.min(now - last, 1000))/1000;           // như trò thường: ngắt quãng quá 1 s chỉ tính 1 s
+    last = now;
+    if(!ended && !paused && !mgHeld()){
+      tLeft = Math.max(0, tLeft - clk);
+      const sec = Math.ceil(tLeft);
+      if(sec !== shownT){ shownT = sec; hud('Còn ' + sec + ' giây', '#mgtime'); }
+      if(!tLeft) endGame();
+    }
+    g = 1 - (1 - Math.max(0, Math.min(1, (now - born)/500)))**3;       // now của khung hình có thể sớm hơn born một chút
+    els.forEach(e => { e.ox -= e.ox*k; e.oy -= e.oy*k; });
+    drift(dt);
+    draw(now);
+    guide(now);
+    requestAnimationFrame(frame);
+  })(last);
  },
 
  /* --- ngày 12: xác định chất. Ba lọ mất nhãn đánh số 1–3, nhãn nằm xáo trộn bên dưới.
@@ -2720,7 +3616,8 @@ function showHardBook(){
    phan-ung.js nên cả 167 phản ứng đều có thẻ, không phải vẽ tay cái nào. */
 const ATOM_STYLE = {H:['#ffffff',8], O:['#e0574a',11], C:['#4a4a4a',11], N:['#5b7fe0',11], Cl:['#7cc35a',12],
   S:['#e8d44d',12], P:['#f0954a',12], Na:['#a37ad6',13], K:['#8f5fd0',14], Mg:['#4fb38a',13], Ca:['#9fb8a6',14],
-  Al:['#c9a0a8',13], Zn:['#8aa0b8',13], Fe:['#c46a3a',13], Cu:['#d98a4a',13], Ag:['#c8ccd4',14], Ba:['#5fbf8f',14], Mn:['#9b6bb0',13]};
+  Al:['#c9a0a8',13], Zn:['#8aa0b8',13], Fe:['#c46a3a',13], Cu:['#d98a4a',13], Ag:['#c8ccd4',14], Ba:['#5fbf8f',14], Mn:['#9b6bb0',13],
+  Li:['#c3a6e8',12], F:['#c8e07e',10], Br:['#a3402c',13]};          // Li, F, Br: chỉ có ở trò tạo ion (ngày 3 khó)
 const atomR = el => (ATOM_STYLE[el] || ['#ccc',12])[1];
 const RX_NOTES = [
   'Axit gặp bazơ: H của axit bắt tay nhóm OH của bazơ thành nước, phần còn lại ghép thành muối — phản ứng trung hoà.',

@@ -59,6 +59,19 @@ if(DEBUG){
   });
   DAYS.filter(d => d.mg === 'bins').forEach(d => d.items.forEach(([f]) =>
     console.assert(MOL_2D[f] || molAtoms(f).length === 1, 'minigame phân loại: thiếu mô hình bi–que cho '+f)));
+  // tạo ion (ngày 3, chế độ khó): nguyên tố nhóm A có bóng, ion ra cấu hình khí hiếm, số chấm sau khi nhường / nhận nằm
+  // trong 0–8 (Lewis vẽ tối đa 8 chấm); vẽ đủ các lớp nên tối đa 4 lớp (vòng ngoài cùng vừa khít khu vực) và lớp cuối
+  // trong e.sh đúng là số electron lớp ngoài
+  DAYS.filter(d => d.mg === 'bins' && d.hard).forEach(d => {
+    const H = d.hard;
+    console.assert(H.story && H.note && H.time > 0, 'tạo ion: thiếu lời dặn / thời gian chế độ khó');
+    H.pools.forEach(([n, list]) => {
+      console.assert(n <= list.length, 'tạo ion: bốc '+n+' câu từ nhóm chỉ có '+list.length);
+      list.forEach(s => { const e = PT_BY[s], I = e && ptIon(e), k = e && ptOuter(e) - I.q;
+        console.assert(e && ATOM_STYLE[s] && ptMain(e) && e.k !== 'g' && I.gas && k >= 0 && k <= 8, 'tạo ion: '+s+' thiếu dữ liệu / không ra ion bền');
+        console.assert(e && e.sh.length <= 4 && e.sh[e.sh.length - 1] === ptOuter(e), 'tạo ion: '+s+' quá 4 lớp / lớp ngoài lệch'); });
+    });
+  });
   // lập công thức theo hoá trị: mô hình đáp án (và easter egg) dựng được, mỗi bóng đúng số tay theo hoá trị dùng trong
   // câu, đủ bóng theo công thức, không hai bóng nào sát tới mức sticker dính vào nhau; hoá trị tô đậm phải có trong bảng
   const vlCheck = (f, lay, vals, over) => {          // over: số tay của nút ngoại lệ (chất bí mật)
@@ -85,6 +98,22 @@ if(DEBUG){
       console.assert(Object.values(atomCounts(q.f)).reduce((s, n) => s + n, 0) <= VL_MAX, 'sổ chất: '+q.f+' cần nhiều bóng hơn bàn chứa được');
       console.assert(q.name && Object.keys(q.vals).every(e => EL_VN[e] && ATOM_STYLE[e] && (VL_VALS[e]||[]).includes(q.vals[e])), 'hoá trị: thiếu dữ liệu cho '+q.f);
       vlCheck(q.f, vlLayout(q), q.vals);
+    });
+    // chế độ khó (sơ đồ Lewis): đủ dữ liệu từng nguyên tố, công thức tối giản; có kim loại thì số electron kim loại nhường
+    // khớp số electron phi kim cần nhận, toàn phi kim thì số electron còn thiếu chẵn (mỗi cặp dùng chung bù 2) và đủ nối
+    // mọi bóng thành một cụm
+    const H = d.hard;
+    console.assert(H && H.story && H.note && H.time > 0, 'sơ đồ Lewis: thiếu lời dặn / thời gian chế độ khó');
+    H.pools.forEach(([n, list]) => {
+      console.assert(n <= list.length, 'sơ đồ Lewis: bốc '+n+' câu từ nhóm chỉ có '+list.length);
+      list.forEach(([f, name]) => {
+        const c = atomCounts(f), els = Object.keys(c), tot = els.reduce((s, e) => s + c[e], 0);
+        console.assert(name && tot <= VL_MAX && els.every(e => LW_E[e] && EL_VN[e] && ATOM_STYLE[e]), 'sơ đồ Lewis: thiếu dữ liệu cho '+f);
+        console.assert(els.length === 1 || els.reduce((g, e) => gcd(g, c[e]), 0) === 1, 'sơ đồ Lewis: '+f+' chưa tối giản');
+        const give = els.filter(e => LW_METAL.includes(e)).reduce((s, e) => s + c[e]*LW_E[e], 0);
+        const need = els.filter(e => !LW_METAL.includes(e)).reduce((s, e) => s + c[e]*(lwNeed(e) - LW_E[e]), 0);
+        console.assert(give ? give === need : need % 2 === 0 && need >= 2*(tot - 1), 'sơ đồ Lewis: '+f+' không ghép đủ electron được');
+      });
     });
   });
   // gốc: số tay mỗi X = 2·(O đôi) + (O–H) + (O neo của X đó) + (O cầu nối); chất vẽ tay (hữu cơ tới 2 C) cũng phải đúng hoá trị

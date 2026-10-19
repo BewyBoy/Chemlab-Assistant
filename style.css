@@ -299,6 +299,7 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .vl-t2{display:flex;align-items:center;gap:20px;font-size:21px}
 .vl-qn{font-size:16px;background:var(--accent);border:1.2px solid var(--ink);border-radius:4.8px;padding:1px 9px;transform:rotate(-3deg);margin-right:6px}
 .vl-chip{display:inline-flex;align-items:center;gap:4px}
+.vl-mode{display:inline-flex;align-items:center;gap:8px;margin-left:10px;font-size:18px}   /* công tắc "Sơ đồ Lewis" ở màn khám phá */
 .vl-vals{display:inline-flex;gap:3px;margin-left:3px}
 .vl-vals i{font-style:normal;font-size:14px;line-height:20px;min-width:22px;padding:0 4px;text-align:center;border:1.2px solid #3b302555;border-radius:4px;opacity:.5}
 .vl-vals i.on{opacity:1;font-weight:bold;background:var(--accent);border-color:var(--ink)}
@@ -358,6 +359,26 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .vl-zone:hover .vl-val{opacity:1}
 .vl-say{font-family:var(--fh);font-size:19px;line-height:1.35;text-align:center;min-height:56px;max-width:1000px}
 .vl-say .vl-f{font-size:28px}
+/* sơ đồ Lewis (ngày 4, chế độ khó): chấm electron vẽ trên svg của khu vực; chấm kéo được có quầng vàng, gạch nối bấm được
+   để tách; điện tích ion có viền màu giấy cho khỏi lẫn vào dòng kẻ */
+.lw-svg [data-e]{cursor:grab}
+.lw-svg [data-l]{cursor:pointer}
+.lw-q{font:bold 17px var(--fh);fill:var(--ink);stroke:var(--card);stroke-width:4px;paint-order:stroke;pointer-events:none}
+/* tạo ion (ngày 3, chế độ khó): một nguyên tử to nên điện tích to theo; dòng đếm electron lớp ngoài cùng nhỏ và mờ
+   dưới nguyên tử; electron tự do trôi quanh kéo được */
+.io .lw-q{font-size:30px;stroke-width:6px}
+.io-cnt{font:15px var(--fh);fill:var(--ink);opacity:.55;text-anchor:middle;pointer-events:none}
+.lw-svg [data-f]{cursor:grab}
+/* đề chỉ có một dòng (không có dòng chip) nên đứng giữa dải đề, cạnh là nút tròn ? mở card "Cách chơi"; card có hình con
+   trỏ giả diễn ba bước, bước đang diễn trong danh sách sáng lên */
+.io .vl-task{justify-content:center}
+.io-row{display:flex;align-items:center;gap:12px}
+.io-hbtn{width:34px;height:34px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:bold 20px/1 var(--fh)}
+.modal.io-help{width:500px;text-align:center}
+.io-demo{display:block;margin:4px auto 2px;background:repeating-linear-gradient(#fffdf5 0 27px,#efe8d6 27px 28px);border:1.2px dashed #3b302588;border-radius:8px}
+.io-steps{text-align:left;max-width:420px;margin:10px auto 14px;padding-left:26px;font-family:var(--fh);font-size:17px;line-height:1.45}
+.io-steps li{opacity:.45;transition:opacity .25s}
+.io-steps li.on{opacity:1}
 .vl-ok{color:#4d7a33}
 .vl-bad{color:#b8432f}
 .flash-ok{animation:fok .5s}

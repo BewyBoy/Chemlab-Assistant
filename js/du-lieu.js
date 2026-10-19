@@ -165,7 +165,14 @@ const DAYS = [
  {mg:'bins',
   story:'NGUYÊN TỬ là hạt nhỏ nhất của nguyên tố (Fe, Cu…). Nhiều nguyên tử gắn lại thành PHÂN TỬ. Phân tử của một nguyên tố là ĐƠN CHẤT (O₂, N₂…), của nhiều nguyên tố là HỢP CHẤT (H₂O, CO₂…). Phân loại các thẻ này nào!',
   bins:['Nguyên tử','Phân tử đơn chất','Phân tử hợp chất'], binNotes:['kim loại'],
-  items:[['Fe',0],['Cu',0],['Na',0],['Ag',0],['O2',1],['H2',1],['N2',1],['Cl2',1],['H2O',2],['CO2',2],['NaCl',2],['H2SO4',2]]},
+  items:[['Fe',0],['Cu',0],['Na',0],['Ag',0],['O2',1],['H2',1],['N2',1],['Cl2',1],['H2O',2],['CO2',2],['NaCl',2],['H2SO4',2]],
+  // CHẾ ĐỘ KHÓ: tạo ion (MG.ion trong che-do.js). Mỗi nhóm bốc [số câu, các nguyên tố] rồi xáo chung. Nguyên tố phải là
+  // nhóm A có ion bền giống khí hiếm (ptIon) và có bóng trong ATOM_STYLE — khoi-dong.js kiểm tra
+  hard:{
+   note:'Mỗi câu chỉ có <b>một nguyên tử</b>, vẽ đủ các lớp electron; lớp ngoài cùng xếp theo sơ đồ Lewis. Tự xét nên <b>nhường</b> electron lớp ngoài hay <b>nhận</b> các electron tự do trôi quanh, bao nhiêu cái, để nguyên tử thành ion bền như khí hiếm. 10 câu trong 150 giây.',
+   story:'CHẾ ĐỘ KHÓ: TẠO ION! Hôm nay mỗi câu chỉ có MỘT nguyên tử, vẽ đủ các LỚP ELECTRON: hạt nhân ở giữa, mỗi vòng là một lớp, mỗi chấm là một electron. Electron lớp trong bị hạt nhân giữ rất chặt; chỉ ELECTRON LỚP NGOÀI CÙNG (vòng ngoài, chấm to có quầng vàng, xếp từng cặp như sơ đồ Lewis) mới nhường hay nhận được. Nguyên tử nào cũng muốn có lớp ngoài cùng bền như KHÍ HIẾM — đủ 8 electron (riêng lớp thứ nhất chỉ cần 2, như He). Nguyên tử KIM LOẠI có 1, 2, 3 electron lớp ngoài thì NHƯỜNG hết đi: bấm vào chấm (hoặc kéo chấm ra xa) là electron bật ra ngoài — mất electron, nguyên tử thành ION DƯƠNG. Nguyên tử PHI KIM có 5, 6, 7 electron lớp ngoài thì NHẬN thêm cho đủ 8: quanh nguyên tử luôn có vài ELECTRON TỰ DO trôi lơ lửng — bấm vào chúng, hoặc kéo thả vào nguyên tử — nhận electron, nguyên tử thành ION ÂM. Đề không nói nhường hay nhận, cũng không nói bao nhiêu — trò tự xét rồi bấm KIỂM TRA. 10 câu trong 150 giây!',
+   time:150,
+   pools:[[5, ['Li','Na','K','Mg','Ca','Al']], [5, ['N','O','F','P','S','Cl','Br']]]}},
 
  {mg:'valence',
   story:'HOÁ TRỊ là số "cánh tay" một nguyên tử dùng để nắm tay nguyên tử khác. Công thức đúng khi MỌI bàn tay đều có bạn nắm, không tay nào thừa: Na 1 tay, O 2 tay → 2 Na nắm 1 O thành Na₂O. Có nguyên tố nhiều hoá trị (N từ I tới V!) — đề ghi đủ và tô đậm hoá trị dùng trong câu. GỐC AXIT (=SO₄, −NO₃…) và nhóm −OH cũng có hoá trị, coi như một nguyên tố: mấy câu đầu ta ráp sẵn gốc cho, từ câu 4 trò tự ráp từ từng nguyên tử. Kéo bóng vào khu vực tạo chất rồi bấm KIỂM TRA. Cả màn chỉ có 90 giây — làm nhanh nhé! Xong sớm thì giây còn lại để trò tự do tạo chất lấy điểm.',
@@ -217,7 +224,21 @@ const DAYS = [
    ['Na',1,'CH3O','natri metylat'], ['K',1,'CH3O','kali metylat'], ['Na',1,'C2H5O','natri etylat'], ['K',1,'C2H5O','kali etylat'],
    ['H',1,'C2O4','axit oxalic'], ['Na',1,'C2O4','natri oxalat'], ['K',1,'C2O4','kali oxalat'], ['Ag',1,'C2O4','bạc oxalat'],
    ['Mg',2,'C2O4','magie oxalat'], ['Ca',2,'C2O4','canxi oxalat'], ['Ba',2,'C2O4','bari oxalat'], ['Zn',2,'C2O4','kẽm oxalat'],
-   ['Fe',2,'C2O4','sắt(II) oxalat'], ['Cu',2,'C2O4','đồng(II) oxalat']]},
+   ['Fe',2,'C2O4','sắt(II) oxalat'], ['Cu',2,'C2O4','đồng(II) oxalat']],
+  // CHẾ ĐỘ KHÓ: sơ đồ Lewis (MG.lewis trong che-do.js). Mỗi lượt bốc theo thứ tự: [số câu, danh sách [công thức, tên]].
+  // Đề không ghi công thức — mỗi chất phải là cách ghép ÍT nguyên tử nhất mà mọi nguyên tử đủ electron (khoi-dong.js kiểm
+  // tra số electron khớp); nguyên tố phải có trong LW_E. Có kim loại thì là liên kết ion, toàn phi kim là cộng hoá trị
+  hard:{
+   note:'Nguyên tử vẽ theo <b>sơ đồ Lewis</b>, mỗi chấm là một electron lớp ngoài cùng. Hai phi kim: <b>nối hai chấm</b> thành liên kết cộng hoá trị; có kim loại: <b>kéo electron</b> của kim loại sang phi kim thành liên kết ion. 8 câu trong 240 giây.',
+   story:'CHẾ ĐỘ KHÓ: SƠ ĐỒ LEWIS! Hôm nay mỗi nguyên tử hiện đủ các ELECTRON LỚP NGOÀI CÙNG, mỗi chấm là một electron. Nguyên tử nào cũng muốn có 8 electron lớp ngoài như khí hiếm (riêng H chỉ cần 2, giống He). Hai PHI KIM thì GÓP CHUNG: kéo từ một chấm đứng một mình (có quầng vàng) sang chấm có quầng vàng của nguyên tử kia — hai chấm nối thành một gạch, đó là một cặp electron dùng chung, gọi là LIÊN KẾT CỘNG HOÁ TRỊ. Nối thêm giữa hai nguyên tử đó là liên kết đôi, liên kết ba. KIM LOẠI thì NHƯỜNG: kéo chấm electron của kim loại thả vào phi kim — kim loại thành ion dương, phi kim thành ion âm, hai ion trái dấu hút nhau: LIÊN KẾT ION (chấm đỏ là electron vừa được nhường). Đề chỉ ghi tên chất, trò tự tính cần bao nhiêu nguyên tử. Bấm gạch nối để tách, bấm chấm đỏ để trả lại. 8 câu trong 240 giây!',
+   time:240,
+   pools:[
+    [2, [['HCl','hiđro clorua'], ['H2O','nước'], ['NH3','amoniac'], ['CH4','metan'], ['H2S','hiđro sunfua'], ['CCl4','cacbon tetraclorua'],
+         ['PCl3','photpho triclorua']]],
+    [2, [['NaCl','natri clorua'], ['KCl','kali clorua'], ['MgO','magie oxit'], ['CaO','canxi oxit'], ['Na2O','natri oxit'],
+         ['K2S','kali sunfua'], ['MgCl2','magie clorua'], ['CaCl2','canxi clorua']]],
+    [2, [['O2','khí oxi'], ['N2','khí nitơ'], ['CO2','khí cacbonic'], ['CS2','cacbon đisunfua'], ['HCN','axit xianhiđric']]],
+    [2, [['Al2O3','nhôm oxit'], ['Mg3N2','magie nitrua'], ['Ca3N2','canxi nitrua'], ['Al2S3','nhôm sunfua']]]]}},
 
  {mg:'balance',
   story:'Hôm qua trò lập được công thức, hôm nay ta ghép chúng thành PHƯƠNG TRÌNH HOÁ HỌC. Trong phản ứng, nguyên tử KHÔNG tự sinh ra cũng không mất đi — liên kết cũ đứt, các nguyên tử đổi bạn nắm tay thành chất mới. Vì thế số nguyên tử mỗi nguyên tố TRƯỚC và SAU phản ứng phải bằng nhau. Số đứng trước công thức là HỆ SỐ = số phân tử của chất đó. Kéo đúng số phân tử mỗi chất vào KHAY PHẢN ỨNG — chất tham gia bên trái mũi tên, sản phẩm bên phải — rồi bấm PHẢN ỨNG, ta sẽ đếm từng nguyên tử và kết luận. Nhớ: chỉ thêm bớt phân tử, không sửa công thức, và chọn bộ hệ số NHỎ NHẤT. Mỗi câu 2 điểm, chưa cân bằng thì mất 1 điểm. Từ mai, trên tường tiệm có tờ GIẤY CÂN BẰNG — bấm vào để tự cân bằng phương trình của ca đó nhé!',
