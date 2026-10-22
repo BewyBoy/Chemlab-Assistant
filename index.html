@@ -12,7 +12,8 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div id="game"></div>
+<!-- #screen lấp cửa sổ theo tỷ lệ đã chọn; #game là vùng 1280×720 ở giữa, mọi toạ độ trong game tính theo nó -->
+<div id="screen"><div id="game"></div></div>
 <div id="rotate"><svg width="70" height="90" viewBox="0 0 70 90"><rect x="8" y="4" width="54" height="82" rx="9" fill="#fffdf5" stroke="#f7f1e3" stroke-width="4"/><rect x="15" y="14" width="40" height="58" rx="3" fill="#7fc4c9"/><circle cx="35" cy="79" r="3" fill="#4a4238"/></svg>Xoay ngang điện thoại để chơi nhé!<small style="font-size:15px;opacity:.75">Bàn thí nghiệm cần màn hình nằm ngang.</small></div>
 <!-- Thứ tự nạp quan trọng: thoại & bảng phản ứng → dữ liệu → đồ hoạ → giao diện → phòng thí nghiệm → chế độ phụ → khởi động. -->
 <script src="js/loi-thoai.js"></script>

@@ -1,0 +1,22 @@
+<!-- Bản gốc của favicon.png / favicon.ico: phân tử SO₃ kiểu bi–que, cùng màu bi trong game (ATOM_STYLE: S vàng, O đỏ).
+     Sửa ở đây rồi xuất lại hai file ở thư mục gốc (PNG 128 px; ICO gồm 16, 32, 48 px). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <g stroke="#3b3025" stroke-width="5" stroke-linecap="round">
+    <line x1="32" y1="37" x2="32" y2="14"/>
+    <line x1="32" y1="37" x2="51.9" y2="48.5"/>
+    <line x1="32" y1="37" x2="12.1" y2="48.5"/>
+  </g>
+  <g stroke="#3b3025" stroke-width="2.4">
+    <circle cx="32" cy="14" r="8.6" fill="#e0574a"/>
+    <circle cx="51.9" cy="48.5" r="8.6" fill="#e0574a"/>
+    <circle cx="12.1" cy="48.5" r="8.6" fill="#e0574a"/>
+    <circle cx="32" cy="37" r="10.2" fill="#e8d44d"/>
+  </g>
+  <!-- ánh sáng góc trên trái cho bi tròn khối -->
+  <g fill="#fff" opacity=".5">
+    <ellipse cx="29" cy="11.1" rx="3" ry="2" transform="rotate(-35 29 11.1)"/>
+    <ellipse cx="48.9" cy="45.6" rx="3" ry="2" transform="rotate(-35 48.9 45.6)"/>
+    <ellipse cx="9.1" cy="45.6" rx="3" ry="2" transform="rotate(-35 9.1 45.6)"/>
+    <ellipse cx="28.4" cy="33.5" rx="3.6" ry="2.3" transform="rotate(-35 28.4 33.5)"/>
+  </g>
+</svg>

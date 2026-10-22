@@ -1761,6 +1761,17 @@ const SVG_DEFS = `
   <circle cx="12" cy="12" r="3.2" fill="#fffdf5" stroke="#3b3025" stroke-width="1.6"/>
 </symbol>
 
+<!-- ico-screen (tỷ lệ màn hình) -->
+<symbol id="ico-screen" viewBox="0 0 24 24">
+  <rect x="2.5" y="4" width="19" height="12.5" rx="1.6" fill="#7fc4c9" stroke="#3b3025" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M12,16.5 L12,20 M7.5,20.5 L16.5,20.5" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
+</symbol>
+
+<!-- ico-expand (toàn màn hình) -->
+<symbol id="ico-expand" viewBox="0 0 24 24">
+  <path d="M3.5,9 L3.5,3.5 L9,3.5 M15,3.5 L20.5,3.5 L20.5,9 M20.5,15 L20.5,20.5 L15,20.5 M9,20.5 L3.5,20.5 L3.5,15" fill="none" stroke="#3b3025" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+</symbol>
+
 <!-- ============================================================
      LỌ MẤT NHÃN (minigame xác định chất): lọ bầu, nút nhám, dải nhãn trống ngang thân (y 128–186).
      --lc = màu dung dịch. Số thứ tự và nhãn dán là HTML phủ lên dải.

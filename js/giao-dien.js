@@ -265,9 +265,7 @@ function showMenu(){
         <button class="btn" id="bset">${ico('gear')} Cài đặt</button>
       </div>
     </div>
-    <div style="position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(#c89a63,#a97c4b);border-top:5px solid var(--ink)">
-      ${sym('sym-benchtex',1270,60,'position:absolute;top:6px;left:0')}
-    </div>
+    <div class="menu-bench">${sym('sym-benchtex',1270,60)}</div>
     <div style="position:absolute;bottom:96px;left:120px">${sym('sym-tuberack',190,120)}</div>
     <div style="position:absolute;bottom:98px;left:330px">${sym('sym-erlenmeyer',86,116,'--lc:#7fc4c9')}</div>
     <div style="position:absolute;bottom:98px;left:430px">${sym('sym-lamp',80,96,'--flame:1')}</div>
@@ -996,9 +994,13 @@ function settingsModal(){
     + '<h2>'+ico('gear',22)+' Cài đặt</h2>'
     + '<div class="hgrid"><div>'
     + volSliders()
+    + '<div class="settingrow"><div><b style="'+lbl+'">'+ico('screen',15)+' Tỷ lệ màn hình</b><span class="sethint" id="resHint"></span></div>'
+    + '<div class="resstep"><button class="btn" id="resPrev" aria-label="Tỷ lệ trước">'+ico('back',16)+'</button>'
+    + '<b id="resVal"></b><button class="btn" id="resNext" aria-label="Tỷ lệ sau">'+ico('next',16)+'</button></div></div>'
     + '<div class="settingrow"><div><b style="'+lbl+'">'+ico('trash',15)+' Xoá dữ liệu trò chơi</b></div>'
     + '<button class="btn danger" id="breset">Xoá</button></div>'
     + '</div><div>'
+    + tgl('tglFull','expand','Toàn màn hình',fsOn(),!fsOK())
     + tgl('tglCards','star','Thẻ phản ứng',cardsOn())
     + tgl('tglBalance','note','Giấy cân bằng sẵn',!balanceOn(),!nobalOwned())
     + tgl('tglHard','flask','Chế độ khó',hardOn(),!hardUnlocked())
@@ -1016,6 +1018,23 @@ function settingsModal(){
   else lockedTgl('#tglHard', 'Hoàn thành trò chơi lần đầu để mở khoá chế độ khó!');
   if(nobalOwned()) flip('#tglBalance', 'balance', () => !balanceOn());
   else lockedTgl('#tglBalance', 'Mua vật phẩm ở Cửa hàng để mở khoá!');
+  // toàn màn hình không lưu vào save: trình duyệt chỉ cho bật khi người chơi bấm; công tắc theo trạng thái thật (xem fullscreenchange)
+  if(fsOK()) ov.querySelector('#tglFull').onclick = () => { SFX.clink(); setFullscreen(!fsOn()); };
+  else lockedTgl('#tglFull', 'Trình duyệt này không cho bật toàn màn hình — thử phím F11 nhé!');
+  const showRes = () => {
+    const i = Math.max(0, SCREEN_RES.findIndex(r => r[0] === (save.settings.res || 'auto')));
+    ov.querySelector('#resVal').textContent = SCREEN_RES[i][1];
+    ov.querySelector('#resHint').textContent = SCREEN_RES[i][2];
+    return i;
+  };
+  const stepRes = d => {
+    const i = (showRes() + d + SCREEN_RES.length) % SCREEN_RES.length;
+    save.settings.res = SCREEN_RES[i][0]; persist();
+    showRes(); fit(); SFX.clink();
+  };
+  ov.querySelector('#resPrev').onclick = () => stepRes(-1);
+  ov.querySelector('#resNext').onclick = () => stepRes(1);
+  showRes();
   bindVolSliders(ov);
   ov.querySelector('#mclose').onclick = () => closeOv(ov);
   ov.querySelector('#breset').onclick = () => confirmModal(
@@ -1117,9 +1136,43 @@ function showResult(i, st){
 }
 
 /* =====================  SCALE TO WINDOW  ===================== */
+// Tỷ lệ màn hình (Cài đặt): 'auto' theo đúng hình cửa sổ; tỷ lệ cố định thì phần cửa sổ dư ra để trống.
+// Ngoài khoảng 5:4 … 21:9 thì không giãn thêm nữa — cảnh sẽ quá trống — mà để dải trống như cũ.
+const SCREEN_RES = [
+  ['auto',  'Tự động', 'Vừa khít cửa sổ'],
+  ['16:9',  '16:9',    '1920×1080, 1366×768'],
+  ['16:10', '16:10',   '1920×1200, 1440×900, MacBook'],
+  ['3:2',   '3:2',     'Surface, Chromebook'],
+  ['4:3',   '4:3',     '1024×768, iPad'],
+  ['5:4',   '5:4',     '1280×1024'],
+  ['21:9',  '21:9',    '2560×1080, 3440×1440']];
+const RES_MIN = 5/4, RES_MAX = 64/27;
+const SCR = document.getElementById('screen');
+let BX = 0, BY = 0;   // = --bx / --by: phần màn hình dư ra mỗi bên vùng 1280×720, tính bằng px game
+// toàn màn hình: Safari cũ chỉ có bản webkit-; trong iframe không được phép (itch.io tắt nút) thì fsOK() = false
+const fsOK = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+const fsOn = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+function setFullscreen(on){
+  const d = document.documentElement;
+  const p = on ? (d.requestFullscreen || d.webkitRequestFullscreen).call(d)
+               : (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  if(p && p.catch) p.catch(() => toast('Trình duyệt không cho bật toàn màn hình — thử phím F11 nhé!'));
+}
+// bật/tắt bằng phím Esc / F11 hay nút của trình duyệt cũng phải lật công tắc trong Cài đặt nếu đang mở
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => {
+  const t = G.querySelector('#tglFull');
+  if(t && fsOK()){ t.classList.toggle('on', fsOn()); t.setAttribute('aria-checked', fsOn()); }
+}));
 function fit(){
-  const s = Math.min(innerWidth/1300, innerHeight/740);
-  G.style.left = '50%'; G.style.top = '50%';
-  G.style.transform = `translate(-50%,-50%) scale(${s})`;
+  const r = save.settings.res, k = r && r !== 'auto' ? r.split(':') : null;
+  const a = Math.min(RES_MAX, Math.max(RES_MIN, k ? k[0]/k[1] : innerWidth/innerHeight));
+  // vùng game 1280×720 luôn nằm trọn; chiều còn lại nới ra cho khớp tỷ lệ
+  const W = Math.max(1280, 720*a), H = Math.max(720, 1280/a);
+  const s = Math.min(innerWidth/W, innerHeight/H);
+  BX = (W-1280)/2; BY = (H-720)/2;
+  SCR.style.width = W+'px'; SCR.style.height = H+'px';
+  SCR.style.setProperty('--bx', BX+'px');
+  SCR.style.setProperty('--by', BY+'px');
+  SCR.style.transform = `translate(-50%,-50%) scale(${s})`;
 }
 addEventListener('resize', fit);

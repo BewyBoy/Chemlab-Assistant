@@ -8,20 +8,41 @@
 const shuffle = a => { a = a.slice(); for(let k=a.length-1; k>0; k--){ const j = Math.floor(Math.random()*(k+1)); [a[k],a[j]] = [a[j],a[k]]; } return a; };
 
 function mgFrame(i, day, inner){
-  G.innerHTML = `<div class="scene" style="padding:0;${mgBgCSS(day.mg)}">
-    <div class="hudboard">${sym('sym-benchtex',1240,52,'position:absolute;left:20px;top:6px;opacity:.4;pointer-events:none')}
+  G.innerHTML = `<div class="scene mgscene" style="padding:0;${mgBgCSS(day.mg)}">
+    <div class="hudboard">${sym('sym-benchtex',1240,52,'position:absolute;left:20px;top:6px;width:calc(100% - 40px);opacity:.4;pointer-events:none')}
       <span class="hud-title">Ngày ${i+1} ${ico('dice',17)} ${day.t}</span>
       <div style="flex:1"></div><span class="hudstat" id="mgscore"></span>
       <span class="hudstat" id="mgtime" style="display:none"></span>
-      <button class="btn icobtn" id="bquit">${ico('close')}</button></div>
+      <button class="btn icobtn" id="bpause">${ico('pause')}</button></div>
     <div class="mgwrap">${inner}</div></div>`;
-  G.querySelector('#bquit').onclick = () => confirmModal(
-    '<h2>'+ico('back',22)+' Bỏ dở trò chơi?</h2><p style="margin:8px 0">Kết quả ca làm hiện tại sẽ không được tính.</p>',
-    () => go(showMap), 'Bỏ dở', 'Chơi tiếp');
+  mgEndEarly = null;
+  G.querySelector('#bpause').onclick = () => mgPause(i);
+}
+// ⏸ trên HUD minigame: cùng thẻ Tạm nghỉ như ở bàn thí nghiệm. Thẻ là lớp phủ nên đồng hồ minigame tự đứng (mgHeld).
+// mgExplore: đang ở màn Khám phá → Chơi lại thì vào lại Khám phá. mgEndEarly: phần tự do của trò lập công thức —
+// nút cuối thành "Dừng thử thách" (ra bảng tổng kết) thay cho Về bản đồ.
+let mgExplore = false, mgEndEarly = null;
+function mgPause(i){
+  const ov = document.createElement('div');
+  ov.className = 'overlay pauseov';
+  const hasLesson = BAI_GIANG[i];
+  ov.innerHTML = `<div class="pausecard"><h2>Tạm nghỉ</h2>
+    <button class="btn big" id="presume">${ico('play')} Tiếp tục</button>
+    ${hasLesson ? `<button class="btn" id="plesson">${ico('book')} Xem lại bài giảng</button>` : ''}
+    <button class="btn" id="prestart">${ico('retry')} Chơi lại</button>
+    <button class="btn" id="pmap">${mgEndEarly ? ico('check')+' Dừng thử thách' : ico('map')+' Về bản đồ'}</button>
+    <div class="pausevol">${volSliders()}</div></div>`;
+  G.appendChild(ov);
+  bindVolSliders(ov);
+  // bài giảng phủ lên màn đang dừng; đóng lại thì thẻ Tạm nghỉ hiện ra như cũ
+  if(hasLesson) ov.querySelector('#plesson').onclick = () => { ov.classList.add('under'); showLesson(i, () => ov.classList.remove('under')); };
+  ov.querySelector('#presume').onclick = () => closeOv(ov);
+  ov.querySelector('#prestart').onclick = () => go(mgExplore ? () => startVlExplore(i) : () => showIntro(i));
+  ov.querySelector('#pmap').onclick = () => mgEndEarly ? closeOv(ov, mgEndEarly) : go(showMap);
 }
 const mgScore = (c,t) => { G.querySelector('#mgscore').textContent = 'Đúng: '+c+'/'+t; };
-// đồng hồ minigame (lập công thức, sơ đồ Lewis, tạo ion) đứng yên khi có lớp phủ trên màn: đang hỏi "Bỏ dở trò chơi?"
-// sau nút ✕ thì coi như tạm dừng, bấm Chơi tiếp mới chạy lại
+// đồng hồ minigame (lập công thức, sơ đồ Lewis, tạo ion) đứng yên khi có lớp phủ trên màn: đang mở thẻ Tạm nghỉ
+// (nút ⏸) thì coi như tạm dừng, bấm Tiếp tục mới chạy lại
 const mgHeld = () => !!G.querySelector('.overlay');
 // mất điểm: ô Điểm nháy đỏ, "−1" bật ra ngay dưới nó rồi bay lên nhập vào (chuỗi phản ứng, cân bằng phương trình)
 function mgMinus(hud){
@@ -32,9 +53,48 @@ function mgMinus(hud){
   G.appendChild(m);
   m.onanimationend = () => m.remove();
 }
+/* Card "Cách chơi" của trò lập công thức và sơ đồ Lewis (ngày 4) — cùng kiểu card của trò tạo ion: nút tròn ? cạnh đề mở
+   card; hình mẫu viewBox 220×100 có con trỏ giả lặp lại từng bước, chu kì GD giây; bước đang diễn sáng lên trong danh
+   sách bên dưới. draw(T) (T: giây trong chu kì) trả {step, svg}. Card là lớp phủ nên đồng hồ đứng yên lúc đang xem
+   (mgHeld). Trả về tick(now) — gọi từ vòng vẽ của màn, card đóng thì không làm gì. */
+function mgHowTo(btn, steps, GD, draw){
+  let demo = null, lis = [], t0 = 0, cur = -1;
+  btn.onclick = () => {
+    if(G.querySelector('.overlay')) return;
+    const ov = modal(`<h2>${ico('book', 22)} Cách chơi</h2><svg class="io-demo" viewBox="0 0 220 100" width="440" height="200"></svg>`
+      + `<ol class="io-steps">${steps.map(s => `<li>${s}</li>`).join('')}</ol>`
+      + `<div class="center"><button class="btn big" id="iook">${ico('check')} Đã hiểu</button></div>`, () => { demo = null; }, 'io-help');
+    demo = ov.querySelector('.io-demo'); lis = [...ov.querySelectorAll('.io-steps li')]; t0 = performance.now(); cur = -1;
+    ov.querySelector('#iook').onclick = () => { demo = null; closeOv(ov); };
+  };
+  return now => {
+    if(!demo) return;
+    const T = Math.max(0, now - t0)/1000 % GD, {step, svg} = draw(T);
+    if(step !== cur){ cur = step; lis.forEach((li, k) => li.classList.toggle('on', k === cur)); }
+    demo.innerHTML = `<g opacity="${Math.max(0, Math.min(1, T/.3, (GD - T)/.4)).toFixed(2)}">${svg}</g>`;
+  };
+}
+// đồ dùng chung của hai hình mẫu: đi từ a tới b chậm hai đầu (u ngoài 0…1 thì đứng ở đầu mút); con trỏ giả (đang nhấn thì
+// co lại) kèm gợn tròn .45 s sau mỗi mốc bấm trong clicks; nút Kiểm tra nhỏ (push: đang bị nhấn); cột bóng bên trái —
+// phần còn lại của hình là khu vực tạo chất
+const htMix = (a, b, u) => { u = Math.max(0, Math.min(1, u)); u = u < .5 ? 2*u*u : 1 - 2*(1 - u)*(1 - u);
+  return {x:a.x + (b.x - a.x)*u, y:a.y + (b.y - a.y)*u}; };
+const htN = v => v.toFixed(1);
+function htCursor(T, p, down, clicks){
+  const k = clicks.map(c => T - c).find(d => d >= 0 && d < .45);
+  return (k === undefined ? '' : `<circle cx="${htN(p.x)}" cy="${htN(p.y)}" r="${htN(3 + k*24)}" fill="none" stroke="#3b3025" stroke-width="1.5" opacity="${htN(1 - k/.45)}"/>`)
+    + `<path transform="translate(${htN(p.x)} ${htN(p.y)}) scale(${down ? .85 : 1})" d="M0 0V15l4-3.5 2.8 6 2.4-1.1-2.7-5.8h5z" `
+    + `fill="#fff" stroke="#3b3025" stroke-width="1.3" stroke-linejoin="round"/>`;
+}
+const htCheck = (c, push) => `<g transform="translate(0 ${push ? 1 : 0})"><rect x="${c.x - 30}" y="${c.y - 10}" width="60" height="20" rx="4" `
+  + `fill="${push ? '#cf9f35' : '#e8b84b'}" stroke="#3b3025" stroke-width="1.2"/>`
+  + `<text x="${c.x}" y="${c.y + 3.5}" text-anchor="middle" style="font:10px var(--fh)" fill="#3b3025">✓ Kiểm tra</text></g>`;
+const HT_PAL = '<rect x="1.5" y="1.5" width="37" height="97" rx="3" fill="#efe4cc" opacity=".6"/>'
+  + '<line x1="40" y1="4" x2="40" y2="96" stroke="#3b302588" stroke-width="1" stroke-dasharray="3 2"/>';
 
 function startMinigame(i){
   SFX.music(themeOf(i));
+  mgExplore = false;
   const day = DAYS[i];
   MG[day.mg](i, day);
 }
@@ -445,7 +505,7 @@ const vlLayout = q => q.kind === 'bin' ? valLayout(q.A, q.a, q.B, q.b) : VL_RAD[
 const vlBook = day => day.pools.flatMap(([, list]) => list).concat(day.freeExtra || []).map(vlQuestion)
   .filter((q, k, all) => all.findIndex(o => o.f === q.f) === k);
 // khám phá ghép bằng bóng có tay (MG.valence) hay bằng sơ đồ Lewis (MG.lewis): công tắc ở đầu màn, nhớ ở save.settings.lewis
-function startVlExplore(i){ SFX.music(themeOf(i)); MG[save.settings.lewis ? 'lewis' : 'valence'](i, DAYS[i], true); }
+function startVlExplore(i){ SFX.music(themeOf(i)); mgExplore = true; MG[save.settings.lewis ? 'lewis' : 'valence'](i, DAYS[i], true); }
 const vlLewisSwitch = () => `<span class="vl-mode">Sơ đồ Lewis<span class="toggle${save.settings.lewis ? ' on' : ''}" id="tglLewis" `
   + `role="switch" aria-checked="${!!save.settings.lewis}"></span></span>`;
 function bindLewisSwitch(i){                // gạt xong mới đổi màn (bàn đang ghép bỏ đi, hai kiểu ghép khác hẳn nhau)
@@ -745,7 +805,8 @@ const MG = {
   const ORDER = ['Na', 'K', 'Ag', 'Mg', 'Ca', 'Ba', 'Zn', 'Cu', 'Fe', 'Al', 'H', 'C', 'N', 'P', 'S', 'Cl', 'O'];
   const elsOf = f => Object.keys(atomCounts(f)), ALL = known.map(k => k.f);
   mgFrame(i, explore ? Object.assign({}, day, {t:day.t + ' · Khám phá'}) : day, `<div class="vl">
-    <div class="vl-task"><div class="vl-t1"></div><div class="vl-t2"></div></div>
+    <div class="vl-task"><div class="io-row"><div class="vl-t1"></div>
+      <button class="btn io-hbtn" id="vlhelp" aria-label="Cách chơi" title="Cách chơi">?</button></div><div class="vl-t2"></div></div>
     <div class="vl-mid">
       <div class="vl-pal"></div>
       <div class="vl-zone" data-dz="vbuild" style="width:${ZW}px;height:${ZH}px">
@@ -838,14 +899,12 @@ const MG = {
     refresh(); SFX.clink();
   }
 
-  function refresh(){                       // nút + dòng nhắc dưới bàn (chỉ lúc đang ghép; có bóng trên bàn thì để trống)
+  // dòng nhắc dưới bàn (chỉ lúc đang ghép, bàn trống); cách kéo / bấm bóng nằm ở card Cách chơi (nút ?)
+  function refresh(){
     if(phase !== 'build') return;
     const L = live();
     bGo.disabled = bClear.disabled = !L.length;
-    say.innerHTML = L.length ? '' : afterEgg ? AGAIN
-      : mode === 'free' ? 'Tạo chất nào cũng được, miễn là chất có thật!'
-      : mode === 'explore' ? ''
-      : 'Kéo bóng ở cột trái vào khu vực tạo chất (hoặc bấm vào bóng). Bấm vào bóng trên bàn để bỏ ra.';
+    say.innerHTML = L.length ? '' : afterEgg ? AGAIN : mode === 'free' ? 'Tạo chất nào cũng được, miễn là chất có thật!' : '';
   }
   function lock(on){
     pal.classList.toggle('off', on);
@@ -900,11 +959,11 @@ const MG = {
     setPal(false);
     setGo(true); lock(false); refresh();
   }
-  function startFree(){                     // xong 8 câu → Tiếp tục: đồng hồ chạy tiếp; ✕ lúc này chỉ dừng sớm
+  function startFree(){                     // xong 8 câu → Tiếp tục: đồng hồ chạy tiếp; thẻ Tạm nghỉ lúc này có "Dừng thử thách"
     mode = 'free'; side.classList.remove('complete'); paused = false;
     score = made = 0; found = [];
     hud('Điểm: 0');
-    G.querySelector('#bquit').onclick = () => { if(!ended) endGame(true); };
+    mgEndEarly = () => { if(!ended) endGame(true); };
     SFX.page(); freeRound();
   }
   function exploreSetup(){
@@ -916,7 +975,7 @@ const MG = {
     hud('Sổ chất: ' + seen() + '/' + known.length);
     setGo(true); lock(false); refresh();
   }
-  // hết giờ (early: bấm ✕ dừng sớm ở phần tự do): khoá bàn, bảng tổng kết chỉ có Kết thúc — chơi lại thì làm lại từ đầu
+  // hết giờ (early: bấm "Dừng thử thách" ở thẻ Tạm nghỉ trong phần tự do): khoá bàn, bảng tổng kết chỉ có Kết thúc — chơi lại thì làm lại từ đầu
   function endGame(early){
     ended = true; phase = 'end'; lock(true); eggBox.hide(); SFX.bell();
     const free = mode === 'free', rec = free && score > (save.vlBest || 0), eggs = found.filter(f => VL_EGG[f]).length;
@@ -1082,11 +1141,35 @@ const MG = {
   G.querySelector('#vlend').onclick = () => showResult(i, {correct, total:qs.length});
   G.querySelector('#vlmore').onclick = startFree;
 
+  // card Cách chơi: kéo bóng xanh vào; bấm bóng trắng hai lần (mỗi lần một bóng rơi vào khu vực); bấm bóng trắng thừa để
+  // bỏ ra; bấm Kiểm tra → hai bóng nắm tay. Bóng không ghi kí hiệu (không gợi ý đáp án). Toạ độ theo viewBox 220×100:
+  // HA / HB bóng trong cột trái, HZA chỗ thả bóng xanh, HZ1 / HZ2 chỗ hai bóng trắng rơi, HGC con trỏ nghỉ, HGB nút
+  const HA = {x:20, y:32}, HB = {x:20, y:70}, HZA = {x:82, y:52}, HZ1 = {x:110, y:36}, HZ2 = {x:112, y:70}, HGC = {x:206, y:30}, HGB = {x:186, y:82};
+  const hBall = (p, r, fill, a = 1) => `<g opacity="${htN(a)}"><circle cx="${htN(p.x)}" cy="${htN(p.y)}" r="${htN(r + 2.4)}" fill="#fffdf5" `
+    + `stroke="#3b302544" stroke-width=".8"/><circle cx="${htN(p.x)}" cy="${htN(p.y)}" r="${htN(r)}" fill="${fill}" stroke="#3b3025" stroke-width="1.3"/></g>`;
+  const blue = (p, a) => hBall(p, 8, '#6f9ec9', a), white = (p, a, r = 5.5) => hBall(p, r, '#fffdf5', a);
+  const guide = mgHowTo(G.querySelector('#vlhelp'), ['Kéo (hoặc bấm) bóng ở cột trái vào khu vực tạo chất',
+    'Bấm vào bóng trên bàn để <b>bỏ ra</b>', 'Đủ rồi thì bấm <b>Kiểm tra</b>'], 9, T => {
+    const seg = (a, b) => (T - a)/(b - a);
+    const cur = T < 1 ? htMix(HGC, HA, seg(.3, 1)) : T < 1.2 ? HA : T < 2 ? htMix(HA, HZA, seg(1.2, 2)) : T < 2.6 ? htMix(HZA, HB, seg(2, 2.6))
+      : T < 3.4 ? HB : T < 4.2 ? htMix(HB, HZ2, seg(3.4, 4.2)) : T < 5.6 ? HZ2 : htMix(HZ2, HGB, seg(5.6, 6.4));
+    const down = T >= 1 && T < 2 || [2.6, 3.2, 4.4, 6.6].some(c => T >= c && T < c + .15);   // đang nhấn: kéo, hoặc một cú bấm
+    const arm = Math.max(0, Math.min(1, seg(6.75, 7.2)));                                // tay nắm nhau sau khi bấm Kiểm tra
+    let s = HT_PAL + blue(HA) + white(HB) + htCheck(HGB, T >= 6.6 && T < 6.75);
+    if(arm) s += `<line x1="${HZA.x}" y1="${HZA.y}" x2="${htN(HZA.x + (HZ1.x - HZA.x)*arm)}" y2="${htN(HZA.y + (HZ1.y - HZA.y)*arm)}" `
+      + `stroke="#3b3025" stroke-width="3.2" stroke-linecap="round"/>`;
+    if(T >= 1.2) s += blue(T < 2 ? cur : HZA);
+    if(T >= 2.7) s += white(htMix(HB, HZ1, seg(2.7, 3.1)));
+    if(T >= 3.3 && T < 5){ const u = Math.max(0, seg(4.5, 5)); s += white(htMix(HB, HZ2, seg(3.3, 3.7)), 1 - u, 5.5*(1 - .6*u)); }
+    return {step:T < 3.4 ? 0 : T < 5.6 ? 1 : 2, svg:s + htCursor(T, cur, down, [1, 2.6, 3.2, 4.4, 6.6])};
+  });
+
   // vòng vẽ: đồng hồ của màn; mọi thứ trôi êm về đích (vị trí, cỡ, độ mọc của tay); bị từ chối thì cả bàn rung ngang.
   // Lúc đang ghép, bóng trên bàn trôi rất chậm: hướng đổi dần, bị kéo nhẹ về giữa sân, nảy ở mép, né nhau (relax 1 lượt)
   let last = performance.now();
   (function frame(now){
     if(!zone.isConnected) return;                                       // rời minigame: dừng hẳn
+    guide(now);
     // máy chậm (ít khung hình) vẫn về đích kịp mốc của assemble: chặn dt rộng tay hơn các vòng vật lý
     const dt = Math.max(0, Math.min(now - last, 120))/1000, e = 1 - Math.exp(-dt*9), t = now/1000;
     // đồng hồ của màn theo giờ thật (máy chậm vẫn đúng giờ); khung hình ngắt quãng quá 1 s (chuyển tab, thu nhỏ cửa
@@ -1160,7 +1243,8 @@ const MG = {
   const TOTAL_T = H.time, ZW = 840, ZH = 430, SC = LW_SC, MAX = VL_MAX;
   const ORDER = ['Na', 'K', 'Mg', 'Ca', 'Al', 'H', 'C', 'N', 'P', 'S', 'Cl', 'O'];      // cột trái: kim loại trước, O cuối
   mgFrame(i, explore ? Object.assign({}, day, {t:day.t + ' · Khám phá'}) : day, `<div class="vl lw">
-    <div class="vl-task"><div class="vl-t1"></div><div class="vl-t2"></div></div>
+    <div class="vl-task"><div class="io-row"><div class="vl-t1"></div>
+      <button class="btn io-hbtn" id="vlhelp" aria-label="Cách chơi" title="Cách chơi">?</button></div><div class="vl-t2"></div></div>
     <div class="vl-mid">
       <div class="vl-pal"></div>
       <div class="vl-zone" data-dz="vbuild" style="width:${ZW}px;height:${ZH}px">
@@ -1382,12 +1466,11 @@ const MG = {
   layer.addEventListener('pointerup', up);
   layer.addEventListener('pointercancel', up);
 
-  function refresh(){                       // nút + dòng nhắc dưới bàn (chỉ lúc đang ghép; có bóng trên bàn thì để trống)
+  function refresh(){                       // nút Kiểm tra / Làm lại; cách ghép nằm ở card Cách chơi (nút ?)
     if(phase !== 'build') return;
     const n = live().length;
     bGo.disabled = bClear.disabled = !n;
-    say.innerHTML = n ? '' : 'Kéo nguyên tử vào khu vực tạo chất. Hai phi kim: kéo từ chấm có quầng vàng sang chấm có quầng vàng'
-      + ' của nguyên tử kia để <b>góp chung</b>. Kim loại: kéo chấm electron thả vào phi kim để <b>nhường</b>.';
+    say.innerHTML = '';
   }
   function lock(off){ pal.classList.toggle('off', off); bGo.disabled = bClear.disabled = off; }
   // cột trái: bóng có nhãn (câu hỏi) hoặc lưới bóng nhỏ (khám phá — rê chuột: số electron lớp ngoài, kim loại / phi kim)
@@ -1572,10 +1655,50 @@ const MG = {
     atoms.forEach(A => { const r = rad(A), st = A.div.style;
       st.left = A.vx + 'px'; st.top = A.y + 'px'; st.width = st.height = 2*r + 'px'; st.fontSize = Math.max(7, Math.round(r*.95)) + 'px'; });
   }
+  // card Cách chơi: kéo một phi kim từ cột trái vào; hai phi kim: kéo chấm quầng vàng của nguyên tử này thả vào chấm quầng
+  // vàng của nguyên tử kia → gạch nối (góp chung); kim loại: kéo chấm electron thả vào phi kim → chấm đỏ sang phi kim, hai
+  // ion có dấu + / ngoặc vuông −; bấm Kiểm tra. Bóng không ghi kí hiệu, chỉ chú thích phi kim / kim loại. Toạ độ theo viewBox
+  // 220×100: HA phi kim trong cột trái; HX ← thả vào, HY nằm sẵn (hàng trên); HM kim loại, HN phi kim (hàng dưới)
+  const HA = {x:20, y:30}, HX = {x:70, y:30}, HY = {x:112, y:30}, HM = {x:70, y:72}, HN = {x:112, y:72}, HGC = {x:206, y:30}, HGB = {x:186, y:82};
+  const HR = 7, HD = 11, HP = 2.4, HDIR = [[1, 0], [0, 1], [-1, 0], [0, -1]];   // bán kính bóng; chấm cách tâm; nửa cặp; 0 phải 1 dưới 2 trái 3 trên
+  const hDot = (p, halo, red) => (halo ? `<circle cx="${htN(p.x)}" cy="${htN(p.y)}" r="3.8" fill="#e8b84b" opacity=".55"/>` : '')
+    + `<circle cx="${htN(p.x)}" cy="${htN(p.y)}" r="1.9" fill="${red ? '#d9634f' : '#3b3025'}"${red ? ' stroke="#3b3025" stroke-width=".6"' : ''}/>`;
+  const hSide = (p, s) => ({x:p.x + HDIR[s][0]*HD, y:p.y + HDIR[s][1]*HD});
+  // n[s]: số chấm phía s (chấm độc thân của phi kim có quầng vàng)
+  const hAtom = (p, metal, n) => `<circle cx="${p.x}" cy="${p.y}" r="${HR + 2.2}" fill="#fffdf5" stroke="#3b302544" stroke-width=".8"/>`
+    + `<circle cx="${p.x}" cy="${p.y}" r="${HR}" fill="${metal ? '#9b7bb8' : '#7aa95c'}" stroke="#3b3025" stroke-width="1.3"/>`
+    + n.map((k, s) => { const c = hSide(p, s), dx = -HDIR[s][1]*HP, dy = HDIR[s][0]*HP;
+        return k === 1 ? hDot(c, !metal) : k === 2 ? hDot({x:c.x + dx, y:c.y + dy}) + hDot({x:c.x - dx, y:c.y - dy}) : ''; }).join('');
+  const hText = (y, t) => `<text x="91" y="${y}" text-anchor="middle" style="font:7.5px var(--fh)" fill="#3b3025" opacity=".6">${t}</text>`;
+  const XR = hSide(HX, 0), YL = hSide(HY, 2), MR = hSide(HM, 0), NL = hSide(HN, 2);
+  const guide = mgHowTo(G.querySelector('#vlhelp'), ['Kéo nguyên tử ở cột trái vào khu vực tạo chất',
+    'Hai phi kim: kéo chấm có quầng vàng sang chấm có quầng vàng của nguyên tử kia để <b>góp chung</b>',
+    'Kim loại: kéo chấm electron thả vào phi kim để <b>nhường</b>', 'Đủ rồi thì bấm <b>Kiểm tra</b>'], 10.5, T => {
+    const seg = (a, b) => Math.max(0, Math.min(1, (T - a)/(b - a)));
+    const cur = T < 1 ? htMix(HGC, HA, seg(.3, 1)) : T < 1.2 ? HA : T < 2 ? htMix(HA, HX, seg(1.2, 2)) : T < 2.4 ? HX
+      : T < 3 ? htMix(HX, XR, seg(2.4, 3)) : T < 3.2 ? XR : T < 4 ? htMix(XR, YL, seg(3.2, 4)) : T < 4.8 ? YL
+      : T < 5.5 ? htMix(YL, MR, seg(4.8, 5.5)) : T < 5.7 ? MR : T < 6.5 ? htMix(MR, NL, seg(5.7, 6.5)) : T < 7.6 ? NL : htMix(NL, HGB, seg(7.6, 8.4));
+    const down = T >= 1 && T < 2 || T >= 3.1 && T < 4.1 || T >= 5.6 && T < 6.6 || T >= 8.6 && T < 8.75;
+    const bond = seg(4.1, 4.5), ion = seg(6.6, 7);                      // gạch nối mọc dần; dấu ion và ngoặc hiện dần
+    let s = HT_PAL + hAtom(HA, false, [1, 2, 2, 2]) + htCheck(HGB, T >= 8.6 && T < 8.75)
+      + hText(54, 'phi kim + phi kim') + hText(97, 'kim loại + phi kim')
+      + hAtom(HY, false, [2, 2, T < 4.1 ? 1 : 0, 2]) + hAtom(HM, true, [T < 5.7 ? 1 : 0, 0, 0, 0]);
+    if(T >= 1.2) s += hAtom(T < 2 ? cur : HX, false, [T < 3.2 ? 1 : 0, 2, 2, 2]);
+    if(bond) s += `<line x1="${HX.x + HR}" y1="${HX.y}" x2="${htN(HX.x + HR + (HY.x - HX.x - 2*HR)*bond)}" y2="${HY.y}" stroke="#3b3025" stroke-width="3" stroke-linecap="round"/>`;
+    if(T < 6.6) s += hAtom(HN, false, [2, 2, 1, 2]);
+    else s += hAtom(HN, false, [2, 2, 0, 2]) + hDot({x:NL.x, y:NL.y - HP}) + hDot({x:NL.x, y:NL.y + HP}, false, true)
+      + `<g opacity="${htN(ion)}" fill="none" stroke="#3b3025" stroke-width="1.2"><path d="M${HN.x - 15} ${HN.y - 15}h-2v30h2M${HN.x + 15} ${HN.y - 15}h2v30h-2"/></g>`
+      + `<g opacity="${htN(ion)}" style="font:9px var(--fh)" fill="#3b3025"><text x="${HM.x + 8}" y="${HM.y - 7}">+</text><text x="${HN.x + 18}" y="${HN.y - 12}">−</text></g>`;
+    if(T >= 3.2 && T < 4.1) s += hDot(cur, true);                       // chấm đang kéo (phi kim: còn quầng vàng)
+    if(T >= 5.7 && T < 6.6) s += hDot(cur);
+    return {step:T < 2.4 ? 0 : T < 4.8 ? 1 : T < 7.6 ? 2 : 3, svg:s + htCursor(T, cur, down, [1, 3.1, 5.6, 8.6])};
+  });
+
   // vòng vẽ: đồng hồ của màn; bóng trôi êm về đích, chấm quay về phía mới, electron bay tới chỗ mới, gạch nối mọc dần
   let last = performance.now();
   (function frame(now){
     if(!zone.isConnected) return;                                       // rời minigame: dừng hẳn
+    guide(now);
     const dt = Math.max(0, Math.min(now - last, 120))/1000, e = 1 - Math.exp(-dt*9);
     const clk = Math.max(0, Math.min(now - last, 1000))/1000;           // như trò thường: ngắt quãng quá 1 s chỉ tính 1 s
     last = now;

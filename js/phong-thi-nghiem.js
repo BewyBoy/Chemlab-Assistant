@@ -76,7 +76,8 @@ function benchSVG(){
   return '<svg id="benchsvg" viewBox="0 0 1280 720">'
     + '<defs><linearGradient id="btop" x1="0" y1="0" x2="0" y2="1">'
     +   '<stop offset="0%" stop-color="#d8ac77"/><stop offset="100%" stop-color="#b8874f"/></linearGradient></defs>'
-    + '<path d="M'+xl1+','+NEAR_Y+' L'+xr1+','+NEAR_Y+' L'+xr1+',720 L'+xl1+',720 Z" fill="#a97c4b"/>'
+    // mặt trước bàn vẽ dài quá đáy 720: màn cao hơn 16:9 thì nó kéo tới tận mép dưới (#screen cắt phần thừa)
+    + '<path d="M'+xl1+','+NEAR_Y+' L'+xr1+','+NEAR_Y+' L'+xr1+',1200 L'+xl1+',1200 Z" fill="#a97c4b"/>'
     + '<path d="M'+xl1+','+NEAR_Y+' L'+xr1+','+NEAR_Y+' L'+xr1+','+(NEAR_Y+16)+' L'+xl1+','+(NEAR_Y+16)+' Z" fill="#8a6238"/>'
     + '<use href="#sym-benchtex" x="'+xl1+'" y="'+(NEAR_Y+30)+'" width="'+(xr1-xl1)+'" height="70" opacity=".45"/>'
     + '<polygon points="'+xl0+','+FAR_Y+' '+xr0+','+FAR_Y+' '+xr1+','+NEAR_Y+' '+xl1+','+NEAR_Y+'" fill="url(#btop)"/>'
@@ -449,7 +450,7 @@ function factHover(el, f){
     bub = document.createElement('div');
     bub.className = 'chemfact';
     bub.innerHTML = '<b>'+ico('book',12)+' Bạn có biết?</b>'+fact;
-    const bx = Math.max(12 + 75, Math.min(1280 - 12 - 75, cx)); // clamp: bubble is 150 wide
+    const bx = Math.max(12 + 75 - BX, Math.min(1280 + BX - 12 - 75, cx)); // clamp vào mép màn hình (tủ bám mép phải): bubble is 150 wide
     bub.style.cssText = 'left:'+Math.round(bx)+'px;top:'+Math.round(top-6)+'px;bottom:auto;transform:translate(-50%,-100%)';
     bub.style.setProperty('--arrow', 'calc(50% + '+Math.round(cx-bx)+'px)'); // arrow points at the chem
     G.appendChild(bub);
@@ -521,7 +522,7 @@ function renderLab(){
   ` : '';
 
   G.innerHTML = `<div class="scene" style="padding:0">
-    <div class="hudboard">${sym('sym-benchtex',1240,52,'position:absolute;left:20px;top:6px;opacity:.4;pointer-events:none')}
+    <div class="hudboard">${sym('sym-benchtex',1240,52,'position:absolute;left:20px;top:6px;width:calc(100% - 40px);opacity:.4;pointer-events:none')}
       <span class="hud-title">${day.free ? 'Ngày 1 · tự do' : 'Ngày '+(lab.i+1)}${lab.hard ? ' · <span style="color:#a8331f">khó</span>' : ''}</span>
       <div class="timerbar"><div style="width:100%"></div></div>
       <span class="hudstat" id="tleft">${Math.floor(lab.time/60)}:${String(lab.time%60).padStart(2,'0')}</span>
@@ -532,7 +533,7 @@ function renderLab(){
       <button class="btn icobtn" id="bpause">${ico('pause')}</button>
     </div>
     <div class="wall">
-      <div class="wallitem" style="left:22px;top:16px">${sym('sym-poster-periodic',108,140)}</div>
+      <div class="wallitem" style="left:calc(22px - var(--bx));top:calc(16px - var(--by))">${sym('sym-poster-periodic',108,140)}</div>
       <div class="wallitem" style="left:760px;top:20px">${sym('sym-poster-safety',104,134)}</div>
       <div class="wallitem" style="left:352px;top:26px" id="winhost"><svg id="winsvg" width="100" height="123"><use href="#sym-window"/></svg></div>
       <div class="wallitem" style="left:648px;top:18px"><svg id="clocksvg" width="86" height="86"><use href="#sym-clock"/></svg></div>
