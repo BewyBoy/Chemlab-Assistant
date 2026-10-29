@@ -34,6 +34,9 @@ if(DEBUG){
       if(CHEMS[od.chem] && isPrecip(od.chem) && !br) console.assert(day.tools.includes('filter'), 'Ngày '+(i+1)+': cần phễu lọc cho '+od.chem);
     });
   });
+  // luật điểm (js/diem.js): lượt có lỗi không có HOÀN HẢO — đúng hết, xong tức thì, chuỗi trọn vẫn phải dưới mốc 3 sao
+  for(let n = 1; n <= 60; n++)
+    console.assert(PTS_OK*n + maxBonus(n) < starLimits(n, n, n)[2], 'js/diem.js: lượt có lỗi vẫn chạm mốc 3 sao khi có '+n+' phần');
   console.assert(REACTIONS.length === 167 && RX_GROUPS.length === RX_NOTES.length, 'sổ tay: số phản ứng / ghi chú nhóm lệch');
   REACTIONS.forEach((r,k) => {   // thẻ phản ứng ghép bi theo nguyên tố — phương trình nào lệch là lộ ngay
     const side = o => { const c = {}; Object.keys(o).forEach(f => { const a = atomCounts(f); Object.keys(a).forEach(e => c[e] = (c[e]||0) + a[e]*o[f]); }); return c; };

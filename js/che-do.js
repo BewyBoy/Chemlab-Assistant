@@ -27,10 +27,8 @@ function mgPause(i){
   ov.className = 'overlay pauseov';
   const hasLesson = BAI_GIANG[i];
   ov.innerHTML = `<div class="pausecard"><h2>Tạm nghỉ</h2>
-    <button class="btn big" id="presume">${ico('play')} Tiếp tục</button>
+    <div class="pauserow">${pauseBtn('presume', 'play', 'Tiếp tục', ' main')}${pauseBtn('prestart', 'retry', 'Chơi lại')}${mgEndEarly ? pauseBtn('pmap', 'check', 'Dừng thử thách') : pauseBtn('pmap', 'map', 'Về bản đồ')}</div>
     ${hasLesson ? `<button class="btn" id="plesson">${ico('book')} Xem lại bài giảng</button>` : ''}
-    <button class="btn" id="prestart">${ico('retry')} Chơi lại</button>
-    <button class="btn" id="pmap">${mgEndEarly ? ico('check')+' Dừng thử thách' : ico('map')+' Về bản đồ'}</button>
     <div class="pausevol">${volSliders()}</div></div>`;
   G.appendChild(ov);
   bindVolSliders(ov);
@@ -47,12 +45,12 @@ const mgHeld = () => !!G.querySelector('.overlay');
 // mất điểm: ô Điểm nháy đỏ, "−1" bật ra ngay dưới nó rồi bay lên nhập vào (chuỗi phản ứng, cân bằng phương trình)
 function mgMinus(hud){
   hud.classList.remove('flash-bad'); void hud.offsetWidth; hud.classList.add('flash-bad');
-  const m = document.createElement('div'), g = G.getBoundingClientRect(), r = hud.getBoundingClientRect(), sc = g.width/1280;
-  m.className = 'chn-minus'; m.textContent = '−1';
-  m.style.left = (r.left + r.width/2 - g.left)/sc + 'px'; m.style.top = (r.bottom - g.top)/sc + 'px';
-  G.appendChild(m);
-  m.onanimationend = () => m.remove();
+  hudPop(hud, '−1', 'chn-minus');
 }
+// điểm (js/diem.js): mỗi minigame mở lượt bằng mgRun(PAT giây một câu) — đồng hồ của câu đứng khi có lớp phủ (mgHeld);
+// làm đúng thì mgHit() cộng điểm và cho "+…" bay lên từ ô số câu đúng trên HUD
+const mgRun = pat => runStart(pat, mgHeld);
+const mgHit = (left, units) => runPop(G.querySelector('#mgscore'), runHit(left, units));
 /* Card "Cách chơi" của trò lập công thức và sơ đồ Lewis (ngày 4) — cùng kiểu card của trò tạo ion: nút tròn ? cạnh đề mở
    card; hình mẫu viewBox 220×100 có con trỏ giả lặp lại từng bước, chu kì GD giây; bước đang diễn sáng lên trong danh
    sách bên dưới. draw(T) (T: giây trong chu kì) trả {step, svg}. Card là lớp phủ nên đồng hồ đứng yên lúc đang xem
@@ -706,9 +704,10 @@ const MG = {
   const gRect = el => { const g = G.getBoundingClientRect(), s = g.width/1280, r = el.getBoundingClientRect();
     return {x:(r.left - g.left)/s, y:(r.top - g.top)/s, w:r.width/s, h:r.height/s}; };
   let cur = 0, correct = 0, busy = false, card = null;
-  mgScore(0, items.length);
+  mgScore(0, items.length); mgRun(PAT.bins);
   function show(){
     const f = items[cur][0];
+    runItem();
     spot.innerHTML = `<div class="mgspec enter" data-f="${f}">
       ${molBox(f, 450, 270, 3.6)}<div class="fm">${sub(f)}</div></div>`;
     card = spot.firstElementChild; busy = false;
@@ -757,7 +756,7 @@ const MG = {
         toast(sub(f) + ' thuộc giỏ ' + day.bins[right] + ' chứ không phải ' + day.bins[b] + '!');
       }
     };
-    if(ok){ correct++; mgScore(correct, items.length); }
+    if(ok){ correct++; mgScore(correct, items.length); mgHit(); } else runMiss();
     card.classList.remove('enter');
     if(drop){ card.classList.add('gone'); land(); }                    // thẻ đã được thả vào giỏ
     else {                                                              // bấm giỏ: thẻ bay từ giữa bàn tới miệng giỏ
@@ -929,7 +928,7 @@ const MG = {
     });
   }
   function round(){                         // câu hỏi tiếp theo (8 câu)
-    q = qs[++qi]; phase = 'build'; missed = afterEgg = false;
+    q = qs[++qi]; phase = 'build'; missed = afterEgg = false; runItem();
     wipe();
     // cột trái: hai nguyên tố; axit / bazơ / muối thì kim loại (hoặc H) + gốc dựng sẵn ở mấy câu đầu, sau đó 3 nguyên tố
     keys = q.kind === 'bin' ? [q.A, q.B] : qi < day.buildFrom ? [q.M, q.R] : q.els;
@@ -1008,12 +1007,12 @@ const MG = {
     const egg = EGGS.find(f => same(c, atomCounts(f)));
     if(egg) return eggFound(egg);
     // sai là sai: câu này mất điểm, bàn tự dọn sạch — làm lại ngay cho tới khi đúng
-    missed = true;
+    missed = true; runMiss();
     reject(why(c, want));
   }
   function win(){
     const L = vlLayout(q), last = qi + 1 >= qs.length;
-    if(!missed){ correct++; mgScore(correct, qs.length); }
+    if(!missed){ correct++; mgScore(correct, qs.length); mgHit(); }
     solved++;
     if(last) paused = true;                 // đủ 8 công thức: đồng hồ dừng trong lúc chọn Kết thúc / Tiếp tục
     assemble(L, () => {
@@ -1214,7 +1213,7 @@ const MG = {
     requestAnimationFrame(frame);
   })(last);
   if(explore) exploreSetup();
-  else { G.querySelector('#mgtime').style.display = ''; hud('Còn ' + TOTAL_T + ' giây', '#mgtime'); mgScore(0, qs.length); round(); }
+  else { G.querySelector('#mgtime').style.display = ''; hud('Còn ' + TOTAL_T + ' giây', '#mgtime'); mgScore(0, qs.length); mgRun(2*TOTAL_T/qs.length); round(); }
  },
 
  /* --- ngày 4, chế độ khó: sơ đồ Lewis (day.hard, bật bằng công tắc chế độ khó chung). Cùng khung với lập công thức
@@ -1487,7 +1486,7 @@ const MG = {
     });
   }
   function round(){
-    q = qs[++qi]; phase = 'build'; missed = false;
+    q = qs[++qi]; phase = 'build'; missed = false; runItem();
     wipe();
     keys = Object.keys(atomCounts(q.f)).sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b));
     t1.innerHTML = `<span class="vl-qn">Câu ${qi + 1}/${qs.length}</span>Vẽ sơ đồ Lewis: tạo <b>${q.name}</b>`;
@@ -1554,7 +1553,7 @@ const MG = {
     zone.classList.remove('flash-bad'); void zone.offsetWidth; zone.classList.add('flash-bad');
     say.innerHTML = `<span class="vl-bad">${ico('close', 20)} ${msg}</span>` + (more ? '<br><small>' + more + '</small>' : '');
   }
-  function wrong(msg){ missed = true; nope(msg, 'Câu này không còn tính điểm — sửa tiếp trên bàn rồi Kiểm tra lại nhé!'); }   // sai: mất điểm câu này
+  function wrong(msg){ missed = true; runMiss(); nope(msg, 'Câu này không còn tính điểm — sửa tiếp trên bàn rồi Kiểm tra lại nhé!'); }   // sai: mất điểm câu này
   // tóm tắt liên kết trên bàn: các ion (ion dương trước) rồi số liên kết đơn / đôi / ba
   function bonds(){
     const nb = [0, 0, 0, 0], ions = [];
@@ -1587,7 +1586,7 @@ const MG = {
   const pop = () => live().forEach((A, n) => setTimeout(() => { A.div.classList.remove('vl-pop'); void A.div.offsetWidth; A.div.classList.add('vl-pop'); }, n*40));
   function win(){
     const last = qi + 1 >= qs.length;
-    if(!missed){ correct++; mgScore(correct, qs.length); }
+    if(!missed){ correct++; mgScore(correct, qs.length); mgHit(); }
     solved++;
     phase = 'done'; lock(true); SFX.coin(); pop();
     layer.classList.add('vl-done');
@@ -1716,7 +1715,7 @@ const MG = {
     requestAnimationFrame(frame);
   })(last);
   if(explore) exploreSetup();
-  else { G.querySelector('#mgtime').style.display = ''; hud('Còn ' + TOTAL_T + ' giây', '#mgtime'); mgScore(0, qs.length); round(); }
+  else { G.querySelector('#mgtime').style.display = ''; hud('Còn ' + TOTAL_T + ' giây', '#mgtime'); mgScore(0, qs.length); mgRun(2*TOTAL_T/qs.length); round(); }
  },
 
  /* --- ngày 3, chế độ khó: tạo ion (day.hard, bật bằng công tắc chế độ khó chung). Mỗi câu chỉ có MỘT nguyên tử, vẽ
@@ -1893,7 +1892,7 @@ const MG = {
   }
   function lock(off){ bGo.disabled = bClear.disabled = off; }
   function round(){
-    q = qs[++qi]; phase = 'build'; missed = false; badT = 0;
+    q = qs[++qi]; phase = 'build'; missed = false; badT = 0; runItem();
     RO = RING0 + (q.sh.length - 1)*GAP; g = 0; born = performance.now();  // các vòng nở ra từ hạt nhân
     ax = CX; els = []; free = []; hold = null;
     layer.classList.remove('vl-done');
@@ -1926,14 +1925,14 @@ const MG = {
       : `${el} mới có ${k} electron lớp ngoài — cần đủ 8 như khí hiếm.`);
   }
   function wrong(msg){                      // sai: mất điểm câu này, bàn rung, vòng đỏ quanh nguyên tử, giữ nguyên để sửa tiếp
-    missed = true;
+    missed = true; runMiss();
     shakeT = performance.now() + 450; badT = performance.now() + 1800; SFX.err();
     zone.classList.remove('flash-bad'); void zone.offsetWidth; zone.classList.add('flash-bad');
     say.innerHTML = `<span class="vl-bad">${ico('close', 20)} ${msg}</span><br><small>Câu này không còn tính điểm — sửa tiếp rồi Kiểm tra lại nhé!</small>`;
   }
   function win(){
     const {el, e, I} = q, last = qi + 1 >= qs.length, ke = I.k + 'e';
-    if(!missed){ correct++; mgScore(correct, qs.length); }
+    if(!missed){ correct++; mgScore(correct, qs.length); mgHit(); }
     solved++;
     phase = 'done'; lock(true); SFX.coin();
     ball.classList.remove('vl-pop'); void ball.offsetWidth; ball.classList.add('vl-pop');
@@ -2003,7 +2002,7 @@ const MG = {
     svg.innerHTML = rings + vlLayers([{el:q.el, x:ax, y:CY, s:RN/atomR(q.el), arms:[]}]) + inner + deco + glow + top + dots + hitI + hit + hitF;
     ball.style.left = ax + 'px';
   }
-  G.querySelector('#mgtime').style.display = ''; hud('Còn ' + TOTAL_T + ' giây', '#mgtime'); mgScore(0, qs.length); round();
+  G.querySelector('#mgtime').style.display = ''; hud('Còn ' + TOTAL_T + ' giây', '#mgtime'); mgScore(0, qs.length); mgRun(2*TOTAL_T/qs.length); round();
   // card "Cách chơi" (bấm nút tròn ? cạnh đề): lớp phủ nên đồng hồ đứng yên lúc đang xem (mgHeld). Con trỏ giả lặp lại
   // ba bước trên một nguyên tử mẫu (hạt nhân không ghi kí hiệu — không lộ đáp án), chu kì GD giây, bước đang diễn sáng lên
   // trong danh sách bên dưới: bấm chấm lớp ngoài → electron bật ra; kéo electron tự do vào → nguyên tử nhận; bấm nút
@@ -2153,6 +2152,7 @@ const MG = {
       <ul class="idf-tips">${st.map(r => '<li>' + TESTS[r].tip + '</li>').join('')}</ul>
     </div>` : ''}</div>`);
   const root = G.querySelector('.idf'), hud = G.querySelector('#mgscore'), obs = G.querySelector('.idf-obs');
+  mgRun(PAT.identify*samples.length);   // cả màn là một câu lớn: điểm nhanh tính một lần lúc Kiểm tra, chia đều cho các lọ
   const jars = [...G.querySelectorAll('.idf-jar')], lbls = [...G.querySelectorAll('.idf-lbl')], tslots = [...G.querySelectorAll('.idf-tslot')];
   const btnCheck = G.querySelector('#idcheck'), STEP = ['', 'Bước 1/3 · Xem lọ', 'Bước 2/3 · Thí nghiệm', 'Bước 3/3 · Dán nhãn'];
   const onJar = samples.map(() => null);    // onJar[lọ] = ô khay của nhãn đang dán trên lọ đó
@@ -2268,12 +2268,14 @@ const MG = {
     done = true; unselect();
     G.querySelectorAll('.idf-btns .btn').forEach(b => b.disabled = true);
     let correct = 0, shown = 0;
+    const left = runLeft();
     jars.forEach((j, J) => setTimeout(() => {                          // lật từng lọ một
       const ok = labels[onJar[J]] === samples[J];
-      if(ok){ correct++; SFX.coin(); } else SFX.err();
+      if(ok){ correct++; SFX.coin(); } else { SFX.err(); runMiss(); }
       j.classList.add(ok ? 'ok' : 'bad');
       j.querySelector('.idf-ans').innerHTML = ok ? ico('check', 16) + ' Đúng!' : ico('close', 16) + ' Là <b>' + sub(samples[J]) + '</b>';
       mgScore(correct, samples.length);
+      if(ok) mgHit(left);
       if(++shown === samples.length) setTimeout(() => { if(root.isConnected) showResult(i, {correct, total:samples.length}); }, 1800);
     }, 300 + J*550));
   };
@@ -2283,18 +2285,20 @@ const MG = {
  redox(i, day){
   let qi = 0, correct = 0;
   mgFrame(i, day, '<div id="qbox" class="paper" style="min-width:560px;text-align:center"></div>');
-  mgScore(0, day.quiz.length);
+  mgScore(0, day.quiz.length); mgRun(PAT.redox);
   function ask(){
     if(qi >= day.quiz.length){ showResult(i, {correct, total:day.quiz.length}); return; }
     const q = day.quiz[qi];
+    runItem();
     G.querySelector('#qbox').innerHTML = `<p style="opacity:.7">Câu ${qi+1}/${day.quiz.length}</p>
       <h2 style="font-family:var(--fh)">${q.q}</h2><p>Chất khử là chất nào?</p>
       <div class="row" style="justify-content:center">${q.opts.map((op,x)=>`<button class="btn" data-x="${x}">${op}</button>`).join('')}</div>
       <p id="why" style="min-height:26px;font-size:15px"></p>`;
     G.querySelectorAll('#qbox .btn').forEach(b => b.onclick = () => {
       const ok = +b.dataset.x === q.ans;
-      if(ok){ correct++; SFX.coin(); } else SFX.err();
+      if(ok){ correct++; SFX.coin(); } else { SFX.err(); runMiss(); }
       mgScore(correct, day.quiz.length);
+      if(ok) mgHit();
       G.querySelector('#why').innerHTML = (ok ? ico('check',15)+' Chuẩn! ' : ico('close',15)+' Chưa đúng. ') + q.why + '.';
       G.querySelectorAll('#qbox .btn').forEach(x => x.disabled = true);
       qi++; setTimeout(ask, 1600);
@@ -2311,19 +2315,21 @@ const MG = {
     <div class="mgcards" id="chips">${chips.map(m=>`<div class="mgcard" data-m="${m}">${m}</div>`).join('')}</div>
     <p style="opacity:.7">Mẹo: “Khi Nào May Áo Záp Sắt Đồng Bạc”</p>`);
   let expected = 0, correct = 0, slipped = false;
-  mgScore(0, day.metals.length);
+  mgScore(0, day.metals.length); mgRun(PAT.sort);
   G.querySelectorAll('#chips .mgcard').forEach(c => c.onclick = () => {
     if(c.dataset.m === day.metals[expected]){
-      if(!slipped) correct++;
+      const hit = !slipped;
+      if(hit) correct++; else runItem();
       slipped = false;
       const slot = G.querySelectorAll('.seqslot')[expected];
       slot.textContent = c.dataset.m; slot.classList.add('filled');
       c.classList.add('done');
       expected++;
       mgScore(correct, day.metals.length); SFX.coin();
+      if(hit) mgHit();
       if(expected === day.metals.length) setTimeout(()=>showResult(i,{correct,total:day.metals.length}), 700);
     } else {
-      slipped = true;
+      slipped = true; runMiss();
       c.classList.remove('flash-bad'); void c.offsetWidth; c.classList.add('flash-bad');
       SFX.err();
       toast(c.dataset.m + ' chưa phải kim loại mạnh nhất còn lại đâu!');
@@ -2386,7 +2392,7 @@ const MG = {
   root.querySelectorAll('.pt-cell[data-s]').forEach(c => cells[c.dataset.s] = c);
   PT.forEach(e => ptOf[e.s] = e);
   let qi = 0, correct = 0, streak = 0, sel = null, done = false;
-  mgScore(0, total);
+  mgScore(0, total); mgRun(PAT.ptable);
   if(hard) G.querySelector('.hud-title').insertAdjacentHTML('beforeend', ' · <span style="color:#a8331f">khó</span>');
 
   // kính lúp soi ô s (null: ô mẫu để chú thích) — khi đang bật (lensOn); nhãn chu kì và nhóm của ô đó luôn sáng lên
@@ -2451,7 +2457,7 @@ const MG = {
   }
   function ask(){
     const q = qs[qi];
-    done = false;
+    done = false; runItem();
     root.querySelectorAll('.pt-cell.ok, .pt-cell.bad, .pt-cell.peek').forEach(c => c.classList.remove('ok', 'bad', 'peek'));
     root.querySelectorAll('.pt-gl.hint, .pt-pl.hint').forEach(x => x.classList.remove('hint'));
     if(sel){ cells[sel].classList.remove('sel'); sel = null; }
@@ -2476,8 +2482,9 @@ const MG = {
     if(done) return;
     done = true;
     const q = qs[qi], last = qi === total - 1;
-    if(ok){ correct++; streak++; SFX.coin(); } else { streak = 0; SFX.err(); }
+    if(ok){ correct++; streak++; SFX.coin(); } else { streak = 0; SFX.err(); runMiss(); }
     mgScore(correct, total);
+    if(ok) mgHit();
     ansEl.querySelectorAll('.btn').forEach(b => b.disabled = true);
     root.querySelectorAll('.pt-cell.peek').forEach(c => c.classList.remove('peek'));
     if(q.opts){
@@ -2534,10 +2541,11 @@ const MG = {
   mgFrame(i, day, '<div class="chn"></div>');
   const root = G.querySelector('.chn'), hud = G.querySelector('#mgscore');
   const score = () => { hud.textContent = 'Điểm: ' + pts + '/' + total; };
-  score();
+  score(); mgRun(PAT.chain);
 
   function play(){
     const ch = day.chains[ci], n = ch.ans.length;
+    runItem();
     const pool = shuffle([...new Set(ch.ans.concat(ch.more))]);
     const sols = chainSolutions(ch.start, ch.target, n, pool);        // mọi cách đi tới đích bằng bình trong khay
     const fill = new Array(n).fill(null);                             // fill[ô] = công thức đã thả vào ô đó
@@ -2563,7 +2571,7 @@ const MG = {
       </div>`;
     const sayEl = root.querySelector('.chn-say');
     const say = (html, cls) => { sayEl.innerHTML = html; sayEl.className = 'chn-say' + (cls ? ' ' + cls : ''); };
-    say(`Chuỗi ${ci+1}/${day.chains.length}: đi từ <b>${sub(ch.start)}</b> tới <b>${sub(ch.target)}</b> — kéo bình hoá chất vào ô trên mỗi mũi tên.`);
+    say(fillLine(PROF_MG.chuoiBatDau, {i:ci+1, n:day.chains.length, start:sub(ch.start), target:sub(ch.target)}));
     const slots = [...root.querySelectorAll('.chn-slot')];
 
     // băng chọn chất: mỗi bình một ô rộng CELL, khung nhìn rộng VIEW (băng 1280 trừ chỗ hai nút ◁ ▷). Nút trượt 2 ô
@@ -2635,10 +2643,9 @@ const MG = {
       const best = sols.reduce((b, s) => agree(s) > agree(b) ? s : b, sols[0] || []);
       const bad = fill.map((f, k) => f !== best[k]);
       slots.forEach((s, k) => s.classList.add(bad[k] ? 'bad' : 'ok'));
-      lost++; pts--; score(); SFX.err(); mgMinus(hud);
+      lost++; pts--; score(); SFX.err(); mgMinus(hud); runMiss();
       const out = lost >= n;
-      say(out ? 'Sai rồi, <b>−1 điểm</b>. Chuỗi này hết điểm — xem ta làm mẫu nhé!'
-              : 'Chưa đúng — ô đỏ là chỗ sai. <b>−1 điểm</b>. Thử lại nào!', 'bad');
+      say(out ? PROF_MG.chuoiHetDiem : PROF_MG.chuoiSai, 'bad');
       setTimeout(() => {
         if(!root.isConnected) return;
         if(out){
@@ -2656,8 +2663,9 @@ const MG = {
     function solved(walk, mine){
       busy = true; unselect();
       slots.forEach(s => { s.classList.remove('bad'); s.classList.add('ok'); });
-      if(mine) say(lost ? 'Đúng rồi! Cả chuỗi đã nối liền.' : 'Chuẩn không cần chỉnh — đúng ngay lần đầu!', 'good');
-      else say('Đáp án đây — nhìn kĩ từng mắt xích nhé!');
+      if(mine) say(lost ? PROF_MG.chuoiDung : PROF_MG.chuoiDungNgay, 'good');
+      if(mine && !lost) mgHit(undefined, n);                          // đúng ngay lần đầu: cả n điểm của chuỗi
+      else say(PROF_MG.chuoiDapAn);
       const STEP = 650;
       walk.forEach((s, k) => setTimeout(() => {
         if(!root.isConnected) return;
@@ -2705,10 +2713,11 @@ const MG = {
   mgFrame(i, day, '<div class="bal"></div>');
   const root = G.querySelector('.bal'), hud = G.querySelector('#mgscore');
   const score = () => { hud.textContent = 'Điểm: ' + pts + '/' + total; };
-  score();
+  score(); mgRun(PAT.balance);
 
   function play(){
     const r = qs[qi], fs = Object.keys(r.rg).concat(Object.keys(r.pr)), nL = Object.keys(r.rg).length;
+    runItem();
     const ks = fs.map((f, k) => k), isR = k => k >= nL;              // chất thứ k là sản phẩm (vế phải)?
     const want = fs.map((f, k) => isR(k) ? r.pr[f] : r.rg[f]), cnt = fs.map(() => 0);
     const big = k => cnt[k] > BAL_BIG;                                // khay vẽ "n ×" + một phân tử
@@ -2853,22 +2862,23 @@ const MG = {
         if(T.every(t => !t.d)){
           if(g === 1) return solved(byProf);
           setBusy(false);
-          return say(`Vừa khít, nhưng mọi hệ số còn chia hết cho ${g} — rút gọn nhé!`);
+          return say(fillLine(PROF_MG.canBangRutGon, {g}));
         }
-        lost++; pts--; score(); SFX.err(); mgMinus(hud);
+        lost++; pts--; score(); SFX.err(); mgMinus(hud); runMiss();
         // thừa / thiếu ghi kiểu hệ số × chất: một bi màu nguyên tố (thừa: viền đỏ như bi ở lại; thiếu: vòng đỏ đứt nét)
         const dot = (e, miss) => `<span class="bal-dot${miss ? ' miss' : ''}" style="--c:${(ATOM_STYLE[e] || ['#ccc'])[0]}"></span>`;
         const part = (w, list, miss) => list.length ? w + ' ' + list.map(t => Math.abs(t.d) + ' × ' + dot(t.e, miss)).join(', ') : '';
-        const msg = 'Chưa cân bằng — ' + [part('thừa', T.filter(t => t.d > 0)), part('thiếu', T.filter(t => t.d < 0), 1)].filter(Boolean).join(' · ');
-        if(lost < BAL_PTS){ setBusy(false); return say(msg, 'bad'); }
-        say(msg + '. Hết điểm câu này — xem ta làm mẫu nhé!', 'bad');
+        const lech = [part('thừa', T.filter(t => t.d > 0)), part('thiếu', T.filter(t => t.d < 0), 1)].filter(Boolean).join(' · ');
+        if(lost < BAL_PTS){ setBusy(false); return say(fillLine(PROF_MG.canBangChua, {lech}), 'bad'); }
+        say(fillLine(PROF_MG.canBangHetDiem, {lech}), 'bad');
         later(2800, demo);
       });
     }
     // đúng: phương trình được gạch chân — ô hệ số thu vừa con số và mất gạch, hệ số 1 biến mất, hiện dấu ↑ / ↓; hàng chất
     // nhường chỗ cho hai nút xem lại / đi tiếp
     function solved(byProf){
-      say(byProf ? 'Ta làm mẫu đây — đếm lại số phân tử mỗi chất nhé!' : '');
+      say(byProf ? PROF_MG.canBangLamMau : '');
+      if(!byProf && !lost) mgHit(undefined, BAL_PTS);                // đúng ngay lần đầu: đủ điểm của câu
       SFX.bell();
       const meas = document.createElement('span');
       meas.className = 'bal-meas';
@@ -2889,7 +2899,7 @@ const MG = {
     // hết điểm: giáo sư sửa từng ô hệ số (phân tử nhảy vào / ra theo) cho đủ đúng số rồi cho phản ứng chạy
     function demo(){
       reset();
-      say('Ta đặt lại số phân tử cho đúng nhé…');
+      say(PROF_MG.canBangDatLai);
       const steps = [];
       ks.forEach(k => {
         for(let n = cnt[k]; n > want[k]; n--) steps.push(() => setCount(k, cnt[k] - 1, null, true));
@@ -3517,11 +3527,12 @@ let conc = null;
 function startConc(){
   SFX.music(3);
   conc = {list: Array.from({length:5}, makeChallenge).filter(Boolean), ci:0, correct:0};
+  mgRun(PAT.conc);
   renderConc();
 }
 function renderConc(){
   const c = conc.list[conc.ci];
-  conc.a = 0; conc.b = 0;
+  conc.a = 0; conc.b = 0; runItem();
   G.innerHTML = `<div class="scene" style="padding:0">
     <div class="hudboard">
       <span class="hud-title">Chế độ khó · Pha nồng độ</span>
@@ -3606,7 +3617,8 @@ function serveConc(){
   const okA = within(conc.a, c.aTarget), okT = within(total, c.totalTarget);
   const pass = okA && okT;
   if(pass){ conc.correct++; G.querySelector('#ccor').textContent = conc.correct; SFX.coin(); setTimeout(SFX.clink,150); }
-  else SFX.err();
+  else { SFX.err(); runMiss(); }
+  if(pass) runPop(G.querySelector('#ccor').parentNode, runHit());
   const achieved = c.reveal(conc.a, conc.b);
   const last = conc.ci >= conc.list.length - 1;
   const chk = ok => ico(ok ? 'check' : 'close', 15);
@@ -3625,11 +3637,14 @@ function serveConc(){
   ov.querySelector('#cnext').onclick = () => { closeOv(ov); if(last) concResult(); else { conc.ci++; renderConc(); } };
 }
 function concResult(){
-  const n = conc.list.length, cor = conc.correct, r = cor/n;
-  const stars = r>=1 ? 3 : r>=.75 ? 2 : r>=.5 ? 1 : 0;
+  const n = conc.list.length, cor = conc.correct;
+  const sc = runScore(n, cor, Math.ceil(n*.5), Math.ceil(n*.75), cor === n), stars = sc.stars;   // cùng luật với minigame
   if(cor > (save.hardBest||0)){ save.hardBest = cor; persist(); }
+  const rec = sc.pts > (save.concBest || 0);
+  if(rec){ save.concBest = sc.pts; persist(); }
   resultCard('Kết thúc chế độ khó', stars, `<div class="resbody">
-      <p style="font-size:18px">Đúng <b>${cor}/${n}</b> câu · Kỷ lục: <b>${Math.max(cor, save.hardBest||0)}/${n}</b></p>
+      <p style="font-size:18px">Đúng <b>${cor}/${n}</b> câu · Nhiều nhất: <b>${Math.max(cor, save.hardBest||0)}/${n}</b></p>
+      ${scoreHTML(sc, rec, save.concBest)}
       <p class="hand">“${stars===3?'Bậc thầy nồng độ — không lệch một li!':stars>=1?'Khá lắm! Luyện thêm cho chắc công thức nhé.':'Ôn lại Cₘ và C% rồi thử lại nào, trò làm được mà!'}”</p>
     </div>
     <div class="row resbtns">${resBtn('cagain', 'retry', 'Chơi lại')}${resBtn('cmenu', 'home', 'Về menu', ' main')}</div>`);

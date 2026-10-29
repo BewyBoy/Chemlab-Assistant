@@ -18,7 +18,7 @@ Bạn, học trò của giáo sư Hoffmann, đã được thầy giao cho một 
 
 ### Chơi thế nào
 
-Đọc đơn hàng → kéo lọ hoá chất vào cốc (mỗi lần = 0,1 mol) → đun, khuấy, lọc hoặc hứng khí → kéo cốc cho khách. Phản ứng cháy làm như thật: nạp O₂ / Cl₂ vào lọ khí, cho chất rắn lên muôi đốt, hơ qua đèn cồn rồi đưa vào lọ. Sai thì đổ vào bồn rửa, làm lại — cốc không phản ứng thì giáo sư nói lý do. Mỗi ngày chấm tối đa 3 sao; 1 sao là mở khoá ngày kế tiếp.
+Đọc đơn hàng → kéo lọ hoá chất vào cốc (mỗi lần = 0,1 mol) → đun, khuấy, lọc hoặc hứng khí → kéo cốc cho khách. Phản ứng cháy làm như thật: nạp O₂ / Cl₂ vào lọ khí, cho chất rắn lên muôi đốt, hơ qua đèn cồn rồi đưa vào lọ. Sai thì đổ vào bồn rửa, làm lại — cốc không phản ứng thì giáo sư nói lý do. Mỗi ngày chấm tối đa 3 sao theo điểm; 1 sao là mở khoá ngày kế tiếp. Mỗi đơn / câu đúng 100 điểm, làm nhanh thêm tới 50, đúng liền thêm tới 50; 3 sao chỉ dành cho lượt không sai lần nào (thưởng hoàn hảo), nhanh mấy cũng không bù được một lỗi.
 
 **Chế độ khó** (bật ở màn hình ngày hoặc Cài đặt): phiếu hàng ghi khối lượng / thể tích khí, mỗi lần lấy hoá chất phải tự cân, đong; sai số cho phép 5%, giao sai thì mở dần gợi ý. Ngày 3 khó thành bài **tạo ion**: mỗi câu một nguyên tử vẽ đủ các lớp electron (lớp ngoài cùng xếp theo sơ đồ Lewis), tự cho nguyên tử nhường electron lớp ngoài hoặc nhận các electron tự do trôi quanh cho thành ion bền như khí hiếm. Ngày 4 khó thành bài **sơ đồ Lewis**: nối hai chấm electron thành liên kết cộng hoá trị, kéo electron của kim loại sang phi kim thành liên kết ion. Thêm **Thử thách pha nồng độ** (Cₘ, C%) ở menu chính.
 
@@ -43,6 +43,7 @@ npx --yes http-server -p 8642 -c-1 .
 | `js/lich.js` | Tên tháng trên tờ lịch và mô tả từng ngày — sửa chữ ở đây |
 | `js/bai-giang.js` | Lời giáo sư giảng lý thuyết từng ngày (màn kiểu visual novel, hiện lần đầu mở ngày) — sửa chữ ở đây |
 | `js/do-hoa.js` | Kho SVG dụng cụ / lọ / biểu tượng, nhân vật |
+| `js/diem.js` | Luật tính điểm (đúng, nhanh, chuỗi, hoàn hảo) và mốc sao — chỉnh luật chấm ở đây |
 | `js/giao-dien.js` | Âm thanh & nhạc nền, lưu tiến trình, menu, lịch, cài đặt, báo cáo, kết quả |
 | `js/phong-thi-nghiem.js` | Bàn thí nghiệm, kéo–thả, phản ứng, đốt, an toàn, khách hàng |
 | `js/che-do.js` | Minigame, pha nồng độ, chế độ khó, thẻ phản ứng |

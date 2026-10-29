@@ -165,6 +165,8 @@ const nobalOwned = () => !!(save.items && save.items.nobalance);   // mua ở C�
 const balanceOn = () => !nobalOwned() || save.settings.balance !== false;
 if(!save.starsHard) save.starsHard = {};               // sao chế độ khó lưu riêng, không đè sao thường
 if(!save.hist) save.hist = [];                         // nhật ký từng lượt chơi, cho báo cáo học tập
+if(!save.best) save.best = {};                         // kỷ lục điểm từng ngày (js/diem.js)
+if(!save.bestHard) save.bestHard = {};                 // kỷ lục điểm chế độ khó
 const hardUnlocked = () => (save.stars[DAYS.length]||0) >= 1 || (save.starsHard[DAYS.length]||0) >= 1;   // đã qua ngày cuối lần đầu
 const hardOn  = () => hardUnlocked() && save.settings.hard === true;     // chế độ khó: tự tính gam / ml / lít
 const cardsOn = () => save.settings.cards !== false;   // thẻ phản ứng khi khám phá: bật mặc định
@@ -201,11 +203,13 @@ function dayStars(st, sth){
   return [0,1,2].map(k => k < sth ? '<b class="sh">★</b>' : k < st ? '★' : '☆').join('');
 }
 function starStr(n){ return '★★★'.slice(0,n) + '☆☆☆'.slice(0,3-n); }
+// mốc sao theo điểm (js/diem.js); minigame không ghi số vì số câu tuỳ màn / chế độ khó
 function starConds(day){
-  return day.mg
-    ? ['Trả lời đúng ít nhất một nửa số câu','Trả lời đúng ít nhất 3/4 số câu','Trả lời đúng tất cả']
-    : ['Hoàn thành ít nhất '+day.s1+' đơn hàng','Hoàn thành tất cả '+day.orders.length+' đơn hàng',
-       'Không giao sai, không phạm lỗi an toàn'];
+  if(day.mg) return ['Đúng một nửa số câu là đủ — làm nhanh, đúng liền thì cần ít câu hơn',
+    'Đúng 3/4 số câu là đủ — làm nhanh, đúng liền thì cần ít câu hơn', 'Đúng tất cả — nhanh mấy cũng không bù được một câu sai'];
+  const n = day.orders.length, [t1, t2, t3] = starLimits(n, day.s1, n);
+  return [t1+' điểm — hoàn thành '+day.s1+' đơn là đủ', t2+' điểm — hoàn thành cả '+n+' đơn là đủ',
+          t3+' điểm — chỉ khi đủ '+n+' đơn, không giao sai, không lỗi an toàn'];
 }
 // Đóng một lớp phủ: thẻ trượt xuống, nền nhạt dần, rồi mới gỡ khỏi trang; after() chạy sau khi gỡ.
 const OV_CLOSE_MS = 280;
@@ -276,7 +280,7 @@ function showMenu(){
     <span class="mbub" style="right:398px;bottom:195px;width:8px;height:8px;animation-delay:4.2s"></span>
     <span class="mbub" style="left:460px;bottom:200px;width:10px;height:10px;animation-delay:3.1s"></span>
     <div style="position:absolute;bottom:90px;right:110px" id="menuprof"></div>
-    <div class="menu-bubble">Chào trợ lý nhỏ! Hôm nay tiệm mình có nhiều đơn lắm đó, vào ca thôi!</div>
+    <div class="menu-bubble">${PROF_GREETING}</div>
   </div>`;
   G.querySelector('#menuprof').innerHTML = profSVG('happy').replace('viewBox','height="225" viewBox');
   G.querySelector('#bstart').onclick = () => go(showMap);
@@ -732,7 +736,8 @@ function showIntro(i){
   if(BAI_GIANG[i] && !lessonSeen(i+1)) return showLesson(i);
   SFX.music(themeOf(i));
   const day = DAYS[i];
-  const conds = starConds(day).map((c,k)=>'<div>'+ico('star',15).repeat(k+1)+' '+c+'</div>').join('');
+  const conds = starConds(day).map((c,k)=>'<div>'+ico('star',15).repeat(k+1)+' '+c+'</div>').join('')
+    + '<div class="condrule">' + scoreRule(day.mg ? 'câu' : 'đơn') + '</div>';
   const tools = day.mg ? '' : (day.tools.length
     ? '<p style="margin:6px 0"><b>Dụng cụ:</b> ' + day.tools.map(t=>sym(TOOLSYM[t],20,22,'vertical-align:-5px')+' '+TOOLNAMES[t]).join(' · ') + '</p>' : '')
     + '<p style="margin:6px 0"><b>An toàn:</b> ' + sym('sym-goggles',26,18,'vertical-align:-4px') + ' đeo kính & găng trước khi lấy hoá chất'
@@ -1039,7 +1044,7 @@ function settingsModal(){
   ov.querySelector('#mclose').onclick = () => closeOv(ov);
   ov.querySelector('#breset').onclick = () => confirmModal(
     '<h2>'+ico('trash',22)+' Xoá dữ liệu?</h2><p style="margin:8px 0">Toàn bộ tiến trình, sao và thành tựu sẽ bị xoá và không thể khôi phục.</p>',
-    () => { save = {unlocked:1, stars:{}, starsHard:{}, ach:[], served:0, spent:0, rx:[], hist:[], settings:{balance:true}}; persist(); closeOv(ov); toast('Đã xoá dữ liệu.'); showMenu(); },
+    () => { save = {unlocked:1, stars:{}, starsHard:{}, best:{}, bestHard:{}, ach:[], served:0, spent:0, rx:[], hist:[], settings:{balance:true}}; persist(); closeOv(ov); toast('Đã xoá dữ liệu.'); showMenu(); },
     'Xoá hết', 'Giữ lại');
   G.appendChild(ov);
 }
@@ -1063,6 +1068,9 @@ const liqStar = s => `<svg class="lstar" width="${s}" height="${s}" viewBox="0 0
 // nút trên thẻ kết quả: chỉ có hình, cùng một cỡ vuông; chữ nằm ở title / aria-label
 const resBtn = (id, icon, label, cls = '') =>
   `<button class="btn icobtn resbtn${cls}" id="${id}" aria-label="${label}" title="${label}">${ico(icon, 30)}</button>`;
+// nút vuông trên thẻ Tạm nghỉ: chỉ có hình, chữ nằm ở title / aria-label (như resBtn)
+const pauseBtn = (id, icon, label, cls = '') =>
+  `<button class="btn pbtn${cls}" id="${id}" aria-label="${label}" title="${label}">${ico(icon, 32)}</button>`;
 function resultCard(title, stars, body){
   // chụp lại cảnh đang có làm nền (canvas không tự chép hình khi clone nên vẽ lại từ bản gốc)
   const bg = document.createElement('div');
@@ -1084,24 +1092,25 @@ function resultCard(title, stars, body){
 }
 function showResult(i, st){
   const day = DAYS[i], num = i+1;
-  let stars = 0, detail = '';
+  let sc, detail = '';
+  // sao theo điểm (js/diem.js); mốc 1 / 2 sao = số phần cần theo luật cũ, 3 sao chỉ lượt hoàn hảo mới đủ điểm
   if(day.mg){
-    const r = st.total ? st.correct/st.total : 0;
-    stars = r >= 1 ? 3 : r >= .75 ? 2 : r >= .5 ? 1 : 0;
+    const n = st.total;
+    sc = runScore(n, st.correct, Math.ceil(n*.5), Math.ceil(n*.75), n > 0 && st.correct === n);
     detail = `<p style="font-size:18px">${st.label || 'Trả lời đúng'}: <b>${st.correct}/${st.total}</b></p>`;
   } else {
     const all = day.orders.length;
-    const perfect = st.wrong === 0 && !st.safety;
-    if(st.served >= day.s1) stars = 1;
-    if(st.served === all) stars = 2;
-    if(stars === 2 && perfect) stars = 3;
+    sc = runScore(all, st.served, day.s1, all, st.served === all && st.wrong === 0 && !st.safety);
     detail = `<p style="font-size:16px">Đơn hoàn thành: <b>${st.served}/${all}</b> · Giao sai: <b>${st.wrong}</b> · Lỗi an toàn: <b>${st.safety||0}</b></p>`;
     save.served += st.served;
     if(st.served === all) unlockAch('clean');
   }
-  // save progress — chế độ khó có cột sao riêng, nhưng qua được thì vẫn mở ngày kế tiếp
-  const book = st.hard ? save.starsHard : save.stars;
+  const stars = sc.stars;
+  // save progress — chế độ khó có cột sao và kỷ lục riêng, nhưng qua được thì vẫn mở ngày kế tiếp
+  const book = st.hard ? save.starsHard : save.stars, bests = st.hard ? save.bestHard : save.best;
   if(stars > (book[num] || 0)) book[num] = stars;
+  const rec = sc.pts > (bests[num] || 0);
+  if(rec) bests[num] = sc.pts;
   if(stars >= 1 && num >= save.unlocked && num < DAYS.length) save.unlocked = num + 1;
   // nhật ký từng lượt chơi — nguồn cho báo cáo học tập (giữ 400 lượt gần nhất)
   save.hist.push(day.mg ? {d:num, h:st.hard ? 1 : 0, s:stars, w:st.total - st.correct, t:Date.now()}
@@ -1125,7 +1134,7 @@ function showResult(i, st){
   persist();
   const cheer = stars===3?'Xuất sắc! Không chê vào đâu được!':stars===2?'Làm tốt lắm, gần hoàn hảo rồi!':stars===1?'Ổn đấy! Luyện thêm chút nữa nhé.':'Đừng nản — thử lại nào, ta tin trò!';
   resultCard(`Ngày ${num} kết thúc${st.hard ? ' <span style="color:#d9634f">· chế độ khó</span>' : ''}`, stars,
-    `<div class="resbody">${detail}<p class="hand">“${cheer}”</p></div>
+    `<div class="resbody">${detail}${scoreHTML(sc, rec, bests[num])}<p class="hand">“${cheer}”</p></div>
     <div class="row resbtns">${resBtn('bretry', 'retry', 'Chơi lại')}${resBtn('bmap', 'map', 'Bản đồ')}${exploreBtn(day, i, true)}
       ${(stars>=1 && num<DAYS.length) ? resBtn('bnext', 'next', 'Ngày tiếp theo', ' main') : ''}</div>`);
   G.querySelector('#bretry').onclick = () => go(()=>showIntro(i));

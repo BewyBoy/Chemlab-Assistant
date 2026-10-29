@@ -324,6 +324,7 @@ function newLab(i, day){
 function startLab(i){
   SFX.music(themeOf(i));
   lab = newLab(i, DAYS[i]);
+  runStart();   // điểm nhanh lấy từ vòng đồng hồ chờ của từng khách (serve), không cần đồng hồ riêng
   renderLab();
   lab.timer = setInterval(labTick, 1000);
 }
@@ -340,6 +341,7 @@ function startFree(){
                tools:['spoon','quy','book','gas','heat','burn','filter','elec'],
                dur:540, s1:0, orders:Array.from({length:6}, freeOrder)};
   lab = newLab(-1, day);
+  runStart();
   renderLab();
   lab.timer = setInterval(labTick, 1000);
   toast('Kệ mở toàn bộ '+chems.length+' hoá chất — khách đến vô tận, nghịch thoải mái!');
@@ -405,10 +407,10 @@ function labTick(){
 function customerLeaves(){ // hết giờ chờ: khách bỏ đi, hàng đợi chạy tiếp (không tính là giao sai)
   if(!lab) return;
   lab.odur = 0;
-  noteMistake('khach-bo-di');
+  noteMistake('khach-bo-di'); runMiss();
   const od = lab.day.orders[lab.oi], c = CUSTOMERS[od.who];
   const sp = G.querySelector('#speech');
-  if(sp) sp.innerHTML = 'Tiếc quá, ' + c[0] + ' chờ lâu quá nên đi mất rồi…';
+  if(sp) sp.innerHTML = fillLine(LEAVE_LINE, {ten:c[0]});
   setExp('annoy');
   SFX.err();
   toast('Khách bỏ đi — lỡ đơn "' + (od.pname || CHEMS[od.chem].n) + '".');
@@ -659,11 +661,9 @@ function pauseLab(){
   const hasEqs = !free && dayEqs(lab.day).length;
   const hasLesson = !free && BAI_GIANG[lab.i];
   ov.innerHTML = `<div class="pausecard"><h2>Tạm nghỉ</h2>
-    <button class="btn big" id="presume">${ico('play')} Tiếp tục</button>
+    <div class="pauserow">${pauseBtn('presume', 'play', 'Tiếp tục', ' main')}${pauseBtn('prestart', 'retry', 'Chơi lại')}${pauseBtn('pmap', 'map', free ? 'Kết thúc ca' : 'Về bản đồ')}</div>
     ${hasLesson ? `<button class="btn" id="plesson">${ico('book')} Xem lại bài giảng</button>` : ''}
     ${hasEqs ? `<button class="btn" id="pnote">${ico('note')} Giấy cân bằng</button>` : ''}
-    <button class="btn" id="prestart">${ico('retry')} Chơi lại</button>
-    <button class="btn" id="pmap">${ico('map')} ${free ? 'Kết thúc ca' : 'Về bản đồ'}</button>
     <div class="pausevol">${volSliders()}</div></div>`;
   G.appendChild(ov);
   bindVolSliders(ov);
@@ -870,7 +870,7 @@ function addChem(f, dose){
   const th = G.querySelector('#tuthand'); if(th) th.remove();
   // quy tắc pha axit: cốc bắt đầu bằng H₂SO₄ mà chưa có nước thì không được rót nước vào sau
   if(f === 'H2O' && lab.firstPour === 'H2SO4' && !lab.waterIn)
-    safetyHit('axit-nuoc', 'Ngược rồi! Pha loãng axit sunfuric phải rót từ từ <b>AXIT vào NƯỚC</b>, không rót nước vào axit — nước sôi bùng lên làm axit bắn tung toé.');
+    safetyHit('axit-nuoc', PROF_SAFETY['axit-nuoc']);
   if(!tot(lab.mix) && !tot(lab.undissolved)) lab.firstPour = f;
   if(f === 'H2O') lab.waterIn = true;
   toxicCheck(f);
@@ -1035,6 +1035,7 @@ function ladleHint(){
 const ACTIVITY = ['K','Na','Mg','Al','Zn','Fe','H','Cu','Ag'];
 const METALS = ACTIVITY.filter(m => m !== 'H');
 const metalOf = f => (f.match(/^(K|Na|Mg|Al|Zn|Fe|Cu|Ag|Ca|Ba|Mn)(?![a-z])/) || [])[1];
+let noRxKey = null;   // khoá PROF_NO_RX của câu whyNoReaction trả về gần nhất
 function whyNoReaction(focus){
   const mix = lab.mix, tools = lab.day.tools;
   const has = f => (mix[f]||0) > 0.009;
@@ -1042,33 +1043,34 @@ function whyNoReaction(focus){
   const liquid = here.some(f => CHEMS[f].s === 'l' || CHEMS[f].s === 'd');
   const ready = r => Object.keys(r.rg).every(f => has(f) || (f === 'H2O' && liquid));
   const hit = inv => !focus || inv.includes(focus);
+  // câu nói lấy từ PROF_NO_RX (loi-thoai.js); khoá câu (noRxKey) cho biết loại lỗi để ghi báo cáo (WHY_MISTAKE)
+  noRxKey = null;
+  const say = (k, v) => { noRxKey = k; return fillLine(PROF_NO_RX[k], v || {}); };
   for(const r of REACTIONS) if(r.burn && ready(r)){
     const g = Object.keys(r.rg).find(f => CHEMS[f].s === 'k'), fu = Object.keys(r.rg).find(f => f !== g);
-    if(hit([g, fu])) return tools.includes('burn')
-      ? 'Phản ứng CHÁY không làm trong cốc: thả <b>' + sub(fu) + '</b> vào <b>muôi đốt</b>, hơ qua đèn cồn cho bén lửa, rồi đưa vào lọ khí đã nạp <b>' + sub(g) + '</b>.'
-      : sub(fu) + ' chỉ cháy khi được đốt nóng trong khí ' + sub(g) + ' — hôm nay không có muôi đốt.';
+    if(hit([g, fu])) return say(tools.includes('burn') ? 'dot-sai-cho' : 'khong-muoi', {fuel:sub(fu), gas:sub(g)});
   }
   if(!lab.heaterOn && tools.includes('heat')){
     const r = REACTIONS.find(r => r.heat && ready(r) && (!r.cat || r.cat.every(has)));
-    if(r && hit(Object.keys(r.rg))) return 'Đủ chất rồi, nhưng phản ứng này cần <b>nhiệt</b> — kéo <b>Đun nóng</b> vào cốc.';
+    if(r && hit(Object.keys(r.rg))) return say('thieu-nhiet');
   }
   const metals = METALS.filter(has);
   for(const a of ['HCl','H2SO4']) if(has(a)) for(const m of metals)
     if(ACTIVITY.indexOf(m) > ACTIVITY.indexOf('H') && hit([m, a]))
-      return '<b>' + m + '</b> đứng sau <b>H</b> trong dãy hoạt động (K Na Mg Al Zn Fe <b>H</b> Cu Ag) nên không đẩy được hiđro ra khỏi axit ' + sub(a) + '.';
+      return say('sau-hidro', {m, acid:sub(a)});
   const salts = rest.filter(f => !METALS.includes(f) && CHEMS[f].s === 'r' && CHEMS[f].sol && METALS.includes(metalOf(f)));
   for(const m of metals) for(const s of salts){
     const sm = metalOf(s);
     if(m !== sm && ACTIVITY.indexOf(m) > ACTIVITY.indexOf(sm) && hit([m, s]))
-      return '<b>' + m + '</b> yếu hơn <b>' + sm + '</b> trong dãy hoạt động nên không đẩy được ' + sm + ' ra khỏi ' + sub(s) + '.';
+      return say('yeu-hon', {m, sm, salt:sub(s)});
   }
   if(has('H2O') && rest.length && rest.every(f => metals.includes(f)) && hit(rest.concat('H2O')))
-    return '<b>' + rest.join(', ') + '</b> không tác dụng với nước ở nhiệt độ thường — chỉ kim loại rất mạnh như K, Na mới làm được.';
+    return say('kl-nuoc', {list:rest.join(', ')});
   if(has('H2O') && rest.length && rest.every(isPrecip) && hit(rest.concat('H2O')))
-    return '<b>' + rest.map(sub).join(', ') + '</b> không tan và không phản ứng với nước.';
+    return say('khong-tan', {list:rest.map(sub).join(', ')});
   const sol = rest.filter(f => CHEMS[f].s === 'r' && CHEMS[f].sol && (metalOf(f) || f.startsWith('NH4')));   // muối thật, không tính đường
   if(sol.length >= 2 && sol.length === rest.length && hit(sol))
-    return 'Hai muối chỉ trao đổi với nhau khi sinh ra chất <b>kết tủa</b> (hoặc khí) — ' + sol.map(sub).join(' và ') + ' trộn vào vẫn tan hết.';
+    return say('trao-doi', {list:sol.map(sub).join(' và ')});
   return null;
 }
 // nói một lần cho mỗi lý do mới — rót tiếp cùng một lỗi thì không lải nhải
@@ -1076,7 +1078,7 @@ function explainNoRx(focus){
   const why = whyNoReaction(focus);
   if(!why || why === lab.lastWhy) return;
   lab.lastWhy = why;
-  noteMistake(whyCode(why));
+  noteMistake(WHY_MISTAKE[noRxKey]);
   setTimeout(() => { if(lab) toast('<b>Giáo sư:</b> ' + why); }, 350);
 }
 
@@ -1105,19 +1107,17 @@ const MISTAKES = {
   'trao-doi':'Trộn muối không tạo kết tủa', 'kinh':'Quên đeo kính bảo hộ', 'axit-nuoc':'Rót nước vào axit',
   'tu-hut':'Làm với khí độc khi chưa bật tủ hút', 'khach-bo-di':'Để khách chờ quá lâu'
 };
-const mistakeOf = res => /chưa tan/.test(res) ? 'chua-khuay' : /trống trơn/.test(res) ? 'trong'
-  : /bình thu khí|lọc ra đĩa/.test(res) ? 'vat-dung' : /không thấy/.test(res) ? 'khong-co'
-  : /lẫn/.test(res) ? 'lan-chat' : /cần đúng/.test(res) ? 'sai-luong' : /nước/.test(res) ? 'thieu-nuoc' : null;
-const whyCode = why => /CHÁY/.test(why) ? 'dot-sai-cho' : /nhiệt/.test(why) ? 'thieu-nhiet'
-  : /dãy hoạt động/.test(why) ? 'day-hoat-dong' : /không tan|với nước/.test(why) ? 'khong-tan'
-  : /Hai muối/.test(why) ? 'trao-doi' : null;
+// khoá câu thoại (REASON_LINES / PROF_NO_RX trong loi-thoai.js) → loại lỗi; khoá không có ở đây là trùng tên với loại lỗi
+const REASON_MISTAKE = {'vat-dung-khi':'vat-dung', 'vat-dung-ran':'vat-dung', 'nhieu-qua':'sai-luong', 'it-qua':'sai-luong'};
+const WHY_MISTAKE = {'dot-sai-cho':'dot-sai-cho', 'thieu-nhiet':'thieu-nhiet', 'sau-hidro':'day-hoat-dong',
+  'yeu-hon':'day-hoat-dong', 'kl-nuoc':'khong-tan', 'khong-tan':'khong-tan', 'trao-doi':'trao-doi'};
 function safetyHit(code, msg){
   if(lab.safeHits[code]) return;        // mỗi loại lỗi chỉ tính một lần trong ca
   lab.safeHits[code] = 1;
   const warnOnly = lab.i === 0;         // ngày đầu: chỉ nhắc cho quen, không trừ sao
-  if(!warnOnly){ lab.safety++; noteMistake(code); }
+  if(!warnOnly){ lab.safety++; noteMistake(code); runMiss(); }
   SFX.err();
-  toast('<b>Giáo sư:</b> ' + msg + (warnOnly ? ' <i>(Hôm nay ta chỉ nhắc thôi.)</i>' : ' <i>Lỗi an toàn — ca này mất sao thứ ba.</i>'));
+  toast('<b>Giáo sư:</b> ' + msg + ' <i>' + (warnOnly ? PROF_SAFETY.nhacThoi : PROF_SAFETY.truSao) + '</i>');
 }
 function wearGoggles(){
   if(lab.goggles) return;
@@ -1137,13 +1137,13 @@ function setHood(on){
 // khí độc vừa xuất hiện (rót ra, nạp vào lọ, hay phản ứng sinh ra) mà tủ hút còn tắt
 function toxicCheck(f){
   if(!TOXIC.includes(f) || lab.hood) return;
-  safetyHit('tu-hut', 'Khí ' + sub(f) + ' độc lắm! Làm với khí độc phải bật <b>tủ hút</b> trước. Ta bật hộ rồi đấy.');
+  safetyHit('tu-hut', fillLine(PROF_SAFETY['tu-hut'], {f:sub(f)}));
   setHood(true);
 }
 // trước khi rót chất đầu tiên vào cốc / pha thêm nước
 function pourSafety(f){
   if(!lab.goggles){
-    safetyHit('kinh', 'Khoan! Chưa đeo <b>kính bảo hộ và găng tay</b> mà đã lấy hoá chất — bắn vào mắt là nguy lắm. Ta đeo hộ trò rồi.');
+    safetyHit('kinh', PROF_SAFETY['kinh']);
     wearGoggles();
   }
 }
@@ -1612,23 +1612,25 @@ function setExp(exp){
   const sv = G.querySelector('#cust .charsvg');
   if(sv) sv.setAttribute('data-exp', exp);
 }
+// giao được thì trả về true, không thì {key, text}: key là khoá REASON_LINES (loi-thoai.js), text là câu khách nói
 function checkServe(cont, od){
-  if(lab.sel === 'beaker' && tot(lab.undissolved) > 0) return 'trong cốc còn chất chưa tan kìa, khuấy đều đã chứ';
+  const no = (key, vars) => ({key, text:fillLine(REASON_LINES[key], vars || {})});
+  if(lab.sel === 'beaker' && tot(lab.undissolved) > 0) return no('chua-khuay');
   const keys = Object.keys(cont).filter(f => cont[f] > 0);
-  if(!keys.length) return 'vật đựng đang trống trơn mà';
-  if(CHEMS[od.chem].s === 'k' && lab.sel !== 'gas') return 'khí thì phải giao bằng bình thu khí chứ';
+  if(!keys.length) return no('trong');
+  if(CHEMS[od.chem].s === 'k' && lab.sel !== 'gas') return no('vat-dung-khi');
   if(isPrecip(od.chem) && lab.sel !== 'solid'){
     const onlySolids = keys.length > 0 && keys.every(f => CHEMS[f].s === 'r');
-    if(!onlySolids) return 'chất rắn phải lọc ra đĩa rồi mới giao chứ';
+    if(!onlySolids) return no('vat-dung-ran');
   }
-  if(!(cont[od.chem] > 0)) return 'không thấy ' + (od.pname || CHEMS[od.chem].n) + ' đâu cả';
+  if(!(cont[od.chem] > 0)) return no('khong-co', {name:od.pname || CHEMS[od.chem].n});
   // chế độ khó tự cân đong nên cho lệch 5%: cả lượng hàng lẫn chút chất dư còn sót lại
   const tol = lab.hard ? Math.max(0.01, CONC_TOL * od.n) : 0.01;
   const others = keys.filter(f => f !== od.chem && f !== 'H2O' && !(lab.hard && cont[f] <= tol));
-  if(others.length) return 'hàng bị lẫn ' + others.map(sub).join(', ');
-  if(Math.abs(cont[od.chem] - od.n) > tol) return 'cần đúng ' + qtyStr(od.chem, od.n) + ' cơ, chỗ này ' + (cont[od.chem] > od.n ? 'nhiều quá' : 'ít quá'); // epsilon: amounts are now fractional
+  if(others.length) return no('lan-chat', {list:others.map(sub).join(', ')});
+  if(Math.abs(cont[od.chem] - od.n) > tol) return no(cont[od.chem] > od.n ? 'nhieu-qua' : 'it-qua', {q:qtyStr(od.chem, od.n)}); // epsilon: amounts are now fractional
   const hasWater = cont['H2O'] > 0 || Object.keys(cont).some(f => cont[f] > 0 && (CHEMS[f].s === 'l' || CHEMS[f].s === 'd'));
-  if(od.water && !hasWater) return 'phải pha với nước chứ, khô khốc thế này';
+  if(od.water && !hasWater) return no('thieu-nuoc');
   return true;
 }
 function ghostFX(od){
@@ -1653,11 +1655,13 @@ function serve(){
   if(res === true){
     if(lab.sel === 'beaker'){ lab.mix = {}; lab.firstPour = null; lab.waterIn = false; }
     else if(lab.sel === 'gas') lab.gas = {}; else lab.solid = {};
+    const gain = runHit(lab.odur > 0 ? lab.otime/lab.odur : 0);   // nhanh: vòng chờ trên phiếu còn bao nhiêu
     lab.odur = 0; // tắt đồng hồ chờ trong lúc khách kế tiếp bước tới
     lab.lastWhy = '';
     lab.served++;
     G.querySelector('#ordn').textContent = lab.served;
-    sp.innerHTML = PRAISE[Math.floor(Math.random()*PRAISE.length)].replace(/\{A\}/g, c[2]);
+    runPop(G.querySelector('#ordn').parentNode, gain);
+    sp.innerHTML = fillLine(pickLine(PRAISE), {A:c[2]});
     setExp('happy');
     ghostFX(od);
     SFX.coin(); setTimeout(SFX.clink, 150);
@@ -1668,9 +1672,9 @@ function serve(){
     else setTimeout(nextCustomer, 1100);
   } else {
     lab.wrong++;
-    noteMistake(mistakeOf(res));
+    noteMistake(REASON_MISTAKE[res.key] || res.key); runMiss();
     unlockAch('oops');
-    sp.innerHTML = COMPLAIN[Math.floor(Math.random()*COMPLAIN.length)].replace(/\{A\}/g, c[2]).replace('{r}', res + '!');
+    sp.innerHTML = fillLine(pickLine(COMPLAIN), {A:c[2], r:res.text + '!'});
     setExp('annoy');
     SFX.err();
     const cu = G.querySelector('#cust'), nt = G.querySelector('#ordernote');
