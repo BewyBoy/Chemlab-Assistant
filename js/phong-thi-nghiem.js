@@ -15,7 +15,7 @@ const tot = obj => Object.values(obj).reduce((a,b)=>a+b,0);
    ===================================================================== */
 const CX = 658;                        // tâm vùng bàn (336..980)
 const FAR_Y = 430, NEAR_Y = 636;       // bàn nông: sâu ~200px
-const FAR_H = 205, NEAR_H = 318;       // nửa bề rộng tương ứng
+const FAR_H = 255, NEAR_H = 318;       // nửa bề rộng tương ứng
 const yOf     = t => FAR_Y + (NEAR_Y - FAR_Y) * t;
 const halfOf  = t => FAR_H + (NEAR_H - FAR_H) * t;
 const xOf     = (u,t) => CX + u * halfOf(t);
@@ -59,29 +59,36 @@ const TOOLBOX = {
 // ponytail: 'quy' & 'book' vẫn còn trong TOOLBOX — thêm lại vào đây là hiện lại ngay
 const TOOL_ORDER = ['heat','burn','elec','gas','filter'];
 
-/* mặt bàn + mặt trước, thớ gỗ hội tụ về điểm tụ */
+/* mặt bàn + mặt trước, thớ gỗ hội tụ về điểm tụ. Bàn kéo dài sang trái để khách đứng sau mép xa ở cột bên trái nhận
+   hàng trên khay (TRAY_SVG). Cạnh trái cũng chụm về điểm tụ như cạnh phải; góc sau bên trái nằm BENCH_FAR_L px tính từ
+   mép trái màn (−BX) — ngay dưới vai trái khách — nên góc trước rơi ra ngoài mép màn một chút, cạnh trái vẫn thấy.
+   BX đổi khi đổi cỡ cửa sổ: fit() vẽ lại bàn. */
+const BENCH_FAR_L = 100;
 function benchSVG(){
-  const xl0 = xOf(-1,0), xr0 = xOf(1,0), xl1 = xOf(-1,1), xr1 = xOf(1,1);
+  const f = (NEAR_Y - FAR_Y) / (NEAR_Y - VP_Y);              // cạnh đi từ mép gần tới mép xa thì nhích về CX chừng này
+  const xl0 = BENCH_FAR_L - BX, xr0 = xOf(1,0), xl1 = (xl0 - CX*f) / (1 - f), xr1 = xOf(1,1);
+  const top = xl0+','+FAR_Y+' '+xr0+','+FAR_Y+' '+xr1+','+NEAR_Y+' '+xl1+','+NEAR_Y;
   let grain = '';
-  for(let k = -7; k <= 7; k++){
+  for(let k = -35; k <= 7; k++){
     const u = k/7;
     grain += '<line x1="'+xOf(u,0)+'" y1="'+FAR_Y+'" x2="'+xOf(u,1)+'" y2="'+NEAR_Y
           +  '" stroke="#6e5232" stroke-width="'+(1 + Math.abs(u)*0.5).toFixed(1)+'" opacity=".16"/>';
   }
   let depth = '';
   [0.34, 0.68].forEach(t => {
-    depth += '<line x1="'+xOf(-1,t)+'" y1="'+yOf(t)+'" x2="'+xOf(1,t)+'" y2="'+yOf(t)
+    depth += '<line x1="'+(xl0 + (xl1 - xl0)*t)+'" y1="'+yOf(t)+'" x2="'+xOf(1,t)+'" y2="'+yOf(t)
           +  '" stroke="#6e5232" stroke-width="1.3" opacity=".12"/>';
   });
   return '<svg id="benchsvg" viewBox="0 0 1280 720">'
     + '<defs><linearGradient id="btop" x1="0" y1="0" x2="0" y2="1">'
-    +   '<stop offset="0%" stop-color="#d8ac77"/><stop offset="100%" stop-color="#b8874f"/></linearGradient></defs>'
+    +   '<stop offset="0%" stop-color="#d8ac77"/><stop offset="100%" stop-color="#b8874f"/></linearGradient>'
+    +   '<clipPath id="btopclip"><polygon points="'+top+'"/></clipPath></defs>'
     // mặt trước bàn vẽ dài quá đáy 720: màn cao hơn 16:9 thì nó kéo tới tận mép dưới (#screen cắt phần thừa)
     + '<path d="M'+xl1+','+NEAR_Y+' L'+xr1+','+NEAR_Y+' L'+xr1+',1200 L'+xl1+',1200 Z" fill="#a97c4b"/>'
     + '<path d="M'+xl1+','+NEAR_Y+' L'+xr1+','+NEAR_Y+' L'+xr1+','+(NEAR_Y+16)+' L'+xl1+','+(NEAR_Y+16)+' Z" fill="#8a6238"/>'
     + '<use href="#sym-benchtex" x="'+xl1+'" y="'+(NEAR_Y+30)+'" width="'+(xr1-xl1)+'" height="70" opacity=".45"/>'
-    + '<polygon points="'+xl0+','+FAR_Y+' '+xr0+','+FAR_Y+' '+xr1+','+NEAR_Y+' '+xl1+','+NEAR_Y+'" fill="url(#btop)"/>'
-    + grain + depth
+    + '<polygon points="'+top+'" fill="url(#btop)"/>'
+    + '<g clip-path="url(#btopclip)">' + grain + depth + '</g>'
     + '<line x1="'+xl0+'" y1="'+FAR_Y+'" x2="'+xr0+'" y2="'+FAR_Y+'" stroke="#3b3025" stroke-width="4"/>'
     + '<line x1="'+xl0+'" y1="'+FAR_Y+'" x2="'+xl1+'" y2="'+NEAR_Y+'" stroke="#3b3025" stroke-width="4"/>'
     + '<line x1="'+xr0+'" y1="'+FAR_Y+'" x2="'+xr1+'" y2="'+NEAR_Y+'" stroke="#3b3025" stroke-width="4"/>'
@@ -326,7 +333,7 @@ function startLab(i){
   lab = newLab(i, DAYS[i]);
   runStart();   // điểm nhanh lấy từ vòng đồng hồ chờ của từng khách (serve), không cần đồng hồ riêng
   renderLab();
-  lab.timer = setInterval(labTick, 1000);
+  startCurtain();   // đồng hồ ca bật khi màn "Bắt đầu" sáng lại
 }
 
 /* ---- free-play (post day 28): full shelf, endless random campaign orders ---- */
@@ -343,7 +350,7 @@ function startFree(){
   lab = newLab(-1, day);
   runStart();
   renderLab();
-  lab.timer = setInterval(labTick, 1000);
+  startCurtain();
   toast('Kệ mở toàn bộ '+chems.length+' hoá chất — khách đến vô tận, nghịch thoải mái!');
 }
 function finishLab(){
@@ -370,21 +377,18 @@ function labTick(){
   if(bar){ bar.style.width = (frac*100)+'%'; bar.style.background = frac>.5?'var(--green)':frac>.2?'var(--accent)':'var(--red)'; }
   const tl = G.querySelector('#tleft');
   if(tl) tl.textContent = Math.floor(lab.time/60)+':'+String(lab.time%60).padStart(2,'0');
-  // countdown ring on the order note — đồng hồ chờ của riêng khách hiện tại
+  // vòng đếm ngược ở góc bóng thoại — đồng hồ chờ của riêng khách hiện tại
   if(lab.odur > 0 && lab.otime > 0) lab.otime--;
   const ofrac = lab.odur > 0 ? lab.otime/lab.odur : 1;
   const ring = G.querySelector('.on-ring circle.fg');
   if(ring){ ring.style.strokeDashoffset = 88*(1-ofrac); ring.style.stroke = ofrac>.2?'var(--green)':'var(--red)'; }
-  const note = G.querySelector('.ordernote');
-  if(note) note.classList.toggle('pulse', ofrac <= .2);
   // khách sốt ruột: mỗi mốc nói một câu, giọng theo tính cách (WAIT_LINES trong loi-thoai.js)
   if(lab.odur > 0 && typeof WAIT_LINES !== 'undefined'){
     const stage = ofrac <= .3 ? 2 : ofrac <= .6 ? 1 : 0;
     if(stage > lab.waitStage){
       lab.waitStage = stage;
       const lines = WAIT_LINES[lab.day.orders[lab.oi].who];
-      const sp = G.querySelector('#speech');
-      if(lines && lines.length && sp) sp.innerHTML = lines[(stage-1) % lines.length];
+      if(lines && lines.length) custSay(lines[(stage-1) % lines.length]);
     }
   }
   // wall clock (8:00 -> 17:00) and window daylight
@@ -409,15 +413,14 @@ function customerLeaves(){ // hết giờ chờ: khách bỏ đi, hàng đợi c
   lab.odur = 0;
   noteMistake('khach-bo-di'); runMiss();
   const od = lab.day.orders[lab.oi], c = CUSTOMERS[od.who];
-  const sp = G.querySelector('#speech');
-  if(sp) sp.innerHTML = fillLine(LEAVE_LINE, {ten:c[0]});
+  lab.otag = null;
+  custSay(fillLine(LEAVE_LINE, {ten:c[0]}));
   setExp('annoy');
   SFX.err();
   toast('Khách bỏ đi — lỡ đơn "' + (od.pname || CHEMS[od.chem].n) + '".');
   lab.oi++;
   if(lab.day.free) lab.day.orders.push(lab.day.freeOrder());
-  if(lab.oi >= lab.day.orders.length) setTimeout(finishLab, 900);
-  else setTimeout(nextCustomer, 1100);
+  custLeave();
 }
 
 // hovering a shelf chemical for 5s reveals a fun fact about it
@@ -547,13 +550,10 @@ function renderLab(){
     </div>
     ${benchSVG()}
     <div class="custcol">
-      <div class="corkstrip">${sym('sym-cork',300,164,'position:absolute;inset:6px;width:calc(100% - 12px);height:calc(100% - 12px);pointer-events:none;opacity:.65')}
-        <div class="ordernote" id="ordernote"></div>
-      </div>
-      <div class="speech" id="speech"></div>
-      <div class="custzone" id="cust" data-dz="cust"></div>
-      <div class="queue" id="queue"></div>
-      <div class="servehint" id="coach"></div>
+      <div class="speech" id="speech"><svg class="on-ring" width="30" height="30" viewBox="0 0 34 34"><circle class="bg" cx="17" cy="17" r="14"/><circle class="fg" cx="17" cy="17" r="14" stroke-dasharray="88" stroke-dashoffset="0"/></svg>
+        <div id="sptext"></div><div class="sp-order" id="sporder" hidden></div></div>
+      <div class="custzone" id="cust"><div class="custwalk" id="custwalk"></div></div>
+      ${TRAY_SVG}
     </div>
     <div class="sinkstation" data-dz="sink"><div class="counter"></div>
       <svg id="sinksvg" width="96" height="76"><use href="#sym-sink"/></svg><div class="cap">Bồn rửa</div></div>
@@ -573,6 +573,7 @@ function renderLab(){
   </div>`;
   // buttons
   G.querySelector('#bpause').onclick = pauseLab;
+  G.querySelector('#speech').onclick = custChat;
   G.querySelector('#bmute').onclick = e => { const m = SFX.toggle(); e.currentTarget.innerHTML = ico(m?'mute':'sound'); };
   const hb = G.querySelector('#bhbook'); if(hb) hb.onclick = showHardBook;
   G.querySelector('#goggles').onclick = () => { if(lab.goggles) return; wearGoggles(); toast('Đã đeo kính bảo hộ và găng tay — an toàn là trên hết!'); };
@@ -672,7 +673,7 @@ function pauseLab(){
   if(hasEqs) ov.querySelector('#pnote').onclick = () => { ov.classList.add('under'); balanceSheet(lab.i, () => { ov.classList.remove('under'); refreshBalPaper(); }); };
   ov.querySelector('#presume').onclick = () =>   // thẻ trượt xuống xong mới chạy lại đồng hồ
     closeOv(ov, () => { if(lab && lab.timer === null) lab.timer = setInterval(labTick, 1000); });
-  ov.querySelector('#prestart').onclick = () => { const i = lab.i; lab = null; go(free ? startFree : ()=>showIntro(i)); };
+  ov.querySelector('#prestart').onclick = () => { const i = lab.i; lab = null; go(free ? startFree : ()=>playDay(i)); };
   ov.querySelector('#pmap').onclick = () => {
     if(free){ // bank the shift: serve count feeds the same save fields the campaign uses
       save.served += lab.served; persist();
@@ -1096,6 +1097,21 @@ const HOOD_SVG = '<svg width="96" height="66" viewBox="0 0 100 70">'
   + '<circle cx="34" cy="35" r="4" fill="#3b3025"/>'
   + '<rect x="68" y="16" width="18" height="38" rx="5" fill="#fffdf5" stroke="#3b3025" stroke-width="2.5"/>'
   + '<rect class="knob" x="70" y="36" width="14" height="16" rx="3" stroke="#3b3025" stroke-width="2"/></svg>';
+/* khay to trên phần bàn kéo dài sang trái, trước mặt khách (#custtray: hàng giao trượt tới đây). Khay nằm trong cột
+   khách nên theo cột khi màn rộng hơn 16:9; style.css neo nó theo bàn (y 440 → 580 trên màn 1280×720).
+   Vẽ theo cùng điểm tụ với bàn (x ≈ CX, y ≈ VP_Y): ở bên trái nên mép sau lệch hẳn sang phải, thấy mặt bên phải.
+   Khay là chỗ DUY NHẤT để giao hàng (data-dz="cust"): chỉ các mảng vẽ của khay bắt chuột, phần trống của svg thì không.
+   .tray-dz là viền nét đứt quanh khay, chỉ hiện lúc đang kéo cốc / bình khí / đĩa lọc */
+const TRAY_SVG = '<svg class="traysvg" viewBox="0 0 340 140">'
+  + '<path d="M38,126 L292,126 L330,22 L106,22 Z" fill="#3b3025" opacity=".14"/>'
+  + '<g id="custtray" data-dz="cust">'
+  + '<path d="M282,118 L321,15 L321,25 L282,129 Z" fill="#95a1ab" stroke="#3b3025" stroke-width="2.5" stroke-linejoin="round"/>'
+  + '<path d="M32,118 L282,118 L282,129 L32,129 Z" fill="#a9b4bd" stroke="#3b3025" stroke-width="2.5" stroke-linejoin="round"/>'
+  + '<path d="M98,15 L321,15 L282,118 L32,118 Z" fill="#cfd6dc" stroke="#3b3025" stroke-width="3" stroke-linejoin="round"/>'
+  + '<path d="M110,24 L306,24 L272,108 L48,108 Z" fill="#e7ecf0" stroke="#3b3025" stroke-width="1.5" stroke-linejoin="round" opacity=".9"/>'
+  + '<path d="M122,32 L200,32 M66,98 L100,98" stroke="#fff" stroke-width="3.5" stroke-linecap="round" opacity=".8"/>'
+  + '<path class="tray-dz" d="M90,6 L334,6 L291,137 L22,137 Z"/>'
+  + '</g></svg>';
 function noteMistake(code){ if(lab && code) lab.mistakes[code] = (lab.mistakes[code]||0) + 1; }
 /* Các loại lỗi đếm vào báo cáo cho thầy cô — gom từ câu khách phàn nàn, lời giáo sư giải thích
    vì sao cốc không phản ứng, lỗi an toàn và khách bỏ đi. */
@@ -1472,10 +1488,10 @@ function useLitmus(){
 }
 
 /* ---- customers & serving ---- */
-function orderLine(od, oi){
+function orderLine(od, oi, alt){
   const c = CUSTOMERS[od.who];
   const uses = USE_LINES[od.chem];
-  const tpl = od.line || (uses ? uses[(od.who + oi) % uses.length] : ORDER_TPL[(od.who + oi) % ORDER_TPL.length]);
+  const tpl = alt || od.line || (uses ? uses[(od.who + oi) % uses.length] : ORDER_TPL[(od.who + oi) % ORDER_TPL.length]);
   return tpl.replace(/\{A\}/g, c[2]).replace('{q}', qtyStr(od.chem, od.n))
             .replace('{name}', (od.pname || CHEMS[od.chem].n.toLowerCase())
                                  .replace(/\s*\([^)]*\)\s*$/, '')) // gợi ý cuối tên chỉ hiện trên phiếu
@@ -1572,6 +1588,7 @@ function coachText(){
   return 'Chưa ra <b>' + sub(t) + '</b>. Thử rót thêm chất khác từ tủ'
        + (day.tools.includes('heat') ? ', hoặc kéo <b>Đun nóng</b> vào cốc' : '') + ' xem sao.';
 }
+// ô hướng dẫn #coach đã bỏ khỏi cột khách (cột giờ chỉ có phiếu, lời khách và quầy) — thêm lại <div id="coach"> là chạy lại
 function updateCoach(){
   const el = G.querySelector('#coach'); if(!el || !lab) return;
   // khách đầu tiên của ngày: giới thiệu dụng cụ mới trước đã
@@ -1584,33 +1601,72 @@ function updateCoach(){
 
 function nextCustomer(){
   const od = lab.day.orders[lab.oi];
-  const c = CUSTOMERS[od.who];
-  const left = lab.day.orders.length - lab.oi - 1;
-  // mỗi khách có đồng hồ chờ riêng (vòng tròn trên phiếu): hết giờ thì bỏ đi,
+  // mỗi khách có đồng hồ chờ riêng (vòng tròn ở góc bóng thoại): hết giờ thì bỏ đi,
   // nhờ vậy một đơn không pha được cũng không chặn cứng cả hàng đợi
   // backstop, không phải áp lực: gấp đôi phần chia đều, nên chơi bình thường gần như không bao giờ chạm
   lab.odur = (lab.day.free ? 180 : Math.max(120, Math.round(lab.day.dur / lab.day.orders.length * 2))) * (lab.hard ? 1.5 : 1);
   lab.otime = lab.odur;
   lab.waitStage = 0;
   lab.miss = 0;      // bậc gợi ý chế độ khó tính riêng cho từng đơn
-  G.querySelector('#ordernote').innerHTML =
-    '<div class="on-head"><div class="on-face">'+custHead(od.who)+'</div><div class="on-cname">'+c[0]+'<span class="on-job">'+c[1]+'</span></div>' +
-    '<svg class="on-ring" width="34" height="34" viewBox="0 0 34 34"><circle class="bg" cx="17" cy="17" r="14"/><circle class="fg" cx="17" cy="17" r="14" stroke-dasharray="88" stroke-dashoffset="0"/></svg></div>' +
-    // chế độ khó: tên hàng kiểu "nước muối (0,2 mol)" lộ sẵn số mol — bỏ phần ngoặc đó đi
-    '<div class="on-name">'+(od.pname || CHEMS[od.chem].n).replace(lab.hard ? /\s*\([^)]*mol[^)]*\)/ : /$^/, '')+'</div>' +
-    '<div class="on-meta"><span class="on-swatch" style="background:'+CHEMS[od.chem].c+'"></span><b>'+qtyStr(od.chem, od.n)+'</b> · '+sub(od.chem)+'</div>';
-  G.querySelector('#speech').innerHTML = orderLine(od, lab.oi);
-  const cz = G.querySelector('#cust');
-  cz.innerHTML = custSVG(od.who,'neutral').replace('<svg ','<svg style="height:212px" ') + '<div class="cust-nametag">'+c[0]+'</div>';
-  cz.style.opacity = 0; cz.style.transition = 'opacity .4s';
-  requestAnimationFrame(()=>{ cz.style.opacity = 1; });
-  G.querySelector('#queue').textContent = left>0 ? 'Còn '+left+' khách đang chờ…' : 'Đây là vị khách cuối cùng!';
+  // góc dưới bóng thoại: chất cần làm + lượng. Tên hàng có gợi ý cách làm ("khí hiđro (Zn + axit)") thì ghi cả tên;
+  // phần "(0,2 mol)" trong tên bỏ đi vì lượng đã ghi riêng (chế độ khó còn đổi ra gam / lít)
+  const q = qtyStr(od.chem, od.n), f = sub(od.chem);
+  const nm = (od.pname || CHEMS[od.chem].n).replace(/\s*\([^)]*mol[^)]*\)/, ''), hint = /\s\(|—/.test(nm);
+  lab.otag = {q, f, hint};
+  G.querySelector('#sporder').innerHTML = (hint ? '<span class="sp-name">' + nm + '</span>' : '')
+    + '<span class="on-swatch" style="background:' + CHEMS[od.chem].c + '"></span><b>' + q + '</b> · ' + f;
+  // bấm bóng thoại: câu đặt hàng → chuyện riêng của khách → đặt lại kiểu khác → chuyện về chất → … rồi vòng lại
+  const line = orderLine(od, lab.oi), chat = CHAT_LINES[od.who] || [];
+  const alts = (USE_LINES[od.chem] || []).concat(ORDER_TPL).map(t => orderLine(od, lab.oi, t)).filter(s => s !== line);
+  lab.talk = [line, chat[0], alts[(od.who + lab.oi) % alts.length], chat[1],
+              CHEM_FACTS[od.chem] && fillLine(CHAT_FACT, {fact:CHEM_FACTS[od.chem]}), chat[2]].filter(Boolean);
+  lab.talkI = 0;
+  const sp = G.querySelector('#speech'), cw = G.querySelector('#custwalk');
+  custSay(line);
+  sp.classList.add('hush');                       // khách đứng trước khay rồi mới nói
+  cw.innerHTML = custSVG(od.who,'neutral').replace('<svg ','<svg style="height:250px" ');
+  custWalk(cw, 'in', () => sp.classList.remove('hush'));
   updateCoach();
   SFX.bell();
+}
+/* lời khách trong bóng thoại. Đơn còn chờ (lab.otag) mà câu không nói rõ cả lượng lẫn công thức — hoặc tên hàng có
+   gợi ý cách làm — thì hiện thêm dòng chất cần làm ở góc dưới bên phải; giao xong / khách bỏ đi thì otag = null */
+function custSay(html){
+  const t = G.querySelector('#sptext'), tag = G.querySelector('#sporder');
+  if(!t) return;
+  t.innerHTML = html;
+  const o = lab && lab.otag;
+  tag.hidden = !o || (!o.hint && html.includes(o.q) && html.includes(o.f));
+}
+// bấm vào bóng thoại lúc khách đang chờ hàng: khách nói câu kế trong lab.talk
+function custChat(){
+  if(!lab || !lab.otag || !lab.talk || G.querySelector('#speech.hush')) return;
+  lab.talkI = (lab.talkI + 1) % lab.talk.length;
+  custSay(lab.talk[lab.talkI]);
+  SFX.talk();
 }
 function setExp(exp){
   const sv = G.querySelector('#cust .charsvg');
   if(sv) sv.setAttribute('data-exp', exp);
+}
+/* Khách đi bộ: 'in' = từ mép trái bước vào, dừng trước khay; 'out' = đi ngược lại ra mép trái, đúng lối đã vào.
+   Lúc bước thì nhún nhẹ (.walking); xong thì gọi done. Mỗi lần gọi huỷ lượt đi trước còn dở. */
+const WALK_MS = 1100;
+function custWalk(cw, dir, done){
+  clearTimeout(cw._walk);
+  if(dir === 'in'){
+    cw.style.transition = 'none';
+    cw.className = 'custwalk walking from';
+    void cw.offsetWidth;
+    cw.style.transition = '';
+    cw.classList.remove('from');
+  } else cw.classList.add('walking', 'away');
+  cw._walk = setTimeout(() => { cw.classList.remove('walking'); if(done) done(); }, WALK_MS);
+}
+// khách xong việc (nhận hàng hoặc chờ lâu bỏ đi): đứng một nhịp cho thấy nét mặt, rồi đi ra; hết khách thì đóng ca
+function custLeave(){
+  const cw = G.querySelector('#custwalk'), next = lab.oi >= lab.day.orders.length ? finishLab : nextCustomer;
+  setTimeout(() => { if(lab && cw.isConnected) custWalk(cw, 'out', () => { if(lab) next(); }); }, 500);
 }
 // giao được thì trả về true, không thì {key, text}: key là khoá REASON_LINES (loi-thoai.js), text là câu khách nói
 function checkServe(cont, od){
@@ -1640,18 +1696,20 @@ function ghostFX(od){
             : lab.sel==='solid' ? '<div class="dish" style="background:linear-gradient(transparent 40%,'+CHEMS[od.chem].c+' 40%)"></div>'
             : sym('sym-erlenmeyer',50,66,'--lc:'+(CHEMS[od.chem].c));
   gh.innerHTML = art;
-  const bx = beakerBox();
+  const bx = beakerBox(), gr = G.getBoundingClientRect(), tr = G.querySelector('#custtray').getBoundingClientRect(), sc = gr.width/1280;
   gh.style.left = (bx.cx - 26) + 'px'; gh.style.top = (bx.top + 30) + 'px';
   G.appendChild(gh);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{ gh.style.left = '170px'; gh.style.top = '420px'; gh.style.opacity = .2; }));
+  // hàng trượt sang đặt lên khay trước mặt khách
+  const tx = (tr.left + tr.width/2 - gr.left)/sc - 26, ty = (tr.top + tr.height/2 - gr.top)/sc - 70;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ gh.style.left = tx + 'px'; gh.style.top = ty + 'px'; gh.style.opacity = .2; }));
   setTimeout(()=>gh.remove(), 800);
 }
 function serve(){
+  if(!G.querySelector('#custwalk:not(.walking):not(.away)')) return;   // khách đang đi vào / đi ra: chưa nhận hàng
   const od = lab.day.orders[lab.oi];
   const c = CUSTOMERS[od.who];
   const cont = lab.sel === 'beaker' ? lab.mix : lab.sel === 'gas' ? lab.gas : lab.solid;
   const res = checkServe(cont, od);
-  const sp = G.querySelector('#speech');
   if(res === true){
     if(lab.sel === 'beaker'){ lab.mix = {}; lab.firstPour = null; lab.waterIn = false; }
     else if(lab.sel === 'gas') lab.gas = {}; else lab.solid = {};
@@ -1661,23 +1719,23 @@ function serve(){
     lab.served++;
     G.querySelector('#ordn').textContent = lab.served;
     runPop(G.querySelector('#ordn').parentNode, gain);
-    sp.innerHTML = fillLine(pickLine(PRAISE), {A:c[2]});
+    lab.otag = null;
+    custSay(fillLine(pickLine(PRAISE), {A:c[2]}));
     setExp('happy');
     ghostFX(od);
     SFX.coin(); setTimeout(SFX.clink, 150);
     updateBeaker();
     lab.oi++;
     if(lab.day.free) lab.day.orders.push(lab.day.freeOrder()); // endless queue: refill one per serve
-    if(lab.oi >= lab.day.orders.length){ setTimeout(finishLab, 900); }
-    else setTimeout(nextCustomer, 1100);
+    custLeave();
   } else {
     lab.wrong++;
     noteMistake(REASON_MISTAKE[res.key] || res.key); runMiss();
     unlockAch('oops');
-    sp.innerHTML = fillLine(pickLine(COMPLAIN), {A:c[2], r:res.text + '!'});
+    custSay(fillLine(pickLine(COMPLAIN), {A:c[2], r:res.text + '!'}));
     setExp('annoy');
     SFX.err();
-    const cu = G.querySelector('#cust'), nt = G.querySelector('#ordernote');
+    const cu = G.querySelector('#custwalk'), nt = G.querySelector('#speech');
     [cu, nt].forEach(el => { el.classList.remove('shaken'); void el.offsetWidth; el.classList.add('shaken'); });
     setTimeout(()=>setExp('neutral'), 1800);
     // chế độ khó: mỗi lần giao sai mở thêm một bậc gợi ý — công thức → khối lượng mol → lời giải

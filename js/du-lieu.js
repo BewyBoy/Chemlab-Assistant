@@ -107,16 +107,26 @@ const SLOW_DISSOLVE = Object.keys(CHEMS).filter(f => CHEMS[f].s === 'r' && CHEMS
 const SUBS = '₀₁₂₃₄₅₆₇₈₉';
 const sub = f => f.replace(/([A-Za-z)])(\d+)/g, (m,ch,d) => ch + [...d].map(x=>SUBS[+x]).join(''));
 const amt = n => (+(n/10).toFixed(3)).toString().replace('.',',') + ' mol'; // doses can be fractional (0,05 mol...)
+// dấu ở sản phẩm f theo quy ước SGK: ↓ chỉ cho kết tủa sinh ra trong dung dịch — không ghi khi đốt, đun, điện phân, có
+// chất xúc tác / chất rút nước, hay khi không chất tham gia nào tan (CaO + CO₂); ↑ không ghi khi chất tham gia đã có khí
+function rxMark(r, f){
+  const rg = Object.keys(r.rg);
+  if(CHEMS[f].s === 'k') return rg.some(g => CHEMS[g].s === 'k') ? '' : '↑';
+  return isPrecip(f) && !(r.heat || r.burn || r.elec || r.cat) && rg.some(g => CHEMS[g].sol) ? '↓' : '';
+}
+// ghi chú nồng độ ngay sau công thức: H₂SO₄(loãng), HCl(đặc)
+const rxTag = (r, f) => r.tag && r.tag[f] ? '(' + r.tag[f] + ')' : '';
+// một vế: hệ số, công thức, (đặc)/(loãng); vế sản phẩm (mark) ghi thêm ↑ / ↓
+const eqSide = (r, obj, mark) => Object.keys(obj).map(f =>
+  (obj[f]>1? obj[f]:'') + sub(f) + rxTag(r, f) + (mark ? rxMark(r, f) : '')
+).join(' + ');
 function eqStr(r){ // auto-build balanced equation string with ↑/↓ markers
-  const side = (obj, mark) => Object.keys(obj).map(f=>{
-    let m = '';
-    if(mark){ if(CHEMS[f].s==='k') m='↑'; else if(isPrecip(f)) m='↓'; }
-    return (obj[f]>1? obj[f]:'') + sub(f) + m;
-  }).join(' + ');
-  return side(r.rg) + ' —' + rxOver(r) + '→ ' + side(r.pr, true);
+  // thuận nghịch: ⇌ không vẽ được kiểu —t°→ nên điều kiện ghi trong ngoặc ngay sau mũi tên
+  const arrow = r.rev ? '⇌' + (rxOver(r) ? '(' + rxOver(r) + ')' : '') : '—' + rxOver(r) + '→';
+  return eqSide(r, r.rg) + ' ' + arrow + ' ' + eqSide(r, r.pr, true);
 }
 // điều kiện ghi trên mũi tên: đốt cũng là t° như SGK viết
-const rxOver = r => [(r.heat||r.burn)?'t°':'', r.elec?'đp':'', r.cat?r.cat.map(sub).join(','):''].filter(Boolean).join(', ');
+const rxOver = r => [(r.heat||r.burn)?'t°':'', r.elec?'đp':'', r.cat?r.cat.map(f => sub(f) + (r.tag && r.tag[f] ? ' ' + r.tag[f] : '')).join(','):'', r.cond||''].filter(Boolean).join(', ');
 function fxOf(r){ // visual effect summary for a reaction
   const fx = [];
   if(Object.keys(r.pr).some(f=>CHEMS[f].s==='k')) fx.push('sủi bọt khí');

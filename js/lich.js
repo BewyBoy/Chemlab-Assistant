@@ -1,6 +1,6 @@
 /* =====================================================================
    LỊCH — tên tháng và mô tả từng ngày. Sửa chữ ở đây là đủ, không cần đụng file khác.
-   Mô tả của một ngày hiện ở: ô lịch, màn hình giới thiệu ngày, thanh trên cùng khi chơi
+   Mô tả của một ngày hiện ở: ô lịch, thanh trên cùng khi chơi
    và báo cáo học tập.
 
    Cách sửa:
@@ -49,7 +49,8 @@ const LICH = {
     'Chuỗi phản ứng — Nối mắt xích',         // 31
   ],
 
-  tuDo: 'Ca tự do — tháng sau'   // ô ngay sau ngày 31
+  tuDo: 'Ca tự do — tháng sau',      // ô ngay sau ngày 31 (ngày 1 tháng sau)
+  thamQuan: 'Tham quan khu công nghiệp'   // ngày 2 tháng sau — mở khi qua ngày 31, cần vé (js/tham-quan.js)
 };
 
 LICH.ngay.forEach((t, i) => { if(DAYS[i]) DAYS[i].t = t; });

@@ -1,5 +1,5 @@
 /* =====================================================================
-   GIAO DIỆN — âm thanh & nhạc nền, lưu tiến trình, menu, lịch, cửa hàng, màn giới thiệu ngày,
+   GIAO DIỆN — âm thanh & nhạc nền, lưu tiến trình, menu, lịch, cửa hàng, vào ngày (playDay, màn "Bắt đầu"),
    giấy cân bằng, cài đặt, báo cáo học tập, màn kết quả.
    ===================================================================== */
 'use strict';
@@ -173,13 +173,18 @@ const cardsOn = () => save.settings.cards !== false;   // thẻ phản ứng khi
 // sổ ghi chép ở màn xác định chất: phải mua ở Cửa hàng; mua rồi bật/tắt ngay trong Cửa hàng (mặc định bật)
 const labbookOn = () => !!(save.items && save.items.labbook) && save.settings.labbook !== false;
 const BALANCE_FROM_DAY = 6; // từ ngày này trở đi người chơi tự cân bằng; trước đó giáo sư làm hộ (ngày 5 học cân bằng)
-// đồng đỏ: one copper coin per unlocked achievement, minus what was spent in the shop
-const achCoins = () => save.ach.length - (save.spent||0);
+// đồng đỏ: one copper coin per unlocked achievement, minus what was spent in the shop.
+// Dev mode: vô hạn — mua gì cũng đủ, không trừ vào save.spent (tắt dev mode là số đồng thật y như cũ), hiện là ∞
+const achCoins = () => DEBUG ? Infinity : save.ach.length - (save.spent||0);
+const coinStr = () => DEBUG ? '∞' : achCoins();
+const spendCoins = n => { if(!DEBUG) save.spent = (save.spent||0) + n; };
 // persist() được gọi rải khắp game (mở khoá, đổi liều lượng…) — không bọc thì storage bị
 // chặn giữa chừng (itch.io iframe, Safari riêng tư) sẽ ném lỗi ngay tại chỗ gọi và văng game.
 const persist = () => { try { localStorage.setItem('chemlab_save', JSON.stringify(save)); } catch(e){} };
 
+// thông báo nhỏ ở góc dưới: chỉ hiện ở dev mode (#dev / mật khẩu), người chơi thường không thấy
 function toast(msg){
+  if(!DEBUG) return;
   const t = document.createElement('div');
   t.className = 'toast'; t.innerHTML = msg;
   G.appendChild(t); setTimeout(()=>t.remove(), 3600);
@@ -203,14 +208,6 @@ function dayStars(st, sth){
   return [0,1,2].map(k => k < sth ? '<b class="sh">★</b>' : k < st ? '★' : '☆').join('');
 }
 function starStr(n){ return '★★★'.slice(0,n) + '☆☆☆'.slice(0,3-n); }
-// mốc sao theo điểm (js/diem.js); minigame không ghi số vì số câu tuỳ màn / chế độ khó
-function starConds(day){
-  if(day.mg) return ['Đúng một nửa số câu là đủ — làm nhanh, đúng liền thì cần ít câu hơn',
-    'Đúng 3/4 số câu là đủ — làm nhanh, đúng liền thì cần ít câu hơn', 'Đúng tất cả — nhanh mấy cũng không bù được một câu sai'];
-  const n = day.orders.length, [t1, t2, t3] = starLimits(n, day.s1, n);
-  return [t1+' điểm — hoàn thành '+day.s1+' đơn là đủ', t2+' điểm — hoàn thành cả '+n+' đơn là đủ',
-          t3+' điểm — chỉ khi đủ '+n+' đơn, không giao sai, không lỗi an toàn'];
-}
 // Đóng một lớp phủ: thẻ trượt xuống, nền nhạt dần, rồi mới gỡ khỏi trang; after() chạy sau khi gỡ.
 const OV_CLOSE_MS = 280;
 function closeOv(ov, after){
@@ -252,21 +249,24 @@ function showMenu(){
   // Thử thách pha nồng độ (startConc) mở sau ngày 2 — ngày học khái niệm mol.
   const inProgress = save.unlocked > 1; // đã qua ít nhất ngày 1 → có gì đó để "tiếp tục"
   const nextDay = Math.min(save.unlocked, DAYS.length);
+  // nút menu: "> nhãn <" — hai mũi nhọn hiện khi hover (style.css .menu-btns .sel); ::before của .btn đã là đế chống rung
+  const mb = (id, cls, html) => `<button class="btn${cls}" id="${id}"><i class="sel" aria-hidden="true">&gt;</i>${html}<i class="sel" aria-hidden="true">&lt;</i></button>`;
   G.innerHTML = `<div class="scene center" style="padding:0">
     <div class="menu-wall"></div>
     <div style="position:absolute;top:150px;left:64px">${sym('sym-poster-periodic',126,160)}</div>
     <div style="position:absolute;top:150px;right:74px">${sym('sym-poster-safety',126,160)}</div>
     <div style="position:absolute;top:34px;left:210px">${sym('sym-clock',74,74)}</div>
-    <div style="position:relative;z-index:5">
+    <div class="menu-main">
       <div class="menu-sign">
         <h1>${sym('sym-erlenmeyer',40,54,'vertical-align:-12px;--lc:#7fc4c9')} Trợ Lý Hóa Học Nhí</h1>
         <h2>Trợ lý phòng thí nghiệm của giáo sư Hoffmann</h2>
       </div>
       <div class="menu-btns">
-        <button class="btn big" id="bstart">${inProgress ? ico('play')+' Ngày '+nextDay+' →' : ico('play')+' Bắt đầu'}</button>
-        <button class="btn" id="brx">${ico('note')} Sổ tay</button>
-        <button class="btn" id="bach">${ico('trophy')} Thành tựu</button>
-        <button class="btn" id="bset">${ico('gear')} Cài đặt</button>
+        ${mb('bstart', ' big', inProgress ? ico('play')+' Ngày '+nextDay+' →' : ico('play')+' Bắt đầu')}
+        ${mb('brx', '', ico('note')+' Sổ tay')}
+        ${mb('bach', '', ico('trophy')+' Thành tựu')}
+        ${storiesOwned() ? mb('bstory', '', ico('book')+' Truyện nguyên tố') : ''}
+        ${mb('bset', '', ico('gear')+' Cài đặt')}
       </div>
     </div>
     <div class="menu-bench">${sym('sym-benchtex',1270,60)}</div>
@@ -286,7 +286,14 @@ function showMenu(){
   G.querySelector('#bstart').onclick = () => go(showMap);
   G.querySelector('#brx').onclick = showRxBook;
   G.querySelector('#bach').onclick = showAch;
+  const bst = G.querySelector('#bstory'); if(bst) bst.onclick = showStories;
   G.querySelector('#bset').onclick = settingsModal;
+}
+
+// Truyện Kể Các Nguyên Tố (mua ở Cửa hàng): chưa có truyện — tạm hiện thẻ "đang viết"
+function showStories(){
+  modal('<h2>' + ico('book', 22) + ' Truyện Kể Các Nguyên Tố</h2>'
+    + '<p class="center" style="line-height:1.6">Giáo sư đang chép lại những câu chuyện đầu tiên về các nguyên tố.<br>Quay lại sau nhé!</p>');
 }
 
 function showAch(){
@@ -408,13 +415,20 @@ function showMap(){
   // hand-drawn red pen loop, revealed by stroke-dashoffset when an unplayed day is picked
   const circ = '<svg class="dnc" viewBox="0 0 48 40"><path d="M9,21 C6,9 20,4 30,6 C42,8 46,15 42,25 C37,36 15,39 8,31 C3,25 7,15 15,11" pathLength="100"/></svg>';
   let cells = '';
+  const fo = DEBUG || (save.stars[DAYS.length]||0) >= 1;   // tháng sau (ca tự do, tham quan) mở khi qua ngày 31
   for(let d=0; d < Math.ceil(DAYS.length/7)*7; d++){
     if(d === DAYS.length){   // hết 31 ngày thì sang tháng mới: ngày 1 là ca tự do, chơi mãi
-      const fo = DEBUG || (save.stars[DAYS.length]||0) >= 1;
       cells += `<div class="day-card freecard${fo?'':' locked'}" data-free="1">
         <div class="dt">${LICH.tuDo}</div>
         <div class="dn"><span class="dnw">1</span>${fo?'':' '+ico('lock',14)}</div>
         <div class="st">${fo?ico('dice',18):''}</div></div>`;
+      continue;
+    }
+    if(d === DAYS.length + 1){   // ngày 2 tháng sau: chuyến tham quan khu công nghiệp (js/tham-quan.js), chưa có vé thì ghi giá vé
+      cells += `<div class="day-card freecard tripcard${fo?'':' locked'}" data-trip="1">
+        <div class="dt">${LICH.thamQuan}</div>
+        <div class="dn"><span class="dnw">2</span>${fo?'':' '+ico('lock',14)}</div>
+        <div class="st">${!fo ? '' : tripOwned() ? ico('factory',18) : TQ_GIA + ' ' + ico('coinred',14)}</div></div>`;
       continue;
     }
     if(d > DAYS.length){ cells += '<div class="day-card blank"></div>'; continue; } // trailing blanks, like a real month page
@@ -431,6 +445,7 @@ function showMap(){
     <div class="row" style="justify-content:flex-start">
       <button class="btn icobtn" id="bback" aria-label="Về menu" title="Về menu">${ico('home',26)}</button>
       <button class="btn icobtn" id="bshop" aria-label="Cửa hàng" title="Cửa hàng">${ico('shop',26)}</button>
+      ${hardUnlocked() ? `<button class="btn icobtn hardbtn${hardOn()?' on':''}" id="bhard" aria-label="Chế độ khó" aria-pressed="${hardOn()}">${ico('hard',30)}</button>` : ''}
     </div>
     <div class="calsheet">
       <div class="calrings">${'<span></span>'.repeat(14)}</div>
@@ -441,19 +456,30 @@ function showMap(){
     ${DEBUG?'<div class="devbadge">DEV: mọi ngày đều mở</div>':''}</div>`;
   G.querySelector('#bback').onclick = () => go(showMenu);
   G.querySelector('#bshop').onclick = showShop;
-  const fc = G.querySelector('.freecard.locked');
-  if(fc) fc.onclick = () => toast(ico('lock',16)+' Làm hết 31 ngày đã, rồi tháng sau tha hồ nghịch!');
+  // nút chế độ khó chung cho mọi ngày (cũng có trong Cài đặt): đầu lâu mờ = tắt, rõ = bật; lịch đã tô sẵn sao khó màu
+  // đỏ nên không cần vẽ lại
+  const bh = G.querySelector('#bhard');
+  const hardTip = () => bh.title = 'Chế độ khó: ' + (hardOn() ? 'đang bật' : 'đang tắt') + ' — đơn hàng ghi theo gam và lít khí; minigame có bài khó riêng';
+  if(bh){ hardTip(); bh.onclick = () => { save.settings.hard = !hardOn(); persist(); SFX.clink();
+    bh.classList.toggle('on', hardOn()); bh.setAttribute('aria-pressed', hardOn()); hardTip();
+    toast(ico('hard',18) + ' Chế độ khó: <b>' + (hardOn() ? 'BẬT' : 'TẮT') + '</b>'); }; }
+  G.querySelectorAll('.freecard.locked').forEach(fc => fc.onclick = () => toast(ico('lock',16)+' Làm hết 31 ngày đã, rồi tháng sau tha hồ nghịch!'));
   G.querySelectorAll('.day-card').forEach(c => {
     if(c.classList.contains('locked') || c.classList.contains('blank')) return;
     if(c.dataset.free){ c.onclick = () => go(startFree); return; }
+    if(c.dataset.trip){ c.onclick = tripTicket; return; }   // js/tham-quan.js
     c.onclick = () => {
       if(c.classList.contains('circled')) return; // nav already scheduled
-      if(c.querySelector('.dnc')){ c.classList.add('circled'); SFX.page(); setTimeout(()=>go(()=>showIntro(+c.dataset.d)), 520); }
-      else go(()=>showIntro(+c.dataset.d));
+      if(c.querySelector('.dnc')){ c.classList.add('circled'); SFX.page(); setTimeout(()=>go(()=>playDay(+c.dataset.d)), 520); }
+      else go(()=>playDay(+c.dataset.d));
     };
   });
 }
 
+// Truyện Kể Các Nguyên Tố: lên kệ Cửa hàng khi đã mở khoá ngày bảng tuần hoàn; mua rồi đọc ở nút trên menu chính (showMenu)
+const STORIES_PRICE = 3;
+const storiesForSale = () => DEBUG || save.unlocked >= DAYS.findIndex(d => d.mg === 'ptable') + 1;
+const storiesOwned = () => !!(save.items && save.items.stories);
 function showShop(){
   save.items = save.items || { tools: false, notes: false, labbook: false, nobalance: false };
 
@@ -467,7 +493,7 @@ function showShop(){
       <button class="xbtn" id="mclose" aria-label="Đóng">${ico('close',16)}</button>
       <h2 style="font-family:var(--fh)">${ico('coinred', 22)} Cửa hàng Hoffmann</h2>
       <div style="text-align:left; font-size:15px; margin-bottom:12px; line-height:1.6; font-family:var(--fh)">
-        <p style="padding:0 4px;margin:0 0 10px">Trò đang có: <b>${achCoins()}</b> ${ico('coinred',15)}</p>
+        <p style="padding:0 4px;margin:0 0 10px">Trò đang có: <b>${coinStr()}</b> ${ico('coinred',15)}</p>
         <div class="hgrid">
 
         <div class="shop-item" style="border: 1.2px solid var(--ink); border-radius: 4.8px; padding: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; background: #fffdf5">
@@ -524,6 +550,19 @@ function showShop(){
             }
           </div>
         </div>
+        ${storiesForSale() ? `
+        <div class="shop-item" style="border: 1.2px solid var(--ink); border-radius: 4.8px; padding: 12px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; background: #fffdf5">
+          <div style="flex: 1; padding-right: 12px">
+            <b style="font-size: 16px; color: var(--accent)">${ico('book', 16)} Truyện Kể Các Nguyên Tố</b>
+            <div style="font-size: 13px; color: #555; margin-top: 4px">Giáo sư kể chuyện về từng nguyên tố trong bảng tuần hoàn. Mua xong, mở đọc ở nút <b>Truyện nguyên tố</b> trên màn hình chính.</div>
+          </div>
+          <div>
+            ${storiesOwned()
+              ? `<span style="color: var(--green); font-weight: bold; font-size: 15px">Đã sở hữu</span>`
+              : `<button class="btn" id="buyStories" style="min-width: 100px; font-family:var(--fh)">${STORIES_PRICE} ${ico('coinred', 14)} Mua</button>`
+            }
+          </div>
+        </div>` : ''}
         </div>
       </div>
     `;
@@ -539,7 +578,7 @@ function showShop(){
     if(btnTools){
       btnTools.onclick = () => {
         if(achCoins() >= 5){
-          save.spent = (save.spent||0) + 5;
+          spendCoins(5);
           save.items.tools = true;
           persist();
           SFX.page();
@@ -555,7 +594,7 @@ function showShop(){
     if(btnNotes){
       btnNotes.onclick = () => {
         if(achCoins() >= 3){
-          save.spent = (save.spent||0) + 3;
+          spendCoins(3);
           save.items.notes = true;
           persist();
           SFX.page();
@@ -571,7 +610,7 @@ function showShop(){
     if(btnNobal){
       btnNobal.onclick = () => {
         if(achCoins() >= 5){
-          save.spent = (save.spent||0) + 5;
+          spendCoins(5);
           save.items.nobalance = true;
           persist();
           SFX.page();
@@ -587,7 +626,7 @@ function showShop(){
     if(btnBook){
       btnBook.onclick = () => {
         if(achCoins() >= 3){
-          save.spent = (save.spent||0) + 3;
+          spendCoins(3);
           save.items.labbook = true;
           persist();
           SFX.page();
@@ -598,6 +637,22 @@ function showShop(){
         }
       };
     }
+    const btnStories = ov.querySelector('#buyStories');
+    if(btnStories){
+      btnStories.onclick = () => {
+        if(achCoins() >= STORIES_PRICE){
+          spendCoins(STORIES_PRICE);
+          save.items.stories = true;
+          persist();
+          SFX.page();
+          toast('Đã sở hữu Truyện Kể Các Nguyên Tố — đọc ở màn hình chính!');
+          refresh();
+        } else {
+          toast('Chưa đủ đồng đỏ — mở thêm thành tựu nhé!');
+        }
+      };
+    }
+
     const tglBook = ov.querySelector('#tglBook');
     if(tglBook){
       tglBook.onclick = () => {
@@ -623,18 +678,23 @@ function showShop(){
 }
 
 // chế độ khám phá của minigame hoá trị (che-do.js): mở khi ngày đó đạt 3 sao, ở chế độ thường hay chế độ khó (sơ đồ
-// Lewis) đều được — nút ở màn giới thiệu và màn kết quả
+// Lewis) đều được — nút ở màn kết quả
 const exploreBtn = (day, i, iconOnly) => day.mg === 'valence' && Math.max(save.stars[i+1] || 0, save.starsHard[i+1] || 0) >= 3
   ? (iconOnly ? resBtn('bexplore', 'flask', 'Khám phá') : `<button class="btn" id="bexplore">${ico('flask')} Khám phá</button>`) : '';
 function bindExplore(i){ const b = G.querySelector('#bexplore'); if(b) b.onclick = () => go(() => startVlExplore(i)); }
 
 /* =====================  BÀI GIẢNG KIỂU VISUAL NOVEL  =====================
    Lần đầu trò mở một ngày, giáo sư đứng cạnh bảng đen giảng lý thuyết (lời ở js/bai-giang.js) rồi mới
-   tới màn giới thiệu ngày. Bấm / phím cách / Enter / → sang câu kế (đang gõ dở thì hiện hết câu), ← xem lại
+   vào chơi (playDay). Bấm / phím cách / Enter / → sang câu kế (đang gõ dở thì hiện hết câu), ← xem lại
    câu trước. Ngày đã chơi trước khi có bài giảng (có sao hoặc có trong nhật ký) thì coi như đã nghe.
    Có onEnd (xem lại từ thẻ Tạm nghỉ): bài giảng phủ lên trên ca đang dừng, xong thì gỡ đi rồi gọi onEnd. */
 const lessonSeen = num => (save.lessons || []).includes(num) || save.hist.some(h => h.d === num)
   || (save.stars[num] || 0) > 0 || (save.starsHard[num] || 0) > 0;
+/* Chế độ khó: ngày nào có bài trong BAI_GIANG_KHO thì giảng bài đó thay cho bài thường (cả lúc Xem lại bài giảng),
+   và lần đầu chơi ngày đó ở chế độ khó cũng được nghe — nhớ riêng trong save.lessonsHard. */
+const lessonHard = i => hardOn() && !!BAI_GIANG_KHO[i+1];
+const lessonHardSeen = num => (save.lessonsHard || []).includes(num) || save.hist.some(h => h.d === num && h.h)
+  || (save.starsHard[num] || 0) > 0;
 function parseLesson(s){
   let e = 'neutral';
   if(s.startsWith(':)')){ e = 'happy'; s = s.slice(2); }
@@ -642,35 +702,23 @@ function parseLesson(s){
   const [t, b] = s.split('||');
   return {e, t: t.trim().normalize('NFC').replace(/\*([^*]+)\*/g, '<b>$1</b>'), b: b ? b.trim() : ''};
 }
-function showLesson(i, onEnd){
-  SFX.music(themeOf(i));
-  const lines = BAI_GIANG[i].map(parseLesson);
-  const html = `<div class="scene vnscene${onEnd ? ' vnover' : ''}">
-    <div class="vnboard"><div class="vnbtitle">Ngày ${i+1} · ${DAYS[i].t}</div><div class="vnbody"></div></div>
-    <div class="vnbox"><div class="vnname"><span>Giáo sư Hoffmann</span></div><p class="vntext"></p>
-      <div class="vndots">${lines.map(() => '<span></span>').join('')}</div></div>
-    <div class="vnprof">${profSVG('neutral')}</div>
-    <button class="btn vnskip">${onEnd ? 'Đóng ' + ico('close') : 'Bỏ qua ' + ico('next')}</button></div>`;
-  if(onEnd){
-    // nút vừa bấm ở thẻ Tạm nghỉ vẫn giữ focus: phím cách lúc này sẽ bấm lại nó thay vì sang câu
-    if(document.activeElement) document.activeElement.blur();
-    G.insertAdjacentHTML('beforeend', html);
-  } else G.innerHTML = html;
-  const root = onEnd ? G.lastElementChild : G.querySelector('.vnscene'), box = root.querySelector('.vnbox'), text = root.querySelector('.vntext'),
-        body = root.querySelector('.vnbody'), prof = root.querySelector('.vnprof'), dots = root.querySelectorAll('.vndots span');
-  let k = -1, chars = [], shown = 0, timer = 0, board = '', ended = false;
-  // bảng giữ dòng gần nhất (tính cả câu đang nói) có ghi bảng; đổi thì viết lại bằng phấn
-  const drawBoard = () => {
-    let b = '';
-    for(let j = k; j >= 0 && !b; j--) b = lines[j].b;
-    if(b === board) return;
-    board = b;
-    body.style.fontSize = '';
-    body.innerHTML = b.split(';').map(x => '<div>' + handSub(x.trim()) + '</div>').join('');
-    for(let fs = 34; fs > 18 && body.scrollWidth > body.clientWidth; fs -= 2) body.style.fontSize = fs + 'px';
-    body.classList.remove('write'); void body.offsetWidth; body.classList.add('write');
-    if(b) SFX.grain();
-  };
+// viết một dòng lên bảng (|| trong lời thoại): ; là xuống dòng, chữ dài thì thu nhỏ cho vừa, rồi "viết phấn" lại từ đầu
+function vnWrite(body, b){
+  body.style.fontSize = '';
+  body.innerHTML = b.split(';').map(x => '<div>' + handSub(x.trim()) + '</div>').join('');
+  for(let fs = 34; fs > 18 && body.scrollWidth > body.clientWidth; fs -= 2) body.style.fontSize = fs + 'px';
+  body.classList.remove('write'); void body.offsetWidth; body.classList.add('write');
+  if(b) SFX.grain();
+}
+// bảng giữ dòng gần nhất (tính cả câu đang nói) có ghi bảng
+const vnBoardAt = (lines, k) => { for(let j = k; j >= 0; j--) if(lines[j].b) return lines[j].b; return ''; };
+/* Lõi visual novel dùng chung (bài giảng, chuyến tham quan): gõ từng chữ vào .vntext (không hiện tiến độ câu).
+   Bấm / phím cách / Enter / → sang câu kế (đang gõ dở thì hiện hết câu), ← xem lại câu trước, nút .vnskip là bỏ qua.
+   on.say(k, L): màn tự vẽ phần riêng của câu k (bảng, nét mặt, cảnh nền); on.gate(k): false = chưa cho sang câu kế
+   (đang chờ trò chọn đáp án); on.end(): hết câu hoặc bỏ qua. Trả về type(html): gõ một lời khác ngay tại chỗ. */
+function vnRun(root, lines, on){
+  const box = root.querySelector('.vnbox'), text = root.querySelector('.vntext');
+  let k = -1, chars = [], shown = 0, timer = 0, ended = false;
   const finish = () => {
     clearInterval(timer); timer = 0;
     chars.forEach(c => c.classList.remove('h'));
@@ -684,15 +732,9 @@ function showLesson(i, onEnd){
     c.classList.remove('h');
     if(shown % 3 === 0 && c.textContent.trim()) SFX.talk();
   };
-  const say = n => {
-    k = n;
-    const L = lines[k];
-    prof.firstElementChild.dataset.exp = L.e;
-    prof.classList.remove('talk'); void prof.offsetWidth; prof.classList.add('talk');
-    drawBoard();
-    dots.forEach((d, j) => d.classList.toggle('on', j <= k));
-    // tách từng chữ thành <span> ẩn rồi hiện dần: chữ đã dàn trang sẵn nên không nhảy dòng khi đang gõ
-    text.innerHTML = L.t;
+  // tách từng chữ thành <span> ẩn rồi hiện dần: chữ đã dàn trang sẵn nên không nhảy dòng khi đang gõ
+  const type = html => {
+    text.innerHTML = html;
     chars = [];
     const split = node => [...node.childNodes].forEach(c => {
       if(c.nodeType !== 3) return split(c);
@@ -709,16 +751,25 @@ function showLesson(i, onEnd){
     box.classList.remove('done');
     clearInterval(timer); timer = setInterval(tick, 28);
   };
+  const say = n => {
+    k = n;
+    if(on.say) on.say(k, lines[k]);
+    type(lines[k].t);
+  };
   const end = () => {
     if(ended) return;
     ended = true;
     clearInterval(timer);
     removeEventListener('keydown', onKey);
-    if(onEnd){ root.classList.add('closing'); setTimeout(() => { root.remove(); onEnd(); }, OV_CLOSE_MS); return; }
-    if(!(save.lessons || []).includes(i+1)){ save.lessons = [...(save.lessons || []), i+1]; persist(); }
-    go(() => showIntro(i));
+    on.end();
   };
-  const next = () => { if(ended) return; if(timer) finish(); else if(k < lines.length - 1) say(k + 1); else end(); };
+  const next = () => {
+    if(ended) return;
+    if(timer) finish();
+    else if(on.gate && !on.gate(k)) return;
+    else if(k < lines.length - 1) say(k + 1);
+    else end();
+  };
   const back = () => { if(!ended && k > 0){ say(k - 1); finish(); } };
   const onKey = e => {
     if(!root.isConnected) return removeEventListener('keydown', onKey);
@@ -730,55 +781,66 @@ function showLesson(i, onEnd){
   root.onclick = e => { if(!e.target.closest('button')) next(); };
   root.querySelector('.vnskip').onclick = end;
   setTimeout(() => { if(root.isConnected && k < 0) say(0); }, 550);   // đợi thẻ thoại trượt lên xong
+  return {type};
+}
+function showLesson(i, onEnd){
+  SFX.music(themeOf(i));
+  const hard = lessonHard(i), lines = (hard ? BAI_GIANG_KHO[i+1] : BAI_GIANG[i]).map(parseLesson);
+  const html = `<div class="scene vnscene${onEnd ? ' vnover' : ''}">
+    <div class="vnboard"><div class="vnbtitle">Ngày ${i+1} · ${DAYS[i].t}${hard ? ' · <span class="vnhard">khó</span>' : ''}</div><div class="vnbody"></div></div>
+    <div class="vnbox"><div class="vnname"><span>Giáo sư Hoffmann</span></div><p class="vntext"></p></div>
+    <div class="vnprof">${profSVG('neutral')}</div>
+    <button class="btn vnskip">${onEnd ? 'Đóng ' + ico('close') : 'Bỏ qua ' + ico('next')}</button></div>`;
+  if(onEnd){
+    // nút vừa bấm ở thẻ Tạm nghỉ vẫn giữ focus: phím cách lúc này sẽ bấm lại nó thay vì sang câu
+    if(document.activeElement) document.activeElement.blur();
+    G.insertAdjacentHTML('beforeend', html);
+  } else G.innerHTML = html;
+  const root = onEnd ? G.lastElementChild : G.querySelector('.vnscene'), body = root.querySelector('.vnbody'), prof = root.querySelector('.vnprof');
+  let board = '';
+  vnRun(root, lines, {
+    say: (k, L) => {
+      prof.firstElementChild.dataset.exp = L.e;
+      prof.classList.remove('talk'); void prof.offsetWidth; prof.classList.add('talk');
+      const b = vnBoardAt(lines, k);
+      if(b !== board) vnWrite(body, board = b);
+    },
+    end: () => {
+      if(onEnd){ root.classList.add('closing'); setTimeout(() => { root.remove(); onEnd(); }, OV_CLOSE_MS); return; }
+      const key = hard ? 'lessonsHard' : 'lessons';
+      if(!(save[key] || []).includes(i+1)){ save[key] = [...(save[key] || []), i+1]; persist(); }
+      go(() => playDay(i));
+    }
+  });
 }
 
-function showIntro(i){
-  if(BAI_GIANG[i] && !lessonSeen(i+1)) return showLesson(i);
-  SFX.music(themeOf(i));
-  const day = DAYS[i];
-  const conds = starConds(day).map((c,k)=>'<div>'+ico('star',15).repeat(k+1)+' '+c+'</div>').join('')
-    + '<div class="condrule">' + scoreRule(day.mg ? 'câu' : 'đơn') + '</div>';
-  const tools = day.mg ? '' : (day.tools.length
-    ? '<p style="margin:6px 0"><b>Dụng cụ:</b> ' + day.tools.map(t=>sym(TOOLSYM[t],20,22,'vertical-align:-5px')+' '+TOOLNAMES[t]).join(' · ') + '</p>' : '')
-    + '<p style="margin:6px 0"><b>An toàn:</b> ' + sym('sym-goggles',26,18,'vertical-align:-4px') + ' đeo kính & găng trước khi lấy hoá chất'
-    + ([...dayHave(day)].some(f => TOXIC.includes(f)) ? ' · <b style="color:#a8331f">có khí độc — nhớ bật tủ hút</b>' : '') + '</p>';
-  const shelf = day.mg ? '' : '<p style="margin:6px 0"><b>Trên kệ:</b> ' + day.chems.map(sub).join(', ') + '</p>';
-  // minigame có chế độ khó riêng (day.hard, vd. bảng tuần hoàn) thì giáo sư dặn lời khác khi công tắc khó đang bật
-  const story = () => '“' + (day.hard && hardOn() ? day.hard.story : day.story) + '”';
-  G.innerHTML = `<div class="scene" style="padding-top:24px">
-    <h2 class="center">Ngày ${i+1}: ${day.t} ${day.mg?ico('dice',20):''}</h2>
-    <div class="row" style="align-items:flex-start;justify-content:center;gap:0;margin-top:6px">
-      <div id="introprof" style="flex:none;margin-top:26px"></div>
-      <div class="paper" style="max-width:720px;text-align:left">
-        <b style="font-size:18px;font-family:var(--fh)">Giáo sư Hoffmann:</b>
-        <p class="hand" id="introstory" style="font-size:16px;line-height:1.5;margin:6px 0">${story()}</p>
-        ${shelf}${tools}
-        <div style="border-top:1.2px dashed var(--ink);margin-top:8px;padding-top:8px">
-          <b>Điều kiện sao:</b><div class="condlist">${conds}</div></div>
-        ${((day.mg && !day.hard) || !hardUnlocked()) ? '' : `<div class="settingrow hardrow"><div>
-          <b style="font-family:var(--fh);font-size:16px">${ico('flask',15)} Chế độ khó${save.starsHard[i+1] ? ' <span style="color:#d9634f">'+starStr(save.starsHard[i+1])+'</span>' : ''}</b>
-          <div style="font-size:13px;color:#6b5d4a;margin-top:2px">${day.hard ? day.hard.note : 'Đơn hàng ghi theo <b>gam</b> và <b>lít khí</b>; trò tự tính rồi cân, đong từng chất. Sai số cho phép 5%. Thêm 50% thời gian.'}</div>
-        </div><div class="toggle${hardOn()?' on':''}" id="tglHardIntro" role="switch" aria-checked="${hardOn()}"></div></div>`}
-      </div>
-    </div>
-    <div class="row" style="justify-content:center;margin-top:14px">
-      <button class="btn big" id="bgo">${ico(day.mg?'dice':'flask')} ${day.mg?'Chơi ngay':'Mở tiệm'}</button>
-      ${(!day.mg && dayEqs(day).length) ? `<button class="btn" id="bnote2">${ico('note')} Giấy cân bằng</button>` : ''}
-      ${exploreBtn(day, i)}
-      <button class="btn" id="bmap">${ico('back')} Bản đồ</button>
-    </div></div>`;
-  G.querySelector('#introprof').innerHTML = profSVG('happy').replace('viewBox','height="270" viewBox');
-  G.querySelector('#bgo').onclick = () => {
-    if(day.mg) return go(()=>startMinigame(i));
-    return go(()=>startLab(i));
-  };
-  const bnote2 = G.querySelector('#bnote2');
-  if(bnote2) bnote2.onclick = () => balanceSheet(i);
-  bindExplore(i);
-  G.querySelector('#bmap').onclick = () => go(showMap);
-  const th = G.querySelector('#tglHardIntro');
-  if(th) th.onclick = () => { save.settings.hard = !hardOn(); persist(); th.classList.toggle('on', hardOn()); th.setAttribute('aria-checked', hardOn()); SFX.clink();
-    G.querySelector('#introstory').textContent = story(); };
+/* Vào một ngày (lịch, Chơi lại, Ngày tiếp): lần đầu thì nghe bài giảng trước, rồi dựng ngay bàn thí nghiệm / minigame
+   dưới một màn tối — chữ "Bắt đầu" rơi từ trên xuống, đứng giữa START_HOLD giây, rơi tiếp ra khỏi màn, màn sáng lại
+   thì đồng hồ mới chạy (startCurtain). */
+function playDay(i){
+  if(lessonHard(i) ? !lessonHardSeen(i+1) : BAI_GIANG[i] && !lessonSeen(i+1)) return showLesson(i);
+  (DAYS[i].mg ? startMinigame : startLab)(i);
+}
+// thời lượng từng nhịp (giây) — tối dần, chữ rơi vào, đứng giữa, rơi ra, sáng lại; style.css chia % theo đúng các số này
+const START_HOLD = .5, START_MS = (.2 + .3 + START_HOLD + .3 + .2)*1000;
+const curtainOn = () => save.settings.curtain !== false;   // màn "Bắt đầu": bật mặc định, tắt được trong Cài đặt
+/* Màn tối phủ lên cảnh vừa dựng, chặn mọi cú bấm. Minigame: mgHeld thấy .startov nên đồng hồ câu đứng; bàn thí nghiệm:
+   startLab chưa bật đồng hồ, xong màn này mới bật — trừ khi thẻ Tạm nghỉ đang mở (rời tab giữa chừng).
+   Tắt màn này trong Cài đặt thì đồng hồ chạy ngay. */
+function startCurtain(){
+  const go = () => { if(lab && lab.timer === null && !G.querySelector('.overlay')) lab.timer = setInterval(labTick, 1000); };
+  if(!curtainOn()) return go();
+  const c = document.createElement('div');
+  c.className = 'startov';
+  c.style.animationDuration = START_MS + 'ms';
+  c.innerHTML = `<b style="animation-duration:${START_MS}ms">Bắt đầu</b>`;
+  G.appendChild(c);
+  setTimeout(() => { if(c.isConnected) SFX.bell(); }, 500);      // chữ vừa chạm giữa màn
+  c.addEventListener('animationend', e => {
+    if(e.target !== c) return;
+    c.remove();
+    go();
+  });
 }
 
 /* =====================  CÂN BẰNG PHƯƠNG TRÌNH  ===================== */
@@ -802,23 +864,27 @@ function dayEqs(day){
 // Chữ viết tay trên giấy cân bằng: font viết tay không có ký tự ₂₃… và →, nên chỉ số dưới
 // viết bằng <sub> và mũi tên vẽ bằng SVG (điều kiện như t° ghi phía trên mũi tên).
 const handSub = s => s.replace(/[₀-₉]+/g, d => '<sub>'+[...d].map(c => SUBS.indexOf(c)).join('')+'</sub>');
-const handArrow = r => '<span class="harr"><i>'+handSub(rxOver(r))+'</i>'
-  + '<svg viewBox="0 0 64 14"><path d="M3 7.5 Q20 6 58 7 M50 2 L59 7 L50 12"/></svg></span>';
+// điều kiện dài (đp, có màng ngăn) thì kéo dài mũi tên cho chữ khỏi tràn sang hai vế; ⇌ vẽ hai nửa mũi tên ngược chiều
+const handArrow = r => { const w = Math.max(64, rxOver(r).length*10);
+  return '<span class="harr"><i>'+handSub(rxOver(r))+'</i>'
+    + '<svg viewBox="0 0 '+w+' 14" style="width:'+w+'px"><path d="'+(r.rev
+      ? 'M3 5 L'+(w-5)+' 5 L'+(w-13)+' 1 M'+(w-3)+' 10 L5 10 L13 14'
+      : 'M3 7.5 Q20 6 '+(w-6)+' 7 M'+(w-14)+' 2 L'+(w-5)+' 7 L'+(w-14)+' 12')+'"/></svg></span>'; };
 // Các phương trình đã cân bằng, lưới 3 cột (vế trái | mũi tên | vế phải) để mũi tên thẳng hàng.
 function handEqRows(eqs){
   return '<div class="hrows">' + eqs.map(idx => {
-    const r = REACTIONS[idx], s = eqStr(r), a = s.indexOf(' —'), b = s.indexOf('→ ', a);
-    return '<span>'+handSub(s.slice(0, a))+'</span>' + handArrow(r) + '<span>'+handSub(s.slice(b+2))+'</span>';
+    const r = REACTIONS[idx];
+    return '<span>'+handSub(eqSide(r, r.rg))+'</span>' + handArrow(r) + '<span>'+handSub(eqSide(r, r.pr, true))+'</span>';
   }).join('') + '</div>';
 }
 
 // Một vế phương trình với ô nhập hệ số cho TỪNG chất (kể cả hệ số 1).
 // n: số ô chất của vế này (bằng nhau ở mọi dòng để dấu + và mũi tên thẳng cột);
 // lead: ô trống dồn lên đầu (vế trái, sát mũi tên) hay xuống cuối (vế phải).
-function eqEditableTerms(obj, mark, eid, n, lead){
+// r: phản ứng, để ghi (đặc) / (loãng) sau công thức; mark: vế sản phẩm thì ghi thêm ↑ / ↓
+function eqEditableTerms(r, obj, mark, eid, n, lead){
   const terms = Object.keys(obj).map(f => {
-    let m = '';
-    if(mark){ if(CHEMS[f].s==='k') m='↑'; else if(isPrecip(f)) m='↓'; }
+    const m = rxTag(r, f) + (mark ? rxMark(r, f) : '');
     return '<span class="bterm"><input class="bcoef" type="number" min="1" inputmode="numeric"'
       + ' data-eid="'+eid+'" data-want="'+obj[f]+'" aria-label="hệ số của '+f+'">'
       + '<span>' + handSub(sub(f)) + m + '</span></span>';   // bọc riêng: trong flex, <sub> rời ra thành ô riêng
@@ -831,9 +897,9 @@ function eqEditableTerms(obj, mark, eid, n, lead){
 function eqEditableRow(idx, eid, nl, np){
   const r = REACTIONS[idx];
   return '<div class="beq" data-eid="'+eid+'">'
-    + eqEditableTerms(r.rg, false, eid, nl, true)
+    + eqEditableTerms(r, r.rg, false, eid, nl, true)
     + handArrow(r)
-    + eqEditableTerms(r.pr, true, eid, np, false)
+    + eqEditableTerms(r, r.pr, true, eid, np, false)
     + '<span class="bmark" data-msg="'+eid+'"></span>'   // ✔ hoặc lời nhắc, ngay cuối dòng
     + '</div>';
 }
@@ -900,7 +966,7 @@ function balanceTutorial(){
   render(0);
 }
 
-// Tờ giấy cân bằng — KHÔNG bắt buộc. Mở từ tờ giấy ghim trên tường lúc làm ca, màn giới thiệu ngày
+// Tờ giấy cân bằng — KHÔNG bắt buộc. Mở từ tờ giấy ghim trên tường lúc làm ca
 // hoặc thẻ Tạm nghỉ. Từ ngày BALANCE_FROM_DAY trò tự điền hệ số: dòng nào đúng thì khoá lại, có dấu ✓ đỏ
 // ở lề và được nhớ mãi (save.balanced = chỉ số phản ứng trong REACTIONS). Trước ngày đó, hoặc khi đã tắt
 // công tắc Giấy cân bằng sẵn (vật phẩm Cửa hàng), giáo sư viết sẵn đáp án. onclose chạy ngay khi bấm đóng.
@@ -1009,6 +1075,7 @@ function settingsModal(){
     + tgl('tglCards','star','Thẻ phản ứng',cardsOn())
     + tgl('tglBalance','note','Giấy cân bằng sẵn',!balanceOn(),!nobalOwned())
     + tgl('tglHard','flask','Chế độ khó',hardOn(),!hardUnlocked())
+    + tgl('tglCurtain','play','Màn "Bắt đầu"',curtainOn())
     + '</div></div></div>';
   const flip = (id, key, get, after) => ov.querySelector(id).onclick = e => {
     save.settings[key] = key === 'balance' ? get() : !get(); persist();   // 'balance' lưu ngược: công tắc = tắt cân bằng
@@ -1019,6 +1086,7 @@ function settingsModal(){
   };
   const lockedTgl = (id, msg) => ov.querySelector(id).onclick = () => { SFX.err(); toast(ico('lock',16)+' '+msg); };
   flip('#tglCards', 'cards', cardsOn);
+  flip('#tglCurtain', 'curtain', curtainOn);
   if(hardUnlocked()) flip('#tglHard', 'hard', hardOn);
   else lockedTgl('#tglHard', 'Hoàn thành trò chơi lần đầu để mở khoá chế độ khó!');
   if(nobalOwned()) flip('#tglBalance', 'balance', () => !balanceOn());
@@ -1137,11 +1205,11 @@ function showResult(i, st){
     `<div class="resbody">${detail}${scoreHTML(sc, rec, bests[num])}<p class="hand">“${cheer}”</p></div>
     <div class="row resbtns">${resBtn('bretry', 'retry', 'Chơi lại')}${resBtn('bmap', 'map', 'Bản đồ')}${exploreBtn(day, i, true)}
       ${(stars>=1 && num<DAYS.length) ? resBtn('bnext', 'next', 'Ngày tiếp theo', ' main') : ''}</div>`);
-  G.querySelector('#bretry').onclick = () => go(()=>showIntro(i));
+  G.querySelector('#bretry').onclick = () => go(()=>playDay(i));
   G.querySelector('#bmap').onclick = () => go(showMap);
   bindExplore(i);
   const bn = G.querySelector('#bnext');
-  if(bn) bn.onclick = () => go(()=>showIntro(i+1));
+  if(bn) bn.onclick = () => go(()=>playDay(i+1));
 }
 
 /* =====================  SCALE TO WINDOW  ===================== */
@@ -1183,5 +1251,7 @@ function fit(){
   SCR.style.setProperty('--bx', BX+'px');
   SCR.style.setProperty('--by', BY+'px');
   SCR.style.transform = `translate(-50%,-50%) scale(${s})`;
+  const bench = G.querySelector('#benchsvg');            // cạnh trái bàn bám theo mép màn
+  if(bench) bench.outerHTML = benchSVG();
 }
 addEventListener('resize', fit);

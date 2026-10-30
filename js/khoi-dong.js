@@ -10,6 +10,9 @@ if(DEBUG){
   console.assert(DAYS.length === 31, 'DAYS phải đủ 31 ngày');
   console.assert(LICH.ngay.length === DAYS.length && DAYS.every(d => d.t), 'js/lich.js: cần đúng một mô tả cho mỗi ngày');
   console.assert(BAI_GIANG.length === DAYS.length && BAI_GIANG.every(d => d.length), 'js/bai-giang.js: cần đúng một bài giảng (ít nhất một câu) cho mỗi ngày');
+  // bài giảng chế độ khó: ngày có thật, có câu; ngày minigame phải có bài khó riêng (day.hard) thì mới có gì mới để giảng
+  Object.keys(BAI_GIANG_KHO).forEach(k => { const d = DAYS[k - 1];
+    console.assert(d && BAI_GIANG_KHO[k].length && (!d.mg || d.hard), 'js/bai-giang.js: BAI_GIANG_KHO ngày ' + k + ' không dùng được'); });
   DAYS.forEach((day, i) => {
     if(day.mg) return;
     const have = new Set(day.chems);          // bao đóng: pha ra được gì từ kệ của ngày đó
@@ -46,7 +49,13 @@ if(DEBUG){
   });
   REACTIONS.forEach((r,k) => {
     Object.keys(r.rg).concat(Object.keys(r.pr)).forEach(f => console.assert(CHEMS[f], 'Phản ứng #'+k+': chất lạ '+f));
+    // quy ước SGK: đốt / đun / điện phân không ghi ↓; tag chỉ ghi cho chất có mặt trong phản ứng
+    console.assert(!(r.burn || r.heat || r.elec) || !eqStr(r).includes('↓'), 'Phản ứng #'+k+': ↓ chỉ dành cho kết tủa trong dung dịch — '+eqStr(r));
+    Object.keys(r.tag || {}).forEach(f => console.assert(r.rg[f] || (r.cat || []).includes(f), 'Phản ứng #'+k+': tag cho chất lạ '+f));
   });
+  const eqOf = (rg, pr) => eqStr(REACTIONS.find(r => Object.keys(r.rg).join() === rg && Object.keys(r.pr).join() === pr));
+  console.assert(eqOf('CO2,Ca(OH)2', 'CaCO3,H2O').includes('CaCO₃↓') && !eqOf('S,O2', 'SO2').includes('↑')
+    && eqOf('CaCO3', 'CaO,CO2') === 'CaCO₃ —t°→ CaO + CO₂↑', 'ký hiệu ↑ / ↓ lệch quy ước SGK');
   // mô hình bi–que của minigame phân loại: đủ nguyên tử theo công thức, mỗi nguyên tử đúng số "tay" (hoá trị)
   const VAL = {H:1, O:2, Na:1, K:1, Cl:1, Ca:2, Cu:2, Fe:3, C:4};
   Object.keys(MOL_2D).forEach(f => {
@@ -232,6 +241,16 @@ if(DEBUG){
       console.assert(q.why && q.show.every(s => PT_BY[s]), tag + 'thiếu lời giải / ô tô sai');
     });
   });
+  // chuyến tham quan (js/tham-quan.js): cảnh nền có thật, câu hỏi đủ lời khen / giải thích, người nói có trong TQ_NGUOI
+  THAM_QUAN.forEach(sc => {
+    console.assert(TQ_NEN[sc.nen] && sc.ten && sc.loi.length && (!sc.hinhcat || TQ_CAT[sc.hinhcat]), 'tham quan: cảnh "' + sc.ten + '" thiếu nền / lời / hình cắt');
+    sc.loi.forEach(x => {
+      if(typeof x === 'string'){ const L = tqLine(x, 0);
+        console.assert(TQ_NGUOI[L.ai], 'tham quan: người nói lạ ' + x.slice(0, 20));
+        console.assert(!L.z || (sc.hinhcat && TQ_VUNG.includes(L.z)), 'tham quan: #' + L.z + ' không có trên hình cắt của cảnh "' + sc.ten + '"'); }
+      else console.assert(x.hoi && x.chon.length >= 2 && x.khen && x.giai, 'tham quan: câu hỏi thiếu phần — ' + x.hoi);
+    });
+  });
   // hard mode: molar mass parser + tolerance + generated challenges are self-consistent
   console.assert(molarMass('NaCl') === 58.5, 'Mr NaCl');
   console.assert(molarMass('Ca(OH)2') === 74, 'Mr Ca(OH)2');
@@ -269,6 +288,12 @@ function setDev(on){
     if(typed === CODE){ typed = ''; setDev(true); }
   });
 })();
+// rời tab / tắt màn hình giữa ca: tự mở thẻ Tạm nghỉ, không thì đồng hồ khách và đồng hồ câu vẫn chạy, quay lại khách
+// đã bỏ đi. Ở bàn thí nghiệm có lớp phủ khác mà đồng hồ vẫn chạy thì vẫn dừng; ở minigame lớp phủ nào cũng giữ đồng hồ
+document.addEventListener('visibilitychange', () => {
+  const b = document.hidden && G.querySelector('#bpause');
+  if(b && ((lab && lab.timer) || !G.querySelector('.overlay'))) b.click();
+});
 document.body.insertAdjacentHTML('afterbegin',
   '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + SVG_DEFS + '</defs></svg>');
 fit();

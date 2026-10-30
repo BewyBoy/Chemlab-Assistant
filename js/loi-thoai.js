@@ -112,6 +112,43 @@ const WAIT_LINES = {
       'Xong việc ghé quán cô, cô đãi chén chè đậu xanh!']
 };
 
+/* ---- bấm vào bóng thoại: khách nói chuyện thêm. Mỗi lần bấm là câu kế tiếp, xen giữa các câu này,
+   một câu đặt hàng nói kiểu khác và một mẩu chuyện về chất đang đặt (CHAT_FACT, {fact} lấy từ CHEM_FACTS).
+   Chỉ số = thứ tự trong CUSTOMERS. Câu không nhắc tới hàng thì góc bóng thoại tự ghi chất cần làm. ---- */
+const CHAT_LINES = {
+ 0: ['Bánh mì của bà sáng nào cũng hết sạch từ sớm đó con!',
+     'Lò nướng nhà bà nóng lắm, đứng cả ngày mồ hôi nhễ nhại.',
+     'Con học hoá giỏi thế, mai qua tiệm bà cho ổ bánh nóng!'],
+ 1: ['Năm nay lúa nhà chú trúng mùa, cũng nhờ bón phân đúng cách đấy!',
+     'Ruộng chua thì chú rải vôi, vôi là bazơ nên khử bớt chua. Cháu học tới chưa?',
+     'Trời nắng thế này mà vẫn phải ra đồng, mệt ghê.'],
+ 2: ['Mai em kiểm tra hoá, anh chị chỉ em mẹo cân bằng phương trình với!',
+     'Em thích nhất lúc quỳ tím đổi màu, cứ như ảo thuật ấy!',
+     'Lớn lên em muốn làm nhà hoá học giống giáo sư Hoffmann!'],
+ 3: ['Xi măng anh trộn hằng ngày cũng làm từ đá vôi nung đấy!',
+     'Công trình bên kia sắp xong rồi, anh tranh thủ ghé mua đồ.',
+     'Làm thợ xây phải khoẻ, mà cũng phải biết tí hoá học nữa.'],
+ 4: ['Ở trạm xá, cô sát trùng dụng cụ cẩn thận lắm, sạch là trên hết.',
+     'Rửa tay sạch trước và sau khi làm thí nghiệm nhé, thói quen tốt đấy!',
+     'Hôm nay trạm xá đông bệnh nhân, cô phải về sớm.'],
+ 5: ['Ao cá nhà ông mà thiếu oxi là cá nổi đầu ngay.',
+     'Ông rắc vôi quanh ao cho sạch, nước trong veo.',
+     'Câu được con cá trắm to, mai ông mang qua cho cháu!'],
+ 6: ['Mình đang làm thí nghiệm để nộp cô giáo đấy!',
+     'Bạn biết không, 1 mol có tới 6,022 × 10²³ hạt, nhiều hơn số hạt cát trên cả bãi biển!',
+     'Ước gì mình cũng được làm trợ lý ở tiệm này như bạn!'],
+ 7: ['Bạc để lâu bị xỉn đen, chị phải đánh bóng suốt.',
+     'Vàng gần như không phản ứng với gì nên đeo bao năm vẫn sáng đấy em.',
+     'Khách hôm nay chọn nhẫn lâu quá, chị chạy vội qua đây.'],
+ 8: ['Thầy hay mua hoá chất ở tiệm này về làm thí nghiệm cho lớp.',
+     'Nhớ nhé: cân bằng phương trình chỉ đổi hệ số, không bao giờ đổi chỉ số!',
+     'Thấy em pha chế khéo thế, thầy yên tâm rồi.'],
+ 9: ['Quán chè của cô có món chè đậu xanh ngon nhất xóm đó!',
+     'Trời nóng thế này, chè bán chạy lắm con ơi.',
+     'Nấu chè cũng như pha hoá chất: phải đong cho đúng!']
+};
+const CHAT_FACT = 'Nói nhỏ nè: {fact}';
+
 /* ---- khách nhận hàng đúng: chọn ngẫu nhiên một câu. Dùng {A} ---- */
 const PRAISE = [
  'Cảm ơn nhé, đúng thứ {A} cần!',

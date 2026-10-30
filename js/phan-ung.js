@@ -13,6 +13,9 @@
      vent  ['X'] = khí X thoát ra ở cực dương, KHÔNG hứng vào bình được
      last  1 = xếp sau cùng khi nhiều phản ứng cùng chạy được
      obs   hiện tượng quan sát được — hiện trên thẻ phản ứng và lúc đốt
+     tag   {X:"đặc"} = ghi nồng độ sau công thức: HCl(đặc), H₂SO₄(loãng) — chỉ để hiển thị
+     cond  "xt, p" = điều kiện thêm ghi trên mũi tên — chỉ để hiển thị
+     rev   1 = phản ứng thuận nghịch, viết mũi tên ⇌
 
    Mọi công thức xuất hiện ở đây PHẢI có trong CHEMS (du-lieu.js).
    Sổ tay lưu phản ứng đã gặp theo SỐ THỨ TỰ trong mảng này (save.rx), nên
@@ -52,12 +55,12 @@ const REACTIONS = [
  {rg:{Al:2,HCl:6},            pr:{AlCl3:2,H2:3}},
  {rg:{Na:2,HCl:2},            pr:{NaCl:2,H2:1}, exo:1},
  {rg:{K:2,HCl:2},             pr:{KCl:2,H2:1},  exo:1},
- {rg:{Zn:1,H2SO4:1},          pr:{ZnSO4:1,H2:1}},
- {rg:{Fe:1,H2SO4:1},          pr:{FeSO4:1,H2:1}},
- {rg:{Mg:1,H2SO4:1},          pr:{MgSO4:1,H2:1}},
- {rg:{Al:2,H2SO4:3},          pr:{'Al2(SO4)3':1,H2:3}},
- {rg:{Na:2,H2SO4:1},          pr:{Na2SO4:1,H2:1}, exo:1},
- {rg:{K:2,H2SO4:1},           pr:{K2SO4:1,H2:1},  exo:1},
+ {rg:{Zn:1,H2SO4:1},          pr:{ZnSO4:1,H2:1}, tag:{H2SO4:'loãng'}},
+ {rg:{Fe:1,H2SO4:1},          pr:{FeSO4:1,H2:1}, tag:{H2SO4:'loãng'}},
+ {rg:{Mg:1,H2SO4:1},          pr:{MgSO4:1,H2:1}, tag:{H2SO4:'loãng'}},
+ {rg:{Al:2,H2SO4:3},          pr:{'Al2(SO4)3':1,H2:3}, tag:{H2SO4:'loãng'}},
+ {rg:{Na:2,H2SO4:1},          pr:{Na2SO4:1,H2:1}, exo:1, tag:{H2SO4:'loãng'}},
+ {rg:{K:2,H2SO4:1},           pr:{K2SO4:1,H2:1},  exo:1, tag:{H2SO4:'loãng'}},
 
  /* ---------- 4. KIM LOẠI KIỀM + NƯỚC ---------- */
  {rg:{Na:2,H2O:2},            pr:{NaOH:2,H2:1}, exo:1, obs:'Mẩu natri chạy vòng vòng trên mặt nước, sủi bọt và nóng lên.'},
@@ -152,7 +155,7 @@ const REACTIONS = [
  {rg:{BaCl2:1,H2SO4:1},       pr:{BaSO4:1,HCl:2}, obs:'Xuất hiện kết tủa trắng BaSO₄ — dấu hiệu nhận ra gốc sunfat.'},
  {rg:{AgNO3:1,HCl:1},         pr:{AgCl:1,HNO3:1}, obs:'Xuất hiện kết tủa trắng AgCl.'},
  // điều chế clo trong phòng thí nghiệm
- {rg:{MnO2:1,HCl:4},          pr:{MnCl2:1,Cl2:1,H2O:2}, heat:1},
+ {rg:{MnO2:1,HCl:4},          pr:{MnCl2:1,Cl2:1,H2O:2}, heat:1, tag:{HCl:'đặc'}},
 
  /* ---------- 13. MUỐI + BAZƠ → kết tủa ---------- */
  {rg:{CuSO4:1,NaOH:2},        pr:{'Cu(OH)2':1,Na2SO4:1}, obs:'Xuất hiện kết tủa xanh lam Cu(OH)₂.'},
@@ -221,13 +224,13 @@ const REACTIONS = [
  {rg:{H2:1,Cl2:1},            pr:{HCl:2},    heat:1, obs:'Hỗn hợp hiđro và clo gặp lửa thì nổ, khí HCl tan vào nước thành axit.'},
 
  /* ---------- 18. NITƠ ---------- */
- {rg:{N2:1,H2:3},             pr:{NH3:2},    heat:1},
+ {rg:{N2:1,H2:3},             pr:{NH3:2},    heat:1, cond:'xt, p', rev:1},
  {rg:{NH3:1,HCl:1},           pr:{NH4Cl:1}, obs:'Hai khí gặp nhau tạo khói trắng NH₄Cl.'},
 
  /* ---------- 19. ĐƯỜNG GẶP AXIT SUNFURIC ĐẶC ----------
     H₂SO₄ đặc chỉ rút nước chứ không tham gia — SGK ghi nó TRÊN mũi tên.
     Dùng cat: phải có mặt mới chạy, nhưng không bị tiêu hao (nên vẫn cân bằng).  */
- {rg:{C12H22O11:1},           pr:{C:12,H2O:11}, cat:['H2SO4'], obs:'Đường hoá đen, cột than xốp trào lên, bốc hơi nóng.'},
+ {rg:{C12H22O11:1},           pr:{C:12,H2O:11}, cat:['H2SO4'], tag:{H2SO4:'đặc'}, obs:'Đường hoá đen, cột than xốp trào lên, bốc hơi nóng.'},
 
  /* ---------- 20. ĐIỆN PHÂN ----------
     vent = khí sinh ra ở cực còn lại; game chỉ có MỘT bình nên chỉ hứng được
@@ -235,7 +238,7 @@ const REACTIONS = [
  {rg:{H2O:2},                 pr:{H2:2,O2:1},              elec:1, vent:['O2'], last:1, obs:'Hai điện cực sủi bọt: khí H₂ ở cực âm nhiều gấp đôi khí O₂ ở cực dương.'},
  {rg:{CuCl2:1},               pr:{Cu:1,Cl2:1},             elec:1, obs:'Cực âm phủ lớp đồng đỏ, cực dương sủi bọt khí clo mùi hắc.'},
  {rg:{CuSO4:2,H2O:2},         pr:{Cu:2,O2:1,H2SO4:2},      elec:1, vent:['O2']},
- {rg:{NaCl:2,H2O:2},          pr:{NaOH:2,H2:1,Cl2:1},      elec:1, vent:['H2']}
+ {rg:{NaCl:2,H2O:2},          pr:{NaOH:2,H2:1,Cl2:1},      elec:1, cond:'có màng ngăn', vent:['H2']}
 ];
 
 /* Mốc chia nhóm cho Sổ tay ở màn hình chính. i = số thứ tự phản ứng đầu tiên của nhóm.

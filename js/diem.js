@@ -72,8 +72,6 @@ function hudPop(hud, html, cls){
 }
 const runPop = (hud, gain) => { if(gain) hudPop(hud, '+' + gain + (runStreak() >= 2 ? '<small>chuỗi ×' + runStreak() + '</small>' : ''), 'run-plus'); };
 
-// luật cộng điểm một dòng, cho màn giới thiệu ngày
-const scoreRule = unit => `Mỗi ${unit} đúng ${PTS_OK} · làm nhanh tới +${PTS_FAST} · đúng liền tới +${PTS_STREAK*STREAK_CAP} · hoàn hảo +${PTS_PERFECT} mỗi ${unit}`;
 // khối điểm trên thẻ kết quả: tổng + kỷ lục, các phần cộng, thanh điểm có ba mốc sao
 function scoreHTML(sc, rec, best){
   const p = sc.parts, pct = v => (Math.min(1, v/sc.top)*100).toFixed(1) + '%';

@@ -1,6 +1,6 @@
 /* =====================================================================
    BÀI GIẢNG — giáo sư Hoffmann giảng lý thuyết ở màn kiểu visual novel.
-   Màn này hiện LẦN ĐẦU trò mở mỗi ngày, trước màn giới thiệu ngày.
+   Màn này hiện LẦN ĐẦU trò mở mỗi ngày, rồi mới vào chơi.
    Sửa chữ ở đây là đủ, không cần đụng file khác.
 
    Cách sửa:
@@ -13,6 +13,9 @@
        một câu sau ghi cái khác. Muốn xuống dòng trên bảng thì ngăn bằng dấu chấm phẩy  ;
      • Muốn có dấu nháy đơn ' bên trong câu thì viết \'.
      • Đừng thêm hay xoá ngày: game có đúng 31 ngày (thêm / bớt câu trong một ngày thì thoải mái).
+     • BAI_GIANG_KHO (cuối file): bài giảng riêng khi bật Chế độ khó, chỉ cho những ngày chế độ khó
+       có kiến thức mới (tự cân đong theo gam / ml / lít, ion, sơ đồ Lewis, bảng tuần hoàn đầy đủ).
+       Ngày không có ở đó thì chế độ khó dùng bài giảng thường. Cùng cách viết như trên.
    ===================================================================== */
 'use strict';
 
@@ -292,3 +295,102 @@ const BAI_GIANG = [
     ':) Trò đã đi hết 31 ngày rồi. Ta tin trò làm được!',
   ],
 ];
+
+/* Bài giảng chế độ khó: số bên trái là ngày (1 → 31). Ngày minigame chỉ ghi ở đây khi minigame đó có bài khó riêng
+   (ngày 3 tạo ion, ngày 4 sơ đồ Lewis, ngày 24 bảng tuần hoàn đầy đủ) — khoi-dong.js kiểm tra. */
+const BAI_GIANG_KHO = {
+  // 2 · Khái niệm mol — từ đây phiếu ghi gam / lít
+  2: [
+    ':) Chế độ khó! Từ giờ phiếu hàng ghi *gam* (chất rắn) hay *lít* (chất khí) chứ không ghi số mol. Lọ cũng không tự rót 0,1 mol nữa: trò tự *cân*, tự *đong*.',
+    'Cầu nối giữa gam và mol là *khối lượng mol* M: cộng nguyên tử khối của mọi nguyên tử trong công thức. || M(NaCl) = 23 + 35,5 = 58,5 g/mol',
+    'Chỉ số cho biết có mấy nguyên tử, nên nhân trước rồi mới cộng. Đường saccarozơ: || M(C₁₂H₂₂O₁₁) = 12·12 + 22·1 + 11·16 = 342 g/mol',
+    'Có ngoặc thì nhân cả nhóm trong ngoặc: Ca(OH)₂ có 1 Ca, 2 O và 2 H. || M(Ca(OH)₂) = 40 + 2·(16 + 1) = 74 g/mol',
+    'Ba đại lượng m, n, M luôn đi cùng nhau: biết hai là ra cái thứ ba. || n = m : M ; m = n · M',
+    'Ví dụ: 34,2 g đường là 34,2 : 342 = 0,1 mol. Còn 0,3 mol muối ăn nặng 0,3 · 58,5 = 17,55 g. || 34,2 g đường = 0,1 mol ; 0,3 mol NaCl = 17,55 g',
+    ':) Hôm nay khách đặt đúng chất có sẵn trên kệ, nên chỉ cần cân đúng số gam trên phiếu. Bảng nguyên tử khối nằm ở nút *Công thức* trên thanh trên cùng. Lệch dưới 5% là khách vẫn nhận.',
+  ],
+  // 3 · Tạo ion
+  3: [
+    'Chế độ khó: hôm nay ta nhìn kĩ *vỏ electron*. Electron xếp thành từng *lớp* quanh hạt nhân: lớp thứ nhất chứa tối đa 2 electron, lớp thứ hai tối đa 8. || lớp 1: tối đa 2 e ; lớp 2: tối đa 8 e',
+    'Ví dụ natri có 11 electron: lớp 1 có 2, lớp 2 có 8, lớp ngoài cùng chỉ còn 1. || Na (11 e): 2, 8, 1',
+    'Electron lớp trong bị hạt nhân giữ rất chặt. Chỉ *electron lớp ngoài cùng* mới nhường đi hay nhận thêm được.',
+    'Các *khí hiếm* như Ne, Ar rất bền vì lớp ngoài cùng đã đủ 8 electron (He chỉ có một lớp, đủ 2). Nguyên tử khác đều "muốn" giống chúng. || bền như khí hiếm: lớp ngoài đủ 8 e (He: 2 e)',
+    '*Kim loại* có 1, 2 hoặc 3 electron lớp ngoài thì *nhường* hết. Mất electron mang điện âm, nguyên tử thành *ion dương*. || Na → Na⁺ + 1e ; Mg → Mg²⁺ + 2e',
+    '*Phi kim* có 5, 6 hoặc 7 electron lớp ngoài thì *nhận* thêm cho đủ 8, thành *ion âm*. || Cl + 1e → Cl⁻ ; O + 2e → O²⁻',
+    'Điện tích của ion bằng số electron đã nhường hay nhận: Al có 3 electron lớp ngoài nên thành Al³⁺; N có 5 nên nhận thêm 3, thành N³⁻. || Al³⁺ ; N³⁻',
+    ':) Trên màn chơi: bấm hay kéo chấm lớp ngoài ra xa để *nhường*; bấm hay kéo electron tự do vào nguyên tử để *nhận*. Đề không nói làm gì, trò tự xét rồi bấm Kiểm tra!',
+  ],
+  // 4 · Sơ đồ Lewis và liên kết
+  4: [
+    'Chế độ khó: hôm nay ta xem các nguyên tử *liên kết* với nhau ra sao, bằng *sơ đồ Lewis*: quanh kí hiệu nguyên tố là các chấm, mỗi chấm là một electron lớp ngoài cùng. || sơ đồ Lewis: mỗi chấm = 1 e lớp ngoài',
+    'Như bài tạo ion: nguyên tử nào cũng muốn có 8 electron lớp ngoài như khí hiếm, riêng H chỉ cần 2 như He.',
+    'Hai *phi kim* không ai chịu nhường, nên *góp chung*: mỗi bên góp một electron thành một *cặp electron dùng chung*. Đó là *liên kết cộng hoá trị*, vẽ bằng một gạch. || H − Cl ; H − O − H',
+    ':) Thì ra *hoá trị* chính là số cặp electron dùng chung! H hoá trị I nên có một gạch, O hoá trị II nên có hai gạch.',
+    'Góp chung hai cặp là *liên kết đôi*, ba cặp là *liên kết ba*. N₂ có liên kết ba nên rất bền. || O = C = O ; N ≡ N',
+    '*Kim loại* gặp phi kim thì *nhường hẳn* electron: kim loại thành ion dương, phi kim thành ion âm, hai ion trái dấu hút nhau. Đó là *liên kết ion*. || Na⁺ Cl⁻ ; Mg²⁺ O²⁻',
+    'Số nguyên tử mỗi loại do số electron quyết định: Mg nhường 2 mà mỗi Cl chỉ nhận 1, nên cần 2 Cl. || MgCl₂ = Mg²⁺ + 2Cl⁻',
+    ':) Trên màn chơi: hai phi kim thì kéo nối hai chấm đứng một mình (có quầng vàng); có kim loại thì kéo electron của kim loại thả sang phi kim. Đề chỉ ghi tên chất, trò tự tính cần mấy nguyên tử nhé!',
+  ],
+  // 6 · Chất khí và tính theo phương trình
+  6: [
+    'Chế độ khó: hôm nay có *chất khí*. Khí nhẹ tênh, khó cân, nên người ta đo khí bằng *thể tích*, tính bằng lít.',
+    'Ở cùng nhiệt độ và áp suất, 1 mol khí nào cũng chiếm thể tích như nhau. Ở *điều kiện chuẩn* (đkc: 25 °C, 1 bar), thể tích đó là *24,79 lít*. || 1 mol khí (đkc) = 24,79 lít ; V = n · 24,79',
+    'Vậy 0,1 mol O₂ chiếm 2,479 lít, 0,1 mol CO₂ cũng 2,479 lít, dù CO₂ nặng hơn nhiều. || 0,1 mol O₂ = 0,1 mol CO₂ = 2,479 lít',
+    'Bí quyết *tính theo phương trình*: hệ số chính là tỉ lệ số mol các chất. || 2Mg + O₂ —t°→ 2MgO ; 2 mol : 1 mol : 2 mol',
+    'Khách đặt 8 g MgO. M(MgO) = 40 nên đó là 0,2 mol. Theo hệ số, cần 0,2 mol Mg và 0,1 mol O₂. || 8 g MgO = 0,2 mol ; Mg: 0,2 · 24 = 4,8 g ; O₂: 0,1 · 24,79 = 2,479 lít',
+    'Tóm lại ba bước: đổi lượng khách cần ra mol, nhìn hệ số suy ra mol từng chất phải lấy, rồi đổi ra gam (chất rắn) hay lít (chất khí). || ra mol → nhìn hệ số → ra gam / lít',
+    ':( Lấy dư một chất thì phần dư nằm lại, lẫn vào hàng. Tính cho *vừa đủ* nhé!',
+  ],
+  // 9 · Dung dịch axit và nồng độ mol
+  9: [
+    'Chế độ khó: axit HCl trên kệ là *dung dịch*, không cân được. Trò phải đong bằng *ống đong*, tính bằng ml.',
+    'Nhãn lọ ghi *nồng độ mol* Cₘ: số mol chất tan trong 1 lít dung dịch, đơn vị mol/l, viết tắt là M. || Cₘ = n : V',
+    'Lọ HCl hôm nay ghi *2M*: mỗi lít dung dịch có 2 mol HCl. Muốn lấy n mol thì đong V = n : Cₘ lít. || V = n : Cₘ',
+    ':( Nhớ đổi lít ra ml: 1 lít = 1000 ml. 0,2 mol HCl cần 0,2 : 2 = 0,1 lít, tức là 100 ml. || 0,2 mol HCl = 0,1 lít = 100 ml (dd 2M)',
+    'Ví dụ khách đặt 2,479 lít H₂, tức 0,1 mol: cần 0,1 mol Zn và 0,2 mol HCl. || Zn + 2HCl → ZnCl₂ + H₂↑ ; Zn: 0,1 · 65 = 6,5 g ; HCl: 0,2 mol = 100 ml',
+    ':) Nút *Công thức* trên thanh trên cùng có ghi nồng độ của từng lọ dung dịch hôm nay.',
+  ],
+  // 18 · Axit hai nấc
+  18: [
+    'Chế độ khó: H₂SO₄, HNO₃, NaOH, KOH trên kệ đều là dung dịch *1M*. Cùng nồng độ, nhưng lượng cần đong chưa chắc bằng nhau.',
+    'Một phân tử H₂SO₄ có *hai* H nên cần *hai* NaOH. Hai lọ cùng 1M, nên thể tích NaOH cũng phải gấp đôi. || H₂SO₄ + 2NaOH → Na₂SO₄ + 2H₂O ; 100 ml H₂SO₄ 1M + 200 ml NaOH 1M',
+    'HNO₃ chỉ có một H nên trộn 1 : 1, cả theo mol lẫn theo thể tích. || HNO₃ + KOH → KNO₃ + H₂O ; 100 ml + 100 ml',
+    'Khách đặt 14,2 g Na₂SO₄? M = 2·23 + 32 + 4·16 = 142, tức 0,1 mol. Cần 0,1 mol H₂SO₄ (100 ml) và 0,2 mol NaOH (200 ml). || M(Na₂SO₄) = 142 g/mol',
+    ':) Đếm số H của axit trước khi đong là không bao giờ lệch!',
+  ],
+  // 19 · Trung hoà vừa đủ, chất dư
+  19: [
+    'Chế độ khó: HCl trên kệ là dung dịch *2M*, còn NaOH và KOH là *1M*. Nồng độ khác nhau thì cùng số mol mà thể tích khác nhau.',
+    'HCl và NaOH phản ứng 1 : 1 *theo mol*. 0,1 mol HCl chỉ là 50 ml dung dịch 2M, còn 0,1 mol NaOH là 100 ml dung dịch 1M. || HCl + NaOH → NaCl + H₂O ; 50 ml HCl 2M + 100 ml NaOH 1M',
+    '*Vừa đủ* là hai chất hết cùng lúc. Chất còn thừa gọi là *chất dư*. Chất hết trước quyết định có bao nhiêu sản phẩm. || chất hết trước → quyết định lượng sản phẩm',
+    'Lỡ trộn 0,2 mol HCl với 0,1 mol NaOH: chỉ 0,1 mol HCl phản ứng, ra 0,1 mol NaCl, còn dư 0,1 mol HCl. Quỳ tím hoá đỏ là biết dư axit. || 0,2 HCl + 0,1 NaOH → 0,1 NaCl, dư 0,1 HCl',
+    ':( Hàng lẫn chất dư thì khách trả lại. Tính trước, đong sau!',
+  ],
+  // 22 · Nhôm: hệ số lẻ
+  22: [
+    'Chế độ khó: nhôm hoá trị III nên phương trình có hệ số "lẻ". Tính theo phương trình phải thật cẩn thận.',
+    'Đọc hệ số: 2 mol Al cần 6 mol HCl và cho 3 mol H₂. || 2Al + 6HCl → 2AlCl₃ + 3H₂↑ ; 2 : 6 : 2 : 3',
+    'Khách đặt 7,437 lít H₂, tức 7,437 : 24,79 = 0,3 mol. Theo tỉ lệ 2 : 6 : 3, cần 0,2 mol Al và 0,6 mol HCl. || Al: 0,2 · 27 = 5,4 g ; HCl: 0,6 : 2 = 0,3 lít = 300 ml',
+    'Đốt trong clo cũng vậy: 2 mol Al cần 3 mol Cl₂. Muốn 26,7 g AlCl₃ (M = 133,5, tức 0,2 mol) thì cần 0,2 mol Al và 0,3 mol Cl₂. || 2Al + 3Cl₂ —t°→ 2AlCl₃ ; Cl₂: 0,3 · 24,79 = 7,437 lít',
+    ':) Mẹo: viết số mol chất khách cần lên trước, rồi nhân chia theo hệ số từng chất một.',
+  ],
+  // 24 · Bảng tuần hoàn đầy đủ
+  24: [
+    'Chế độ khó: mỗi ô bảng tuần hoàn ghi thêm *độ âm điện* χ (số tím cạnh kí hiệu) và *cấu hình electron* (dòng dưới cùng). Không có kính lúp đâu nhé.',
+    'Hạt nhân gồm proton và *neutron*. Electron nhẹ không đáng kể, nên nguyên tử khối gần bằng số proton cộng số neutron. || nguyên tử khối ≈ số p + số n ; Na: 23 = 11 + 12',
+    '*Cấu hình electron* cho biết electron nằm ở đâu: số đứng đầu là *lớp*, chữ cái là *phân lớp*, số mũ là số electron. || O: 1s² 2s² 2p⁴',
+    'Từ chu kì 3 có cách viết gọn: phần giống hệt một khí hiếm thì ghi kí hiệu khí hiếm đó trong ngoặc vuông. || Na: 1s² 2s² 2p⁶ 3s¹ = [Ne] 3s¹',
+    '*Độ âm điện* χ là sức hút electron của nguyên tử khi liên kết. Cùng chu kì, sang phải thì tăng; cùng nhóm, đi xuống thì giảm. Flo hút mạnh nhất. || chu kì: sang phải χ tăng ; nhóm: đi xuống χ giảm',
+    'Hiệu độ âm điện Δχ của hai nguyên tử cho biết *loại liên kết*. || Δχ ≥ 1,7: liên kết ion ; 0,4 ≤ Δχ < 1,7: cộng hoá trị có cực ; Δχ < 0,4: cộng hoá trị không cực',
+    'Ví dụ NaCl: 3,16 − 0,93 = 2,23, liên kết ion. HCl: 3,16 − 2,20 = 0,96, cộng hoá trị có cực. Cl₂: hai nguyên tử như nhau, Δχ = 0, không cực.',
+    ':) Kim loại dễ nhường, phi kim dễ nhận electron để có lớp ngoài giống khí hiếm, như bài tạo ion. Soi kĩ từng ô rồi hẵng trả lời!',
+  ],
+  // 26 · Tỉ lệ thể tích khí
+  26: [
+    'Chế độ khó: hôm nay N₂, H₂, NH₃ đều là *khí*, nên trò đong phần lớn bằng lít.',
+    'Cùng điều kiện, thể tích khí tỉ lệ với số mol. Vậy với chất khí, hệ số phương trình cũng là *tỉ lệ thể tích*! || N₂ + 3H₂ ⇌ 2NH₃ ; 1 lít : 3 lít : 2 lít',
+    'Muốn 4,958 lít NH₃ thì lấy 2,479 lít N₂ và 7,437 lít H₂: chỉ cần nhân theo hệ số, chẳng phải đổi ra mol. || 2,479 lít N₂ + 7,437 lít H₂ → 4,958 lít NH₃',
+    ':) Trong nhà máy thật, phản ứng thuận nghịch không bao giờ chạy hết. Còn ở tiệm ta, coi như chạy hết.',
+    'NH₃ gặp axit HCl (dung dịch 2M) tạo muối amoni clorua, M = 53,5. Khách đặt 5,35 g là 0,1 mol: cần 2,479 lít NH₃ và 50 ml HCl. || NH₃ + HCl → NH₄Cl ; 0,1 mol NH₄Cl = 5,35 g',
+  ],
+};

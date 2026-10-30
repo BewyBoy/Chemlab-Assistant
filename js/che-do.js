@@ -35,13 +35,13 @@ function mgPause(i){
   // bài giảng phủ lên màn đang dừng; đóng lại thì thẻ Tạm nghỉ hiện ra như cũ
   if(hasLesson) ov.querySelector('#plesson').onclick = () => { ov.classList.add('under'); showLesson(i, () => ov.classList.remove('under')); };
   ov.querySelector('#presume').onclick = () => closeOv(ov);
-  ov.querySelector('#prestart').onclick = () => go(mgExplore ? () => startVlExplore(i) : () => showIntro(i));
+  ov.querySelector('#prestart').onclick = () => go(mgExplore ? () => startVlExplore(i) : () => playDay(i));
   ov.querySelector('#pmap').onclick = () => mgEndEarly ? closeOv(ov, mgEndEarly) : go(showMap);
 }
 const mgScore = (c,t) => { G.querySelector('#mgscore').textContent = 'Đúng: '+c+'/'+t; };
 // đồng hồ minigame (lập công thức, sơ đồ Lewis, tạo ion) đứng yên khi có lớp phủ trên màn: đang mở thẻ Tạm nghỉ
 // (nút ⏸) thì coi như tạm dừng, bấm Tiếp tục mới chạy lại
-const mgHeld = () => !!G.querySelector('.overlay');
+const mgHeld = () => !!G.querySelector('.overlay, .startov');
 // mất điểm: ô Điểm nháy đỏ, "−1" bật ra ngay dưới nó rồi bay lên nhập vào (chuỗi phản ứng, cân bằng phương trình)
 function mgMinus(hud){
   hud.classList.remove('flash-bad'); void hud.offsetWidth; hud.classList.add('flash-bad');
@@ -95,6 +95,7 @@ function startMinigame(i){
   mgExplore = false;
   const day = DAYS[i];
   MG[day.mg](i, day);
+  startCurtain();
 }
 
 /* Vật lý trong giỏ phân loại: mỗi mô hình bi–que là MỘT vật rắn ghép từ các hình tròn (bi), khối lượng ∝ r².
@@ -2746,10 +2747,10 @@ const MG = {
     let lay = grid();
     const box = k => `<div class="bal-box" style="width:${lay.cell[k].w}px;height:${lay.cell[k].h}px">${molHTML(fs[k], lay.cell[k].w, lay.cell[k].h, lay.sc)}</div>`;
     // phương trình: ô hệ số gạch chân + công thức; sản phẩm khí / kết tủa có sẵn dấu ↑ / ↓, chỉ hiện khi đã cân bằng xong
-    const mark = f => CHEMS[f].s === 'k' ? '↑' : isPrecip(f) ? '↓' : '';
+    const mark = f => rxMark(r, f);
     const term = k => (k && k !== nL ? '<span class="bal-op">+</span>' : '') + (k === nL ? handArrow(r) : '')
       + `<span class="bal-term"><input class="bal-in" type="text" inputmode="numeric" maxlength="2" autocomplete="off" `
-      + `aria-label="hệ số của ${fs[k]}"><span>${sub(fs[k])}</span>`
+      + `aria-label="hệ số của ${fs[k]}"><span>${sub(fs[k]) + rxTag(r, fs[k])}</span>`
       + (isR(k) && mark(fs[k]) ? `<i class="bal-mk">${mark(fs[k])}</i>` : '') + '</span>';
     const card = k => `<div class="bal-card" data-k="${k}"><div class="bal-cmol">${molHTML(fs[k], 116, 62, 1.3)}</div><b>${sub(fs[k])}</b></div>`;
     const ARR = '<svg width="84" height="24" viewBox="0 0 84 24"><path d="M4 12 Q30 10 76 12 M64 4 L77 12 L64 20"/></svg>';

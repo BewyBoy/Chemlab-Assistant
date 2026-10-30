@@ -21,11 +21,13 @@ $canShip = @(
   'js\phan-ung.js',         # bảng phản ứng — thiếu là cốc không phản ứng gì
   'js\du-lieu.js',          # hoá chất, 31 ngày, thành tựu
   'js\lich.js',             # tên tháng + mô tả 31 ngày (nạp ngay sau du-lieu.js)
-  'js\do-hoa.js',           # kho SVG + nhân vật
+  'js\bai-giang.js',        # lời giáo sư giảng từng ngày — thiếu là vào ngày nào cũng lỗi
+  'js\do-hoa.js',          # kho SVG + nhân vật
   'js\diem.js',             # luật tính điểm & mốc sao
   'js\giao-dien.js',        # âm thanh, menu, lịch, cài đặt, báo cáo
   'js\phong-thi-nghiem.js', # bàn thí nghiệm, phản ứng, khách hàng
   'js\che-do.js',           # minigame, pha nồng độ, chế độ khó, thẻ phản ứng
+  'js\tham-quan.js',        # chuyến tham quan khu công nghiệp (visual novel)
   'js\khoi-dong.js',        # tự kiểm tra + vào game (nạp cuối)
   'favicon.ico',
   'favicon.png'

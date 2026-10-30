@@ -1754,6 +1754,26 @@ const SVG_DEFS = `
   <path d="M9.5,20.5 L9.5,15 L14.5,15 L14.5,20.5" fill="#e8c46a" stroke="#3b3025" stroke-width="1.6" stroke-linejoin="round"/>
 </symbol>
 
+<!-- ico-factory: nhà xưởng mái răng cưa + ống khói (vé tham quan khu công nghiệp trên lịch) -->
+<symbol id="ico-factory" viewBox="0 0 24 24">
+  <path d="M15.5,21 L15.5,3.5 L19.5,3.5 L19.5,21" fill="#e6dcc6" stroke="#3b3025" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M15.5,3.5 L19.5,3.5 L19.5,6.5 L15.5,6.5 Z" fill="#d9634f" stroke="#3b3025" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M2.5,21 L2.5,12 L7,9 L7,12 L11.5,9 L11.5,12 L16,9 L16,21 Z" fill="#fffdf5" stroke="#3b3025" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M5,15 L7,15 L7,17 L5,17 Z M9.5,15 L11.5,15 L11.5,17 L9.5,17 Z" fill="#7fc4c9" stroke="#3b3025" stroke-width="1.2"/>
+  <path d="M1.5,21 L22.5,21" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
+</symbol>
+
+<!-- ico-hard: đầu lâu trước ngọn lửa (nút chế độ khó trên lịch) -->
+<symbol id="ico-hard" viewBox="0 0 24 24">
+  <path d="M12,0.8 C13.6,3.8 17.2,4.6 18.7,8 C19.7,10.2 19.4,12.2 18.8,13.4 L5.2,13.4 C4.6,12.2 4.3,10.2 5.3,8 C6.1,6.2 7.6,5.8 8,3.4 C9.4,4.8 9.9,5.8 10.3,6.8 C10.7,4.6 11.2,2.8 12,0.8 Z" fill="#d9634f" stroke="#3b3025" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M12,4.2 C13,6.4 15.6,7.4 16.2,10 L7.8,10 C8.2,8.5 9.5,8 10.1,6.8 C10.8,7.8 11.3,6.4 12,4.2 Z" fill="#e8c46a"/>
+  <path d="M5.4,14.2 C5.4,10.2 8.4,7.9 12,7.9 C15.6,7.9 18.6,10.2 18.6,14.2 C18.6,16 17.7,17 16.3,17.5 L16.3,19.8 Q16.3,20.9 15.2,20.9 L8.8,20.9 Q7.7,20.9 7.7,19.8 L7.7,17.5 C6.3,17 5.4,16 5.4,14.2 Z" fill="#fffdf5" stroke="#3b3025" stroke-width="1.8" stroke-linejoin="round"/>
+  <ellipse cx="9.4" cy="13.8" rx="1.8" ry="2" fill="#3b3025"/>
+  <ellipse cx="14.6" cy="13.8" rx="1.8" ry="2" fill="#3b3025"/>
+  <path d="M12,15.6 L11.1,17.2 L12.9,17.2 Z" fill="#3b3025"/>
+  <path d="M10.3,18.4 L10.3,20.9 M12,18.4 L12,20.9 M13.7,18.4 L13.7,20.9" stroke="#3b3025" stroke-width="1.2" stroke-linecap="round"/>
+</symbol>
+
 <!-- ico-gear -->
 <symbol id="ico-gear" viewBox="0 0 24 24">
   <path d="M10.23,4.61 L10.60,1.59 L13.40,1.59 L13.77,4.61 L15.97,5.52 L18.37,3.65 L20.35,5.63 L18.48,8.03 L19.39,10.23 L22.41,10.60 L22.41,13.40 L19.39,13.77 L18.48,15.97 L20.35,18.37 L18.37,20.35 L15.97,18.48 L13.77,19.39 L13.40,22.41 L10.60,22.41 L10.23,19.39 L8.03,18.48 L5.63,20.35 L3.65,18.37 L5.52,15.97 L4.61,13.77 L1.59,13.40 L1.59,10.60 L4.61,10.23 L5.52,8.03 L3.65,5.63 L5.63,3.65 L8.03,5.52 Z"
