@@ -806,7 +806,7 @@ const MG = {
   const elsOf = f => Object.keys(atomCounts(f)), ALL = known.map(k => k.f);
   mgFrame(i, explore ? Object.assign({}, day, {t:day.t + ' · Khám phá'}) : day, `<div class="vl">
     <div class="vl-task"><div class="io-row"><div class="vl-t1"></div>
-      <button class="btn io-hbtn" id="vlhelp" aria-label="Cách chơi" title="Cách chơi">?</button></div><div class="vl-t2"></div></div>
+      <button class="btn io-hbtn" id="vlhelp" aria-label="Cách chơi">?</button></div><div class="vl-t2"></div></div>
     <div class="vl-mid">
       <div class="vl-pal"></div>
       <div class="vl-zone" data-dz="vbuild" style="width:${ZW}px;height:${ZH}px">
@@ -1244,7 +1244,7 @@ const MG = {
   const ORDER = ['Na', 'K', 'Mg', 'Ca', 'Al', 'H', 'C', 'N', 'P', 'S', 'Cl', 'O'];      // cột trái: kim loại trước, O cuối
   mgFrame(i, explore ? Object.assign({}, day, {t:day.t + ' · Khám phá'}) : day, `<div class="vl lw">
     <div class="vl-task"><div class="io-row"><div class="vl-t1"></div>
-      <button class="btn io-hbtn" id="vlhelp" aria-label="Cách chơi" title="Cách chơi">?</button></div><div class="vl-t2"></div></div>
+      <button class="btn io-hbtn" id="vlhelp" aria-label="Cách chơi">?</button></div><div class="vl-t2"></div></div>
     <div class="vl-mid">
       <div class="vl-pal"></div>
       <div class="vl-zone" data-dz="vbuild" style="width:${ZW}px;height:${ZH}px">
@@ -1751,7 +1751,7 @@ const MG = {
   const FREE0 = 4, FREE_MIN = 3, SPD = 22, EJECT = 260, PAD = 16, FREE_HIT = 22;
   mgFrame(i, day, `<div class="vl lw io">
     <div class="vl-task"><div class="io-row"><div class="vl-t1"></div>
-      <button class="btn io-hbtn" id="iohelp" aria-label="Cách chơi" title="Cách chơi">?</button></div></div>
+      <button class="btn io-hbtn" id="iohelp" aria-label="Cách chơi">?</button></div></div>
     <div class="vl-mid">
       <div class="vl-zone" data-dz="vbuild" style="width:${ZW}px;height:${ZH}px">
         <div class="vl-layer"><svg class="bonds lw-svg" width="${ZW}" height="${ZH}" style="overflow:visible"></svg></div>
@@ -2889,8 +2889,8 @@ const MG = {
       root.querySelector('.bal-eq').classList.add('final');
       const last = qi === qs.length - 1;
       done.innerHTML = `<div class="row">`
-        + `<button class="btn bal-ib" id="balagain" aria-label="Xem lại" title="Xem lại">${ico('retry', 26)}</button>`
-        + `<button class="btn big bal-ib" id="balnext" aria-label="${last ? 'Xem kết quả' : 'Câu tiếp theo'}" title="${last ? 'Xem kết quả' : 'Câu tiếp theo'}">`
+        + `<button class="btn bal-ib" id="balagain" aria-label="Xem lại">${ico('retry', 26)}</button>`
+        + `<button class="btn big bal-ib" id="balnext" aria-label="${last ? 'Xem kết quả' : 'Câu tiếp theo'}">`
         + `${ico(last ? 'star' : 'next', 26)}</button></div>`;
       band.classList.add('done');
       done.querySelector('#balagain').onclick = () => { SFX.clink(); fly(); };

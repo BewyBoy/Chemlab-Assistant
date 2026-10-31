@@ -75,7 +75,11 @@ h2{font-size:26px;margin:6px 0}
 /* nút chế độ khó trên lịch: đầu lâu + lửa, tắt thì mờ và xám, bật thì rõ màu */
 .hardbtn svg{opacity:.3;filter:grayscale(1);transition:opacity .18s,filter .18s,transform .18s}
 .hardbtn.on svg{opacity:1;filter:none;transform:scale(1.08)}
-.calsheet{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;width:100%;max-width:calc(1180px + 2*var(--bx));margin:16px auto 0;background:#fffdf5;border:1.2px solid var(--ink);border-radius:1.8px 1.8px 3.6px 3.6px;padding:20px 14px 10px}
+.calsheet{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;width:100%;max-width:calc(1180px + 2*var(--bx));margin:16px auto 0;background:#fffdf5;border:1.2px solid var(--ink);border-radius:1.8px 1.8px 3.6px 3.6px;padding:20px 14px 10px;
+  /* các tờ tháng sau xếp bên dưới + tấm bìa cứng màu nâu ở sau cùng, ló ra hai bên và mép dưới như quyển lịch thật */
+  box-shadow:0 3px 0 -.2px #f4ecd6,0 3px 0 1px var(--ink),0 6px 0 -.2px #efe5ca,0 6px 0 1px var(--ink),
+    0 11px 0 6px #9c7448,0 11px 0 7.2px var(--ink),
+    0 4px 0 6px #9c7448,0 4px 0 7.2px var(--ink),   /* bìa cao thêm, ló lên trên mép trang 2px */0 16px 14px 6px #3b302533}
 .calrings{position:absolute;top:-14px;left:30px;right:30px;display:flex;justify-content:space-evenly;pointer-events:none}
 .calrings span{width:11px;height:26px;border:1.2px solid var(--ink);border-radius:6px;background:linear-gradient(#ece4d2,#b8ac94)}
 .calhead{text-align:center;font-family:var(--fh);font-size:21px;font-weight:bold;letter-spacing:2px;padding:2px 0 6px;border-bottom:1.2px solid var(--ink)}

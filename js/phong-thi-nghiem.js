@@ -543,10 +543,10 @@ function renderLab(){
       <div class="wallitem" style="left:352px;top:26px" id="winhost"><svg id="winsvg" width="100" height="123"><use href="#sym-window"/></svg></div>
       <div class="wallitem" style="left:648px;top:18px"><svg id="clocksvg" width="86" height="86"><use href="#sym-clock"/></svg></div>
       <div class="wallitem" style="left:900px;top:26px">${sym('sym-pipette',34,120,'--lc:#9b7bb8')}</div>
-      <div class="wallitem safetyhook" id="goggles" style="left:466px;top:86px" title="Bấm để đeo kính bảo hộ và găng tay">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>
-      ${lab.hoodDay ? `<div class="wallitem hoodsw" id="hoodsw" style="left:464px;top:180px" title="Bấm để bật / tắt tủ hút">${HOOD_SVG}<div class="wallcap">Tủ hút: tắt</div></div>` : ''}
+      <div class="wallitem safetyhook" id="goggles" style="left:466px;top:86px">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>
+      ${lab.hoodDay ? `<div class="wallitem hoodsw" id="hoodsw" style="left:464px;top:180px">${HOOD_SVG}<div class="wallcap">Tủ hút: tắt</div></div>` : ''}
       ${stickyNoteHtml}
-      ${!day.free && dayEqs(day).length ? `<div class="wallitem balpaper" id="balpaper" style="left:600px;top:116px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
+      ${!day.free && dayEqs(day).length ? `<div class="wallitem balpaper" id="balpaper" style="left:600px;top:116px"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
     </div>
     ${benchSVG()}
     <div class="custcol">
@@ -736,7 +736,7 @@ function showRxBook(){
     let left = 0;
     for(let i = g.i; i < to; i++){
       if(!done.has(i)){ left++; continue; }        // chưa gặp thì gộp thành một dòng cuối nhóm,
-      items.push('<div class="eq" data-rx="' + i + '" title="Bấm để xem thẻ phản ứng">' + eqStr(REACTIONS[i])   // liệt kê từng dấu ? chỉ tổ dài sổ
+      items.push('<div class="eq" data-rx="' + i + '">' + eqStr(REACTIONS[i])   // liệt kê từng dấu ? chỉ tổ dài sổ
         + (REACTIONS[i].heat ? ' <small>(cần đun)</small>' : '')
         + (REACTIONS[i].burn ? ' <small>(đốt trong lọ khí)</small>' : '')
         + (REACTIONS[i].elec ? ' <small>(điện phân)</small>' : '')

@@ -443,8 +443,8 @@ function showMap(){
   const wd = ['T2','T3','T4','T5','T6','T7','CN'].map((x,k)=>'<div'+(k===6?' class="sun"':'')+'>'+x+'</div>').join('');
   G.innerHTML = `<div class="scene mapscene">
     <div class="row" style="justify-content:flex-start">
-      <button class="btn icobtn" id="bback" aria-label="Về menu" title="Về menu">${ico('home',26)}</button>
-      <button class="btn icobtn" id="bshop" aria-label="Cửa hàng" title="Cửa hàng">${ico('shop',26)}</button>
+      <button class="btn icobtn" id="bback" aria-label="Về menu">${ico('home',26)}</button>
+      <button class="btn icobtn" id="bshop" aria-label="Cửa hàng">${ico('shop',26)}</button>
       ${hardUnlocked() ? `<button class="btn icobtn hardbtn${hardOn()?' on':''}" id="bhard" aria-label="Chế độ khó" aria-pressed="${hardOn()}">${ico('hard',30)}</button>` : ''}
     </div>
     <div class="calsheet">
@@ -459,7 +459,7 @@ function showMap(){
   // nút chế độ khó chung cho mọi ngày (cũng có trong Cài đặt): đầu lâu mờ = tắt, rõ = bật; lịch đã tô sẵn sao khó màu
   // đỏ nên không cần vẽ lại
   const bh = G.querySelector('#bhard');
-  const hardTip = () => bh.title = 'Chế độ khó: ' + (hardOn() ? 'đang bật' : 'đang tắt') + ' — đơn hàng ghi theo gam và lít khí; minigame có bài khó riêng';
+  const hardTip = () => bh.ariaLabel = 'Chế độ khó: ' + (hardOn() ? 'đang bật' : 'đang tắt') + ' — đơn hàng ghi theo gam và lít khí; minigame có bài khó riêng';
   if(bh){ hardTip(); bh.onclick = () => { save.settings.hard = !hardOn(); persist(); SFX.clink();
     bh.classList.toggle('on', hardOn()); bh.setAttribute('aria-pressed', hardOn()); hardTip();
     toast(ico('hard',18) + ' Chế độ khó: <b>' + (hardOn() ? 'BẬT' : 'TẮT') + '</b>'); }; }
@@ -544,7 +544,7 @@ function showShop(){
             ${hasBook
               ? `<div style="display: flex; flex-direction: column; align-items: center; gap: 5px">
                    <span style="color: var(--green); font-weight: bold; font-size: 15px">Đã sở hữu</span>
-                   <div class="toggle${bookOn ? ' on' : ''}" id="tglBook" role="switch" aria-checked="${bookOn}" title="Bật / tắt sổ ghi chép"></div>
+                   <div class="toggle${bookOn ? ' on' : ''}" id="tglBook" role="switch" aria-checked="${bookOn}" aria-label="Bật / tắt sổ ghi chép"></div>
                  </div>`
               : `<button class="btn" id="buyBook" style="min-width: 100px; font-family:var(--fh)">3 ${ico('coinred', 14)} Mua</button>`
             }
@@ -988,7 +988,7 @@ function balanceSheet(i, onclose){
       : 'Giáo sư đã điền sẵn hệ số (đang bật “Giấy cân bằng sẵn” trong Cài đặt).';
   }
   const ov = modal('<h2>'+ico('note',22)+' Giấy cân bằng — Ngày '+num
-    + (editable ? ' <button class="btn icobtn helpbtn" id="bhelp" aria-label="Hướng dẫn cân bằng" title="Hướng dẫn cân bằng">?</button>' : '') + '</h2>'
+    + (editable ? ' <button class="btn icobtn helpbtn" id="bhelp" aria-label="Hướng dẫn cân bằng">?</button>' : '') + '</h2>'
     + '<div class="bnote hpaper"><p class="bsub">'+hint+'</p>'+rows+'</div>', onclose, 'bsheet');
   if(!editable) return;
   ov.querySelector('#bhelp').onclick = balanceTutorial;
@@ -1135,10 +1135,10 @@ const liqStar = s => `<svg class="lstar" width="${s}" height="${s}" viewBox="0 0
   <polygon points="${STAR_PTS}" fill="none" stroke="#3b3025" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
 // nút trên thẻ kết quả: chỉ có hình, cùng một cỡ vuông; chữ nằm ở title / aria-label
 const resBtn = (id, icon, label, cls = '') =>
-  `<button class="btn icobtn resbtn${cls}" id="${id}" aria-label="${label}" title="${label}">${ico(icon, 30)}</button>`;
+  `<button class="btn icobtn resbtn${cls}" id="${id}" aria-label="${label}">${ico(icon, 30)}</button>`;
 // nút vuông trên thẻ Tạm nghỉ: chỉ có hình, chữ nằm ở title / aria-label (như resBtn)
 const pauseBtn = (id, icon, label, cls = '') =>
-  `<button class="btn pbtn${cls}" id="${id}" aria-label="${label}" title="${label}">${ico(icon, 32)}</button>`;
+  `<button class="btn pbtn${cls}" id="${id}" aria-label="${label}">${ico(icon, 32)}</button>`;
 function resultCard(title, stars, body){
   // chụp lại cảnh đang có làm nền (canvas không tự chép hình khi clone nên vẽ lại từ bản gốc)
   const bg = document.createElement('div');
