@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thử giao diện — Trợ Lý Hóa Học Nhí</title>
+<link rel="icon" type="image/png" href="../favicon.png">
+<!-- Bàn thử chữ & nét: chạy chính game (../index.html) trong iframe rồi chèn CSS đè lên nó.
+     Không sửa file nào của game; chỉnh xong bấm "Sao chép CSS" để đem về style.css.
+     Phải mở qua máy chủ (npx http-server Chemlab-Assistant), không mở file:// — cần đọc style.css và điều khiển iframe. -->
+<style>
+:root{--ink:#3b3025;--paper:#f7f1e3;--card:#fffdf5;--accent:#e8b84b}
+*{box-sizing:border-box}
+body{margin:0;height:100vh;display:flex;background:#efe4cc;color:var(--ink);font:13px/1.35 'Segoe UI',Arial,sans-serif;overflow:hidden}
+#panel{width:350px;flex:none;height:100%;overflow-y:auto;background:var(--card);border-right:1.2px solid var(--ink);padding:12px 12px 40px}
+h1{font-size:17px;margin:0 0 2px}
+.sub{opacity:.7;margin:0 0 10px;font-size:12px}
+details{border:1.2px solid var(--ink);border-radius:6px;margin:0 0 8px;background:#fff}
+summary{cursor:pointer;padding:7px 10px;font-weight:600;list-style:none;display:flex;align-items:center;gap:6px}
+summary::before{content:'▸';transition:transform .15s}
+details[open] summary::before{transform:rotate(90deg)}
+summary .mod{margin-left:auto;width:8px;height:8px;border-radius:50%;background:#d9634f;display:none}
+details.changed summary .mod{display:block}
+.body{padding:2px 10px 10px}
+.row{display:grid;grid-template-columns:92px 1fr 46px 18px;align-items:center;gap:6px;margin:5px 0}
+.row label{font-size:12px}
+.row input[type=range]{width:100%;accent-color:#c99a1e}
+.row .v{font:12px ui-monospace,Consolas,monospace;text-align:right;white-space:nowrap}
+.row .v.off{opacity:.4}
+.row .x{border:0;background:none;cursor:pointer;opacity:.35;font-size:14px;padding:0;color:var(--ink)}
+.row .x:hover{opacity:1}
+.row select,.row input[type=text]{width:100%;font:inherit;padding:3px 4px;border:1.2px solid var(--ink);border-radius:4px;background:#fff}
+.row.font{grid-template-columns:92px 1fr 18px}
+.row.font .fwrap{display:flex;flex-direction:column;gap:3px}
+.vi{font-size:10.5px;opacity:.75}
+.vi.no{color:#d9634f;opacity:1}
+.chk{display:flex;align-items:center;gap:6px;font-size:12px;margin:6px 0 0}
+.btns{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 10px}
+button.b{font:600 12.5px 'Segoe UI',Arial,sans-serif;border:1.2px solid var(--ink);border-radius:5px;background:#fff;padding:5px 9px;cursor:pointer;color:var(--ink)}
+button.b:hover{background:#f7edd2}
+button.b.on{background:var(--accent)}
+.lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;opacity:.6;margin:12px 0 5px}
+textarea{width:100%;height:150px;font:11.5px ui-monospace,Consolas,monospace;border:1.2px solid var(--ink);border-radius:5px;padding:6px;resize:vertical;background:#fff}
+#stage{flex:1;min-width:0;height:100%;overflow:auto;position:relative;background:#e5d9bd;background-image:radial-gradient(#00000012 1.2px,transparent 1.2px);background-size:22px 22px}
+#frameBox{position:absolute;transform-origin:0 0;box-shadow:0 6px 24px #3b302540;border:1.2px solid var(--ink)}
+#frame{display:block;width:1280px;height:720px;border:0;background:#fff}
+#err{position:absolute;inset:0;display:none;align-items:center;justify-content:center;text-align:center;padding:40px;font-size:15px}
+</style>
+</head>
+<body>
+<div id="panel">
+  <h1>Thử chữ & nét</h1>
+  <p class="sub">Game thật chạy bên phải; mọi chỉnh sửa chỉ đè lên bản xem thử. Bấm vào game để đi tới màn khác như bình thường.</p>
+
+  <div class="lbl">Đi tới màn</div>
+  <div class="btns" id="scenes"></div>
+  <div class="lbl">Thu phóng</div>
+  <div class="btns" id="zooms"></div>
+
+  <div class="lbl">Chung</div>
+  <div id="globals"></div>
+  <div class="lbl">Từng phần</div>
+  <div id="roles"></div>
+
+  <div class="lbl">Kết quả</div>
+  <div class="btns">
+    <button class="b" id="copy">Sao chép CSS</button>
+    <button class="b" id="reset">Đặt lại tất cả</button>
+  </div>
+  <textarea id="out" readonly></textarea>
+</div>
+<div id="stage">
+  <div id="frameBox"><iframe id="frame" src="../index.html"></iframe></div>
+  <div id="err">Không điều khiển được game trong khung.<br>Hãy mở trang này qua máy chủ, ví dụ <code>npx http-server Chemlab-Assistant</code> rồi vào <code>/tools/ui-playground.html</code>.</div>
+</div>
+
+<script>
+'use strict';
+/* ---------- danh sách font (Google Fonts); spec = trục cần tải, rỗng = chỉ bản thường ---------- */
+const FONTS = {
+  'Serif — tiêu đề': {
+    'Noto Serif Display':'ital,wdth,wght@0,62.5..100,100..900;1,62.5..100,100..900',
+    'Playfair Display':'ital,wght@0,400..900;1,400..900',
+    'Lora':'ital,wght@0,400..700;1,400..700',
+    'Merriweather':'wght@300;400;700;900',
+    'Roboto Serif':'wdth,wght@50..150,100..900',
+    'Roboto Slab':'wght@100..900',
+    'Bitter':'ital,wght@0,100..900;1,100..900',
+    'Noticia Text':'ital,wght@0,400;0,700;1,400;1,700',
+    'Alegreya':'ital,wght@0,400..900;1,400..900',
+    'EB Garamond':'ital,wght@0,400..800;1,400..800',
+    'Cormorant Garamond':'ital,wght@0,300..700;1,300..700',
+    'Literata':'wght@200..900',
+    'Source Serif 4':'wght@200..900',
+    'Fraunces':'wght@100..900',
+    'Spectral':'wght@200;300;400;500;600;700;800',
+    'Gelasio':'wght@400..700',
+    'Arima':'wght@100..700',
+    'Bree Serif':'', 'Yeseva One':'', 'Prata':'', 'Young Serif':''
+  },
+  'Tròn / viết tay (kiểu hiện tại)': {
+    'Itim':'', 'Patrick Hand':'', 'Playpen Sans':'wght@100..800', 'Mali':'wght@200;300;400;500;600;700',
+    'Baloo 2':'wght@400..800', 'Coiny':'', 'Pangolin':'', 'Sriracha':'', 'Charm':'wght@400;700', 'Pacifico':'', 'Lobster':''
+  },
+  'Sans': {
+    'Be Vietnam Pro':'wght@100;200;300;400;500;600;700;800;900', 'Lexend':'wght@100..900', 'Nunito':'wght@200..1000',
+    'Quicksand':'wght@300..700', 'Montserrat':'wght@100..900', 'Oswald':'wght@200..700',
+    'Barlow Condensed':'wght@100;200;300;400;500;600;700;800;900',
+    'Fira Sans Condensed':'wght@100;200;300;400;500;600;700;800;900',
+    'Encode Sans Condensed':'wght@100;200;300;400;500;600;700;800;900'
+  },
+  'Có sẵn trong máy': {'Segoe UI':null, 'Georgia':null, 'Times New Roman':null, 'Arial':null, 'Comic Sans MS':null}
+};
+const FALLBACK = {serif:'Georgia,serif', sans:"'Segoe UI',Arial,sans-serif"};
+const isSerifGroup = name => Object.keys(FONTS['Serif — tiêu đề']).includes(name) || name === 'Georgia' || name === 'Times New Roman';
+const fontStack = name => `'${name}',${isSerifGroup(name) ? FALLBACK.serif : FALLBACK.sans}`;
+
+/* ---------- các phần giao diện chỉnh được ---------- */
+const ROLES = [
+  {id:'dt',     label:'Lịch — tên bài',      sel:'.day-card .dt', size:[9,26], clip:true},
+  {id:'dn',     label:'Lịch — số ngày',      sel:'.day-card .dn', size:[16,56]},
+  {id:'calhead',label:'Lịch — tên tháng',    sel:'.calhead',      size:[12,40]},
+  {id:'calwd',  label:'Lịch — thứ',          sel:'.calwd',        size:[9,22]},
+  {id:'btn',    label:'Nút',                 sel:'.btn',          size:[10,30]},
+  {id:'sign',   label:'Menu — bảng tên',     sel:'.menu-sign h1', size:[28,80]},
+  {id:'signsub',label:'Menu — phụ đề',       sel:'.menu-sign h2', size:[12,30]},
+  {id:'bubble', label:'Bóng thoại',          sel:'.menu-bubble, .speech', size:[11,26]},
+  {id:'mh',     label:'Hộp thoại — tiêu đề', sel:'.modal h2',     size:[14,36]},
+  {id:'mb',     label:'Hộp thoại — chữ',     sel:'.modal',        size:[11,22]}
+];
+const PROPS = [ // [khoá, nhãn, min, max, bước, đơn vị, mặc định khi bắt đầu kéo]
+  ['weight','Độ đậm',100,900,50,'',400],
+  ['size','Cỡ chữ',null,null,.5,'px',null],
+  ['lh','Giãn dòng',.8,1.8,.05,'',1.2],
+  ['stretch','Độ rộng',50,125,2.5,'%',100],
+  ['ls','Giãn chữ',-2,4,.1,'px',0]
+];
+
+/* ---------- trạng thái (nhớ trong trình duyệt) ---------- */
+const KEY = 'chemlab_ui_playground';
+const blank = () => ({g:{sw:null, ink:null, fh:null, fb:null}, r:{}, scene:'showMap', zoom:'fit'});
+let S = blank();
+try { S = Object.assign(blank(), JSON.parse(localStorage.getItem(KEY) || '{}')); } catch(e){}
+const saveS = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){} };
+const R = id => (S.r[id] = S.r[id] || {});
+
+/* ---------- tải font: thử đủ trục, lỗi thì lùi về bản thường; ghi nhận có bộ chữ tiếng Việt không ---------- */
+const fontCss = {}, fontVi = {};
+async function loadFont(name){
+  if(name in fontCss) return fontCss[name];
+  let spec = null;
+  for(const g in FONTS) if(name in FONTS[g]) spec = FONTS[g][name];
+  if(name in FONTS['Có sẵn trong máy']) return fontCss[name] = '';
+  const fam = encodeURIComponent(name).replace(/%20/g, '+');
+  const tries = [spec ? `${fam}:${spec}` : null, `${fam}:wght@400;700`, fam].filter(Boolean);
+  for(const t of tries){
+    try {
+      const res = await fetch(`https://fonts.googleapis.com/css2?family=${t}&display=swap`);
+      if(res.ok){ const css = await res.text(); fontVi[name] = /\/\* vietnamese \*\//.test(css); return fontCss[name] = css; }
+    } catch(e){}
+  }
+  fontVi[name] = false;
+  return fontCss[name] = '';
+}
+
+/* ---------- iframe: đọc style.css, đổi mọi nét mực mảnh (< 6px) thành calc(... * var(--sw)) ---------- */
+const frame = document.getElementById('frame');
+let baseCss = null;
+async function getBaseCss(){
+  if(baseCss !== null) return baseCss;
+  const txt = await (await fetch('../style.css')).text();
+  return baseCss = txt.replace(/(\d*\.?\d+)px solid var\(--ink\)/g, (m, n) => +n < 6 ? `calc(${n}px * var(--sw,1)) solid var(--ink)` : m);
+}
+function doc(){ try { return frame.contentDocument; } catch(e){ return null; } }
+function styleEl(d, id){
+  let el = d.getElementById(id);
+  if(!el){ el = d.createElement('style'); el.id = id; d.head.appendChild(el); }
+  return el;
+}
+async function prepFrame(){
+  const d = doc();
+  if(!d || !d.head){ document.getElementById('err').style.display = 'flex'; return; }
+  styleEl(d, 'pg-base').textContent = await getBaseCss();
+  d.querySelectorAll('link[rel=stylesheet][href$="style.css"]').forEach(l => l.disabled = true);
+  await apply();
+  goScene(S.scene);
+}
+frame.addEventListener('load', prepFrame);
+
+function goScene(fn){
+  const w = frame.contentWindow;
+  if(!w || typeof w[fn] !== 'function') return;
+  if(fn !== 'showMenu' && fn !== 'showMap') w.showMap();
+  try { w[fn](); } catch(e){ console.warn(e); }
+}
+
+/* ---------- sinh CSS ---------- */
+function usedFonts(){
+  const f = new Set([S.g.fh, S.g.fb]);
+  ROLES.forEach(r => f.add(R(r.id).font));
+  f.delete(null); f.delete(undefined); f.delete('');
+  return [...f];
+}
+function buildCss(forExport){
+  const out = [], root = [];
+  if(!forExport) root.push(`--sw:${S.g.sw ?? 1}`);
+  if(S.g.ink) root.push(`--ink:${S.g.ink}`);
+  if(S.g.fh) root.push(`--fh:${fontStack(S.g.fh)}`);
+  if(S.g.fb) root.push(`--fb:${fontStack(S.g.fb)}`);
+  if(forExport && S.g.sw != null && S.g.sw !== 1) out.push(`/* nét viền mực: nhân ${S.g.sw} cho mọi border < 6px solid var(--ink) */`);
+  if(root.length) out.push(`:root{${root.join(';')}}`);
+  ROLES.forEach(r => {
+    const v = R(r.id), d = [];
+    const imp = forExport ? '' : '!important';
+    if(v.font) d.push(`font-family:${fontStack(v.font)}${imp}`);
+    if(v.weight != null) d.push(`font-weight:${v.weight}${imp}`);
+    if(v.size != null) d.push(`font-size:${v.size}px${imp}`);
+    if(v.lh != null) d.push(`line-height:${v.lh}${imp}`);
+    if(v.stretch != null) d.push(`font-stretch:${v.stretch}%${imp}`);
+    if(v.ls != null) d.push(`letter-spacing:${v.ls}px${imp}`);
+    if(v.italic) d.push(`font-style:italic${imp}`);
+    if(v.noclip) d.push(`max-height:none${imp};overflow:visible${imp}`);
+    if(d.length) out.push(`${r.sel}{${d.join(';')}}`);
+  });
+  return out.join('\n');
+}
+async function apply(){
+  saveS();
+  document.getElementById('out').value = buildCss(true) || '/* chưa chỉnh gì */';
+  markChanged();
+  const d = doc(); if(!d || !d.head) return;
+  const fonts = usedFonts();
+  const css = await Promise.all(fonts.map(loadFont));
+  styleEl(d, 'pg-fonts').textContent = css.join('\n');
+  styleEl(d, 'pg-ov').textContent = buildCss(false);
+  refreshViBadges();
+}
+
+/* ---------- dựng bảng điều khiển ---------- */
+function fontSelect(cur, onChange){
+  const wrap = document.createElement('div'); wrap.className = 'fwrap';
+  const sel = document.createElement('select');
+  let html = '<option value="">— giữ nguyên —</option>';
+  for(const g in FONTS) html += `<optgroup label="${g}">` + Object.keys(FONTS[g]).map(n => `<option>${n}</option>`).join('') + '</optgroup>';
+  html += '<option value="__other">Font Google khác…</option>';
+  sel.innerHTML = html;
+  const known = cur && [...sel.options].some(o => o.value === cur || o.text === cur);
+  const other = document.createElement('input'); other.type = 'text'; other.placeholder = 'Tên font trên fonts.google.com';
+  const vi = document.createElement('span'); vi.className = 'vi'; vi.dataset.font = cur || '';
+  if(cur && !known){ sel.value = '__other'; other.value = cur; } else sel.value = cur || '';
+  other.style.display = sel.value === '__other' ? '' : 'none';
+  sel.onchange = () => {
+    other.style.display = sel.value === '__other' ? '' : 'none';
+    if(sel.value !== '__other'){ vi.dataset.font = sel.value; onChange(sel.value || null); }
+  };
+  other.onchange = () => { const n = other.value.trim(); vi.dataset.font = n; onChange(n || null); };
+  // rê/lăn qua danh sách bằng phím mũi tên cũng đổi luôn để so nhanh
+  sel.onkeyup = e => { if(e.key.startsWith('Arrow')) sel.onchange(); };
+  wrap.append(sel, other, vi);
+  wrap.reset = () => { sel.value = ''; other.value = ''; other.style.display = 'none'; vi.dataset.font = ''; };
+  return wrap;
+}
+function refreshViBadges(){
+  document.querySelectorAll('.vi').forEach(s => {
+    const n = s.dataset.font;
+    if(!n || !(n in fontVi)){ s.textContent = ''; s.className = 'vi'; return; }
+    s.textContent = fontVi[n] ? '✓ có bộ chữ tiếng Việt' : '✗ không có bộ chữ tiếng Việt — dấu sẽ lấy từ font khác';
+    s.className = 'vi' + (fontVi[n] ? '' : ' no');
+  });
+}
+function rangeRow(label, min, max, step, unit, get, set, startAt){
+  const row = document.createElement('div'); row.className = 'row';
+  row.innerHTML = `<label>${label}</label><input type="range" min="${min}" max="${max}" step="${step}"><span class="v"></span><button class="x" title="Về mặc định">×</button>`;
+  const [ , inp, v, x] = row.children;
+  const show = () => { const val = get(); inp.value = val ?? startAt; v.textContent = val == null ? 'gốc' : (+val).toFixed(step < 1 ? (step < .1 ? 2 : 1) : 0).replace(/\.0+$/, '') + unit; v.classList.toggle('off', val == null); };
+  inp.oninput = () => { set(+inp.value); show(); apply(); };
+  x.onclick = () => { set(null); show(); apply(); };
+  row.show = show; show();
+  return row;
+}
+function fontRow(label, get, set){
+  const row = document.createElement('div'); row.className = 'row font';
+  row.innerHTML = `<label>${label}</label>`;
+  const fs = fontSelect(get(), v => { set(v); apply(); });
+  const x = document.createElement('button'); x.className = 'x'; x.title = 'Về mặc định'; x.textContent = '×';
+  x.onclick = () => { set(null); fs.reset(); apply(); };
+  row.append(fs, x);
+  return row;
+}
+function section(title, key, build, open){
+  const d = document.createElement('details'); d.dataset.key = key; if(open) d.open = true;
+  d.innerHTML = `<summary>${title}<span class="mod"></span></summary><div class="body"></div>`;
+  build(d.querySelector('.body'));
+  return d;
+}
+function buildPanel(){
+  const g = document.getElementById('globals'); g.innerHTML = '';
+  g.append(section('Nét & màu, font chung', 'g', b => {
+    b.append(rangeRow('Độ dày nét', .4, 3, .05, '×', () => S.g.sw, v => S.g.sw = v, 1));
+    const ink = document.createElement('div'); ink.className = 'row';
+    ink.innerHTML = '<label>Màu mực</label><input type="color"><span class="v"></span><button class="x" title="Về mặc định">×</button>';
+    const [ , ci, cv, cx] = ink.children;
+    const showInk = () => { ci.value = S.g.ink || '#3b3025'; cv.textContent = S.g.ink ? S.g.ink : 'gốc'; cv.classList.toggle('off', !S.g.ink); };
+    ci.oninput = () => { S.g.ink = ci.value; showInk(); apply(); };
+    cx.onclick = () => { S.g.ink = null; showInk(); apply(); };
+    showInk(); b.append(ink);
+    b.append(fontRow('Font tiêu đề (--fh)', () => S.g.fh, v => S.g.fh = v));
+    b.append(fontRow('Font thân (--fb)', () => S.g.fb, v => S.g.fb = v));
+  }, true));
+  const rs = document.getElementById('roles'); rs.innerHTML = '';
+  ROLES.forEach((r, i) => rs.append(section(r.label, r.id, b => {
+    b.append(fontRow('Font', () => R(r.id).font, v => R(r.id).font = v));
+    PROPS.forEach(([k, lab, min, max, step, unit, start]) => {
+      if(k === 'size'){ min = r.size[0]; max = r.size[1]; start = Math.round((min + max)/2); }
+      b.append(rangeRow(lab, min, max, step, unit, () => R(r.id)[k], v => R(r.id)[k] = v, start));
+    });
+    const it = document.createElement('label'); it.className = 'chk';
+    it.innerHTML = '<input type="checkbox"> Nghiêng (italic)';
+    it.firstChild.checked = !!R(r.id).italic;
+    it.firstChild.onchange = e => { R(r.id).italic = e.target.checked || null; apply(); };
+    b.append(it);
+    if(r.clip){
+      const c = document.createElement('label'); c.className = 'chk';
+      c.innerHTML = '<input type="checkbox"> Không cắt chữ dài (bỏ giới hạn 68px)';
+      c.firstChild.checked = !!R(r.id).noclip;
+      c.firstChild.onchange = e => { R(r.id).noclip = e.target.checked || null; apply(); };
+      b.append(c);
+    }
+  }, i === 0)));
+}
+function markChanged(){
+  document.querySelectorAll('details').forEach(d => {
+    const k = d.dataset.key;
+    const obj = k === 'g' ? S.g : (S.r[k] || {});
+    d.classList.toggle('changed', Object.values(obj).some(v => v != null && v !== false));
+  });
+}
+
+/* ---------- màn & thu phóng ---------- */
+const SCENES = [['showMenu','Menu'],['showMap','Lịch'],['settingsModal','Cài đặt'],['showRxBook','Sổ tay'],['showAch','Thành tựu']];
+const scBox = document.getElementById('scenes');
+SCENES.forEach(([fn, lab]) => {
+  const b = document.createElement('button'); b.className = 'b'; b.textContent = lab;
+  b.onclick = () => { S.scene = fn; saveS(); goScene(fn); };
+  scBox.append(b);
+});
+const ZOOMS = [['fit','Vừa khung'],['1','100%'],['1.5','150%'],['2','200%']];
+const zBox = document.getElementById('zooms'), box = document.getElementById('frameBox'), stage = document.getElementById('stage');
+ZOOMS.forEach(([z, lab]) => {
+  const b = document.createElement('button'); b.className = 'b'; b.textContent = lab; b.dataset.z = z;
+  b.onclick = () => { S.zoom = z; saveS(); layout(); };
+  zBox.append(b);
+});
+function layout(){
+  const pad = 20;
+  const k = S.zoom === 'fit' ? Math.min((stage.clientWidth - 2*pad)/1280, (stage.clientHeight - 2*pad)/720) : +S.zoom;
+  box.style.transform = `scale(${k})`;
+  box.style.left = Math.max(pad, (stage.clientWidth - 1280*k)/2) + 'px';
+  box.style.top = Math.max(pad, (stage.clientHeight - 720*k)/2) + 'px';
+  // phần đệm để thanh cuộn kéo được hết khung khi phóng to
+  let sp = stage.querySelector('.spacer');
+  if(!sp){ sp = document.createElement('div'); sp.className = 'spacer'; sp.style.cssText = 'position:absolute;left:0;top:0;width:1px;height:1px;pointer-events:none'; stage.append(sp); }
+  sp.style.width = (1280*k + 2*pad) + 'px'; sp.style.height = (720*k + 2*pad) + 'px';
+  zBox.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.z === S.zoom));
+}
+addEventListener('resize', layout);
+
+/* ---------- xuất ---------- */
+document.getElementById('copy').onclick = async e => {
+  const t = document.getElementById('out').value;
+  try { await navigator.clipboard.writeText(t); } catch(err){ document.getElementById('out').select(); document.execCommand('copy'); }
+  e.target.textContent = 'Đã sao chép ✓'; setTimeout(() => e.target.textContent = 'Sao chép CSS', 1400);
+};
+document.getElementById('reset').onclick = () => {
+  if(!confirm('Đặt lại mọi chỉnh sửa về giao diện gốc?')) return;
+  const keep = {scene:S.scene, zoom:S.zoom}; S = Object.assign(blank(), keep);
+  buildPanel(); apply();
+};
+
+buildPanel(); layout(); apply();
+</script>
+</body>
+</html>
