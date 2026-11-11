@@ -376,13 +376,13 @@ function startFree(){
 /* Kết thúc ca tự do: thẻ tổng kết như ngày thường — số đơn, kỷ lục, phản ứng mới vào sổ tay. Sao ở đây chỉ để vui
    (3 / 6 / 10 đơn), không ghi vào lịch: ca tự do có một mục tiêu để phá thay vì chơi mãi không đích */
 const FREE_STARS = [3, 6, 10];
-function endFree(){
+function endFree(title){   // title: ca dừng giữa chừng (axit bắn ra) thì ghi lý do lên thẻ
   const n = lab.served, nr = lab.newRx || 0;
   lab = null;
   const rec = n > (save.freeBest || 0);
   if(rec){ save.freeBest = n; persist(); }
   const stars = FREE_STARS.filter(k => n >= k).length;
-  resultCard('Ca tự do kết thúc', stars, `<div class="resbody">
+  resultCard(title || 'Ca tự do kết thúc', stars, `<div class="resbody">
     <p style="font-size:18px">Đơn hoàn thành: <b>${n}</b> · ${rec && n ? '<b class="rsrec">Kỷ lục mới!</b>' : 'Kỷ lục: <b>' + (save.freeBest || 0) + '</b>'}</p>
     ${nr ? `<p>Phản ứng mới vào sổ tay: <b>${nr}</b></p>` : ''}
     <p class="hand">“${FREE_STARS.join(' / ')} đơn trong một ca là 1 / 2 / 3 sao — thử phá kỷ lục nhé!”</p></div>
@@ -964,9 +964,9 @@ const baseDose = () => (save.items && save.items.tools && !lab.hard) ? lab.magic
 /* Rút lại lần rót vừa rồi: rót lố một giọt thì trước đây chỉ còn cách đổ cả cốc. Chỉ rút được khi chất vừa rót CHƯA
    phản ứng và cốc chưa bị đụng tới từ đó (khuấy, đun, lọc… là mất lượt rút). Phản ứng rồi thì không đảo ngược được. */
 const beakerSig = () => JSON.stringify([lab.mix, lab.undissolved, lab.gas, lab.solid, lab.dac]);
-const canUndo = () => lab && lab.undo && !lab.undo.reacted && lab.undo.after === beakerSig();
+const canUndo = () => lab && !lab.ending && lab.undo && !lab.undo.reacted && lab.undo.after === beakerSig();
 function undoPour(){
-  if(!lab || !lab.undo) return;
+  if(!lab || !lab.undo || lab.ending) return;
   if(!canUndo()){ SFX.err(); notify(profLine(PROF_LAB.khongHoanTac)); lab.undo = null; updateBeaker(); return; }
   const b = lab.undo.before;
   lab.mix = b.mix; lab.undissolved = b.und; lab.dissolveTotal = b.dt; lab.firstPour = b.fp; lab.waterIn = b.wi; lab.dac = b.dac;
@@ -990,8 +990,31 @@ function concCheck(){
     if(ma/(ma + mw) < (CONC_MIN[f] || .5)){ delete lab.dac[f]; toast(sub(f) + ' đã bị pha loãng'); }
   }
 }
+/* Rót NƯỚC (hay dung dịch — trong đó cũng là nước) vào cốc đang có axit ĐẶC: nước sôi bùng lên, axit bắn ra.
+   Ca dừng ngay. Axit đặc chỉ có ở ca tự do (lọ 'X@đặc'), nên chiến dịch vẫn theo luật an toàn cũ. */
+function acidSplash(acid, water){
+  if(!lab || lab.ending) return;
+  lab.ending = true; clearInterval(lab.timer); lab.timer = null;   // đồng hồ đứng: kéo–thả cũng bị chặn
+  SFX.bang(); wiggleBeaker();
+  const b = G.querySelector('#beakerItem'); if(b){ b.classList.remove('glowing'); void b.offsetWidth; b.classList.add('glowing'); }
+  const bx = beakerBox(), col = CHEMS[acid].c;
+  for(let k = 0; k < 14; k++){   // giọt axit văng ra hai bên miệng cốc
+    const d = document.createElement('i'); d.className = 'acidsplash';
+    const ang = -Math.PI/2 + (Math.random() - .5)*2.2, dist = 60 + Math.random()*110;
+    d.style.cssText = `left:${bx.cx + (Math.random() - .5)*60}px;top:${bx.top + 8}px;background:${col};`
+      + `--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;animation-delay:${Math.random()*.15}s`;
+    G.appendChild(d); d.onanimationend = () => d.remove();
+  }
+  noteMistake('axit-nuoc');
+  const ub = G.querySelector('#bundo'); if(ub) ub.hidden = true;   // ca đã dừng: không rút lại được nữa
+  notify(profLine(fillLine(PROF_LAB.axitBan, {acid:sub(acid), nuoc:water === 'H2O' ? 'nước' : 'dung dịch ' + sub(water)})));
+  setTimeout(() => { if(!lab) return; lab.day.free ? endFree(PROF_LAB.axitBanTieuDe) : finishLab(); }, 2200);
+}
 function addChem(f, dose, conc){
   const th = G.querySelector('#tuthand'); if(th) th.remove();
+  // nước vào axit đặc: bắn axit, dừng ca
+  const strong = Object.keys(lab.dac || {}).find(a => concOf(a) > 0.009);
+  if(strong && !conc && (f === 'H2O' || CHEMS[f].s === 'd')){ pourFX(f); acidSplash(strong, f); return; }
   const before = {mix:{...lab.mix}, und:{...lab.undissolved}, dt:lab.dissolveTotal, fp:lab.firstPour, wi:lab.waterIn, dac:{...lab.dac}};
   // quy tắc pha axit: cốc bắt đầu bằng H₂SO₄ mà chưa có nước thì không được rót nước vào sau
   if(f === 'H2O' && lab.firstPour === 'H2SO4' && !lab.waterIn)
@@ -1815,7 +1838,7 @@ function coachText(){
 const profLine = t => /^<b>Giáo sư:/.test(t) ? t : '<b>Giáo sư:</b> ' + t;
 const autoCoach = () => lab && lab.i === 0 && !lab.hard && !lab.day.free;
 function showHint(){
-  if(!lab) return;
+  if(!lab || lab.ending) return;
   notify(profLine(coachText()) + (lab.hard && lab.miss ? '<div class="hardhint">' + hardHint(lab.day.orders[lab.oi], lab.miss) + '</div>' : ''));
 }
 function updateCoach(){

@@ -222,7 +222,9 @@ const PROF_LAB = {
  thaLoi:     'Lần giao sai đầu tiên trong ca ta <b>chưa tính lỗi</b> — khách đã nói sai chỗ nào, sửa lại rồi giao nhé. Từ lần sau, giao sai là mất sao thứ ba.',
  hoanTac:    'Đã rút lại lần rót vừa rồi.',
  khongHoanTac: 'Chất vừa rót đã phản ứng rồi, không rút lại được — đổ cốc ra <b>bồn rửa</b> nếu muốn làm lại.',
- hetGio:     'Hết giờ! Tiệm đóng cửa'
+ hetGio:     'Hết giờ! Tiệm đóng cửa',
+ axitBan:    'DỪNG LẠI! Rót {nuoc} vào <b>{acid} ĐẶC</b> — nước sôi bùng lên, axit bắn tung toé ra ngoài. Ca làm việc phải dừng ngay. Nhớ: luôn rót từ từ <b>AXIT vào NƯỚC</b>, không bao giờ làm ngược lại.',
+ axitBanTieuDe: 'Axit bắn ra — ca dừng!'
 };
 
 /* ---- minigame Chuỗi phản ứng (ngày 31) và Cân bằng phương trình ---- */
