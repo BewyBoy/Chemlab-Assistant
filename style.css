@@ -40,23 +40,18 @@ h2{font-size:26px;margin:6px 0}
 .center{text-align:center}
 .row{display:flex;gap:10px;align-items:center}
 /* ---------- main menu ---------- */
-.menu-wall{position:absolute;left:calc(-1*var(--bx));right:calc(-1*var(--bx));top:calc(-1*var(--by));height:calc(600px + var(--by));background:linear-gradient(#f3ead6,#efe4cc)}
-.menu-bench{position:absolute;left:calc(-1*var(--bx));right:calc(-1*var(--bx));bottom:calc(-1*var(--by));height:calc(120px + var(--by));background:linear-gradient(#c89a63,#a97c4b);border-top:5px solid var(--ink)}
-.menu-bench svg{position:absolute;top:6px;left:0;width:calc(100% - 10px)}
-.menu-sign{position:relative;width:680px;margin:70px auto 0;background:linear-gradient(#d3a86e,#c89a63 55%,#b98a52);border:1.2px solid var(--ink);border-radius:8.4px 10.8px 8.4px 9.6px;padding:14px 30px 18px;text-align:center;transform:rotate(-.6deg);animation:signdrop .8s cubic-bezier(.3,1.45,.55,1)}
-.menu-sign::before,.menu-sign::after{content:'';position:absolute;top:calc(-70px - var(--by));height:calc(72px + var(--by));width:6px;background:linear-gradient(#8a6238,#6e5232);border:1.2px solid var(--ink);border-radius:3px}
-.menu-sign::before{left:19%;transform:rotate(-2deg)}.menu-sign::after{right:19%;transform:rotate(2deg)}
-.menu-sign h1{font-size:56px;margin:2px 0;}
-.menu-sign h2{font-size:20px;margin:0;opacity:.85;font-weight:normal}
-@keyframes signdrop{from{transform:translateY(-180px) rotate(-.6deg)}60%{transform:translateY(10px) rotate(-.6deg)}}
-.menu-bubble{position:absolute;bottom:392px;right:96px;width:200px;background:var(--card);border:1.2px solid var(--ink);border-radius:8.4px 9.6px 8.4px 1.8px;padding:9px 12px;font-family:var(--fh);font-size:15px;line-height:1.35;transform:rotate(1.2deg)}
-.menu-bubble::after{content:'';position:absolute;bottom:-14px;right:56px;border:8px solid transparent;border-top:10px solid var(--ink)}
+/* Ảnh render 3D (hoffmann.py, thư mục Blender): phủ đúng vùng rộng nhất game từng hiện (21:9 và 5:4), tâm trùng tâm 1280×720.
+   Không co giãn theo màn hình: toạ độ trong ảnh = toạ độ game, nên nút và lời chào luôn khớp với cảnh. */
+.menu-3d{position:absolute;left:calc(-640px/3);top:-152px;width:calc(1280px + 1280px/3);height:1024px;background:#e6dcc8;user-select:none;pointer-events:none}
+.menu-title{position:absolute;width:1px;height:1px;margin:0;overflow:hidden;clip-path:inset(50%)}
+.menu-bubble{position:absolute;top:172px;left:872px;width:176px;background:var(--card);border:1.2px solid var(--ink);border-radius:8.4px 9.6px 1.8px 8.4px;padding:9px 12px;font-family:var(--fh);font-size:15px;line-height:1.35;transform:rotate(1.2deg)}
+.menu-bubble::after{content:'';position:absolute;bottom:10px;right:-18px;border:8px solid transparent;border-left:10px solid var(--ink)}
 .menu-stats{display:inline-block;margin-top:10px;font-size:13.5px;background:var(--card);border:1.2px solid var(--ink);border-radius:6px;padding:3px 14px;}
 .menu-danger-link{background:none;border:none;padding:0;color:var(--ink);opacity:.4;font-size:12px;text-decoration:underline;cursor:pointer;font-family:var(--fb)}
 /* menu chính: các nút xếp dọc, cùng bề ngang cho thẳng hàng */
-/* bảng tên + nút lệch sang phải 100px (margin-left 200 = dời tâm 100, không tràn khung như transform); xa hơn thì bảng tên đè lên poster an toàn */
+/* nút lệch sang phải 100px cho thẳng bảng tên trong ảnh 3D (margin-left 200 = dời tâm 100) */
 .menu-main{position:relative;z-index:5;margin-left:200px}
-.menu-btns{display:flex;flex-direction:column;align-items:center;gap:9px;margin-top:14px}
+.menu-btns{display:flex;flex-direction:column;align-items:center;gap:9px;margin-top:213px}
 .menu-btns .btn{width:250px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px}
 /* hover / chọn bằng phím: "> Bắt đầu <" — hai mũi nhọn (i.sel) luôn giữ chỗ nên chữ không xê dịch, chỉ hiện ra và khép vào */
 .menu-btns .sel{font-style:normal;font-size:20px;line-height:1;opacity:0;transition:opacity .15s,transform .15s}
@@ -65,7 +60,7 @@ h2{font-size:26px;margin:6px 0}
 .menu-btns .btn:hover .sel,.menu-btns .btn:focus-visible .sel{opacity:1;transform:none}
 .menu-btns .btn.big{width:250px;padding:16px 20px}
 .menu-danger-link:hover{opacity:.75}
-.mbub{position:absolute;border:3px solid var(--ink);border-radius:50%;background:#dbeefc88;opacity:0;animation:mbubrise 7s linear infinite;pointer-events:none}
+.mbub{position:absolute;border:1px solid #ffffffc0;border-radius:50%;background:radial-gradient(circle at 32% 30%,#fffffff0,#ffffff30 35%,#bfe7e640 70%,#ffffff70);opacity:0;animation:mbubrise 7s linear infinite;pointer-events:none}
 @keyframes mbubrise{0%{transform:translateY(0) translateX(0);opacity:0}12%{opacity:.55}55%{transform:translateY(-160px) translateX(10px)}88%{opacity:.55}100%{transform:translateY(-320px) translateX(-6px);opacity:0}}
 /* ---------- world map ---------- */
 /* wall-calendar map — tờ lịch kéo dài hết phần màn hình dưới hàng nút */
@@ -121,9 +116,12 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
    712 + by) — màn cao thì cột dài ra phía trên mà khách vẫn đứng đúng sau mép xa của bàn (FAR_Y = 430).
    Bóng thoại ngay trên đầu khách: đáy neo ở y 250, chữ nhiều thì cao lên phía trên; đuôi chỉ xuống đầu khách.
    Góc trên bên phải là vòng đếm ngược khách chờ; góc dưới bên phải là chất cần làm + lượng (custSay quyết định hiện) */
-.speech{position:absolute;left:4px;bottom:calc(712px - 250px + var(--by));width:344px;z-index:3;border:1.5px solid var(--ink);border-radius:10px;background:var(--card);padding:11px 18px;font-size:18px;min-height:64px;font-family:var(--fh);line-height:1.32;transition:opacity .2s;cursor:pointer}
+.speech{position:absolute;left:4px;bottom:calc(712px - 250px + var(--by));width:344px;z-index:3;border:1.5px solid var(--ink);border-radius:10px;background:var(--card);padding:11px 18px;font-size:18px;min-height:64px;font-family:var(--fh);line-height:1.32;transition:opacity .3s,transform .3s;cursor:pointer}
 .speech::before{content:'';position:absolute;left:142px;bottom:-20px;border:10px solid transparent;border-top-color:var(--ink)}
-.speech.hush{opacity:0}
+/* ẩn khi khách chưa tới / đang đi: mờ dần và hạ xuống một chút, hiện lại thì nhô lên */
+.speech.hush{opacity:0;transform:translateY(8px);pointer-events:none}
+/* chữ chưa gõ tới (custSay): vẫn chiếm chỗ để bóng thoại không đổi cỡ khi đang gõ */
+.ty-off{visibility:hidden}
 .speech .on-ring{position:absolute;top:-16px;right:-16px;width:34px;height:34px;background:var(--card);border:1.5px solid var(--ink);border-radius:50%}
 .on-ring circle.bg{fill:none;stroke:#3b302522;stroke-width:4}
 .on-ring circle.fg{fill:none;stroke:var(--green);stroke-width:4;stroke-linecap:round;transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset 1s linear,stroke 1s}
@@ -162,20 +160,24 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
    Mặt bàn là hình thang: mép xa hẹp & cao, mép gần rộng & thấp. Vật đặt bằng (u,t)
    rồi neo ĐÁY vào đúng điểm tính được, nên trông như đứng trên bàn chứ không dán lên. */
 #benchsvg{position:absolute;left:0;top:0;width:1280px;height:720px;pointer-events:none;z-index:1}
-.item{position:absolute;transform-origin:50% 100%;transition:transform .3s cubic-bezier(.3,1.4,.5,1)}
+/* lắp / tháo dụng cụ: hộp của nó trượt tới chỗ mới và đổi cỡ (to x1.5 khi lên thảm), xem moveTool() */
+.item{position:absolute;transform-origin:50% 100%;transition:transform .3s cubic-bezier(.3,1.4,.5,1),
+  left .42s cubic-bezier(.3,1.25,.5,1),top .42s cubic-bezier(.3,1.25,.5,1),width .42s ease-out,height .42s ease-out}
+.item > svg{display:block}
+/* thảm làm việc: vùng thả "lắp vào bộ" — chỉ hiện viền khi đang cầm một dụng cụ */
+.matzone{position:absolute;left:0;top:0;width:1280px;height:720px;z-index:2;pointer-events:none;overflow:visible}
+.matzone polygon{fill:transparent;stroke:transparent;stroke-width:4;stroke-linejoin:round;pointer-events:all}
+.matzone polygon.dropready{outline:none;animation:none;stroke:color-mix(in srgb,var(--blue) 55%,transparent);stroke-dasharray:12 9;fill:#6f9ec912}
+.matzone polygon.drophot{stroke:color-mix(in srgb,var(--green) 65%,transparent);fill:#7aa95c22}
+/* mặt bàn ngoài thảm (chỗ đặt cốc ra): chỉ tô nhạt khi đang cầm cốc, không kẻ viền quanh cả bàn */
+.matzone polygon.benchzone.dropready{stroke:none;fill:#6f9ec90d}
+.matzone polygon.benchzone.drophot{stroke:none;fill:#7aa95c1a}
+.shadow.away{opacity:0}
 .item.grab{cursor:grab}
 .item.grab:hover{transform:translateY(-4px)}
 .item.deco{pointer-events:none}
 .shadow{position:absolute;border-radius:50%;background:#3b302533;filter:blur(3px);
   transform:translate(-50%,-50%);pointer-events:none;z-index:3}
-/* nhãn dụng cụ: luôn hiện và KHÔNG co theo phối cảnh, nên đồ ở xa vẫn đọc được tên.
-   Động từ (Khuấy, Lọc, Đun) được đối xử ngang danh từ — không còn nửa nút bấm nửa đồ kéo. */
-.toolcap{position:absolute;left:50%;transform:translateX(-50%);bottom:-21px;white-space:nowrap;
-  pointer-events:none;   /* nhãn không được ăn cú bấm dành cho vật bên dưới nó */
-  font-family:var(--fh);font-size:12.5px;background:var(--card);color:var(--ink);
-  border:1.2px solid var(--ink);border-radius:4.8px;padding:0 7px;}
-/* đồ đang cắm vào cốc thì giấu nhãn: bình khí úp ngược làm chữ lộn ngược */
-#tool_gas.docked .toolcap,#tool_heat.docked .toolcap,#tool_elec.docked .toolcap{opacity:0}
 /* đun phải có kiềng: kiềng mọc lên từ mặt bàn, cốc được nhấc đặt LÊN lưới amiang */
 .tripod{opacity:0;transform:translateY(10px) scale(.9);pointer-events:none;
   transition:opacity .3s,transform .35s cubic-bezier(.3,1.4,.5,1)}
@@ -186,11 +188,11 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 /* bộ thu khí: chuông trên miệng cốc + giá đỡ giữ bình + ống nối, chỉ hiện khi đang thu */
 .rig{opacity:0;pointer-events:none;transition:opacity .3s,transform .35s cubic-bezier(.3,1.4,.5,1)}
 .rig.up{opacity:1}
-#gasstand{transform:translateY(10px) scale(.94)}
-#gasstand.up{transform:none}
+#gasstand,#filterstand{transform:translateY(10px) scale(.94)}
+#gasstand.up,#filterstand.up{transform:none}
 .gashood{position:absolute;z-index:66;transform:translateY(-14px);transition:opacity .3s,transform .35s cubic-bezier(.3,1.4,.5,1),top .45s cubic-bezier(.3,1.4,.5,1)}
 .gashood.up{transform:none}
-.gastube{position:absolute;left:0;top:0;width:1280px;height:720px;z-index:19;overflow:visible}
+.gastube,.ringfront{position:absolute;left:0;top:0;width:1280px;height:720px;z-index:19;overflow:visible}
 /* bảng định lượng điện phân — nép ở mặt trước bàn, chỉ hiện khi đã cắm nguồn */
 .elecpanel{position:absolute;left:348px;right:308px;top:644px;z-index:72;text-align:center;
   opacity:0;pointer-events:none;transition:opacity .25s}
@@ -200,10 +202,11 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
   font-size:12.5px;}
 .eprow .epv{min-width:60px;font-weight:bold;text-align:center}
 .eprow i{opacity:.55;font-size:11px}
-#beakerItem.hot{transform:translateY(var(--lift,-45px))}
+#beakerItem.hot{--ty:var(--lift,-45px);transform:translateY(var(--ty))}
 #beakerItem.glowing{animation:glow 1s}
 @keyframes glow{50%{}}
-@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+/* lắc giữ nguyên độ nâng (--ty): cốc đang trên kiềng mà bị lắc không tụt xuống */
+@keyframes shake{25%{transform:translate(-5px,var(--ty,0))}75%{transform:translate(5px,var(--ty,0))}}
 .shaken{animation:shake .3s 2}
 /* Bồn rửa là TRẠM RIÊNG bên trái, không phải cái chậu nằm lẫn giữa dụng cụ thí nghiệm */
 .sinkstation{position:absolute;left:344px;top:352px;width:112px;z-index:6;text-align:center;cursor:pointer}
@@ -214,27 +217,13 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
   pointer-events:none;font-family:var(--fh);font-size:12.5px;background:var(--card);color:var(--ink);
   border:1.2px solid var(--ink);border-radius:4.8px;padding:0 7px;}
 /* drag & drop */
-.dragghost{position:absolute;z-index:200;pointer-events:none;will-change:left,top,transform}
+.dragghost{position:absolute;z-index:200;pointer-events:none;will-change:left,top,transform;transition:transform .16s ease-out}
 .dragghost svg{display:block}
 .draggingsrc{opacity:.4}
 /* viền nét đứt chỉ chỗ thả: màu pha 50% trong suốt cho nhẹ mắt */
 .dropready{outline:4px dashed color-mix(in srgb,var(--blue) 50%,transparent);outline-offset:5px;border-radius:7.2px;animation:dzpulse 1s infinite}
 .drophot{outline-color:color-mix(in srgb,var(--green) 50%,transparent);background:#7aa95c22}
 @keyframes dzpulse{50%{outline-color:color-mix(in srgb,var(--accent) 50%,transparent);outline-offset:9px}}
-/* vòng tiến độ khuấy neo ĐÚNG mặt chất lỏng (xem updateBeaker) — tín hiệu phải nằm
-   ngay cạnh thứ nó mô tả, không treo lơ lửng trên miệng cốc */
-.stirring-ring{position:absolute;width:52px;height:52px;z-index:60;pointer-events:none;opacity:0;
-  transform:translate(-50%,-50%);transition:opacity .25s,top .3s ease-out,left .3s ease-out}
-.stirring-ring.active,.stirring-ring.flash{opacity:1}
-.stirring-ring circle.bg{fill:none;stroke:#3b302522;stroke-width:5}
-.stirring-ring circle.fg{fill:none;stroke:#6f9ec9;stroke-width:5;stroke-linecap:round;transform:rotate(-90deg);transform-origin:center;stroke-dasharray:132;transition:stroke-dashoffset .3s ease-out}
-.stirring-ring.flash circle.fg{animation:rxnflash .7s ease-out forwards}
-.stirring-ring.active svg{animation:ringpulse 1.4s ease-in-out infinite}
-@keyframes ringpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-.stir-tag{position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);white-space:nowrap;
-  font-family:var(--fh);font-weight:bold;font-size:11px;background:var(--card);color:var(--ink);
-  border:1.2px solid var(--ink);border-radius:4.2px;padding:0 6px;}
-@keyframes rxnflash{0%{stroke-dashoffset:132;stroke:var(--green);opacity:1}30%{stroke-dashoffset:0;stroke:var(--green);opacity:1}100%{stroke-dashoffset:0;opacity:0}}
 .dish{width:54px;height:16px;border:3px solid var(--ink);border-radius:0 0 16px 16px;margin:6px auto 2px;background:#fff}
 .mgbtn{font-family:var(--fb);font-size:12px;border:1.2px solid var(--ink);border-radius:4.8px;background:#fff;cursor:pointer;padding:1px 6px}
 .mgbtn:hover{background:var(--accent)}
@@ -757,14 +746,17 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .bal-ib{width:64px;height:56px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .devbadge{position:absolute;right:16px;top:10px;font-size:12px;background:#d9634f;color:#fff;border-radius:4.8px;padding:2px 8px;z-index:50}
 /* ---------- FX layers ---------- */
-.bubble{position:absolute;border:2px solid var(--ink);border-radius:50%;background:#ffffffcc;animation:bub 1.2s ease-in forwards;pointer-events:none}
-@keyframes bub{0%{transform:translate(0,0)}30%{transform:translate(4px,-60px)}60%{transform:translate(-4px,-130px)}100%{transform:translate(2px,-200px);opacity:0}}
+/* bọt nổi đúng quãng --rise (từ chỗ sinh tới mặt chất lỏng, tính trong spawnBubbles) rồi vỡ */
+.bubble{position:absolute;border:1.5px solid var(--ink);border-radius:50%;background:#ffffffcc;animation:bub 1.1s ease-in forwards;pointer-events:none;opacity:0}
+@keyframes bub{0%{transform:translate(0,0);opacity:0}15%{opacity:.95}50%{transform:translate(3px,calc(var(--rise,60px) * -.5))}92%{opacity:.95}100%{transform:translate(-2px,calc(var(--rise,60px) * -1));opacity:0}}
 .fizzline{position:absolute;width:2px;height:10px;background:#3b302555;animation:fizz .7s ease-out forwards;pointer-events:none}
-@keyframes fizz{to{transform:translateY(-40px);opacity:0}}
+@keyframes fizz{to{transform:translateY(-26px);opacity:0}}
 .fall{position:absolute;width:7px;height:7px;border-radius:50%;animation:fal .9s ease-in forwards;pointer-events:none}
-@keyframes fal{0%{transform:translateY(-120px) translateX(0)}60%{transform:translateY(-40px) translateX(5px)}100%{transform:translateY(0) translateX(0)}}
-.swirlfx{position:absolute;left:50%;top:60%;width:20px;height:20px;margin:-10px;border-radius:50%;pointer-events:none;animation:swirl .9s ease-out forwards}
-@keyframes swirl{0%{transform:scale(.2) rotate(0);opacity:.85}100%{transform:scale(9) rotate(160deg);opacity:0}}
+/* hạt kết tủa lắng đúng quãng --drop xuống mặt lớp chất rắn (spawnFall) */
+@keyframes fal{0%{transform:translate(0,0);opacity:0}15%{opacity:1}60%{transform:translate(4px,calc(var(--drop,40px) * .6))}100%{transform:translate(0,var(--drop,40px))}}
+/* đổi màu: vòng màu mới loang trong lòng cốc (vòng tròn SVG trong nhóm bị cắt theo cốc, xem updateBeaker) */
+.bkswirl{transform-box:fill-box;transform-origin:center;animation:swirl .9s ease-out forwards}
+@keyframes swirl{0%{transform:scale(.3);opacity:.85}100%{transform:scale(5);opacity:0}}
 .pourghost{position:absolute;z-index:30;pointer-events:none;animation:pourtilt .85s ease-in-out forwards;transform-origin:80% 90%}
 @keyframes pourtilt{0%{transform:rotate(0);opacity:0}15%{opacity:1}35%,75%{transform:rotate(-115deg)}100%{transform:rotate(0);opacity:0}}
 /* spoon tips its bowl to dump powder; pipette dips its tip — neither flips like a bottle */
@@ -772,10 +764,14 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 @keyframes spoonpour{0%{transform:rotate(0);opacity:0}15%{opacity:1}40%,70%{transform:rotate(46deg)}100%{transform:rotate(0);opacity:0}}
 .pourghost.ppip{animation:pippour .85s ease-in-out forwards;transform-origin:50% 100%}
 @keyframes pippour{0%{transform:translateY(-9px);opacity:0}20%{transform:translateY(0);opacity:1}45%,70%{transform:translateY(6px)}100%{transform:translateY(-5px);opacity:0}}
-.stream{position:absolute;width:7px;z-index:29;pointer-events:none;border-radius:4px;animation:streamgrow .8s ease-in forwards;clip-path:polygon(20% 0,80% 0,100% 100%,0 100%)}
-@keyframes streamgrow{0%,18%{height:0;opacity:0}30%{height:90px;opacity:.9}80%{height:90px;opacity:.9}100%{height:0;opacity:0;transform:translateY(90px)}}
+/* dòng chảy dài đúng --len: từ đầu ống nhỏ giọt tới mặt chất lỏng (pourFX), rồi rút xuống */
+.stream{position:absolute;width:7px;pointer-events:none;border-radius:4px;animation:streamgrow .8s ease-in forwards;clip-path:polygon(20% 0,80% 0,100% 100%,0 100%);opacity:.85}
+@keyframes streamgrow{0%,18%{height:0;opacity:0;transform:translateY(0)}30%,80%{height:var(--len,90px);opacity:.85;transform:translateY(0)}100%{height:0;opacity:0;transform:translateY(var(--len,90px))}}
+/* gợn vòng nơi dòng chảy chạm mặt chất lỏng */
+.ripple{position:absolute;border:2px solid #ffffffd9;border-radius:50%;pointer-events:none;opacity:0;transform:translate(-50%,-50%) scale(.25);animation:ripple .55s ease-out .28s 2}
+@keyframes ripple{0%{opacity:.95;transform:translate(-50%,-50%) scale(.25)}100%{opacity:0;transform:translate(-50%,-50%) scale(1)}}
 .grain{position:absolute;width:4px;height:4px;border-radius:2px;pointer-events:none;animation:grainfall .5s ease-in forwards}
-@keyframes grainfall{to{transform:translateY(85px);opacity:.4}}
+@keyframes grainfall{to{transform:translateY(var(--fall,85px));opacity:.4}}
 .ghostslide{position:absolute;z-index:30;pointer-events:none;transition:left .7s cubic-bezier(.4,0,.6,1),top .7s cubic-bezier(.4,0,.6,1),opacity .7s}
 /* page-turn wipe */
 .pagewipe{position:absolute;inset:calc(-1*var(--by)) calc(-1*var(--bx));z-index:90;pointer-events:none;background:linear-gradient(100deg,#efe4cc 0%,#fffdf5 45%,#e8dcc0 55%,#d9cba8 100%);transform:translateX(105%) skewX(-4deg);animation:pwipe .62s ease-in-out forwards}

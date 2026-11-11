@@ -18,7 +18,7 @@ Bạn, học trò của giáo sư Hoffmann, đã được thầy giao cho một 
 
 ### Chơi thế nào
 
-Đọc đơn hàng → kéo lọ hoá chất vào cốc (mỗi lần = 0,1 mol) → đun, khuấy, lọc hoặc hứng khí → kéo cốc cho khách. Phản ứng cháy làm như thật: nạp O₂ / Cl₂ vào lọ khí, cho chất rắn lên muôi đốt, hơ qua đèn cồn rồi đưa vào lọ. Sai thì đổ vào bồn rửa, làm lại — cốc không phản ứng thì giáo sư nói lý do. Mỗi ngày chấm tối đa 3 sao theo điểm; 1 sao là mở khoá ngày kế tiếp. Mỗi đơn / câu đúng 100 điểm, làm nhanh thêm tới 50, đúng liền thêm tới 50; 3 sao chỉ dành cho lượt không sai lần nào (thưởng hoàn hảo), nhanh mấy cũng không bù được một lỗi.
+Đọc đơn hàng → kéo lọ hoá chất vào cốc (mỗi lần = 0,1 mol) → đun, khuấy, lọc hoặc hứng khí → kéo cốc cho khách. Dụng cụ cất ở hai bên thảm làm việc giữa bàn; kéo một thứ lên thảm là lắp vào bộ: nó to lên, kiềng hay giá sắt tự dựng nếu bộ ấy cần. Phản ứng cháy làm như thật: nạp O₂ / Cl₂ vào lọ khí, cho chất rắn lên muôi đốt (muôi tự treo lên giá giữa thảm), kéo đèn cồn vào thảm — đèn đổi chỗ với cốc, lửa hơ chén muôi — rồi đưa muôi đang cháy vào lọ. Sai thì đổ vào bồn rửa, làm lại — cốc không phản ứng thì giáo sư nói lý do. Mỗi ngày chấm tối đa 3 sao theo điểm; 1 sao là mở khoá ngày kế tiếp. Mỗi đơn / câu đúng 100 điểm, làm nhanh thêm tới 50, đúng liền thêm tới 50; 3 sao chỉ dành cho lượt không sai lần nào (thưởng hoàn hảo), nhanh mấy cũng không bù được một lỗi.
 
 **Chế độ khó** (bật ở lịch chọn ngày hoặc Cài đặt): phiếu hàng ghi khối lượng / thể tích khí, mỗi lần lấy hoá chất phải tự cân, đong; sai số cho phép 5%, giao sai thì mở dần gợi ý. Ngày 3 khó thành bài **tạo ion**: mỗi câu một nguyên tử vẽ đủ các lớp electron (lớp ngoài cùng xếp theo sơ đồ Lewis), tự cho nguyên tử nhường electron lớp ngoài hoặc nhận các electron tự do trôi quanh cho thành ion bền như khí hiếm. Ngày 4 khó thành bài **sơ đồ Lewis**: nối hai chấm electron thành liên kết cộng hoá trị, kéo electron của kim loại sang phi kim thành liên kết ion. Thêm **Thử thách pha nồng độ** (Cₘ, C%) ở menu chính.
 
@@ -44,7 +44,8 @@ npx --yes http-server -p 8642 -c-1 .
 | `js/du-lieu.js` | Hoá chất, 31 ngày, thành tựu, "Bạn có biết?" |
 | `js/lich.js` | Tên tháng trên tờ lịch và mô tả từng ngày — sửa chữ ở đây |
 | `js/bai-giang.js` | Lời giáo sư giảng lý thuyết từng ngày (màn kiểu visual novel, hiện lần đầu mở ngày); `BAI_GIANG_KHO` là bài riêng cho chế độ khó ở những ngày có kiến thức mới — sửa chữ ở đây |
-| `js/do-hoa.js` | Kho SVG dụng cụ / lọ / biểu tượng, nhân vật |
+| `js/do-hoa-3d.js` | **Sinh tự động** từ Blender (`ban_lam_viec.py`): hình dụng cụ vẽ từ mô hình 3D (dáng dùng + dáng cất) và bố cục bàn — thảm làm việc, chỗ cất từng dụng cụ. Đừng sửa tay |
+| `js/do-hoa.js` | Kho SVG dụng cụ / lọ / biểu tượng, nhân vật; nét cốc thủy tinh vẽ tay (`BEAKER_ART`, chuyển từ `Blender/sym-beaker3.svg`) |
 | `js/diem.js` | Luật tính điểm (đúng, nhanh, chuỗi, hoàn hảo) và mốc sao — chỉnh luật chấm ở đây |
 | `js/giao-dien.js` | Âm thanh & nhạc nền, lưu tiến trình, menu, lịch, cài đặt, báo cáo, kết quả |
 | `js/phong-thi-nghiem.js` | Bàn thí nghiệm, kéo–thả, phản ứng, đốt, an toàn, khách hàng |
@@ -53,7 +54,7 @@ npx --yes http-server -p 8642 -c-1 .
 | `js/khoi-dong.js` | Tự kiểm tra (mở bằng `#dev`) và vào game — nạp cuối |
 | `js/loi-thoai.js`, `js/nhan-vat.js` | Thoại khách, đa dạng hoá dàn khách |
 
-`docs/hoa-chat.md` là sổ tay tra cứu 67 chất. `tools/dong-goi.ps1` đóng gói bản tải lên itch.io. `assets/` chứa SVG nhân vật và hình vẽ tay, `tools/` chứa trang xem thử và bản mẫu phối cảnh.
+`docs/hoa-chat.md` là sổ tay tra cứu 67 chất. `tools/dong-goi.ps1` đóng gói bản tải lên itch.io. `assets/` chứa SVG nhân vật, hình vẽ tay và `man-hinh-chinh.webp` (ảnh render 3D của menu chính, 1707×1024 px game, dựng bằng Blender), `tools/` chứa trang xem thử và bản mẫu phối cảnh.
 
 ### Trạng thái
 

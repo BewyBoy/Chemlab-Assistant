@@ -10,8 +10,10 @@ const tot = obj => Object.values(obj).reduce((a,b)=>a+b,0);
 
 /* =====================================================================
    BÀN PHỐI CẢNH. Mặt bàn là hình thang nông: mép xa hẹp & cao, mép gần rộng & thấp.
-   Vật đặt bằng (u,t): u ∈ [-1,1] trái→phải, t ∈ [0,1] xa→gần; ĐÁY vật neo đúng
-   điểm (x,y) tính được nên trông như đứng trên bàn, kèm bóng đổ và co theo chiều sâu.
+   Bàn được XẾP TRONG 3D trước (Blender/ban_lam_viec.py → LAYOUT3D trong do-hoa-3d.js): camera ở đó khớp
+   đúng hình thang dưới đây, nên mỗi chỗ trên bàn 3D rơi đúng một điểm (x,y) màn hình, kèm ppm = số px
+   cho 1 m ở chỗ ấy. Giữa bàn là THẢM LÀM VIỆC, dụng cụ cất hai bên; thứ gì lắp lên thảm được vẽ to x1.5.
+   Hình dụng cụ là T3D (1 đơn vị viewBox = 1 mm), đặt theo một điểm neo của nó (đáy, miệng, vòng giá…).
    ===================================================================== */
 const CX = 658;                        // tâm vùng bàn (336..980)
 const FAR_Y = 430, NEAR_Y = 636;       // bàn nông: sâu ~200px
@@ -21,42 +23,53 @@ const halfOf  = t => FAR_H + (NEAR_H - FAR_H) * t;
 const xOf     = (u,t) => CX + u * halfOf(t);
 const scaleOf = t => 0.82 + 0.22 * t;  // dải hẹp: hình & chữ ở xa vẫn rõ
 const VP_Y    = FAR_Y - (FAR_H * (NEAR_Y - FAR_Y)) / (NEAR_H - FAR_H);   // điểm tụ
-const BW = 186, BH = 222, BT = 0.34;   // cốc: cỡ vẽ và độ sâu trên bàn
-const TRI_W = 190, TRI_H = 71;         // kiềng phải RỘNG HƠN đáy cốc mới đỡ được
-// Lưới amiăng nằm ở y=9 trong viewBox 160x60 của sym-tripod → quy ra px màn hình.
-// Cốc nhấc đúng chừng này thì đáy mới CHẠM lưới, không hụt cũng không lún.
-const HEAT_LIFT = Math.round((TRI_H - 9 * (TRI_H/60)) * scaleOf(BT));
-const DISH_U = 0.52, DISH_T = 0.40;    // đĩa lọc có ô riêng, không nhét chung với phễu
-/* BỘ THU KHÍ. Khí đi MỘT CHIỀU: chụp chuông (phễu úp ngược) lên miệng cốc → cổ hẹp
-   → ống dẫn → vào bình qua cái vòi nhỏ của nó. Bình KHÔNG bị úp ngược nữa; nó đứng
-   trong giá đỡ vòng bên phải cốc. Ba mảnh rời nên chuông bám theo cốc (cốc nhấc lên
-   khi đun) còn giá đỡ vẫn đứng yên trên bàn — ống nối vẽ lại theo hai đầu thật. */
-const GS_U = 0.60, GS_W = 95, GS_H = 162;    // giá đỡ vòng (sym-ringstand, viewBox 150x256)
-const HOOD_W = 200, HOOD_H = 130;            // chuông (viewBox 200x130)
-/* tâm vòng đỡ trên màn hình — chỗ đáy bình phải rơi vào */
-function gasRingPt(){
-  const sc = scaleOf(BT);
-  return {x: xOf(GS_U,BT) - GS_W*sc/2 + (56/150*GS_W)*sc,
-          y: yOf(BT) - GS_H*sc + (44/256*GS_H)*sc};
-}
-const HOOD_RIM_X = 88, HOOD_RIM_Y = 112;     // tâm vành miệng trong viewBox
-const HOOD_OUT_X = 198, HOOD_OUT_Y = 50;     // đầu ra của ống trong viewBox
-let TOOLPOS = {};                      // (u,t) từng dụng cụ, để đèn/bình trượt vào cốc
-
-/* Dụng cụ giờ là VẬT TRÊN BÀN, không còn nửa nút bấm nửa đồ kéo-thả.
-   "Khuấy" gộp đũa thuỷ tinh + nút thìa cũ — cả hai vốn làm đúng một việc. */
-const TOOLBOX = {
-  rod:    {label:'Khuấy',     symbol:'sym-stirrod',   w:30, h:132, drag:'rod',    gw:28, gh:126},
-  heat:   {label:'Đun nóng',  symbol:'sym-lamp',      w:74, h:88,  drag:'lamp',   gw:58, gh:70, dz:'flame'},
-  burn:   {label:'Đốt',       symbol:'sym-burnspoon', w:36, h:122, drag:'ladle',  gw:36, gh:122, dz:'ladle'},
-  elec:   {label:'Điện phân', symbol:'sym-electro',   w:70, h:78,  drag:'elec',   gw:58, gh:66},
-  gas:    {label:'Thu khí',   symbol:'sym-gasbottle', w:76, h:108, drag:'gas',    gw:60, gh:86, style:'--gasop:0;--stopop:0'},
-  filter: {label:'Lọc',       symbol:'sym-funnel',    w:70, h:88,  drag:'funnel', gw:56, gh:70},
-  quy:    {label:'Giấy quỳ',  symbol:'sym-litmusbox', w:64, h:64},
-  book:   {label:'Sổ tay',    symbol:'sym-notebook',  w:60, h:60}
-  // 'spoon' của ngày cũ đã gộp vào rod; bồn rửa là trạm riêng, không nằm trên bàn
+const L3 = LAYOUT3D, WORK = L3.size.tool;          // WORK: lắp lên thảm thì to thêm chừng này (x1.5)
+const BKP = L3.beaker, BT = BKP.t;                 // chân cốc, giữa thảm
+const KB = BKP.ppm / 1000 * L3.size.beaker;        // px / đơn vị T3D của cốc chính (cốc 400 mL)
+const KW = BKP.ppm / 1000 * WORK;                  // … của dụng cụ lắp ngay tại cốc
+const KH = BKP.ppm / 1000 * L3.size.hood;          // … của chuông thu khí (vừa miệng cốc)
+const kAt = q => q.ppm / 1000 * WORK;              // … của khung / dụng cụ lắp ở chỗ q trên thảm
+const zAt = y => 4 + Math.round((y - FAR_Y) / (NEAR_Y - FAR_Y) * 40);   // gần người hơn thì nằm trên
+const ZB = zAt(BKP.y) + 4;                         // z của cốc; mọi bộ lắp xếp lớp quanh số này
+// hộp màn hình (trái, trên, rộng, cao) của hình id khi điểm neo an của nó nằm ở (x,y), cỡ k px/đơn vị
+const artBox = (id, an, x, y, k) => ({l: x - T3D[id].a[an][0]*k, t: y - T3D[id].a[an][1]*k, w: T3D[id].w*k, h: T3D[id].h*k});
+// điểm neo an của hình id trên màn hình, khi hình nằm trong hộp b
+const anchorIn = (id, an, b) => ({x: b.l + T3D[id].a[an][0]*b.w/T3D[id].w, y: b.t + T3D[id].a[an][1]*b.h/T3D[id].h});
+const boxCss = b => 'left:'+b.l.toFixed(1)+'px;top:'+b.t.toFixed(1)+'px;width:'+b.w.toFixed(1)+'px;height:'+b.h.toFixed(1)+'px;';
+// đun thì cốc được nhấc đặt lên lưới kiềng: đúng chiều cao lưới của kiềng (kiềng cũng vẽ x1.5)
+const LIFT = (T3D['sym-tripod'].a.base[1] - T3D['sym-tripod'].a.gauze[1]) * KW;
+const SIDE = 0.8;   // đồ đặt ngoài thảm làm việc vẽ nhỏ đi 20% cho đỡ rối mắt; lên thảm thì to bằng bộ lắp
+// px trên 1 m tại một độ sâu y của bàn: phối cảnh nên tăng tuyến tính theo y (nội suy giữa cốc và chỗ cất đũa)
+const ppmAt = y => { const a = L3.beaker, b = L3.slots.rod; return a.ppm + (y - a.y) * (b.ppm - a.ppm) / (b.y - a.y); };
+/* Chỗ cốc đang đứng: giữa thảm; chỗ người chơi kéo cốc ra đặt ngoài thảm (lab.bkPark); hay — lúc đèn cồn vào
+   giữa thảm hơ muôi — chỗ cất của đèn (ĐỔI CHỖ). Ngoài thảm thì cốc vẽ cỡ như đồ đang cất. */
+const beakerSpot = () => {
+  const p = lab && (lab.bkPark || (lab.lampUnder && L3.slots.heat));
+  return p ? {x: p.x, y: p.y, k: ppmAt(p.y) / 1000 * L3.size.beaker / WORK * SIDE, away: true} : {x: BKP.x, y: BKP.y, k: KB, away: false};
 };
-// ponytail: 'quy' & 'book' vẫn còn trong TOOLBOX — thêm lại vào đây là hiện lại ngay
+const beakerBoxAt = lifted => { const s = beakerSpot(); return artBox('sym-beaker', 'base', s.x, s.y - (lifted && !s.away ? LIFT : 0), s.k); };
+// một điểm (vx,vy) trong viewBox của cốc → màn hình, tính cả lúc cốc đang nằm trên kiềng hay đang đổi chỗ
+const beakerPt = (vx, vy) => { const b = beakerBoxAt(lab && lab.heaterOn), k = b.w / BK.w; return {x: b.l + vx*k, y: b.t + vy*k}; };
+// điểm (x,y) có nằm trên thảm làm việc không
+const inMat = (x, y) => { const q = L3.mat; let w = false;
+  for(let i = 0, j = q.length - 1; i < q.length; j = i++)
+    if((q[i][1] > y) !== (q[j][1] > y) && x < q[i][0] + (y - q[i][1]) * (q[j][0] - q[i][0]) / (q[j][1] - q[i][1])) w = !w;
+  return w; };
+let TOOLPOS = {};                      // chỗ cất từng dụng cụ cạnh thảm: {x, y, k, z}
+
+/* Dụng cụ là VẬT TRÊN BÀN, mỗi thứ một chỗ cất riêng ở hai bên thảm (L3.slots).
+   symbol: dáng lúc dùng (lắp vào bộ, cầm trên tay); cat: dáng lúc cất; an: điểm neo của hình cất đặt
+   đúng chỗ cất. "Khuấy" gộp đũa thuỷ tinh + nút thìa cũ — cả hai vốn làm đúng một việc. */
+const TOOLBOX = {
+  rod:    {label:'Đũa khuấy', symbol:'sym-stirrod',   cat:'sym-stirrod-cat',   drag:'rod',    shw:0.4},
+  heat:   {label:'Đèn cồn',   symbol:'sym-lamp',      cat:'sym-lamp-cat',      drag:'lamp',   dz:'flame'},
+  burn:   {label:'Muôi đốt',  symbol:'sym-burnspoon', cat:'sym-burnspoon-cat', drag:'ladle',  dz:'ladle', shw:0.4},
+  elec:   {label:'Bộ điện phân', symbol:'sym-electro',   cat:'sym-electro-cat',   drag:'elec'},
+  gas:    {label:'Bình thu khí', symbol:'sym-gasbottle', cat:'sym-gasbottle', an:'bottom', drag:'gas', style:'--gasop:0;--stopop:0'},
+  filter: {label:'Phễu lọc',  symbol:'sym-funnel',    cat:'sym-funnel-cat',    drag:'funnel', dz:'funnel'}   // kéo cốc lên phễu = lọc
+  // 'spoon' của ngày cũ đã gộp vào rod; bồn rửa là trạm riêng, không nằm trên bàn.
+  // Muôi đốt và bộ điện phân CHUNG một chỗ cất (giữa bên trái): chưa ngày nào dùng cả hai.
+};
 const TOOL_ORDER = ['heat','burn','elec','gas','filter'];
 
 /* mặt bàn + mặt trước, thớ gỗ hội tụ về điểm tụ. Bàn kéo dài sang trái để khách đứng sau mép xa ở cột bên trái nhận
@@ -93,8 +106,18 @@ function benchSVG(){
     + '<line x1="'+xl0+'" y1="'+FAR_Y+'" x2="'+xl1+'" y2="'+NEAR_Y+'" stroke="#3b3025" stroke-width="4"/>'
     + '<line x1="'+xr0+'" y1="'+FAR_Y+'" x2="'+xr1+'" y2="'+NEAR_Y+'" stroke="#3b3025" stroke-width="4"/>'
     + '<line x1="'+xl1+'" y1="'+NEAR_Y+'" x2="'+xr1+'" y2="'+NEAR_Y+'" stroke="#3b3025" stroke-width="4"/>'
+    + matSVG()
     + '</svg>';
 }
+/* Thảm làm việc giữa bàn: tấm cao su xanh viền đậm, lòng nhạt — như thảm trong cảnh 3D, khác hẳn màu gỗ,
+   để nhìn là biết chỗ nào là chỗ làm. Bốn góc lấy đúng từ bố cục 3D (L3.mat). */
+function matSVG(){
+  const q = L3.mat, c = q.reduce((a, p) => [a[0] + p[0]/4, a[1] + p[1]/4], [0, 0]);
+  const pts = k => q.map(p => (p[0] + (c[0] - p[0])*k).toFixed(1) + ',' + (p[1] + (c[1] - p[1])*k*1.6).toFixed(1)).join(' ');
+  return '<polygon points="' + pts(0) + '" fill="#5fa9a6" stroke="#3b3025" stroke-width="3" stroke-linejoin="round"/>'
+       + '<polygon points="' + pts(0.055) + '" fill="#eef4f0" stroke="#4f9693" stroke-width="2" stroke-linejoin="round"/>';
+}
+
 
 /* đặt một vật ĐỨNG trên bàn tại (u,t). art co theo phối cảnh, over (nhãn) thì không */
 function place(o){
@@ -107,6 +130,17 @@ function place(o){
     + 'z-index:'+(4 + Math.round(o.t*40) + (o.z||0))+'">'
     + '<div style="width:'+o.w+'px;height:'+o.h+'px;transform:scale('+sc+');transform-origin:0 0">' + o.art + '</div>'
     + (o.over||'') + '</div>';
+}
+/* đặt một hình T3D: điểm neo an rơi đúng (x,y), cỡ k px/đơn vị. art: hình dựng sẵn thay cho symbol (cái cốc).
+   Hình vẽ kín hộp (100%), nên đổi chỗ / đổi cỡ chỉ cần đổi hộp của .item (moveTool). */
+function place3(o){
+  const b = artBox(o.sid, o.an, o.x, o.y, o.k);
+  const sh = o.shadow === false ? '' : '<div class="shadow' + (o.scls ? ' ' + o.scls : '') + '"' + (o.id ? ' id="sh_' + o.id + '"' : '')
+    + ' style="left:' + o.x + 'px;top:' + (o.y - 2) + 'px;width:' + (b.w*(o.shw || 0.7)).toFixed(1) + 'px;height:' + (b.w*(o.shw || 0.7)*0.23).toFixed(1) + 'px"></div>';
+  const art = o.art || sym(o.sid, '100%', '100%', o.style || '').replace('<svg ', '<svg ' + (o.svgId ? 'id="' + o.svgId + '" ' : ''));
+  return sh + '<div class="item' + (o.cls ? ' ' + o.cls : '') + '"' + (o.id ? ' id="' + o.id + '"' : '') + (o.dz ? ' data-dz="' + o.dz + '"' : '')
+    + (o.title ? ' title="' + o.title + '"' : '') + ' data-sid="' + o.sid + '" style="' + boxCss(b) + 'z-index:' + o.z + '">'
+    + art + (o.over || '') + '</div>';
 }
 /* hộp bao của cốc trên màn hình — mọi hiệu ứng rót/bọt/vòng khuấy neo theo đây */
 function beakerBox(){
@@ -153,13 +187,13 @@ function stripeCol(f){
 const DZ_ACCEPT = {
   rod:   [], // never dropped — stirring happens during the drag, then it snaps home
   chem:  ['beaker','jar','ladle'],
-  ladle: ['flame','jar','sink'],
-  beaker:['cust','sink'],
-  gas:   ['beaker','cust','sink'],
+  ladle: ['flame','jar','sink','mat'],   // thả vào thảm = treo muôi lên giá
+  beaker:['cust','sink','mat','bench','funnel'],   // mặt bàn ngoài thảm = đặt cốc ra đó; thảm = đưa về giữa; phễu = lọc
+  gas:   ['beaker','mat','cust','sink'],
   dish:  ['cust','sink'],
-  lamp:  ['beaker'],
-  elec:  ['beaker'],
-  funnel:['beaker'],
+  lamp:  ['beaker','mat'],
+  elec:  ['beaker','mat'],
+  funnel:['beaker','mat'],
   mgcard:['bin0','bin1','bin2','bin3'],
   mgdrop:['quy','rg0','rg1','rg2','rg3'],     // xác định chất: ống nhỏ giọt mẫu → giấy quỳ / cốc thuốc thử
   mglabel:['jar0','jar1','jar2','tray'],      // xác định chất: nhãn → lọ mất nhãn / khay nhãn
@@ -237,7 +271,9 @@ function dragMove(e){
   if(hz && (DZ_ACCEPT[drag.type]||[]).includes(hz.dataset.dz)) hz.classList.add('drophot');
   drag.ghost.style.left = (p.x - drag.opts.w/2) + 'px';
   drag.ghost.style.top  = (p.y - drag.lift - drag.opts.h/2) + 'px';
-  drag.ghost.style.transform = 'rotate('+drag.tilt.toFixed(1)+'deg) scale(1.05)';
+  // dụng cụ đưa vào vùng thảm thì to lên đúng cỡ nó sẽ có khi lắp vào bộ (x1.5 cỡ thật; đồ đang cất chỉ x0.8)
+  const big = drag.opts.grow && inMat(p.x, p.y - drag.lift) ? drag.opts.grow : 1;   // grow: hệ số tới cỡ lắp
+  drag.ghost.style.transform = 'rotate('+drag.tilt.toFixed(1)+'deg) scale('+(1.05*big).toFixed(2)+')';
 }
 function dragEnd(e){
   if(!drag) return;
@@ -254,7 +290,7 @@ function dragEnd(e){
   const zname = zEl ? zEl.dataset.dz : null;
   if(zname && (DZ_ACCEPT[d.type]||[]).includes(zname)){
     g.remove();
-    if(d.opts.onDrop) d.opts.onDrop(zname, e);
+    if(d.opts.onDrop) d.opts.onDrop(zname, e, dropPt(e, d));
     else dropAction(d.type, zname, d.opts.data);
   } else {
     const [lx, ly] = dropPt(e, d);
@@ -275,15 +311,12 @@ addEventListener('pointercancel', () => {
   G.querySelectorAll('.dropready').forEach(t => t.classList.remove('dropready'));
   drag = null;
 });
-function svgClone(sel, w, h){
-  const el = G.querySelector(sel);
-  return el.outerHTML.replace(/width="\d+"/, 'width="'+w+'"').replace(/height="\d+"/, 'height="'+h+'"');
-}
 function dropAction(type, zone, data){
   if(!lab) return;
   if(type === 'chem'){ pourChem(data, zone); return; }
   if(type === 'ladle'){
-    if(zone === 'flame') igniteLadle();
+    if(zone === 'mat'){ mountSpoon(true); if(!ladleFuel().length) toast('Muôi đã treo lên giá — thả chất rắn từ tủ vào muôi, rồi kéo <b>đèn cồn</b> vào thảm để hơ.'); }
+    else if(zone === 'flame'){ mountSpoon(true); lampUnder(true); }   // thả muôi vào đèn = treo muôi + gọi đèn vào dưới
     else if(zone === 'jar') burnInJar();
     else dumpLadle();
     return;
@@ -293,13 +326,8 @@ function dropAction(type, zone, data){
     return;
   }
   if(type === 'gas'){
-    if(zone === 'beaker'){
-      if(tot(lab.gas) > 0){
-        pourGas();
-      } else {
-        if(!lab.catcher) setCatch(true);
-      }
-    }
+    if(zone === 'beaker' && tot(lab.gas) > 0) pourGas();
+    else if(zone === 'beaker' || zone === 'mat'){ if(!lab.catcher) setCatch(true); }
     else if(zone === 'cust'){ lab.sel = 'gas'; serve(); }
     else { lab.gas = {}; SFX.splash(); toast('Đã xả bình khí vào bồn.'); updateBeaker(); }
     return;
@@ -309,9 +337,11 @@ function dropAction(type, zone, data){
     else { lab.solid = {}; SFX.splash(); toast('Đã đổ đĩa lọc vào bồn.'); updateBeaker(); }
     return;
   }
-  if(type === 'lamp'){ setHeat(true); return; }
+  // muôi đang treo trên giá (có chất) thì đèn vào thảm là để HƠ MUÔI, không phải đun cốc
+  if(type === 'lamp'){ if(spoonUp()) lampUnder(true); else setHeat(true); return; }
   if(type === 'elec'){ setElec(true); return; }
-  if(type === 'funnel'){ useFilter(); return; }
+  // phễu: lắp lên giá; phễu đang lắp mà kéo vào cốc nữa thì lọc
+  if(type === 'funnel'){ if(zone === 'beaker' && lab.filterOn) useFilter(); else setFilter(true); return; }
 }
 
 /* ladle/ladleLit: chất trên muôi đốt & đã bén lửa chưa. hard: ca này chơi chế độ khó
@@ -322,7 +352,7 @@ function dropAction(type, zone, data){
 function newLab(i, day){
   const hard = hardOn(), dur = hard ? Math.round(day.dur * 1.5) : day.dur;
   return {i, day, hard, dur, mix:{}, undissolved:{}, dissolveTotal:0, gas:{}, solid:{}, ladle:{}, ladleLit:false,
-          heaterOn:false, elecOn:false, catcher:false, sel:'beaker',
+          heaterOn:false, elecOn:false, catcher:false, lampUnder:false, spoonOn:false, bkPark:null, bkAuto:false, sel:'beaker',
           time:dur, oi:0, served:0, wrong:0, waste:0, timer:null, lastColor:'', magicDose:1,
           otime:0, odur:0, waitStage:0, miss:0, lastWhy:'', cardQ:[], cardOpen:false,
           goggles:false, hood:false, hoodDay:[...dayHave(day)].some(f => TOXIC.includes(f)),
@@ -473,24 +503,19 @@ function benchDressing(){
        + place({u:-0.34, t:0.02, w:52, h:70, z:-3, cls:'deco', art:sym('sym-erlenmeyer',52,70,'--lc:#bcd6b4')})
        ;
 }
-/* Dụng cụ trải thành MỘT hàng sát mép gần. Ít đồ thì cụm vào giữa, nhiều mới trải
-   rộng — không văng ra mép bàn. Hàng hơi cong: giữa gần người nhất. */
+/* Mỗi dụng cụ nằm ở chỗ cất riêng hai bên thảm (xếp trong 3D, L3.slots): thứ hay dùng ở mép gần, thứ ít dùng
+   lùi về sau. Ngày nào không có dụng cụ đó thì chỗ của nó để trống — chỗ của các thứ khác không xê dịch. */
 function benchTools(day){
   const list = ['rod'].concat(TOOL_ORDER.filter(t => day.tools.includes(t)));
-  const n = list.length, span = Math.min(0.74, 0.17 * n);
   TOOLPOS = {};
-  return list.map((key,i) => {
-    const tl = TOOLBOX[key];
-    const spread = n > 1 ? i/(n-1) : 0.5;
-    const u = -span + spread*2*span;
-    const t = 0.86 - Math.abs(0.5 - spread) * 0.13;
-    TOOLPOS[key] = {u, t};
-    const art = sym(tl.symbol, tl.w, tl.h, tl.style || '').replace('<svg ', '<svg id="sv_'+key+'" ');
+  return list.map(key => {
+    const tl = TOOLBOX[key], sl = L3.slots[key];
+    const q = TOOLPOS[key] = {x:sl.x, y:sl.y, k:sl.ppm/1000*SIDE, z:zAt(sl.y) + 20};   // đồ cất ngoài thảm nhỏ đi 20%
     // có muôi đốt thì bình khí kiêm lọ khí (thả bình O₂/Cl₂ vào để nạp, thả muôi đang cháy vào để đốt)
     const dz = key === 'gas' ? (day.tools.includes('burn') ? 'jar' : undefined)
              : key === 'heat' ? (day.tools.includes('burn') ? tl.dz : undefined) : tl.dz;
-    return place({u, t, w:tl.w, h:tl.h, art, z:20, id:'tool_'+key, cls:'grab', dz,
-                  over:'<div class="toolcap">'+tl.label+'</div>'});
+    return place3({sid:tl.cat, an:tl.an || 'rest', x:q.x, y:q.y, k:q.k, z:q.z, id:'tool_'+key, svgId:'sv_'+key, shw:tl.shw,
+                   style:tl.style, cls:'grab', dz, title:tl.label});   // không còn tag tên: tên hiện khi rê chuột
   }).join('');
 }
 
@@ -549,6 +574,7 @@ function renderLab(){
       ${!day.free && dayEqs(day).length ? `<div class="wallitem balpaper" id="balpaper" style="left:600px;top:116px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
     </div>
     ${benchSVG()}
+    <svg class="matzone" viewBox="0 0 1280 720"><polygon data-dz="bench" class="benchzone" points="${[0, 1, 3, 2].map(i => L3.bench.corners[i].join(',')).join(' ')}"/><polygon data-dz="mat" points="${L3.mat.map(q => q.join(',')).join(' ')}"/></svg>
     <div class="custcol">
       <div class="speech" id="speech"><svg class="on-ring" width="30" height="30" viewBox="0 0 34 34"><circle class="bg" cx="17" cy="17" r="14"/><circle class="fg" cx="17" cy="17" r="14" stroke-dasharray="88" stroke-dashoffset="0"/></svg>
         <div id="sptext"></div><div class="sp-order" id="sporder" hidden></div></div>
@@ -558,14 +584,13 @@ function renderLab(){
     <div class="sinkstation" data-dz="sink"><div class="counter"></div>
       <svg id="sinksvg" width="96" height="76"><use href="#sym-sink"/></svg><div class="cap">Bồn rửa</div></div>
     ${benchDressing()}
-    ${place({u:0, t:BT, w:TRI_W, h:TRI_H, id:'tripod', z:-6, cls:'tripod', scls:'gated tri-sh', art:sym('sym-tripod',TRI_W,TRI_H)})}
-    ${has('gas') ? place({u:GS_U, t:BT, w:GS_W, h:GS_H, id:'gasstand', z:2, cls:'rig', scls:'gated rig-sh', art:sym('sym-ringstand',GS_W,GS_H)}) : ''}
-    ${has('gas') ? '<div class="rig gashood" id="gashood">'+sym('sym-gashood',HOOD_W,HOOD_H)+'</div>' : ''}
+    ${place3({sid:'sym-tripod', an:'base', x:BKP.x, y:BKP.y, k:KW, z:ZB-1, id:'tripod', cls:'tripod', scls:'gated tri-sh'})}
+    ${has('gas') ? place3({sid:'sym-ringstand', an:'base', ...L3.dock.gasStand, k:kAt(L3.dock.gasStand), z:zAt(L3.dock.gasStand.y), id:'gasstand', cls:'rig', scls:'gated rig-sh'}) : ''}
+    ${has('filter') || has('burn') ? place3({sid:'sym-filterstand', an:'base', ...L3.dock.filterStand, k:kAt(L3.dock.filterStand), z:zAt(L3.dock.filterStand.y), id:'filterstand', cls:'rig', scls:'gated fs-sh'})
+      + '<svg class="rig ringfront" id="fsring" viewBox="0 0 1280 720"><path id="fsringline" fill="none" stroke="#3b3025"/><path id="fsringcore" fill="none" stroke="#6b6e73"/></svg>' : ''}
+    ${has('gas') ? '<div class="rig gashood" id="gashood">'+sym('sym-gashood','100%','100%')+'</div>' : ''}
     ${has('gas') ? '<svg class="rig gastube" id="gastube" viewBox="0 0 1280 720"><path id="gastubeline" fill="none" stroke="#3b3025" stroke-width="10" stroke-linecap="round"/><path id="gastubecore" fill="none" stroke="#f3f1e8" stroke-width="5.5" stroke-linecap="round"/></svg>' : ''}
-    ${place({u:0, t:BT, w:BW, h:BH, id:'beakerItem', dz:'beaker', cls:'grab', z:4,
-             art:BEAKER_SVG.replace('<svg ','<svg width="'+BW+'" height="'+BH+'" ')})}
-    <div class="stirring-ring" id="stirring-ring"><svg width="52" height="52" viewBox="0 0 52 52">
-      <circle class="bg" cx="26" cy="26" r="21"/><circle class="fg" cx="26" cy="26" r="21"/></svg><span class="stir-tag">Khuấy!</span></div>
+    ${place3({sid:'sym-beaker', an:'base', x:BKP.x, y:BKP.y, k:KB, z:ZB, id:'beakerItem', dz:'beaker', cls:'grab', art:BEAKER_SVG})}
     ${benchTools(day)}
     <div id="dishHost"></div>
     ${has('elec') ? '<div class="elecpanel" id="elecpanel"></div>' : ''}
@@ -594,17 +619,28 @@ function renderLab(){
       onClick: () => pourChem(c.dataset.f, 'beaker') // bấm cũng rót — đường tắt
     });
     factHover(c, c.dataset.f); });
-  dragify(G.querySelector('#beakerItem'), 'beaker', {w:110, h:132, ghostHTML: () => svgClone('#beakersvg',110,132)});
+  const bgw = BK.w*KB*0.8, bgh = BK.h*KB*0.8;
+  dragify(G.querySelector('#beakerItem'), 'beaker', {w:bgw, h:bgh,
+    ghostHTML: () => G.querySelector('#beakersvg').outerHTML.replace('width="100%" height="100%"', 'width="'+bgw+'" height="'+bgh+'"'),
+    // mặt bàn ngoài thảm: đặt cốc ra đúng chỗ thả (đáy cốc = đáy hình đang cầm); thảm: đưa cốc về giữa
+    onDrop: (zone, e, pt) => zone === 'bench' ? parkBeaker(pt, bgh * (BK.bot / BK.h - 0.5))
+                           : zone === 'mat' ? parkBeaker(null)
+                           : zone === 'funnel' ? (lab.filterOn ? useFilter() : setFilter(true))   // rót cốc qua phễu
+                           : dropAction('beaker', zone)});
   // dụng cụ trên bàn: mỗi thứ một ô, ai cũng có nhãn
   const overBeaker = e => { const bk = G.querySelector('#beakerItem'); if(!bk || !e) return false;
     const r = bk.getBoundingClientRect();
     return e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom; };
   const LOOSE = {
-    lamp: () => { if(lab.heaterOn){ setHeat(false); return true; } return false; },
+    lamp: () => { if(lab.lampUnder){ lampUnder(false); return true; } if(lab.heaterOn){ setHeat(false); return true; } return false; },
     elec: () => { if(lab.elecOn){ setElec(false); return true; } return false; },
     gas:  () => { if(lab.catcher){ setCatch(false); return true; } return false; },
+    funnel: () => { if(lab.filterOn){ setFilter(false); return true; } return false; },
     // nhúng muôi vào cốc: không đốt trong cốc — nói rõ lý do thay vì lặng lẽ bật về
-    ladle: e => { if(overBeaker(e)){ SFX.err(); toast('Không đốt trong cốc! Đưa muôi đang cháy vào <b>lọ khí</b> (bình khí đã nạp O₂ hoặc Cl₂).'); } return false; }
+    ladle: e => { // thả lên cốc đang ở giữa thảm cũng là vào vùng làm việc: treo muôi lên giá (muôi đang cháy thì không)
+                  if(overBeaker(e) && !lab.ladleLit && !beakerSpot().away){ mountSpoon(true); return true; }
+                  if(lab.spoonOn && !ladleFuel().length){ mountSpoon(false); return true; }   // muôi trống kéo ra ngoài: tháo xuống
+                  if(overBeaker(e)){ SFX.err(); toast('Không đốt trong cốc! Đưa muôi đang cháy vào <b>lọ khí</b> (bình khí đã nạp O₂ hoặc Cl₂).'); } return false; }
   };
   Object.keys(TOOLPOS).forEach(key => {
     const tl = TOOLBOX[key], el = G.querySelector('#tool_'+key);
@@ -614,9 +650,11 @@ function renderLab(){
       el.style.cursor = 'pointer';
       return;
     }
+    const k = TOOLPOS[key].k, gw = T3D[tl.symbol].w*k, gh = T3D[tl.symbol].h*k;
     dragify(el, tl.drag, {
-      w:tl.gw, h:tl.gh,
-      ghostHTML: () => svgClone('#sv_'+key, tl.gw, tl.gh),
+      w:gw, h:gh, grow:WORK / SIDE,
+      // trên tay là dáng dùng (đũa dựng đứng, phễu ngửa, đèn mở nắp) và mang theo trạng thái (chất trên muôi, khí trong bình)
+      ghostHTML: () => sym(tl.symbol, gw, gh, G.querySelector('#sv_'+key).getAttribute('style') || ''),
       onLoose: LOOSE[tl.drag],
       // đũa: bấm một cái = khuấy một nhát, thay cho nút "Khuấy" cũ
       onClick: key === 'rod' ? (() => {
@@ -626,6 +664,7 @@ function renderLab(){
     });
   });
   syncLadle();
+  layoutRigs();
   
   if(hasMagicTools){
     const dec = G.querySelector('#dose-dec');
@@ -714,7 +753,6 @@ function runReactions(collect){
   if(collect){ fired.forEach(x => collect.push(x)); return fired.length; }
   if(fired.length){
     toast(fired.join('<br>'));
-    if(!tot(lab.undissolved)) flashStirRing(); // quick fill-and-fade — same ring as stirring, but for an instant reaction
   }
   return fired.length;
 }
@@ -840,10 +878,6 @@ function electrolyse(i, units){
   updateBeaker();
 }
 
-function flashStirRing(){
-  const ring = G.querySelector('#stirring-ring'); if(!ring) return;
-  ring.classList.remove('flash'); void ring.offsetWidth; ring.classList.add('flash');
-}
 
 /* =====================  RÓT HOÁ CHẤT  =====================
    Một lọ trong tủ thả được vào CỐC (rót), vào MUÔI ĐỐT (chất rắn để đốt) hoặc vào
@@ -859,7 +893,7 @@ function pourChem(f, where){
   }
   if(where === 'ladle' && c.s !== 'r'){
     SFX.err();
-    toast('Muôi đốt chỉ đựng chất <b>rắn</b>. ' + (JAR_GASES.includes(f) ? 'Khí '+sub(f)+' thì nạp vào <b>lọ khí</b> (bình Thu khí).' : 'Chất này rót vào cốc.'));
+    toast('Muôi đốt chỉ đựng chất <b>rắn</b>. ' + (JAR_GASES.includes(f) ? 'Khí '+sub(f)+' thì nạp vào <b>lọ khí</b> (bình thu khí).' : 'Chất này rót vào cốc.'));
     return;
   }
   pourSafety(f);
@@ -879,7 +913,7 @@ function addChem(f, dose){
   if(SLOW_DISSOLVE.includes(f)){ // settles at the bottom: no reactions, no serving until stirred in
     lab.undissolved[f] = RQ((lab.undissolved[f]||0) + dose);
     lab.dissolveTotal = RQ(lab.dissolveTotal + dose);
-    toast(doseStr(f, dose) + ' ' + sub(f) + ' — ít tan! Kéo đũa <b>Khuấy</b> vào cốc rồi khuấy tròn cho tan.');
+    toast(doseStr(f, dose) + ' ' + sub(f) + ' — ít tan! Kéo <b>đũa khuấy</b> vào cốc rồi khuấy tròn cho tan.');
     updateBeaker();
     return;
   }
@@ -891,8 +925,8 @@ function addChem(f, dose){
 
 /* =====================  ĐỐT TRONG LỌ KHÍ  =====================
    Đốt thật không bỏ chất vào cốc rồi đun. Ba bước như SGK:
-     1. nạp O₂ / Cl₂ vào lọ khí (ngày có muôi đốt thì bình Thu khí kiêm lọ khí)
-     2. thả chất rắn vào muôi đốt, hơ muôi qua đèn cồn cho bén lửa
+     1. nạp O₂ / Cl₂ vào lọ khí (ngày có muôi đốt thì bình thu khí kiêm lọ khí)
+     2. thả chất rắn vào muôi đốt (muôi treo lên giá), kéo đèn cồn vào dưới muôi cho bén lửa
      3. đưa muôi đang cháy vào lọ → phản ứng có cờ burn trong phan-ung.js
    Sản phẩm khí ở lại trong lọ (giao nguyên lọ), sản phẩm rắn gạt ra đĩa, hơi nước đọng thành lọ. */
 const FLAME_COL = {Mg:'#ffffff', Al:'#ffffff', Fe:'#ffc46b', S:'#6f8ff0', P:'#fff1c9', C:'#ff7a3a',
@@ -905,40 +939,74 @@ function fillJar(f, dose){
   toast('Đã nạp ' + doseStr(f, dose) + ' ' + sub(f) + ' vào lọ khí.');
   updateBeaker();
 }
+/* BỘ ĐỐT: kéo muôi vào thảm — hoặc thả chất rắn vào muôi — là muôi TREO lên giá giữa thảm (lab.spoonOn; vòng giá
+   đỡ đĩa chặn, chén muôi thòng xuống); các bộ khác đang chiếm miệng cốc tháo ra. Kéo đèn cồn vào thảm thì đèn ĐỔI
+   CHỖ với cốc: đèn vào giữa, ngay dưới muôi, cốc sang chỗ cất của đèn; ngọn lửa liếm chén muôi, muôi có chất thì một
+   nhịp sau bén lửa. Kéo đèn ra khỏi thảm là trả chỗ; kéo muôi TRỐNG ra khỏi thảm là tháo muôi xuống;
+   muôi hết chất (đốt xong / đổ bồn) thì muôi, đèn, cốc tự về chỗ cũ. */
+const spoonUp = () => !!TOOLPOS.burn && !!lab.spoonOn;
+const SPOON_BUSY = 'Muôi đang treo trên giá giữa thảm — đốt xong, hoặc kéo muôi sang <b>bồn rửa</b> đổ chất đi, rồi hãy lắp bộ khác.';
+function mountSpoon(on){
+  if(!TOOLPOS.burn || !!lab.spoonOn === on) return;
+  if(on){
+    if(lab.heaterOn) setHeat(false);
+    if(lab.catcher) setCatch(false);
+    if(lab.filterOn) setFilter(false);
+    if(lab.elecOn) setElec(false);
+    // muôi treo giữa thảm thì cốc tự lùi ra ngoài — sang đúng chỗ cất của muôi (vừa trống); tháo muôi thì cốc về
+    if(!lab.bkPark){ const s = L3.slots.burn; lab.bkPark = {x: s.x, y: s.y}; lab.bkAuto = true; }
+    lab.spoonOn = true;
+  } else releaseSpoon();
+  if(!on){ lab.ladleLit = false; syncLadle(); }
+  layoutRigs(); SFX.clink(); updateBeaker();
+}
+// muôi rời giá (tháo xuống, đốt hết, đổ bồn): cốc bị muôi đẩy ra thì quay về giữa thảm
+function releaseSpoon(){
+  lab.spoonOn = false;
+  if(lab.bkAuto){ lab.bkPark = null; lab.bkAuto = false; }
+}
 function loadLadle(f, dose){
   lab.ladle[f] = RQ((lab.ladle[f]||0) + dose);
+  mountSpoon(true);
   SFX.grain();
-  toast('Đã cho ' + doseStr(f, dose) + ' ' + sub(f) + ' lên muôi đốt.'
-        + (lab.ladleLit ? '' : ' Giờ kéo muôi qua <b>đèn cồn</b> để hơ cho bén lửa.'));
-  syncLadle(); updateCoach();
+  toast('Đã cho ' + doseStr(f, dose) + ' ' + sub(f) + ' lên muôi đốt — muôi đã treo lên giá.'
+        + (lab.ladleLit || lab.lampUnder ? '' : ' Giờ kéo <b>đèn cồn</b> vào thảm để hơ chén muôi.'));
+  syncLadle(); layoutRigs(); armIgnite(); updateCoach();
+}
+function lampUnder(on){
+  if(on && !spoonUp()){ SFX.err(); toast('Muôi chưa treo lên giá — kéo <b>muôi đốt</b> vào thảm (hoặc thả chất rắn vào muôi) trước đã.'); return; }
+  if(!!lab.lampUnder === on) return;
+  lab.lampUnder = on;
+  if(!on && lab.ladleLit){ lab.ladleLit = false; syncLadle(); }   // rút đèn ra: chất chưa kịp đưa vào lọ thì tắt
+  layoutRigs();
+  SFX.clink(); if(on) SFX.ignite();
+  armIgnite(); updateCoach();
+}
+// đèn đang ở dưới muôi có chất mà muôi chưa cháy → một nhịp sau thì bén (cả khi muôi vừa từ lọ quay về giá)
+function armIgnite(){
+  clearTimeout(lab.ignT);
+  if(lab.lampUnder && spoonUp() && ladleFuel().length && !lab.ladleLit) lab.ignT = setTimeout(igniteLadle, 700);
 }
 function igniteLadle(){
-  const fuel = ladleFuel();
-  if(!fuel.length){ SFX.err(); toast('Muôi đang trống — thả chất rắn từ tủ vào muôi rồi mới hơ lửa.'); return; }
-  const lamp = G.querySelector('#sv_heat');
-  if(lamp && !lab.heaterOn){   // đèn loé lên một nhịp cho thấy là vừa hơ qua lửa
-    lamp.style.setProperty('--flame', 1);
-    setTimeout(() => { if(lab && !lab.heaterOn) lamp.style.setProperty('--flame', 0); }, 1200);
-  }
-  if(lab.ladleLit){ toast('Muôi đang cháy rồi — đưa nhanh vào lọ khí!'); return; }
+  if(!lab || !lab.lampUnder || lab.ladleLit || !spoonUp() || !ladleFuel().length) return;
   lab.ladleLit = true;
   SFX.ignite();
-  toast(fuel.map(sub).join(', ') + ' trên muôi đã bén lửa — đưa nhanh vào <b>lọ khí</b>!');
+  toast(ladleFuel().map(sub).join(', ') + ' trên muôi đã bén lửa — kéo muôi vào <b>lọ khí</b>!');
   syncLadle(); updateCoach();
 }
 function dumpLadle(){
   if(!ladleFuel().length){ toast('Muôi đang trống.'); return; }
-  lab.ladle = {}; lab.ladleLit = false;
+  lab.ladle = {}; lab.ladleLit = false; releaseSpoon();   // đổ bồn xong muôi về chỗ cất
   SFX.splash(); toast('Đã đổ chất trên muôi vào bồn.');
-  syncLadle(); updateCoach();
+  syncLadle(); layoutRigs(); updateCoach();
 }
 function burnInJar(){
   const fuel = ladleFuel();
   if(!fuel.length){ SFX.err(); toast('Muôi đang trống — thả chất rắn từ tủ vào muôi trước.'); return; }
-  if(!lab.ladleLit){ SFX.err(); toast('Chất trên muôi chưa bén lửa — kéo muôi qua <b>đèn cồn</b> để hơ trước đã.'); return; }
+  if(!lab.ladleLit){ SFX.err(); toast('Chất trên muôi chưa bén lửa — kéo <b>đèn cồn</b> vào thảm, dưới muôi đang treo, để hơ trước đã.'); return; }
   const gases = Object.keys(lab.gas).filter(f => lab.gas[f] > 0);
   if(!gases.length){
-    SFX.err(); lab.ladleLit = false; syncLadle();
+    SFX.err(); lab.ladleLit = false; syncLadle(); armIgnite();   // muôi về giá, đèn còn dưới thì bén lại
     toast('Lọ trống không — chút oxi trong lọ hết ngay, lửa tắt ngấm. Nạp <b>O₂</b> hoặc <b>Cl₂</b> vào lọ trước!');
     return;
   }
@@ -964,7 +1032,7 @@ function burnInJar(){
     if(r.obs) obs.push(r.obs);
   }
   if(!fired.length){
-    SFX.err(); lab.ladleLit = false; syncLadle();
+    SFX.err(); lab.ladleLit = false; syncLadle(); armIgnite();   // muôi về giá, đèn còn dưới thì bén lại
     const ox = gases.filter(f => JAR_GASES.includes(f));
     toast(fuel.map(sub).join(', ') + (ox.length ? ' không cháy được trong khí ' + ox.map(sub).join(', ') + '.'
                                                 : ' không cháy trong ' + gases.map(sub).join(', ') + ' — lọ cần khí <b>oxi</b> hoặc <b>clo</b>.')
@@ -975,7 +1043,8 @@ function burnInJar(){
   burnFX(fuel[0]);
   SFX.roar(); if(fuel[0] === 'Fe') SFX.crackle();
   const left = ladleFuel();
-  lab.ladleLit = false;   // hết chất cháy, hoặc hết khí trong lọ → lửa tắt
+  if(!left.length) releaseSpoon();   // cháy hết chất trên muôi: muôi (sau nhịp thò vào lọ) về chỗ cất, cốc về giữa
+  lab.ladleLit = false;   // hết chất cháy, hoặc hết khí trong lọ → lửa tắt (còn chất thì muôi về giá, hơ lại)
   toast(fired.join('<br>') + (obs.length ? '<br><i>' + obs.join(' ') + '</i>' : '')
         + (solids ? '<br>Chất rắn được gạt từ muôi ra <b>đĩa</b>.' : '')
         + (left.length ? '<br>Lọ hết khí nên lửa tắt — trên muôi còn dư ' + left.map(sub).join(', ') + '.' : ''));
@@ -987,12 +1056,11 @@ function burnFX(f){
   if(!jar) return;
   const gr = G.getBoundingClientRect(), s = gr.width/1280, r = jar.getBoundingClientRect();
   const cx = (r.left + r.width/2 - gr.left)/s, cy = (r.top + r.height*0.5 - gr.top)/s;
-  if(sp){   // muôi thò vào lọ một nhịp: nắp muôi đậy đúng miệng lọ, rồi rút ra
-    const q = sp.getBoundingClientRect();
-    sp.style.transition = 'transform .3s ease-out';
-    sp.style.transform = 'translate(' + (cx - (q.left + q.width/2 - gr.left)/s) + 'px,'
-                       + ((r.top - q.top)/s + r.height*0.19/s - q.height*0.36/s) + 'px)';
-    setTimeout(() => { sp.style.transform = ''; }, 1300);
+  if(sp){   // muôi dựng đứng thò vào lọ một nhịp: nắp muôi đậy đúng miệng lọ, rồi về giá (còn chất) hoặc về chỗ cất
+    const jb = {l: parseFloat(jar.style.left), t: parseFloat(jar.style.top), w: parseFloat(jar.style.width), h: parseFloat(jar.style.height)};
+    const js = jar.dataset.sid || 'sym-gasbottle', rim = anchorIn(js, 'rim', jb);   // bình có thể đang cất hay đang lắp trên giá
+    moveTool('burn', 'sym-burnspoon', 'disc', rim.x, rim.y, jb.w / T3D[js].w, (parseInt(jar.style.zIndex) || 40) + 2);
+    setTimeout(() => { if(lab){ layoutRigs(); armIgnite(); } }, 1300);
   }
   const col = FLAME_COL[f] || '#ffb347';
   const fx = document.createElement('div');
@@ -1020,14 +1088,13 @@ function syncLadle(){
   const it = G.querySelector('#tool_burn');
   if(it){
     it.classList.toggle('lit', lit);
-    const cap = it.querySelector('.toolcap');
-    if(cap) cap.innerHTML = 'Đốt' + (fuel.length ? ' · ' + fuel.map(sub).join(', ') : '');
+    it.title = 'Muôi đốt' + (fuel.length ? ' · ' + fuel.join(', ') : '');
   }
 }
 function ladleHint(){
-  if(!ladleFuel().length) return '<b>Muôi đốt</b>: thả chất rắn từ tủ vào muôi → kéo muôi qua <b>đèn cồn</b> cho bén lửa → đưa vào <b>lọ khí</b> (bình Thu khí đã nạp O₂ / Cl₂).';
-  if(!lab.ladleLit) return 'Kéo muôi qua <b>đèn cồn</b> để hơ cho chất trên muôi bén lửa.';
-  return 'Muôi đang cháy — kéo vào <b>lọ khí</b> (bình Thu khí đã nạp O₂ / Cl₂)!';
+  if(!ladleFuel().length) return '<b>Muôi đốt</b>: kéo muôi vào thảm (hoặc thả chất rắn từ tủ vào muôi) — muôi treo lên giá → kéo <b>đèn cồn</b> vào thảm cho lửa hơ chén muôi → kéo muôi đang cháy vào <b>lọ khí</b> (bình thu khí đã nạp O₂ / Cl₂).';
+  if(!lab.ladleLit) return 'Kéo <b>đèn cồn</b> vào thảm — đèn đổi chỗ với cốc, lửa hơ chén muôi cho chất bén lửa.';
+  return 'Muôi đang cháy — kéo vào <b>lọ khí</b> (bình thu khí đã nạp O₂ / Cl₂)!';
 }
 
 /* =====================  VÌ SAO KHÔNG PHẢN ỨNG?  =====================
@@ -1167,34 +1234,54 @@ function pourSafety(f){
 /* ---- pouring animation (visual only; logic already applied) ----
    Neo theo beakerBox(): cốc giờ trôi theo phối cảnh và nhấc lên khi đun,
    nên toạ độ cứng như bản bàn phẳng cũ sẽ rót trượt ra ngoài. */
+/* Hình học cốc trên màn hình LÚC NÀY (giữa thảm, nhấc trên kiềng, hay đang đặt bên ngoài): tâm miệng, bán kính lòng cốc,
+   mặt chất lỏng (null nếu cốc khô), mặt lớp chất rắn, đáy. Mọi hiệu ứng rót / sủi bọt / kết tủa rơi neo theo đây,
+   không theo hộp hình (hộp có cả miệng đổ nên tâm hộp lệch khỏi tâm cốc). */
+function beakerGeo(){
+  const b = beakerBoxAt(lab && lab.heaterOn), k = b.w / BK.w, at = vy => b.t + vy*k;
+  const bk = G.querySelector('#beakerItem');
+  return {x: b.l + BK.cx*k, mouth: at(BK.top), floor: at(BK.bot), rx: BK.rx*k, ry: BK.ry*k,
+          surf: lab && lab.bkH ? at(BK.bot - lab.bkH) : null, solid: at(BK.bot - (lab && lab.bkPH || 0)),
+          z: (bk && parseInt(bk.style.zIndex)) || ZB};
+}
 function pourFX(f){
-  const c = CHEMS[f], cs = contSym(f), bx = beakerBox();
+  const c = CHEMS[f], cs = contSym(f), q = beakerGeo(), m = q.mouth;
   const isPip = (cs === 'sym-bottle-liquid'), isSpoon = (cs === 'sym-jar-powder');
+  const land = q.surf !== null ? q.surf : q.solid;   // chất rơi tới mặt chất lỏng; cốc khô thì tới đáy / mặt chất rắn
   const g = document.createElement('div');
   g.className = 'pourghost' + (isPip ? ' ppip' : isSpoon ? ' pspoon' : '');
-  if(isPip){        // pipette: đầu ống lơ lửng trên miệng cốc
-    g.style.cssText = 'left:' + (bx.cx - 9) + 'px;top:' + (bx.top - 138) + 'px';
+  g.style.zIndex = q.z + 3;
+  if(isPip){        // ống nhỏ giọt: đầu ống (đáy hình 34×120) chúc ngay trên tâm miệng cốc
+    g.style.left = (q.x - 17) + 'px'; g.style.top = (m - 126) + 'px';
     g.innerHTML = sym('sym-pipette',34,120,'--lc:'+c.c);
-  } else if(isSpoon){ // thìa bột, lòng thìa nằm trên miệng cốc
-    g.style.cssText = 'left:' + (bx.cx - 46) + 'px;top:' + (bx.top - 40) + 'px';
+  } else if(isSpoon){ // thìa bột: lòng thìa (điểm xoay 24% 96%) ngay trên miệng cốc, nghiêng đổ vào giữa
+    g.style.left = (q.x - 72*0.24 - 6) + 'px'; g.style.top = (m - 72*0.96 - 8) + 'px';
     g.innerHTML = sym('sym-spoon',72,72,'--lc:'+c.c+';--spop:1');
-  } else {          // kim loại / khí giữ nguyên vật đựng
-    g.style.cssText = 'left:' + (bx.cx + 4) + 'px;top:' + (bx.top - 68) + 'px';
+  } else {          // kim loại / khí giữ nguyên vật đựng; điểm xoay (80% 90%) bên phải miệng, miệng lọ ngả vào giữa
+    g.style.left = (q.x + 36 - 58*0.8) + 'px'; g.style.top = (m - 10 - 80*0.9) + 'px';
     g.innerHTML = sym(cs,58,80,'--lc:'+c.c+';--lc2:#00000022');
   }
   G.appendChild(g);
-  if(isPip){
+  if(isPip){        // dòng chảy từ đầu ống xuống ĐÚNG mặt chất lỏng, chạm mặt thì gợn vòng
     const st = document.createElement('div');
     st.className = 'stream';
-    st.style.cssText = 'left:' + (bx.cx - 3) + 'px;top:' + (bx.top - 18) + 'px;background:'+c.c;
+    st.style.cssText = 'left:' + (q.x - 3.5) + 'px;top:' + (m - 6) + 'px;background:' + c.c + ';z-index:' + (q.z + 2)
+      + ';--len:' + Math.max(8, land - m + 6).toFixed(0) + 'px';
     G.appendChild(st); setTimeout(()=>st.remove(), 850);
+    if(q.surf !== null){
+      const rp = document.createElement('div');
+      rp.className = 'ripple';
+      rp.style.cssText = 'left:' + q.x + 'px;top:' + land + 'px;width:' + (q.rx*1.3).toFixed(0) + 'px;height:' + (q.ry*1.3).toFixed(0)
+        + 'px;z-index:' + (q.z + 2);
+      G.appendChild(rp); setTimeout(()=>rp.remove(), 900);
+    }
     SFX.pour();
-  } else {
+  } else {          // hạt rơi từ miệng xuống mặt chất lỏng / đáy, rải trong lòng cốc
     for(let k=0;k<7;k++){
       const gr = document.createElement('div');
       gr.className = 'grain';
-      gr.style.cssText = 'left:'+(bx.cx-12+Math.random()*24)+'px;top:'+(bx.top-14+Math.random()*10)
-        + 'px;background:'+c.c+';border:1px solid #3b302566;animation-delay:'+(Math.random()*.35)+'s';
+      gr.style.cssText = 'left:' + (q.x + (Math.random()*2 - 1)*q.rx*0.35) + 'px;top:' + (m - 4 + Math.random()*6) + 'px;background:' + c.c
+        + ';border:1px solid #3b302566;z-index:' + (q.z + 2) + ';--fall:' + Math.max(6, land - m).toFixed(0) + 'px;animation-delay:' + (Math.random()*.35) + 's';
       G.appendChild(gr); setTimeout(()=>gr.remove(), 1000);
     }
     SFX.grain();
@@ -1217,40 +1304,37 @@ function updateBeaker(){
   const zone = G.querySelector('#beakerItem');
   const lq = G.querySelector('#bk-liquid'), men = G.querySelector('#bk-meniscus');
   const pr = G.querySelector('#bk-precip'), tex = G.querySelector('#bk-precip-tex');
-  const H = liq ? Math.min(30 + liq*15, 196) : 0, y = 222 - H;
-  lq.setAttribute('y', y); lq.setAttribute('height', H);
+  // thang mức cũ (cốc cao 196) quy ra cốc 3D (đơn vị viewBox của sym-beaker)
+  const f = BK.hMax/196;
+  const PH = pre ? Math.min(7 + pre*8, 54)*f : 0;
+  // mặt nước luôn nằm trên mặt lớp chất rắn (ít nước mà nhiều cặn thì chỉ còn lớp nước mỏng phủ trên)
+  const H = liq ? Math.max(Math.min(30 + liq*15, 196)*f, PH + 3) : 0, y = BK.bot - H;
+  // cột nước = hình trụ từ elip mặt nước (nửa sau) xuống elip mặt chất rắn / đáy cốc (nửa trước)
+  const yS = BK.bot - PH, L = BK.cx - BK.rx, R = BK.cx + BK.rx, arc = ' A' + BK.rx + ',' + BK.ry + ' 0 0 1 ';
+  if(liq) lq.style.d = 'path("M' + L + ',' + y + arc + R + ',' + y + ' L' + R + ',' + yS + arc + L + ',' + yS + ' Z")';
+  lq.setAttribute('opacity', liq ? (colMax ? 0.8 : 0.55) : 0);   // nước trong thì trong hơn: thấy rõ cặn bên dưới
   lq.style.fill = liqColor;
   men.setAttribute('transform', 'translate(0,'+y+')');
   men.setAttribute('opacity', liq ? 1 : 0);
-  const PH = pre ? Math.min(7 + pre*8, 54) : 0;
-  pr.setAttribute('y', 222-PH); pr.setAttribute('height', PH);
+  lab.bkH = H; lab.bkPH = PH;                            // beakerGeo(): rót / bọt / kết tủa rơi tới đúng mặt
+  pr.setAttribute('y', BK.bot-PH); pr.setAttribute('height', PH ? PH + BK.ry : 0);
   pr.style.fill = preColor;
+  const ps = G.querySelector('#bk-precip-surf');         // mặt trên lớp chất rắn: elip, sáng hơn thân lớp một chút
+  if(ps){ ps.setAttribute('transform', 'translate(0,'+(BK.bot-PH)+')'); ps.setAttribute('opacity', pre ? 1 : 0);
+          if(/^#[0-9a-f]{6}$/i.test(preColor)) ps.style.fill = lerpHex(preColor, '#ffffff', .18); }
   tex.setAttribute('opacity', pre ? 1 : 0);
   tex.setAttribute('transform', 'translate(0,'+(-Math.max(0, PH-4))+')'); // hạt lấm tấm nằm trên mặt kết tủa
   const dr = G.querySelector('#bk-drops');
   if(dr) dr.setAttribute('opacity', lab.heaterOn && liq ? 1 : 0);
-  // color-change swirl
-  if(liq && liqColor !== lab.lastColor && lab.lastColor){
-    const sw = document.createElement('div');
-    sw.className = 'swirlfx'; sw.style.background = liqColor;
-    zone.appendChild(sw); setTimeout(()=>sw.remove(), 950);
+  // đổi màu: vệt màu mới loang ra từ giữa khối chất lỏng, TRONG lòng cốc (nhóm bk-swirl nằm dưới bkclip)
+  const swg = G.querySelector('#bk-swirl');
+  if(swg && liq && liqColor !== lab.lastColor && lab.lastColor){
+    const sw = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    sw.setAttribute('cx', BK.cx); sw.setAttribute('cy', BK.bot - H/2); sw.setAttribute('r', BK.rx*0.25);
+    sw.setAttribute('class', 'bkswirl'); sw.style.fill = liqColor;
+    swg.appendChild(sw); setTimeout(()=>sw.remove(), 950);
   }
   lab.lastColor = liq ? liqColor : '';
-  // stirring progress ring: fills as undissolved solid shrinks toward 0.
-  // Vị trí bám sát MẶT chất lỏng/kết tủa thật (không treo cố định trên miệng cốc) —
-  // cùng công thức svg->màn hình mà spawnFall() dùng để rắc hạt kết tủa đúng chỗ.
-  const ring = G.querySelector('#stirring-ring');
-  if(ring){
-    ring.classList.toggle('active', lab.dissolveTotal > 0);
-    if(lab.dissolveTotal > 0){
-      const prog = Math.max(0, Math.min(1, 1 - tot(ud)/lab.dissolveTotal));
-      ring.querySelector('circle.fg').style.strokeDashoffset = 132*(1-prog);
-    }
-    // mặt thoáng nằm ở y=222-max(H,PH) trong viewBox 240 của cốc → quy ra px màn hình
-    const sc = scaleOf(BT), surf = 222 - Math.max(H, PH);
-    ring.style.left = xOf(0,BT) + 'px';
-    ring.style.top  = (yOf(BT) - BH*sc + surf*(BH/240)*sc - (lab.heaterOn ? HEAT_LIFT : 0)) + 'px';
-  }
   if(save.items && save.items.notes){
     const snc = G.querySelector('#stickynote-content');
     if(snc){
@@ -1269,55 +1353,56 @@ function updateBeaker(){
   const gs = G.querySelector('#sv_gas');
   if(gs){ const full = tot(lab.gas) ? 1 : 0;
           gs.style.setProperty('--gasop', full); gs.style.setProperty('--stopop', full); }
-  const gcap = G.querySelector('#tool_gas .toolcap');   // bình kiêm lọ khí: nhãn cho biết đang chứa khí gì
-  if(gcap){ const ks = Object.keys(lab.gas).filter(f => lab.gas[f] > 0);
-            gcap.innerHTML = 'Thu khí' + (ks.length ? ' · ' + ks.map(sub).join(', ') : ''); }
+  const gj = G.querySelector('#tool_gas');   // bình kiêm lọ khí: rê chuột thấy đang chứa khí gì
+  if(gj){ const ks = Object.keys(lab.gas).filter(f => lab.gas[f] > 0);
+          gj.title = 'Bình thu khí' + (ks.length ? ' · ' + ks.join(', ') : ''); }
   if(lab.elecOn) renderElecPanel();
   updateCoach();
   syncDish();
 }
-/* Đĩa lọc chỉ TỒN TẠI khi đang có chất trên nó, và có ô riêng bên phải cốc.
-   Trước đây nó nhét chung ô với cái phễu và bị chính nhãn "Lọc" đè lên. */
+/* Đĩa thuỷ tinh chỉ TỒN TẠI khi đang có chất rắn trên nó (lọc ra, hoặc gạt từ muôi), ở góc trước bên phải thảm. */
 function syncDish(){
   const host = G.querySelector('#dishHost'); if(!host) return;
   const ks = Object.keys(lab.solid).filter(f => lab.solid[f] > 0);
   if(!ks.length){ host.innerHTML = ''; return; }
   if(!host.querySelector('#dishEl')){
-    host.innerHTML = place({u:DISH_U, t:DISH_T, w:60, h:26, z:20, id:'dishEl', cls:'grab',
-      art:'<div class="dish" style="width:56px;height:18px;margin:4px auto 0"></div>',
-      over:'<div class="toolcap">Đĩa lọc</div>'});
-    dragify(host.querySelector('#dishEl'), 'dish',
-      {w:60, h:24, ghostHTML:()=>'<div class="dish" style="width:60px;height:20px"></div>'});
+    const d = L3.dock.dish, k = kAt(d), w = T3D['sym-dish'].w*k, h = T3D['sym-dish'].h*k;
+    host.innerHTML = place3({sid:'sym-dish', an:'base', x:d.x, y:d.y, k, z:zAt(d.y) + 20, id:'dishEl', svgId:'sv_dish', cls:'grab',
+                             style:'--sop:1', title:'Đĩa lọc'});
+    dragify(host.querySelector('#dishEl'), 'dish', {w, h,
+      ghostHTML: () => G.querySelector('#sv_dish').outerHTML.replace('width="100%" height="100%"', 'width="'+w+'" height="'+h+'"')});
   }
-  const d = host.querySelector('.dish');
-  if(d) d.style.background = 'linear-gradient(transparent 40%, '+CHEMS[ks[0]].c+' 40%)';
+  G.querySelector('#sv_dish').style.setProperty('--lc', CHEMS[ks[0]].c);
 }
+// sủi bọt: bọt sinh TRONG khối chất lỏng, nổi lên tới mặt thì vỡ; vài vệt khí bay lên khỏi mặt
 function spawnBubbles(){
-  const bx = beakerBox();
+  const q = beakerGeo(), top = q.surf !== null ? q.surf : q.mouth, deep = Math.max(10, q.solid - top);
   for(let k=0; k<6; k++){
     const b = document.createElement('div');
     b.className = 'bubble';
-    const sz = 7 + Math.random()*11;
-    b.style.cssText = 'width:'+sz+'px;height:'+sz+'px;left:'+(bx.cx-42+Math.random()*84)+'px;'
-      + 'top:'+(bx.bot-46)+'px;z-index:44;animation-delay:'+(Math.random()*.4)+'s';
+    const sz = 5 + Math.random()*7, y0 = top + 6 + Math.random()*(deep - 10);
+    b.style.cssText = 'width:'+sz+'px;height:'+sz+'px;left:'+(q.x - sz/2 + (Math.random()*2 - 1)*q.rx*0.7)+'px;'
+      + 'top:'+y0+'px;z-index:'+(q.z + 2)+';--rise:'+(y0 - top + sz/2).toFixed(0)+'px;animation-delay:'+(Math.random()*.4)+'s';
     G.appendChild(b); setTimeout(()=>b.remove(), 1700);
   }
   for(let k=0; k<3; k++){
     const l = document.createElement('div');
     l.className = 'fizzline';
-    l.style.cssText = 'left:'+(bx.cx-34+Math.random()*68)+'px;top:'+(bx.bot-52)+'px;z-index:44;animation-delay:'+(Math.random()*.3)+'s';
+    l.style.cssText = 'left:'+(q.x + (Math.random()*2 - 1)*q.rx*0.6)+'px;top:'+(top - 10)+'px;z-index:'+(q.z + 2)+';animation-delay:'+(Math.random()*.3)+'s';
     G.appendChild(l); setTimeout(()=>l.remove(), 1100);
   }
   SFX.fizz();
 }
+// kết tủa: hạt hiện ra trong khối chất lỏng rồi lắng xuống mặt lớp chất rắn ở đáy
 function spawnFall(color){
-  const bx = beakerBox();
+  const q = beakerGeo(), top = q.surf !== null ? q.surf : q.mouth;
   SFX.tinkle();
   for(let k=0; k<5; k++){
     const f = document.createElement('div');
     f.className = 'fall';
-    f.style.cssText = 'background:'+color+';border:1px solid var(--ink);z-index:44;left:'
-      + (bx.cx-40+Math.random()*80)+'px;top:'+(bx.bot-18)+'px;animation-delay:'+(Math.random()*.3)+'s';
+    const y0 = top + 4 + Math.random()*Math.max(4, (q.solid - top)*0.4);
+    f.style.cssText = 'background:'+color+';border:1px solid var(--ink);z-index:'+(q.z + 2)+';left:'
+      + (q.x - 3.5 + (Math.random()*2 - 1)*q.rx*0.7)+'px;top:'+y0+'px;--drop:'+Math.max(4, q.solid - y0 - 4).toFixed(0)+'px;animation-delay:'+(Math.random()*.3)+'s';
     G.appendChild(f); setTimeout(()=>f.remove(), 1400);
   }
 }
@@ -1329,100 +1414,172 @@ function wiggleBeaker(){
 /* ---- dụng cụ cắm vào cốc: trượt vật từ ô của nó tới chỗ cốc ----
    place() ghi z-index thẳng vào inline style, nên lúc tháo ra phải TRẢ LẠI đúng số cũ.
    Xoá trắng (style.zIndex='') là vật tụt xuống z:auto và chui ra sau mặt bàn — mất tiêu. */
+/* Đặt cốc ra ngoài thảm (pt: điểm thả trên màn hình, dy: từ giữa hình đang cầm xuống đáy cốc) hoặc đưa về giữa thảm (pt null).
+   Cốc rời thảm thì các bộ đang lắp vào cốc tháo ra; lắp bộ mới (đun, thu khí, lọc, điện phân) thì cốc tự về giữa. */
+function parkBeaker(pt, dy){
+  if(!pt){
+    if(!lab.bkPark) return;
+    if(lab.lampUnder){ SFX.err(); toast('Đèn cồn đang ở giữa thảm hơ muôi — kéo đèn ra khỏi thảm rồi hãy đặt cốc vào.'); return; }
+    lab.bkPark = null; lab.bkAuto = false;
+  } else {
+    const r = G.getBoundingClientRect(), s = r.width / 1280;
+    if(lab.heaterOn) setHeat(false);
+    if(lab.catcher) setCatch(false);
+    if(lab.filterOn) setFilter(false);
+    if(lab.elecOn) setElec(false);
+    lab.bkPark = {x: (pt[0] - r.left) / s, y: Math.max(FAR_Y + 12, Math.min(NEAR_Y - 6, (pt[1] - r.top) / s + dy))};
+    lab.bkAuto = false;   // người chơi tự đặt: tháo muôi xong cốc vẫn ở đó
+  }
+  layoutRigs(); SFX.clink(); updateBeaker();
+}
+const unpark = () => { lab.bkPark = null; lab.bkAuto = false; };   // bộ lắp nào cũng cần cốc ở giữa thảm
 function dockZ(el, z){
   if(el.dataset.z0 === undefined) el.dataset.z0 = el.style.zIndex || '';
   el.style.zIndex = z;
 }
 function undockZ(el){ el.style.zIndex = el.dataset.z0 || ''; }
 
-/* Bật đèn = dựng cả BỘ ĐUN: kiềng mọc lên, cốc được nhấc đặt LÊN lưới amiăng,
-   đèn cồn chui vào giữa ba chân. Không còn cảnh hơ cốc lơ lửng trên ngọn lửa. */
+/* ---- BỘ LẮP TRÊN THẢM ----
+   Thả dụng cụ vào thảm (hoặc thẳng vào cốc) là LẮP: nó bay từ chỗ cất tới đúng chỗ làm việc, đổi sang dáng
+   dùng và to lên x1.5; khung giữ bộ ấy cần (kiềng, giá sắt) tự dựng lên. Kéo nó ra khỏi thảm là tháo.
+   Mọi vị trí tính lại ở MỘT chỗ (layoutRigs), nên cốc nhấc lên kiềng thì chuông, điện cực… bám theo. */
+function moveTool(key, sid, an, x, y, k, z){
+  const it = G.querySelector('#tool_'+key), home = TOOLPOS[key]; if(!it || !home) return;
+  const b = artBox(sid, an, x, y, k);
+  it.style.left = b.l.toFixed(1)+'px'; it.style.top = b.t.toFixed(1)+'px';
+  it.style.width = b.w.toFixed(1)+'px'; it.style.height = b.h.toFixed(1)+'px';
+  it.style.zIndex = z;
+  if(it.dataset.sid !== sid){ it.querySelector('svg use').setAttribute('href', '#'+sid); it.dataset.sid = sid; }
+  const away = sid !== TOOLBOX[key].cat || x !== home.x || y !== home.y;
+  it.classList.toggle('docked', away);
+  const sh = G.querySelector('#sh_tool_'+key); if(sh) sh.classList.toggle('away', away);
+}
+function homeTool(key){
+  const tl = TOOLBOX[key], q = TOOLPOS[key]; if(!q) return;
+  moveTool(key, tl.cat, tl.an || 'rest', q.x, q.y, q.k, q.z);
+  if(key === 'heat'){ const sv = G.querySelector('#sv_heat'); if(sv) sv.style.setProperty('--flame', 0); }
+}
+function layoutRigs(){
+  if(!lab) return;
+  const hung = spoonUp();
+  if(lab.lampUnder && !hung) lab.lampUnder = false;   // muôi đã tháo / về chỗ: đèn về chỗ, cốc về giữa thảm
+  const bk = G.querySelector('#beakerItem');
+  if(bk){
+    bk.style.setProperty('--lift', (-LIFT)+'px'); bk.classList.toggle('hot', !!lab.heaterOn);
+    // cốc ở giữa thảm, hay đang đứng ngoài thảm (người chơi đặt ra / đổi chỗ với đèn) — hộp trượt tới đó và co lại
+    const q = beakerSpot(), away = q.away, b = beakerBoxAt(false);
+    bk.style.left = b.l.toFixed(1)+'px'; bk.style.top = b.t.toFixed(1)+'px';
+    bk.style.width = b.w.toFixed(1)+'px'; bk.style.height = b.h.toFixed(1)+'px';
+    bk.style.zIndex = away ? zAt(q.y) + 20 : ZB;
+    const sh = G.querySelector('#sh_beakerItem');
+    if(sh){ const w = b.w*0.7; sh.style.left = q.x+'px'; sh.style.top = (q.y-2)+'px'; sh.style.width = w.toFixed(1)+'px'; sh.style.height = (w*0.23).toFixed(1)+'px'; }
+  }
+  G.querySelectorAll('#tripod,.tri-sh').forEach(e => e.classList.toggle('up', !!lab.heaterOn));
+  const rim = anchorIn('sym-beaker', 'rim', beakerBoxAt(lab.heaterOn));   // tâm miệng cốc trên màn hình
+  // đun: đèn mở nắp chui vào giữa ba chân kiềng, dưới cốc. Hơ muôi: đèn vào đúng chỗ đó (không kiềng), dưới muôi
+  if(TOOLPOS.heat){
+    if(lab.heaterOn || lab.lampUnder){
+      moveTool('heat', 'sym-lamp', 'base', BKP.x, BKP.y, KW, ZB - 2);
+      const sv = G.querySelector('#sv_heat'); if(sv) sv.style.setProperty('--flame', 1);
+    } else homeTool('heat');
+  }
+  // điện phân: thanh gác ngang miệng cốc, hai điện cực nhúng vào lòng cốc
+  if(TOOLPOS.elec){ if(lab.elecOn) moveTool('elec', 'sym-electro', 'rest', rim.x, rim.y, KW, ZB + 8); else homeTool('elec'); }
+  // giá sắt bên trái thảm, vòng giá xoay ra giữa thảm: giữ phễu lọc trên miệng cốc, hoặc muôi đốt có chất
+  // (đĩa chặn gác trên vòng, chén muôi thòng xuống — đúng tầm ngọn lửa khi đèn vào dưới)
+  if(TOOLPOS.filter || TOOLPOS.burn){
+    const fs = L3.dock.filterStand, k = kAt(fs);
+    const ring = anchorIn('sym-filterstand', 'ring', artBox('sym-filterstand', 'base', fs.x, fs.y, k));
+    if(TOOLPOS.filter){ if(lab.filterOn) moveTool('filter', 'sym-funnel', 'seat', ring.x, ring.y, k, ZB + 8); else homeTool('filter'); }
+    if(TOOLPOS.burn){ if(hung) moveTool('burn', 'sym-burnspoon', 'disc', ring.x, ring.y, k, ZB + 8); else homeTool('burn'); }
+    G.querySelectorAll('#filterstand,.fs-sh,#fsring').forEach(e => e.classList.toggle('up', !!lab.filterOn || hung));
+    // nửa TRƯỚC của vòng giá vẽ lại ĐÈ LÊN phễu / cán muôi (nửa sau vẫn nằm trong hình giá, phía sau): nhìn ra là
+    // phễu ngồi TRONG vòng, muôi xỏ QUA vòng. Vòng nằm ngang nên hiện thành elip ry = rx·SIN_E.
+    const fr = G.querySelector('#fsring');
+    if(fr){
+      const R = T3D['sym-filterstand'].r, rx = R.ring * k, ry = rx * SIN_E, w = 2 * R.tube * k;
+      const d = 'M' + (ring.x - rx).toFixed(1) + ',' + ring.y.toFixed(1) + ' A' + rx.toFixed(1) + ',' + ry.toFixed(1) + ' 0 0 0 '
+              + (ring.x + rx).toFixed(1) + ',' + ring.y.toFixed(1);
+      [['#fsringline', w + 3], ['#fsringcore', w]].forEach(([s, sw]) => { const p = fr.querySelector(s); p.setAttribute('d', d); p.setAttribute('stroke-width', sw.toFixed(1)); });
+      fr.style.zIndex = ZB + 9;
+    }
+  }
+  // thu khí: chuông chụp miệng cốc → ống dẫn → ống mềm thòng dưới đáy bình; giá sắt dựng ngay chỗ cất bình
+  // (sau bên phải), vòng giá quay về phía cốc, đáy thân bình (điểm neo mid) ngồi trong vòng
+  if(TOOLPOS.gas){
+    const gs = L3.dock.gasStand, k = kAt(gs);
+    const ring = anchorIn('sym-ringstand', 'ring', artBox('sym-ringstand', 'base', gs.x, gs.y, k));
+    if(lab.catcher) moveTool('gas', 'sym-gasbottle-rig', 'mid', ring.x, ring.y, k, zAt(gs.y) + 1); else homeTool('gas');
+    G.querySelectorAll('#gasstand,#gashood,#gastube,.rig-sh').forEach(e => e.classList.toggle('up', !!lab.catcher));
+    const hood = G.querySelector('#gashood');
+    if(hood){
+      const hb = artBox('sym-gashood', 'rim', rim.x, rim.y, KH);
+      hood.style.cssText = boxCss(hb) + 'z-index:' + (ZB + 6);
+      const n = anchorIn('sym-gashood', 'neck', hb), c = anchorIn('sym-gasbottle-rig', 'nozzle', artBox('sym-gasbottle-rig', 'mid', ring.x, ring.y, k));
+      // ống đi lên khỏi cổ chuông, vắt sang phải, võng xuống dưới vòng giá rồi cắm ngược lên vòi đáy bình
+      const d = 'M' + n.x.toFixed(1) + ',' + n.y.toFixed(1) + ' C' + (n.x + 40).toFixed(1) + ',' + (n.y - 60).toFixed(1) + ' '
+              + c.x.toFixed(1) + ',' + (c.y + 70).toFixed(1) + ' ' + c.x.toFixed(1) + ',' + c.y.toFixed(1);
+      G.querySelectorAll('#gastubeline,#gastubecore').forEach(e => e.setAttribute('d', d));
+      const tb = G.querySelector('#gastube'); if(tb) tb.style.zIndex = ZB + 7;   // ống vắt qua trước cốc và chuông
+    }
+  }
+}
+
+/* Bật đèn = dựng cả BỘ ĐUN: kiềng mọc lên, cốc được nhấc đặt LÊN lưới amiăng, đèn chui vào giữa ba chân. */
 function setHeat(on){
   if(lab.heaterOn === on) return;
+  if(on && spoonUp()){ toast(SPOON_BUSY); return; }
+  if(on) unpark();
+  if(on && lab.filterOn) setFilter(false);   // không lọc trong lúc đun
   lab.heaterOn = on;
-  const it = G.querySelector('#tool_heat'), bk = G.querySelector('#beakerItem'),
-        sv = G.querySelector('#sv_heat');
-  if(sv) sv.style.setProperty('--flame', on ? 1 : 0);
-  if(bk){ bk.style.setProperty('--lift', (-HEAT_LIFT)+'px'); bk.classList.toggle('hot', on); }
-  G.querySelectorAll('#tripod,.tri-sh').forEach(e => e.classList.toggle('up', on));
-  if(it && TOOLPOS.heat){
-    if(on){
-      const q = TOOLPOS.heat;
-      it.style.transition = 'transform .4s cubic-bezier(.3,1.4,.5,1)';
-      it.style.transform  = 'translate('+(xOf(0,BT) - xOf(q.u,q.t))+'px,'+(yOf(BT) - yOf(q.t) + 24)+'px)';
-      dockZ(it, 16);                        // dưới kiềng, nên chân kiềng vẫn vắt qua trước
-      it.classList.add('docked');
-    } else { it.style.transform = ''; undockZ(it); it.classList.remove('docked'); }
-  }
-  if(lab.catcher) syncGasRig();   // cốc nhấc lên/hạ xuống thì chuông phải bám theo
+  layoutRigs();
+  const sv = G.querySelector('#sv_heat'); if(sv) sv.style.setProperty('--flame', on ? 1 : 0);
   SFX.clink(); if(on) SFX.ignite();
   if(on && !runReactions()) explainNoRx();
   updateBeaker();
 }
-/* điện phân: cùng lối cắm, hai điện cực thả vào lòng cốc */
+/* điện phân: thanh điện cực gác lên miệng cốc */
 function setElec(on){
   if(lab.elecOn === on) return;
+  if(on && spoonUp()){ toast(SPOON_BUSY); return; }
+  if(on) unpark();
+  if(on && lab.filterOn) setFilter(false);   // phễu và thanh điện cực cùng cần miệng cốc
   lab.elecOn = on;
-  const it = G.querySelector('#tool_elec'), sv = G.querySelector('#sv_elec');
-  if(sv) sv.style.setProperty('--zap', on ? 1 : 0);
-  if(it && TOOLPOS.elec){
-    if(on){
-      const q = TOOLPOS.elec, bTop = yOf(BT) - BH*scaleOf(BT) - (lab.heaterOn ? HEAT_LIFT : 0);
-      it.style.transition = 'transform .4s cubic-bezier(.3,1.4,.5,1)';
-      it.style.transform  = 'translate('+(xOf(-0.16,BT) - xOf(q.u,q.t))+'px,'+(bTop + 52 - yOf(q.t))+'px)';
-      dockZ(it, 68);
-      it.classList.add('docked');
-    } else { it.style.transform = ''; undockZ(it); it.classList.remove('docked'); }
-  }
+  layoutRigs();
+  const sv = G.querySelector('#sv_elec'); if(sv) sv.style.setProperty('--zap', on ? 1 : 0);
   SFX.clink();
   renderElecPanel();
   updateBeaker();
 }
-/* Dựng BỘ THU KHÍ. Khí đi một chiều: chuông chụp miệng cốc → cổ hẹp → ống dẫn →
-   vào bình qua cái vòi nhỏ. Bình đứng trong giá đỡ vòng, KHÔNG úp ngược. */
-function syncGasRig(){
-  const hood = G.querySelector('#gashood'), stand = G.querySelector('#gasstand');
-  if(!hood || !stand) return;
-  const bTop = yOf(BT) - BH*scaleOf(BT) - (lab.heaterOn ? HEAT_LIFT : 0);
-  // vành chuông chụp đúng miệng cốc
-  hood.style.left = (xOf(0,BT) - HOOD_RIM_X) + 'px';
-  hood.style.top  = (bTop + 14 - HOOD_RIM_Y) + 'px';
-  // hai đầu ống thật: đầu ra của chuông, và CỔ bình (67,130 trong sym-gasbottle)
-  const hx = xOf(0,BT) - HOOD_RIM_X + HOOD_OUT_X, hy = bTop + 14 - HOOD_RIM_Y + HOOD_OUT_Y;
-  const r = gasRingPt(), k = TOOLBOX.gas.w * scaleOf(TOOLPOS.gas.t) / 120;
-  const sx = r.x + 1*k, sy = r.y + 12*k;
-  const d = 'M'+hx+','+hy+' Q'+(Math.min(hx,sx)-30)+','+((hy+sy)/2+18)+' '+sx+','+sy;
-  const l = G.querySelector('#gastubeline'), c = G.querySelector('#gastubecore');
-  if(l) l.setAttribute('d', d);
-  if(c) c.setAttribute('d', d);
-}
+/* Dựng BỘ THU KHÍ. Khí đi một chiều: chuông chụp miệng cốc → cổ hẹp → ống dẫn → vào bình đứng trong giá. */
 function setCatch(on){
   if(lab.catcher === on) return;
+  if(on && spoonUp()){ toast(SPOON_BUSY); return; }
+  if(on) unpark();
+  if(on && lab.filterOn) setFilter(false);   // chuông và phễu cùng cần miệng cốc
   lab.catcher = on;
-  const it = G.querySelector('#tool_gas');
-  if(it && TOOLPOS.gas){
-    if(on){
-      // bình trượt vào NẰM TRONG vòng đỡ — vẫn thấy và vẫn kéo ra được, chứ không
-      // biến mất. Vòi rời của nó tắt đi vì đã có ống nối thật thay chỗ.
-      const q = TOOLPOS.gas, sct = scaleOf(q.t);
-      const W = TOOLBOX.gas.w*sct, H = TOOLBOX.gas.h*sct;
-      const left = xOf(q.u,q.t) - W/2, top = yOf(q.t) - H, r = gasRingPt();
-      it.style.transition = 'transform .4s cubic-bezier(.3,1.4,.5,1)';
-      it.style.transform  = 'translate('+(r.x - (left + 66/120*W))+'px,'
-                          + (r.y - (top + 118/170*H))+'px)';
-      dockZ(it, 62);
-      it.style.setProperty('--tubeop', 0);
-      it.classList.add('docked');
-    } else {
-      it.style.transform = ''; undockZ(it);
-      it.style.removeProperty('--tubeop');
-      it.classList.remove('docked');
-    }
-  }
-  if(on) syncGasRig();
-  G.querySelectorAll('#gasstand,#gashood,#gastube,.rig-sh').forEach(e => e.classList.toggle('up', on));
+  layoutRigs();
   SFX.clink();
   updateBeaker();
+}
+/* Dựng BỘ LỌC: giá sắt bên trái thảm, vòng giá giữ phễu trên miệng cốc; kết tủa ở lại giấy lọc, chuyển sang đĩa.
+   Lắp được cả khi chưa có kết tủa; lọc lúc lắp (nếu có kết tủa), hoặc sau đó kéo cốc lên phễu / phễu vào cốc. */
+function setFilter(on){
+  if(!!lab.filterOn === on) return;
+  if(on){
+    if(spoonUp()){ toast(SPOON_BUSY); return; }   // muôi và phễu cùng cần vòng giá
+    if(lab.heaterOn){ toast('Cốc đang đun — kéo đèn cồn ra cho nguội rồi hãy lọc.'); return; }
+    unpark();
+    if(lab.catcher) setCatch(false);
+    if(lab.elecOn) setElec(false);
+  }
+  lab.filterOn = on;
+  layoutRigs();
+  SFX.clink();
+  if(on){
+    if(Object.keys(lab.mix).some(isPrecip)) setTimeout(() => { if(lab && lab.filterOn) useFilter(); }, 450);   // giá dựng xong, phễu vào vòng rồi mới chảy
+    else toast('Phễu đã lắp trên giá. Khi cốc có kết tủa, kéo <b>cốc</b> lên phễu (hoặc phễu vào cốc) để lọc.');
+  }
 }
 function useFilter(){
   const moved = Object.keys(lab.mix).filter(isPrecip);
@@ -1498,19 +1655,19 @@ function orderLine(od, oi, alt){
             .replace('{f}', sub(od.chem));
 }
 /* Ngày đầu tiên mỗi dụng cụ xuất hiện — để nhắc cách dùng ngay trong màn. */
-// Ngày có muôi đốt, đèn cồn chỉ để hơ muôi và bình Thu khí chỉ làm lọ khí (mẹo muôi đốt đã nói) —
+// Ngày có muôi đốt, đèn cồn chỉ để hơ muôi và bình thu khí chỉ làm lọ khí (mẹo muôi đốt đã nói) —
 // mẹo "đun cốc" và "hứng khí" để dành tới ngày đầu tiên thực sự phải đun cốc / hứng khí từ cốc.
 const TOOL_FIRST = (() => { const m = {rod:0};
   DAYS.forEach((d,i) => (d.tools||[]).forEach(t => {
     if(m[t] === undefined && !((t === 'gas' || t === 'heat') && d.tools.includes('burn'))) m[t] = i; }));
   return m; })();
 const TOOL_TIP = {
-  rod:    'Đũa <b>Khuấy</b> ở đầu bàn: kéo vào cốc rồi <b>khuấy tròn</b> cho chất ít tan tan hết.',
-  heat:   'Mới: <b>Đun nóng</b>. Kéo đèn cồn vào cốc — kiềng sẽ mọc lên đỡ cốc. Kéo ra là tắt.',
-  gas:    'Mới: <b>Thu khí</b>. Kéo lên miệng cốc <b>trước khi</b> phản ứng sinh khí, không thì khí bay mất.',
-  filter: 'Mới: <b>Lọc</b>. Kéo phễu vào cốc để lọc kết tủa ra đĩa, rồi kéo <b>đĩa lọc</b> sang khách.',
-  elec:   'Mới: <b>Điện phân</b>. Kéo nguồn vào cốc, rồi chọn chất và <b>số mol</b> ở bảng dưới mép bàn.',
-  burn:   'Mới: <b>Muôi đốt</b>. Thả bình O₂ vào <b>Thu khí</b> để nạp lọ khí → thả chất rắn vào muôi → kéo muôi qua <b>đèn cồn</b> cho bén lửa → đưa vào lọ khí.'
+  rod:    '<b>Đũa khuấy</b> ở đầu bàn: kéo vào cốc rồi <b>khuấy tròn</b> cho chất ít tan tan hết.',
+  heat:   'Mới: <b>Đèn cồn</b>. Kéo đèn vào cốc — kiềng sẽ mọc lên đỡ cốc. Kéo ra là tắt.',
+  gas:    'Mới: <b>Bình thu khí</b>. Kéo lên miệng cốc <b>trước khi</b> phản ứng sinh khí, không thì khí bay mất.',
+  filter: 'Mới: <b>Phễu lọc</b>. Kéo phễu vào cốc (hoặc kéo cốc lên phễu) để lọc kết tủa ra đĩa, rồi kéo <b>đĩa lọc</b> sang khách.',
+  elec:   'Mới: <b>Bộ điện phân</b>. Kéo vào cốc, rồi chọn chất và <b>số mol</b> ở bảng dưới mép bàn.',
+  burn:   'Mới: <b>Muôi đốt</b>. Thả bình O₂ vào <b>bình thu khí</b> để nạp lọ khí → thả chất rắn vào muôi (muôi tự treo lên giá) → kéo <b>đèn cồn</b> vào thảm cho lửa hơ chén muôi → kéo muôi đang cháy vào lọ khí.'
 };
 /* Đơn này có phải làm bằng muôi đốt không? Có phản ứng cháy ra đúng chất đó từ những gì
    điều chế được hôm nay. Nếu cũng có đường khác ngay trên kệ thì chỉ coi là "đốt" khi phiếu
@@ -1561,32 +1718,32 @@ function coachText(){
     const g = Object.keys(br.rg).find(f => CHEMS[f].s === 'k'), fu = Object.keys(br.rg).find(f => f !== g);
     if((box[t]||0) > 0) return 'Đã có <b>' + sub(t) + '</b> nhưng ' + res + '. Sai tỉ lệ thì đổ ra <b>bồn rửa</b> làm lại cho chuẩn.';
     if(!((lab.gas[g]||0) > 0)) return 'Đơn này phải <b>ĐỐT</b>. Trước hết nạp khí: '
-      + (day.chems.includes(g) ? 'kéo bình <b>' + sub(g) + '</b> từ tủ thả vào bình <b>Thu khí</b> (lọ khí).'
-                               : 'tự điều chế <b>' + sub(g) + '</b> rồi hứng vào bình <b>Thu khí</b>.');
-    if(!((lab.ladle[fu]||0) > 0)) return 'Lọ đã có ' + sub(g) + '. Giờ thả <b>' + sub(fu) + '</b> từ tủ vào <b>muôi đốt</b> (nhãn <b>Đốt</b>).';
-    if(!lab.ladleLit) return 'Kéo muôi qua <b>đèn cồn</b> để hơ cho ' + sub(fu) + ' bén lửa.';
-    return 'Muôi đang cháy — đưa nhanh vào bình <b>Thu khí</b> (lọ ' + sub(g) + ')!';
+      + (day.chems.includes(g) ? 'kéo bình <b>' + sub(g) + '</b> từ tủ thả vào <b>bình thu khí</b> (lọ khí).'
+                               : 'tự điều chế <b>' + sub(g) + '</b> rồi hứng vào <b>bình thu khí</b>.');
+    if(!((lab.ladle[fu]||0) > 0)) return 'Lọ đã có ' + sub(g) + '. Giờ thả <b>' + sub(fu) + '</b> từ tủ vào <b>muôi đốt</b>.';
+    if(!lab.ladleLit) return 'Muôi đã treo trên giá — kéo <b>đèn cồn</b> vào thảm, dưới muôi, để hơ cho ' + sub(fu) + ' bén lửa.';
+    return 'Muôi đang cháy — kéo muôi vào <b>bình thu khí</b> (lọ ' + sub(g) + ')!';
   }
   // thứ tự nhắc đúng thứ tự thao tác: chất tan → nước → khuấy → dụng cụ → giao
   if(day.chems.includes(t) && !((lab.mix[t]||0) > 0 || (box[t]||0) > 0 || (lab.undissolved[t]||0) > 0))
     return 'Bắt đầu bằng cách kéo lọ <b>' + sub(t) + '</b> từ tủ bên phải vào cốc.';
   if(od.water && !(lab.mix.H2O > 0) && day.chems.includes('H2O'))
     return 'Khách hỏi <b>dung dịch</b> chứ không phải chất khô — kéo thêm lọ <b>Nước</b> vào cốc.';
-  if(tot(lab.undissolved) > 0) return 'Còn chất chưa tan dưới đáy — kéo đũa <b>Khuấy</b> vào cốc rồi khuấy tròn.';
-  if(want === 'gas' && !lab.catcher)  return 'Khách cần <b>khí</b>: kéo <b>Thu khí</b> lên miệng cốc trước đã, không thì khí bay mất.';
+  if(tot(lab.undissolved) > 0) return 'Còn chất chưa tan dưới đáy — kéo <b>đũa khuấy</b> vào cốc rồi khuấy tròn.';
+  if(want === 'gas' && !lab.catcher)  return 'Khách cần <b>khí</b>: kéo <b>bình thu khí</b> lên miệng cốc trước đã, không thì khí bay mất.';
   if(!tot(lab.mix) && !tot(lab.undissolved))
     return 'Cốc đang trống — kéo hoá chất từ <b>tủ bên phải</b> vào cốc để bắt đầu.';
   if(day.tools.includes('elec') && !lab.elecOn)
-    return 'Kéo <b>Điện phân</b> vào cốc, rồi chọn chất và <b>số mol</b> ở bảng dưới mép bàn.';
+    return 'Kéo <b>bộ điện phân</b> vào cốc, rồi chọn chất và <b>số mol</b> ở bảng dưới mép bàn.';
   if(lab.elecOn && elecList().length)
     return 'Ở bảng dưới mép bàn: chọn chất, vặn <b>số mol</b> rồi bấm <b>điện phân</b>.';
-  if(want === 'solid' && (lab.mix[t]||0) > 0) return 'Kết tủa đã có trong cốc — kéo <b>Lọc</b> vào cốc để lọc ra đĩa.';
+  if(want === 'solid' && (lab.mix[t]||0) > 0) return 'Kết tủa đã có trong cốc — kéo <b>phễu lọc</b> vào cốc để lọc ra đĩa.';
   // cốc im re: giáo sư nói lý do nếu đoán ra được (đốt nhầm chỗ, dãy hoạt động, chất không tan…)
   const why = whyNoReaction();
   if(why) return '<b>Giáo sư:</b> ' + why;
   // hết gợi ý cụ thể: nhắc chung, không đoán bừa là phải đun hay phải trộn gì
   return 'Chưa ra <b>' + sub(t) + '</b>. Thử rót thêm chất khác từ tủ'
-       + (day.tools.includes('heat') ? ', hoặc kéo <b>Đun nóng</b> vào cốc' : '') + ' xem sao.';
+       + (day.tools.includes('heat') ? ', hoặc kéo <b>đèn cồn</b> vào cốc' : '') + ' xem sao.';
 }
 // ô hướng dẫn #coach đã bỏ khỏi cột khách (cột giờ chỉ có phiếu, lời khách và quầy) — thêm lại <div id="coach"> là chạy lại
 function updateCoach(){
@@ -1622,25 +1779,66 @@ function nextCustomer(){
               CHEM_FACTS[od.chem] && fillLine(CHAT_FACT, {fact:CHEM_FACTS[od.chem]}), chat[2]].filter(Boolean);
   lab.talkI = 0;
   const sp = G.querySelector('#speech'), cw = G.querySelector('#custwalk');
-  custSay(line);
-  sp.classList.add('hush');                       // khách đứng trước khay rồi mới nói
+  sp.classList.add('hush');                       // bóng thoại trống và ẩn cho tới khi khách đứng yên trước khay
+  custSay('', true);
   cw.innerHTML = custSVG(od.who,'neutral').replace('<svg ','<svg style="height:250px" ');
-  custWalk(cw, 'in', () => sp.classList.remove('hush'));
+  // không vội: khách dừng chân, đứng một nhịp rồi bóng thoại mới hiện và câu đặt hàng mới gõ ra
+  custWalk(cw, 'in', () => setTimeout(() => {
+    if(!lab || !cw.isConnected || lab.day.orders[lab.oi] !== od) return;
+    sp.classList.remove('hush'); custSay(line);
+  }, SAY_DELAY));
   updateCoach();
   SFX.bell();
 }
-/* lời khách trong bóng thoại. Đơn còn chờ (lab.otag) mà câu không nói rõ cả lượng lẫn công thức — hoặc tên hàng có
-   gợi ý cách làm — thì hiện thêm dòng chất cần làm ở góc dưới bên phải; giao xong / khách bỏ đi thì otag = null */
-function custSay(html){
+/* lời khách trong bóng thoại, GÕ RA từng chữ (instant: hiện ngay). Chữ chưa gõ vẫn chiếm chỗ (ẩn) nên bóng thoại có
+   ngay cỡ cuối, không nhảy dòng. Dòng chất cần làm + lượng ở dưới (#sporder) LUÔN hiện khi đơn còn chờ (lab.otag),
+   không gõ; giao xong / khách bỏ đi thì otag = null. lab.sayEnd: lúc câu gõ xong (custLeave đợi tới đó). */
+const SAY_DELAY = 450, TYPE_MS = 30;            // khách đứng yên bao lâu thì nói · mỗi nhịp gõ 2 chữ (~65 chữ/giây)
+function custSay(html, instant){
   const t = G.querySelector('#sptext'), tag = G.querySelector('#sporder');
   if(!t) return;
+  clearInterval(t._type); t._type = null;
   t.innerHTML = html;
-  const o = lab && lab.otag;
-  tag.hidden = !o || (!o.hint && html.includes(o.q) && html.includes(o.f));
+  tag.hidden = !(lab && lab.otag);
+  const todo = [];
+  if(!instant){
+    const walk = n => [...n.childNodes].forEach(c => {
+      if(c.nodeType !== 3) return walk(c);
+      if(!c.textContent) return;
+      const on = document.createElement('span'), off = document.createElement('span');
+      off.className = 'ty-off'; off.textContent = c.textContent;
+      c.replaceWith(on, off); todo.push([on, off]);
+    });
+    walk(t);
+  }
+  const n = todo.reduce((s, [, off]) => s + off.textContent.length, 0);
+  if(lab) lab.sayEnd = Date.now() + Math.ceil(n / 2) * TYPE_MS;
+  if(!n) return;
+  // khách đang đứng yên mà bóng thoại còn ẩn (vd. giao hàng ngay lúc khách vừa dừng chân): câu mới thì hiện bóng thoại
+  const sp = G.querySelector('#speech'), cw = G.querySelector('#custwalk');
+  if(sp && cw && !cw.classList.contains('walking')) sp.classList.remove('hush');
+  let i = 0;
+  t._type = setInterval(() => {
+    for(let s = 0; s < 2; s++){
+      while(i < todo.length && !todo[i][1].textContent) i++;
+      if(i >= todo.length){ clearInterval(t._type); t._type = null; return; }
+      const [on, off] = todo[i];
+      on.textContent += off.textContent[0]; off.textContent = off.textContent.slice(1);
+    }
+  }, TYPE_MS);
 }
-// bấm vào bóng thoại lúc khách đang chờ hàng: khách nói câu kế trong lab.talk
+// câu đang gõ dở thì hiện hết ngay; trả về true nếu vừa làm vậy
+function finishSay(){
+  const t = G.querySelector('#sptext'); if(!t || !t._type) return false;
+  clearInterval(t._type); t._type = null;
+  t.querySelectorAll('.ty-off').forEach(o => { o.previousSibling.textContent += o.textContent; o.textContent = ''; });
+  if(lab) lab.sayEnd = Date.now();
+  return true;
+}
+// bấm vào bóng thoại lúc khách đang chờ hàng: câu đang gõ thì hiện hết; không thì khách nói câu kế trong lab.talk
 function custChat(){
   if(!lab || !lab.otag || !lab.talk || G.querySelector('#speech.hush')) return;
+  if(finishSay()) return;
   lab.talkI = (lab.talkI + 1) % lab.talk.length;
   custSay(lab.talk[lab.talkI]);
   SFX.talk();
@@ -1663,10 +1861,16 @@ function custWalk(cw, dir, done){
   } else cw.classList.add('walking', 'away');
   cw._walk = setTimeout(() => { cw.classList.remove('walking'); if(done) done(); }, WALK_MS);
 }
-// khách xong việc (nhận hàng hoặc chờ lâu bỏ đi): đứng một nhịp cho thấy nét mặt, rồi đi ra; hết khách thì đóng ca
+// khách xong việc (nhận hàng hoặc chờ lâu bỏ đi): nói hết câu chào, đứng thêm một nhịp cho thấy nét mặt; rồi bóng thoại
+// tắt và khách mới đi ra — không để bóng thoại lơ lửng khi người đã đi. Hết khách thì đóng ca
 function custLeave(){
   const cw = G.querySelector('#custwalk'), next = lab.oi >= lab.day.orders.length ? finishLab : nextCustomer;
-  setTimeout(() => { if(lab && cw.isConnected) custWalk(cw, 'out', () => { if(lab) next(); }); }, 500);
+  const wait = Math.max(900, (lab.sayEnd || 0) - Date.now() + 800);
+  setTimeout(() => {
+    if(!lab || !cw.isConnected) return;
+    const sp = G.querySelector('#speech'); if(sp) sp.classList.add('hush');
+    custWalk(cw, 'out', () => { if(lab) next(); });
+  }, wait);
 }
 // giao được thì trả về true, không thì {key, text}: key là khoá REASON_LINES (loi-thoai.js), text là câu khách nói
 function checkServe(cont, od){

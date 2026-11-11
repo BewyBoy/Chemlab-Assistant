@@ -5,7 +5,7 @@
 # Vì vậy script gom file vào dist\game\ rồi nén NỘI DUNG của thư mục đó.
 #
 # Chỉ đóng gói đúng những file game cần (danh sách $canShip). Mọi thứ khác trong repo (bản mẫu phối cảnh,
-# trang xem thử nhân vật, ghi chú, thư mục assets/, tools/, docs/) là đồ làm việc, không ship.
+# trang xem thử nhân vật, ghi chú, phần còn lại của assets/, tools/, docs/) là đồ làm việc, không ship.
 
 $ErrorActionPreference = 'Stop'
 $goc = Split-Path $PSScriptRoot -Parent   # script nằm ở tools\, gốc game là thư mục cha
@@ -22,6 +22,7 @@ $canShip = @(
   'js\du-lieu.js',          # hoá chất, 31 ngày, thành tựu
   'js\lich.js',             # tên tháng + mô tả 31 ngày (nạp ngay sau du-lieu.js)
   'js\bai-giang.js',        # lời giáo sư giảng từng ngày — thiếu là vào ngày nào cũng lỗi
+  'js\do-hoa-3d.js',       # hình dụng cụ nướng từ mô hình 3D + bố cục bàn (sinh từ Blender, nạp trước do-hoa.js)
   'js\do-hoa.js',          # kho SVG + nhân vật
   'js\diem.js',             # luật tính điểm & mốc sao
   'js\giao-dien.js',        # âm thanh, menu, lịch, cài đặt, báo cáo
@@ -29,6 +30,7 @@ $canShip = @(
   'js\che-do.js',           # minigame, pha nồng độ, chế độ khó, thẻ phản ứng
   'js\tham-quan.js',        # chuyến tham quan khu công nghiệp (visual novel)
   'js\khoi-dong.js',        # tự kiểm tra + vào game (nạp cuối)
+  'assets\man-hinh-chinh.webp', # ảnh render 3D của menu chính (trong assets\ chỉ file này được ship)
   'favicon.ico',
   'favicon.png'
 )

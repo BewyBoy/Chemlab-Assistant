@@ -10,18 +10,20 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Itim&family=Patrick+Hand&family=Playpen+Sans:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="preload" as="image" href="assets/man-hinh-chinh.webp">
 </head>
 <body>
 <!-- #screen lấp cửa sổ theo tỷ lệ đã chọn; #game là vùng 1280×720 ở giữa, mọi toạ độ trong game tính theo nó -->
 <div id="screen"><div id="game"></div></div>
 <div id="rotate"><svg width="70" height="90" viewBox="0 0 70 90"><rect x="8" y="4" width="54" height="82" rx="9" fill="#fffdf5" stroke="#f7f1e3" stroke-width="4"/><rect x="15" y="14" width="40" height="58" rx="3" fill="#7fc4c9"/><circle cx="35" cy="79" r="3" fill="#4a4238"/></svg>Xoay ngang điện thoại để chơi nhé!<small style="font-size:15px;opacity:.75">Bàn thí nghiệm cần màn hình nằm ngang.</small></div>
-<!-- Thứ tự nạp quan trọng: thoại & bảng phản ứng → dữ liệu → đồ hoạ → điểm → giao diện → phòng thí nghiệm → chế độ phụ → tham quan → khởi động. -->
+<!-- Thứ tự nạp quan trọng: thoại & bảng phản ứng → dữ liệu → hình 3D (do-hoa-3d.js) → đồ hoạ → điểm → giao diện → phòng thí nghiệm → chế độ phụ → tham quan → khởi động. -->
 <script src="js/loi-thoai.js"></script>
 <script src="js/nhan-vat.js"></script>
 <script src="js/phan-ung.js"></script>
 <script src="js/du-lieu.js"></script>
 <script src="js/lich.js"></script>
 <script src="js/bai-giang.js"></script>
+<script src="js/do-hoa-3d.js"></script>
 <script src="js/do-hoa.js"></script>
 <script src="js/diem.js"></script>
 <script src="js/giao-dien.js"></script>

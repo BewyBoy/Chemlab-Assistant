@@ -251,16 +251,11 @@ function showMenu(){
   const nextDay = Math.min(save.unlocked, DAYS.length);
   // nút menu: "> nhãn <" — hai mũi nhọn hiện khi hover (style.css .menu-btns .sel); ::before của .btn đã là đế chống rung
   const mb = (id, cls, html) => `<button class="btn${cls}" id="${id}"><i class="sel" aria-hidden="true">&gt;</i>${html}<i class="sel" aria-hidden="true">&lt;</i></button>`;
+  // Phòng, bảng tên, bàn và giáo sư đều nằm trong ảnh render 3D (xem .menu-3d ở style.css); chỉ nút và lời chào là HTML
   G.innerHTML = `<div class="scene center" style="padding:0">
-    <div class="menu-wall"></div>
-    <div style="position:absolute;top:150px;left:64px">${sym('sym-poster-periodic',126,160)}</div>
-    <div style="position:absolute;top:150px;right:74px">${sym('sym-poster-safety',126,160)}</div>
-    <div style="position:absolute;top:34px;left:210px">${sym('sym-clock',74,74)}</div>
+    <img class="menu-3d" src="assets/man-hinh-chinh.webp" alt="" draggable="false">
     <div class="menu-main">
-      <div class="menu-sign">
-        <h1>${sym('sym-erlenmeyer',40,54,'vertical-align:-12px;--lc:#7fc4c9')} Trợ Lý Hóa Học Nhí</h1>
-        <h2>Trợ lý phòng thí nghiệm của giáo sư Hoffmann</h2>
-      </div>
+      <h1 class="menu-title">Trợ Lý Hóa Học Nhí — Trợ lý phòng thí nghiệm của giáo sư Hoffmann</h1>
       <div class="menu-btns">
         ${mb('bstart', ' big', inProgress ? ico('play')+' Ngày '+nextDay+' →' : ico('play')+' Bắt đầu')}
         ${mb('brx', '', ico('note')+' Sổ tay')}
@@ -269,20 +264,13 @@ function showMenu(){
         ${mb('bset', '', ico('gear')+' Cài đặt')}
       </div>
     </div>
-    <div class="menu-bench">${sym('sym-benchtex',1270,60)}</div>
-    <div style="position:absolute;bottom:96px;left:120px">${sym('sym-tuberack',190,120)}</div>
-    <div style="position:absolute;bottom:98px;left:330px">${sym('sym-erlenmeyer',86,116,'--lc:#7fc4c9')}</div>
-    <div style="position:absolute;bottom:98px;left:430px">${sym('sym-lamp',80,96,'--flame:1')}</div>
-    <div style="position:absolute;bottom:96px;right:340px">${sym('sym-gasbottle',88,124,'--gasop:.6')}</div>
-    <span class="mbub" style="left:352px;bottom:200px;width:14px;height:14px"></span>
-    <span class="mbub" style="left:378px;bottom:190px;width:9px;height:9px;animation-delay:2.3s"></span>
-    <span class="mbub" style="right:368px;bottom:210px;width:12px;height:12px;animation-delay:1.1s"></span>
-    <span class="mbub" style="right:398px;bottom:195px;width:8px;height:8px;animation-delay:4.2s"></span>
-    <span class="mbub" style="left:460px;bottom:200px;width:10px;height:10px;animation-delay:3.1s"></span>
-    <div style="position:absolute;bottom:90px;right:110px" id="menuprof"></div>
+    <span class="mbub" style="left:362px;bottom:208px;width:12px;height:12px"></span>
+    <span class="mbub" style="left:380px;bottom:196px;width:8px;height:8px;animation-delay:2.3s"></span>
+    <span class="mbub" style="left:1000px;bottom:262px;width:11px;height:11px;animation-delay:1.1s"></span>
+    <span class="mbub" style="left:1018px;bottom:256px;width:7px;height:7px;animation-delay:3.4s"></span>
+    <span class="mbub" style="left:990px;bottom:250px;width:9px;height:9px;animation-delay:5.2s"></span>
     <div class="menu-bubble">${PROF_GREETING}</div>
   </div>`;
-  G.querySelector('#menuprof').innerHTML = profSVG('happy').replace('viewBox','height="225" viewBox');
   G.querySelector('#bstart').onclick = () => go(showMap);
   G.querySelector('#brx').onclick = showRxBook;
   G.querySelector('#bach').onclick = showAch;
