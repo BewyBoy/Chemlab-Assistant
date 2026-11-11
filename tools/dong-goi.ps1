@@ -23,6 +23,8 @@ $canShip = @(
   'js\lich.js',             # tên tháng + mô tả 31 ngày (nạp ngay sau du-lieu.js)
   'js\bai-giang.js',        # lời giáo sư giảng từng ngày — thiếu là vào ngày nào cũng lỗi
   'js\do-hoa.js',          # kho SVG + nhân vật
+  'js\trang-phuc.js',       # trang phục (skin) của nhân vật
+  'js\nhan-vat-skin.js',    # mắt chấm + ghép trang phục
   'js\diem.js',             # luật tính điểm & mốc sao
   'js\giao-dien.js',        # âm thanh, menu, lịch, cài đặt, báo cáo
   'js\phong-thi-nghiem.js', # bàn thí nghiệm, phản ứng, khách hàng

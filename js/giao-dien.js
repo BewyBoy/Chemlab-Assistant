@@ -836,7 +836,7 @@ function showLesson(i, onEnd){
   const html = `<div class="scene vnscene${onEnd ? ' vnover' : ''}">
     <div class="vnboard"><div class="vnbtitle">Ngày ${i+1} · ${DAYS[i].t}${hard ? ' · <span class="vnhard">khó</span>' : ''}</div><div class="vnbody"></div></div>
     <div class="vnbox"><div class="vnname"><span>Giáo sư Hoffmann</span></div><p class="vntext"></p></div>
-    <div class="vnprof">${profSVG('neutral')}</div>
+    <div class="vnprof">${profSVG('neutral', profSkinFor(i))}</div>
     <button class="btn vnskip">${onEnd ? 'Đóng ' + ico('close') : 'Bỏ qua ' + ico('next')}</button></div>`;
   if(onEnd){
     // nút vừa bấm ở thẻ Tạm nghỉ vẫn giữ focus: phím cách lúc này sẽ bấm lại nó thay vì sang câu

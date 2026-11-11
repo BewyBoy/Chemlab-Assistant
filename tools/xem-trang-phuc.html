@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Xem trang phục nhân vật</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+  /* trang xem thử: mọi nhân vật × 3 skin × 3 biểu cảm. ?c=4 chỉ xem một người, ?big=1 phóng to */
+  html, body { overflow: auto !important; height: auto !important; position: static !important; background: #f3ead6; }
+  body { margin: 0; padding: 16px; font-family: 'Itim', sans-serif; color: #3b3025; }
+  h1 { font-size: 22px; margin: 0 0 12px; font-weight: normal; }
+  .row { display: grid; grid-template-columns: 150px repeat(9, 1fr); gap: 6px; align-items: end; margin-bottom: 10px; background: #fffdf5; border: 1.2px solid #3b3025; border-radius: 8px; padding: 8px; }
+  .row.big { grid-template-columns: 150px repeat(3, 1fr); }
+  .nm { font-size: 16px; align-self: center; }
+  .cell { text-align: center; font-size: 12px; }
+  .cell svg { width: 100%; height: auto; display: block; }
+  .row.big .cell svg { max-height: 420px; }
+  .sk { font-size: 13px; }
+  #screen, #rotate { display: none !important; }
+</style>
+</head>
+<body>
+<h1>Trang phục nhân vật — 3 skin × 3 biểu cảm (bình thường · vui · bực)</h1>
+<div id="out"></div>
+<div id="screen"><div id="game"></div></div>
+<script src="../js/loi-thoai.js"></script>
+<script src="../js/nhan-vat.js"></script>
+<script src="../js/phan-ung.js"></script>
+<script src="../js/du-lieu.js"></script>
+<script src="../js/do-hoa.js"></script>
+<script src="../js/trang-phuc.js"></script>
+<script src="../js/nhan-vat-skin.js"></script>
+<script>
+  const q = new URLSearchParams(location.search), only = q.has('c') ? +q.get('c') : null, big = q.has('big');
+  const names = ['Giáo sư Hoffmann'].concat(CUSTOMERS.map(c => c[0] + ' · ' + c[1]));
+  const exps = big ? ['neutral'] : ['neutral', 'happy', 'annoy'];
+  let html = '';
+  for(let i = 0; i < 11; i++){
+    if(only !== null && only !== i) continue;
+    const skins = skinsOf(i);
+    html += '<div class="row' + (big ? ' big' : '') + '"><div class="nm">' + i + '. ' + names[i] + '</div>';
+    for(let k = 0; k < 3; k++) for(const e of exps){
+      const svg = i === 0 ? profSVG(e, k) : custSVG(i - 1, e, k);
+      html += '<div class="cell">' + svg + '<div class="sk">' + (skins[k] ? skins[k].ten : '(chưa có)') + (big ? '' : ' · ' + e) + '</div></div>';
+    }
+    html += '</div>';
+  }
+  document.getElementById('out').innerHTML = html;
+</script>
+</body>
+</html>

@@ -1215,3 +1215,11 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .acidsplash{position:absolute;z-index:57;width:9px;height:9px;border-radius:50%;border:1.5px solid var(--ink);pointer-events:none;
   animation:acidsplash .9s cubic-bezier(.2,.7,.4,1) both}
 @keyframes acidsplash{0%{transform:translate(0,0) scale(.6);opacity:1}70%{opacity:1}100%{transform:translate(var(--dx),calc(var(--dy) + 40px)) scale(1);opacity:0}}
+
+/* mắt chấm (nhan-vat-skin.js): bình thường / bực = chấm, vui = hai vòng cung; người "mắt cười" (eo-smiley) thì lúc
+   bình thường cũng là vòng cung, chỉ khi bực mới mở mắt */
+.charsvg .eo-arc{display:none}
+.charsvg[data-exp="happy"] .eo-arc{display:inline}
+.charsvg[data-exp="happy"] .eo-open{display:none}
+.charsvg[data-exp="neutral"] .eo-smiley .eo-arc{display:inline}
+.charsvg[data-exp="neutral"] .eo-smiley .eo-open{display:none}

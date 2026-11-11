@@ -1884,7 +1884,8 @@ function nextCustomer(){
   const sp = G.querySelector('#speech'), cw = G.querySelector('#custwalk');
   custSay(line);
   sp.classList.add('hush');                       // khách đứng trước khay rồi mới nói
-  cw.innerHTML = custSVG(od.who,'neutral').replace('<svg ','<svg style="height:250px" ');
+  // mỗi lượt ghé một bộ đồ (nhan-vat-skin.js): đổi theo ngày và lượt khách, chơi lại đúng ngày thì vẫn y như cũ
+  cw.innerHTML = custSVG(od.who, 'neutral', custSkinFor(lab.i, lab.oi, od.who)).replace('<svg ','<svg style="height:250px" ');
   custWalk(cw, 'in', () => sp.classList.remove('hush'));
   updateCoach();
   SFX.bell();

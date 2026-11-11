@@ -3976,7 +3976,7 @@ function showRxCard(r, opt){
   const cons = (() => { const c = {};
     Object.keys(r.rg).forEach(f => { const a = atomCounts(f); Object.keys(a).forEach(e => c[e] = (c[e]||0) + a[e]*r.rg[f]); });
     return Object.keys(c).map(e => e + ': ' + c[e]).join(' · '); })();
-  const face = profSVG('happy').replace(/viewBox="[^"]+"/, 'viewBox="' + HD_HEADS[0] + '"');
+  const face = profSVG('happy', lab ? profSkinFor(lab.i) : 0).replace(/viewBox="[^"]+"/, 'viewBox="' + HD_HEADS[0] + '"');
   const ov = document.createElement('div');
   ov.className = 'overlay';
   ov.innerHTML = '<div class="rxcard">'
