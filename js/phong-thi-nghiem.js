@@ -1885,7 +1885,9 @@ function nextCustomer(){
   custSay(line);
   sp.classList.add('hush');                       // khách đứng trước khay rồi mới nói
   // mỗi lượt ghé một bộ đồ (nhan-vat-skin.js): đổi theo ngày và lượt khách, chơi lại đúng ngày thì vẫn y như cũ
-  cw.innerHTML = custSVG(od.who, 'neutral', custSkinFor(lab.i, lab.oi, od.who)).replace('<svg ','<svg style="height:250px" ');
+  // hai hình: nhìn thẳng (đứng trước khay) + nhìn nghiêng (nhan-vat-nghieng.js, hiện lúc .walking)
+  const skin = custSkinFor(lab.i, lab.oi, od.who), tall = s => s.replace('<svg ', '<svg style="height:250px" ');
+  cw.innerHTML = '<div class="cwin">' + tall(custSVG(od.who, 'neutral', skin)) + tall(custSideSVG(od.who, 'neutral', skin)) + '</div>';
   custWalk(cw, 'in', () => sp.classList.remove('hush'));
   updateCoach();
   SFX.bell();
@@ -1907,19 +1909,19 @@ function custChat(){
   SFX.talk();
 }
 function setExp(exp){
-  const sv = G.querySelector('#cust .charsvg');
-  if(sv) sv.setAttribute('data-exp', exp);
+  G.querySelectorAll('#cust .charsvg').forEach(sv => sv.setAttribute('data-exp', exp));
 }
-/* Khách đi bộ: 'in' = từ mép trái bước vào, dừng trước khay; 'out' = đi ngược lại ra mép trái, đúng lối đã vào.
-   Lúc bước thì nhún nhẹ (.walking); xong thì gọi done. Mỗi lần gọi huỷ lượt đi trước còn dở. */
+/* Khách đi bộ từ phải sang trái: 'in' = từ mép phải khung bước vào, dừng trước khay; 'out' = đi tiếp ra mép trái.
+   Lúc bước thì hiện dáng nghiêng, nhún nhẹ, tay đánh theo nhịp (.walking); đứng lại thì quay mặt thẳng. Xong thì gọi done. Mỗi lần gọi huỷ lượt đi trước còn dở. */
 const WALK_MS = 1100;
 function custWalk(cw, dir, done){
   clearTimeout(cw._walk);
   if(dir === 'in'){
-    cw.style.transition = 'none';
+    const inn = cw.querySelector('.cwin') || cw;
+    inn.style.transition = 'none';
     cw.className = 'custwalk walking from';
     void cw.offsetWidth;
-    cw.style.transition = '';
+    inn.style.transition = '';
     cw.classList.remove('from');
   } else cw.classList.add('walking', 'away');
   cw._walk = setTimeout(() => { cw.classList.remove('walking'); if(done) done(); }, WALK_MS);
