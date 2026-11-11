@@ -27,6 +27,11 @@ const EYE_STYLE = [
   {r:3.8, k:1.0, lash:1, smiley:1}   // 10 Cô Mai — lúc nào cũng cười híp mắt
 ];
 const EYE_INK = '#1f1812';
+/* Tỉ lệ cao / rộng của chấm mắt: mắt dài theo chiều dọc. Rộng giữ gần bằng chấm cũ (0,85·r), cao = rộng × R × k
+   (k là độ dẹt riêng của từng người). Thử: 1 (tròn), 1.618 (vàng φ), 2.414 (bạc δ).
+   Trang xem thử nhận ?ratio=… (đặt window.EYE_RATIO_TRY trước khi nạp file này). */
+const EYE_RATIO = (typeof window !== 'undefined' && +window.EYE_RATIO_TRY) || 1.618;
+const eyeDims = (r, k) => { const rx = r*0.85; return {rx:+rx.toFixed(2), ry:+(rx*EYE_RATIO*k).toFixed(2)}; };
 
 // nhóm <g …> bắt đầu ở vị trí at: trả về vị trí ngay sau thẻ </g> khớp với nó (đếm cả <g> lồng bên trong)
 function gEnd(s, at){
@@ -40,18 +45,18 @@ function gEnd(s, at){
   return -1;
 }
 function dotEyes(i, eyes, lid){
-  const st = EYE_STYLE[i] || {r:3.8, k:1}, r = st.r, ry = +(r*st.k).toFixed(2), f = v => (+v).toFixed(1);
+  const st = EYE_STYLE[i] || {r:3.8, k:1}, r = st.r, {rx, ry} = eyeDims(r, st.k), f = v => (+v).toFixed(1);
   const open = [], arc = [];
   eyes.forEach(([x, y], n) => {
     const s = n === 0 ? 1 : -1;      // mắt trái: đuôi mắt hướng trái (s = 1), mắt phải ngược lại
-    open.push(`<ellipse cx="${f(x)}" cy="${f(y)}" rx="${r}" ry="${ry}" fill="${EYE_INK}"/>`);
+    open.push(`<ellipse cx="${f(x)}" cy="${f(y)}" rx="${rx}" ry="${ry}" fill="${EYE_INK}"/>`);
     arc.push(`<path d="M${f(x - r - 2)},${f(y + 1)} q${f(r + 2)},${f(-(r + 4))} ${f(2*r + 4)},0" fill="none" stroke="${EYE_INK}" stroke-width="2.6" stroke-linecap="round"/>`);
     const lash = [];
-    if(st.lash) lash.push(`<path d="M${f(x - s*(r + 0.5))},${f(y - ry*0.5)} l${f(-s*4.5)},-4" fill="none" stroke="${EYE_INK}" stroke-width="2" stroke-linecap="round"/>`);
-    if(st.lash > 1) lash.push(`<path d="M${f(x - s*r*0.4)},${f(y - ry - 0.5)} l${f(-s*3)},-4.5" fill="none" stroke="${EYE_INK}" stroke-width="1.8" stroke-linecap="round"/>`);
-    if(st.crease) lash.push(`<path d="M${f(x - s*(r + 3))},${f(y + 1)} l${f(-s*4)},2 M${f(x - s*(r + 3))},${f(y + 3.5)} l${f(-s*3.5)},3" fill="none" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>`);
+    if(st.lash) lash.push(`<path d="M${f(x - s*(rx + 0.5))},${f(y - ry*0.5)} l${f(-s*4.5)},-4" fill="none" stroke="${EYE_INK}" stroke-width="2" stroke-linecap="round"/>`);
+    if(st.lash > 1) lash.push(`<path d="M${f(x - s*rx*0.4)},${f(y - ry - 0.5)} l${f(-s*3)},-4.5" fill="none" stroke="${EYE_INK}" stroke-width="1.8" stroke-linecap="round"/>`);
+    if(st.crease) lash.push(`<path d="M${f(x - s*(rx + 3))},${f(y + 1)} l${f(-s*4)},2 M${f(x - s*(rx + 3))},${f(y + 3.5)} l${f(-s*3.5)},3" fill="none" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>`);
     open.push(...lash); arc.push(...lash);
-    open.push(`<rect class="blinklid" x="${f(x - r - 1.5)}" y="${f(y - ry - 1.5)}" width="${f(2*r + 3)}" height="${f(2*ry + 3)}" rx="${f(r)}" fill="${lid}"/>`);
+    open.push(`<rect class="blinklid" x="${f(x - rx - 1.5)}" y="${f(y - ry - 1.5)}" width="${f(2*rx + 3)}" height="${f(2*ry + 3)}" rx="${f(rx)}" fill="${lid}"/>`);
   });
   return `<g class="eyes2${st.smiley ? ' eo-smiley' : ''}"><g class="eo-open">${open.join('')}</g><g class="eo-arc">${arc.join('')}</g></g>`;
 }

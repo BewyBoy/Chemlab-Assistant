@@ -3,9 +3,9 @@
    Nạp SAU js/nhan-vat-skin.js (dùng EYE_STYLE, EYE_INK, SKIN_COUNT).
 
    Hình vẽ bằng tham số: mỗi khách có kiểu tóc / kính / râu riêng, mỗi skin (0 cổ điển, 1, 2 trong js/trang-phuc.js)
-   có màu áo, mũ và đồ đi kèm riêng (tạp dề, gi-lê, yếm, ba lô…). Khung vẽ: mặt ở x 65..172, y 50..168 — trùng
-   chỗ khuôn mặt của hình nhìn thẳng (cả khung 200x280 lẫn 280x280), nên lúc khách dừng trước khay, đổi sang hình
-   thẳng không bị giật.
+   có màu áo, mũ và đồ đi kèm riêng (tạp dề, gi-lê, yếm, ba lô…). Khung vẽ chuẩn: mặt ở x 65..172, y 50..168, mắt
+   ở (92,104); SIDE_OFF dời cả hình cho mặt trùng chỗ mặt của hình nhìn thẳng, nên lúc khách dừng trước khay, đổi
+   sang hình thẳng không bị giật.
 
    Hình có cùng lớp với hình thẳng: .charsvg, data-exp, .eyes2 / .eo-open / .eo-arc / .blinklid, x-neutral / x-happy /
    x-annoy — nên biểu cảm, chớp mắt, nhún khi bước dùng chung CSS. Tay gần (.sarm) đánh theo nhịp bước.
@@ -20,8 +20,9 @@ const SD_SKIN = {
   7:['#f9e2c8', '#eec9a1', '#d8a877'], 8:['#f9e6d1', '#f0d0ac', '#e2b184'], 9:['#f2dcc0', '#e3c39a', '#c49a6c'],
   10:['#f9e6d1', '#f0d0ac', '#e2b184']
 };
-// lệch dọc của khuôn mặt hình thẳng so với khung chuẩn (mặt ở y 54)
-const SIDE_DY = {1:4, 3:-4, 6:4, 7:-4};
+// độ lệch [x, y] của khuôn mặt hình thẳng so với khung chuẩn — đo theo tâm hai mắt (chuẩn: x 117, y 102).
+// Ba khách khung 280x280 (Bà Tư, Chú Ba, Bé Na) có mặt nằm lệch phải ~38px.
+const SIDE_OFF = {1:[38, -3], 2:[40, 2], 3:[38, 14], 6:[0, -3], 7:[0, 5]};
 const WHITE_SHIRT = ['#fffef9', '#e6e0cf'];
 /* Mỗi khách (chỉ số HD_CHARS 1..10): tóc, màu tóc, kính, râu; looks[k] = skin k:
    body/arm = màu thân áo / tay áo; hat = mũ; add = đồ thêm trên người (vẽ theo thứ tự) */
@@ -230,13 +231,13 @@ function sideArmAdd(a){
 // một con mắt nghiêng: chấm + mi / nếp nhăn hướng về phía sau đầu (bên phải); vui = vòng cung
 function sideEye(i, P){
   const st = (typeof EYE_STYLE !== 'undefined' && EYE_STYLE[i]) || {r:3.8, k:1};
-  const [x, y] = SD.eye, r = +(st.r*0.9).toFixed(2), ry = +(r*st.k*1.1).toFixed(2), ink = typeof EYE_INK !== 'undefined' ? EYE_INK : '#1f1812';
+  const [x, y] = SD.eye, r = +(st.r*0.9).toFixed(2), {rx, ry} = typeof eyeDims === 'function' ? eyeDims(r, st.k*1.1) : {rx:r, ry:+(r*st.k*1.1).toFixed(2)}, ink = typeof EYE_INK !== 'undefined' ? EYE_INK : '#1f1812';
   const extra = [];
-  if(st.lash) extra.push(`<path d="M${x + r + 0.5},${(y - ry*0.5).toFixed(1)} l4.5,-4" fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>`);
-  if(st.lash > 1) extra.push(`<path d="M${(x + r*0.4).toFixed(1)},${(y - ry - 0.5).toFixed(1)} l3,-4.5" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`);
-  if(st.crease) extra.push(`<path d="M${x + r + 3},${y + 1} l4,2 M${x + r + 3},${y + 3.5} l3.5,3" fill="none" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>`);
-  const open = `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${ry}" fill="${ink}"/>` + extra.join('')
-    + `<rect class="blinklid" x="${(x - r - 1.5).toFixed(1)}" y="${(y - ry - 1.5).toFixed(1)}" width="${(2*r + 3).toFixed(1)}" height="${(2*ry + 3).toFixed(1)}" rx="${r}" fill="url(#${P}skin)"/>`;
+  if(st.lash) extra.push(`<path d="M${(x + rx + 0.5).toFixed(1)},${(y - ry*0.5).toFixed(1)} l4.5,-4" fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>`);
+  if(st.lash > 1) extra.push(`<path d="M${(x + rx*0.4).toFixed(1)},${(y - ry - 0.5).toFixed(1)} l3,-4.5" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`);
+  if(st.crease) extra.push(`<path d="M${(x + rx + 3).toFixed(1)},${y + 1} l4,2 M${(x + rx + 3).toFixed(1)},${y + 3.5} l3.5,3" fill="none" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>`);
+  const open = `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${ink}"/>` + extra.join('')
+    + `<rect class="blinklid" x="${(x - rx - 1.5).toFixed(1)}" y="${(y - ry - 1.5).toFixed(1)}" width="${(2*rx + 3).toFixed(1)}" height="${(2*ry + 3).toFixed(1)}" rx="${rx}" fill="url(#${P}skin)"/>`;
   const arc = `<path d="M${(x - r - 1).toFixed(1)},${y + 1} q${(r + 1).toFixed(1)},${-(r + 3.5).toFixed(1)} ${(2*r + 2).toFixed(1)},0" fill="none" stroke="${ink}" stroke-width="2.6" stroke-linecap="round"/>` + extra.join('');
   return `<g class="eyes2${st.smiley ? ' eo-smiley' : ''}"><g class="eo-open">${open}</g><g class="eo-arc">${arc}</g></g>`;
 }
@@ -303,11 +304,10 @@ function sideArt(i, k){
     + sideHat(lk.hat, P)
     + (behind ? adds : '')
     + `<g class="sarm">` + sdG(`<path d="${SD.arm}" fill="${arm.fill}"/>`, 3.2) + armAdds + sdG(`<path d="${SD.hand}" fill="${S}"/>`, 2.8) + `</g>`;
-  // khung: cùng viewBox với hình thẳng; khuôn mặt hình thẳng của mọi khách nằm ở x 70..170, chỉ lệch vài px theo
-  // chiều dọc (đo bằng getBBox) — dời cả hình cho khớp, lúc dừng lại đổi sang hình thẳng không bị giật
+  // khung: cùng viewBox với hình thẳng; dời cả hình theo SIDE_OFF cho mặt trùng chỗ mặt hình thẳng — lúc dừng lại đổi sang hình thẳng không bị giật
   const front = typeof HD_CHARS !== 'undefined' ? HD_CHARS[hd] : '', vb = (front.match(/viewBox="([^"]+)"/) || [, '0 0 200 280'])[1];
-  const dy = SIDE_DY[hd] || 0, inner = dy ? `<g transform="translate(0,${dy})">${art}</g>` : art;
+  const [ox, oy] = SIDE_OFF[hd] || [0, 0], inner = `<g transform="translate(${ox},${oy})"><ellipse cx="122" cy="270" rx="60" ry="9" fill="${SIDE_INK}" opacity=".12"/>${art}</g>`;
   return (sideMemo[key] = `<svg xmlns="http://www.w3.org/2000/svg" class="charsvg side" data-exp="neutral" viewBox="${vb}" overflow="visible">${defs}`
-    + `<ellipse cx="122" cy="270" rx="60" ry="9" fill="${SIDE_INK}" opacity=".12"/>${inner}</svg>`);
+    + `${inner}</svg>`);
 }
 function custSideSVG(i, exp, k){ return sideArt(i, k).replace('data-exp="neutral"', 'data-exp="' + exp + '"'); }
