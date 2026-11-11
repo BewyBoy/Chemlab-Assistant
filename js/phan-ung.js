@@ -238,7 +238,27 @@ const REACTIONS = [
  {rg:{H2O:2},                 pr:{H2:2,O2:1},              elec:1, vent:['O2'], last:1, obs:'Hai điện cực sủi bọt: khí H₂ ở cực âm nhiều gấp đôi khí O₂ ở cực dương.'},
  {rg:{CuCl2:1},               pr:{Cu:1,Cl2:1},             elec:1, obs:'Cực âm phủ lớp đồng đỏ, cực dương sủi bọt khí clo mùi hắc.'},
  {rg:{CuSO4:2,H2O:2},         pr:{Cu:2,O2:1,H2SO4:2},      elec:1, vent:['O2']},
- {rg:{NaCl:2,H2O:2},          pr:{NaOH:2,H2:1,Cl2:1},      elec:1, cond:'có màng ngăn', vent:['H2']}
+ {rg:{NaCl:2,H2O:2},          pr:{NaOH:2,H2:1,Cl2:1},      elec:1, cond:'có màng ngăn', vent:['H2']},
+
+ /* ---------- 21. NƯỚC VÔI Ca(OH)₂ GẶP AXIT VÀ MUỐI ----------
+    Ca(OH)₂ cũng là bazơ tan (ít tan): làm được mọi việc NaOH làm với muối có hiđroxit kết tủa.
+    CaSO₄ ít tan nên game coi là kết tủa (như H₂SO₄ + Ca(OH)₂ ở nhóm 1).  */
+ {rg:{HNO3:2,'Ca(OH)2':1},    pr:{'Ca(NO3)2':1,H2O:2}},
+ {rg:{CuSO4:1,'Ca(OH)2':1},   pr:{'Cu(OH)2':1,CaSO4:1}, obs:'Kết tủa xanh lam Cu(OH)₂ lẫn kết tủa trắng CaSO₄.'},
+ {rg:{CuCl2:1,'Ca(OH)2':1},   pr:{'Cu(OH)2':1,CaCl2:1}, obs:'Xuất hiện kết tủa xanh lam Cu(OH)₂.'},
+ {rg:{'Cu(NO3)2':1,'Ca(OH)2':1}, pr:{'Cu(OH)2':1,'Ca(NO3)2':1}},
+ {rg:{FeCl3:2,'Ca(OH)2':3},   pr:{'Fe(OH)3':2,CaCl2:3}, obs:'Xuất hiện kết tủa nâu đỏ Fe(OH)₃.'},
+ {rg:{'Fe2(SO4)3':1,'Ca(OH)2':3}, pr:{'Fe(OH)3':2,CaSO4:3}},
+ {rg:{FeCl2:1,'Ca(OH)2':1},   pr:{'Fe(OH)2':1,CaCl2:1}, obs:'Kết tủa trắng xanh Fe(OH)₂, để lâu ngoài không khí hoá nâu đỏ.'},
+ {rg:{FeSO4:1,'Ca(OH)2':1},   pr:{'Fe(OH)2':1,CaSO4:1}},
+ {rg:{MgCl2:1,'Ca(OH)2':1},   pr:{'Mg(OH)2':1,CaCl2:1}, obs:'Kết tủa trắng Mg(OH)₂ — cách lấy magie từ nước biển.'},
+ {rg:{MgSO4:1,'Ca(OH)2':1},   pr:{'Mg(OH)2':1,CaSO4:1}},
+ {rg:{AlCl3:2,'Ca(OH)2':3},   pr:{'Al(OH)3':2,CaCl2:3}, obs:'Kết tủa keo trắng Al(OH)₃.'},
+ {rg:{'Al2(SO4)3':1,'Ca(OH)2':3}, pr:{'Al(OH)3':2,CaSO4:3}},
+ {rg:{ZnCl2:1,'Ca(OH)2':1},   pr:{'Zn(OH)2':1,CaCl2:1}},
+ {rg:{ZnSO4:1,'Ca(OH)2':1},   pr:{'Zn(OH)2':1,CaSO4:1}},
+ {rg:{K2CO3:1,'Ca(OH)2':1},   pr:{CaCO3:1,KOH:2}, obs:'Kết tủa trắng CaCO₃, dung dịch còn lại là kiềm KOH.'},
+ {rg:{NH4Cl:2,'Ca(OH)2':1},   pr:{CaCl2:1,NH3:2,H2O:2}, heat:1, obs:'Khí NH₃ mùi khai bay ra — cách điều chế amoniac trong phòng thí nghiệm.'}
 ];
 
 /* Mốc chia nhóm cho Sổ tay ở màn hình chính. i = số thứ tự phản ứng đầu tiên của nhóm.
@@ -263,7 +283,8 @@ const RX_GROUPS = [
  {i:152, t:'Halogen'},
  {i:160, t:'Nitơ'},
  {i:162, t:'Đường gặp axit sunfuric đặc'},
- {i:163, t:'Điện phân'}
+ {i:163, t:'Điện phân'},
+ {i:167, t:'Nước vôi Ca(OH)₂ + axit, muối'}
 ];
 
 /* =====================================================================

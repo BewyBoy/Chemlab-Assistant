@@ -223,7 +223,8 @@ function showNote(msg, keep){
   // ở bàn thí nghiệm, lời nhắn người chơi nằm giữa phía trên (vùng tường) — góc dưới bên trái là khay giao hàng
   const top = keep && !!G.querySelector('#beakerItem');
   const t = document.createElement('div');
-  t.className = 'toast' + (keep ? ' say' : '') + (top ? ' say-top' : ''); t.innerHTML = msg; t._msg = msg;
+  t.className = 'toast' + (keep ? ' say' : '') + (top ? ' say-top' : '') + (top && G.querySelector('#freenote') ? ' say-narrow' : '');
+  t.innerHTML = msg; t._msg = msg;
   const ms = keep ? Math.min(9000, 3500 + msg.replace(/<[^>]+>/g, '').length*45) : 3600;
   t.style.animationDuration = ms + 'ms';
   G.appendChild(t); setTimeout(()=>t.remove(), ms + 100);

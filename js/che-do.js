@@ -3759,7 +3759,7 @@ function showHardBook(){
    Lần đầu tự tay làm ra một phản ứng (hoặc bấm một dòng trong Sổ tay): mỗi phân tử là một
    chùm bi nguyên tử; bi tách khỏi chất tham gia rồi bay sang ghép thành sản phẩm — số bi mỗi
    màu hai bên bằng nhau, đó chính là cân bằng phương trình. Dựng tự động từ rg/pr trong
-   phan-ung.js nên cả 167 phản ứng đều có thẻ, không phải vẽ tay cái nào. */
+   phan-ung.js nên mọi phản ứng đều có thẻ, không phải vẽ tay cái nào. */
 const ATOM_STYLE = {H:['#ffffff',8], O:['#e0574a',11], C:['#4a4a4a',11], N:['#5b7fe0',11], Cl:['#7cc35a',12],
   S:['#e8d44d',12], P:['#f0954a',12], Na:['#a37ad6',13], K:['#8f5fd0',14], Mg:['#4fb38a',13], Ca:['#9fb8a6',14],
   Al:['#c9a0a8',13], Zn:['#8aa0b8',13], Fe:['#c46a3a',13], Cu:['#d98a4a',13], Ag:['#c8ccd4',14], Ba:['#5fbf8f',14], Mn:['#9b6bb0',13],
@@ -3785,7 +3785,8 @@ const RX_NOTES = [
   'Clo phản ứng mãnh liệt với kim loại và hiđro, tạo muối clorua hoặc khí HCl.',
   'Nitơ rất trơ, phải ép với hiđro ở nhiệt độ cao mới ra amoniac.',
   'Axit sunfuric đặc háo nước: rút hết H và O khỏi đường, chỉ còn lại than.',
-  'Dòng điện tách hợp chất thành những chất đơn giản hơn.'
+  'Dòng điện tách hợp chất thành những chất đơn giản hơn.',
+  'Nước vôi Ca(OH)₂ là bazơ tan như NaOH: trung hoà axit, và gặp muối có hiđroxit không tan thì tạo kết tủa.'
 ];
 const rxGroupOf = i => { let k = 0; RX_GROUPS.forEach((g, j) => { if(g.i <= i) k = j; }); return k; };
 // một phân tử = chùm bi: nguyên tố "trung tâm" ở giữa, O quây quanh, H bám ngoài cùng
