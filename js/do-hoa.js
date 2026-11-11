@@ -226,15 +226,9 @@ const SVG_DEFS = `
 
   <!-- khí bên trong (bật bằng --gasop) -->
   <g opacity="0" style="opacity:var(--gasop,0)">
-    <path d="M66,96 Q82,86 77,70 Q72,54 56,59 Q44,64 48,78" fill="none" stroke="#6f9ec9" stroke-width="2.4" stroke-linecap="round" opacity="0.6">
-      <animateTransform attributeName="transform" type="translate" values="0,0;0,-6;0,0" dur="3s" repeatCount="indefinite"/>
-    </path>
-    <path d="M52,112 Q40,100 44,84 Q48,70 62,75 Q72,79 68,91" fill="none" stroke="#6f9ec9" stroke-width="2.4" stroke-linecap="round" opacity="0.5">
-      <animateTransform attributeName="transform" type="translate" values="0,0;0,-8;0,0" dur="4s" begin="1s" repeatCount="indefinite"/>
-    </path>
-    <path d="M80,110 Q90,98 85,84 Q79,70 66,76" fill="none" stroke="#6f9ec9" stroke-width="2.2" stroke-linecap="round" opacity="0.4">
-      <animateTransform attributeName="transform" type="translate" values="0,0;0,-5;0,0" dur="3.5s" begin="0.5s" repeatCount="indefinite"/>
-    </path>
+    <path d="M66,96 Q82,86 77,70 Q72,54 56,59 Q44,64 48,78" fill="none" stroke="#6f9ec9" stroke-width="2.4" stroke-linecap="round" opacity="0.6" class="fx-gas" style="--dy:-6px;animation-duration:3s"/>
+    <path d="M52,112 Q40,100 44,84 Q48,70 62,75 Q72,79 68,91" fill="none" stroke="#6f9ec9" stroke-width="2.4" stroke-linecap="round" opacity="0.5" class="fx-gas" style="--dy:-8px;animation-duration:4s;animation-delay:-1s"/>
+    <path d="M80,110 Q90,98 85,84 Q79,70 66,76" fill="none" stroke="#6f9ec9" stroke-width="2.2" stroke-linecap="round" opacity="0.4" class="fx-gas" style="--dy:-5px;animation-duration:3.5s;animation-delay:-0.5s"/>
   </g>
 
   <!-- vành miệng: nét ngoài + lòng ống -->
@@ -314,17 +308,11 @@ const SVG_DEFS = `
   <g style="opacity:var(--dripop,0)">
     <!-- Drip 1 -->
     <g>
-      <path d="M60,145 Q58,150 60,155 Q62,150 60,145 Z" fill="#6f9ec9" opacity="0.8" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round">
-        <animateTransform attributeName="transform" type="translate" values="0,0;0,12;0,12" dur="1.8s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0;0.8;0" dur="1.8s" repeatCount="indefinite"/>
-      </path>
+      <path d="M60,145 Q58,150 60,155 Q62,150 60,145 Z" fill="#6f9ec9" opacity="0.8" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" class="fx-drip"/>
     </g>
     <!-- Drip 2 (offset) -->
     <g>
-      <path d="M60,145 Q58,150 60,155 Q62,150 60,145 Z" fill="#6f9ec9" opacity="0.8" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round">
-        <animateTransform attributeName="transform" type="translate" values="0,0;0,12;0,12" dur="1.8s" begin="0.9s" repeatCount="indefinite"/>
-        <animate attributeName="opacity" values="0;0.8;0" dur="1.8s" begin="0.9s" repeatCount="indefinite"/>
-      </path>
+      <path d="M60,145 Q58,150 60,155 Q62,150 60,145 Z" fill="#6f9ec9" opacity="0.8" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" class="fx-drip" style="animation-delay:-.9s"/>
     </g>
   </g>
 
@@ -1134,13 +1122,8 @@ const SVG_DEFS = `
 
   <!-- ngọn lửa — bật bằng --flame -->
   <g style="opacity:var(--flame,0)">
-    <path d="M52,40 Q41,31 44,17 Q46,3 52,-2 Q58,3 60,17 Q63,31 52,40 Z" fill="url(#teCFlamOuter)" stroke="#d9634f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <animateTransform attributeName="transform" type="skewX" values="0;3;-2;1;0" dur="0.6s" repeatCount="indefinite"/>
-      <animate attributeName="d" values="M52,40 Q41,31 44,17 Q46,3 52,-2 Q58,3 60,17 Q63,31 52,40 Z;M52,40 Q40,32 43,16 Q46,1 52,-3 Q58,2 61,16 Q64,32 52,40 Z;M52,40 Q42,30 44,18 Q47,4 52,-1 Q57,4 60,18 Q62,30 52,40 Z;M52,40 Q41,31 44,17 Q46,3 52,-2 Q58,3 60,17 Q63,31 52,40 Z" dur="0.6s" repeatCount="indefinite"/>
-    </path>
-    <path d="M52,38 Q46,32 47,22 Q49,12 52,7 Q55,12 57,22 Q58,32 52,38 Z" fill="#6f9ec9" fill-opacity="0.8" stroke="none">
-      <animateTransform attributeName="transform" type="skewX" values="0;-2;2;0" dur="0.6s" repeatCount="indefinite"/>
-    </path>
+    <path d="M52,40 Q41,31 44,17 Q46,3 52,-2 Q58,3 60,17 Q63,31 52,40 Z" fill="url(#teCFlamOuter)" stroke="#d9634f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="fx-flame"/>
+    <path d="M52,38 Q46,32 47,22 Q49,12 52,7 Q55,12 57,22 Q58,32 52,38 Z" fill="#6f9ec9" fill-opacity="0.8" stroke="none" class="fx-flame fx-core"/>
   </g>
 </symbol>
 
@@ -1219,9 +1202,7 @@ const SVG_DEFS = `
   </g>
   <g style="opacity:var(--flame,0)">
     <path d="M25,146 Q11,136 16,120 Q19,108 25,99 Q31,108 34,120 Q39,136 25,146 Z"
-          fill="var(--fc,#ffb347)" fill-opacity=".9" stroke="#d9634f" stroke-width="1.5" stroke-linejoin="round">
-      <animateTransform attributeName="transform" type="rotate" values="0 25 146;5 25 146;-4 25 146;2 25 146;0 25 146" dur="0.5s" repeatCount="indefinite"/>
-    </path>
+          fill="var(--fc,#ffb347)" fill-opacity=".9" stroke="#d9634f" stroke-width="1.5" stroke-linejoin="round" class="fx-ladle"/>
     <path d="M25,144 Q19,136 21,126 Q23,118 25,113 Q27,118 29,126 Q31,136 25,144 Z" fill="#fffbe6" opacity=".85"/>
   </g>
 </symbol>
@@ -1415,12 +1396,12 @@ const SVG_DEFS = `
   <!-- outer frame -->
   <path d="M8,8 Q8,4 14,4 Q85,3 156,4 Q162,4 162,8 L162,202 Q162,206 156,206 Q85,207 14,206 Q8,206 8,202 Z" fill="url(#teCWoodRim)" stroke="#3b3025" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- window glass area background (sky) -->
-  <rect x="18" y="18" width="134" height="174" fill="var(--sky,#bfe3f2)" style="transition:fill 2s"/>
+  <rect x="18" y="18" width="134" height="174" fill="var(--sky,#bfe3f2)"/><!-- trời đổi màu từng giây theo giờ trong ca, không transition: transition kích lại mỗi giây là vẽ lại liên tục -->
   <!-- hills at bottom of window -->
   <ellipse cx="52" cy="196" rx="52" ry="28" fill="#7aa95c"/>
   <ellipse cx="128" cy="198" rx="46" ry="24" fill="#5d8446"/>
   <!-- sun/moon disc -->
-  <circle cx="128" cy="46" r="18" fill="var(--sun,#e8b84b)" style="transition:fill 2s"/>
+  <circle cx="128" cy="46" r="18" fill="var(--sun,#e8b84b)"/>
   <!-- cloud -->
   <g opacity="0.82">
     <ellipse cx="48" cy="55" rx="16" ry="10" fill="#ffffff"/>
@@ -1981,7 +1962,8 @@ const CUST_PROPS = {
    + '<circle cx="78" cy="141" r="4.2" fill="#f0c419"/><circle cx="162" cy="141" r="4.2" fill="#f0c419"/></g>',
   // 9 · Cô Mai — quán chè: tạp dề đã nằm trong nhan-vat.js (GARMENT.apron)
 };
-function custArt(i){ return HD_CHARS[i+1].replace('</svg>', (CUST_PROPS[i] || '') + '</svg>'); }
+const custArtMemo = [];   // ghép hình khách + đồ cầm tay một lần, lần sau dùng lại chuỗi (mỗi hình 5–24 KB)
+function custArt(i){ return custArtMemo[i] || (custArtMemo[i] = HD_CHARS[i+1].replace('</svg>', (CUST_PROPS[i] || '') + '</svg>')); }
 function custSVG(i, exp){ return custArt(i).replace('data-exp="neutral"', 'data-exp="'+exp+'"'); }
 function custHead(i){ return custArt(i).replace(/viewBox="[^"]+"/, 'viewBox="'+HD_HEADS[i+1]+'"'); }
 function profSVG(exp){ return HD_CHARS[0].replace('data-exp="neutral"', 'data-exp="'+exp+'"'); }

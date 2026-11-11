@@ -172,7 +172,7 @@ const DZ_ACCEPT = {
 };
 let drag = null;
 function gameXY(e){
-  const r = G.getBoundingClientRect(), s = r.width/1280;
+  const r = gameRect(), s = r.width/1280;
   return {x:(e.clientX-r.left)/s, y:(e.clientY-r.top)/s};
 }
 function dragify(el, type, opts){
@@ -193,7 +193,7 @@ function dragify(el, type, opts){
 }
 // điểm thả trên màn hình: ngay con trỏ chuột, hoặc giữa vật đang nổi trên ngón tay
 function dropPt(e, d){
-  const k = G.getBoundingClientRect().width/1280;
+  const k = gameRect().width/1280;
   return [e.clientX, e.clientY - d.lift*k];
 }
 /* Trên bàn phối cảnh các vật CHỒNG LÊN NHAU (đèn thò dưới cốc, bình úp trên miệng cốc),
@@ -211,7 +211,14 @@ function zoneAt(clientX, clientY, type){
   const r = bk.getBoundingClientRect();
   return (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) ? bk : zEl;
 }
+// rê chuột / bút / ngón tay có thể bắn 120–240 sự kiện mỗi giây: chỉ giữ sự kiện mới nhất, xử lý một lần mỗi khung hình
+let dragEv = null;
 function dragMove(e){
+  if(!drag) return;
+  if(!dragEv) requestAnimationFrame(() => { const ev = dragEv; dragEv = null; if(ev) dragStep(ev); });
+  dragEv = e;
+}
+function dragStep(e){
   if(!drag) return;
   const p = gameXY(e);
   if(!drag.ghost){
@@ -233,14 +240,15 @@ function dragMove(e){
   drag.tilt = Math.max(-12, Math.min(12, drag.tilt*.75 + dx*.7)); // lag/tilt follow
   if(drag.type === 'rod') stirMove({x:p.x, y:p.y - drag.lift}, dist);
   const hz = zoneAt(...dropPt(e, drag), drag.type);
-  G.querySelectorAll('.drophot').forEach(x => x.classList.remove('drophot'));
-  if(hz && (DZ_ACCEPT[drag.type]||[]).includes(hz.dataset.dz)) hz.classList.add('drophot');
-  drag.ghost.style.left = (p.x - drag.opts.w/2) + 'px';
-  drag.ghost.style.top  = (p.y - drag.lift - drag.opts.h/2) + 'px';
+  const hot = hz && (DZ_ACCEPT[drag.type]||[]).includes(hz.dataset.dz) ? hz : null;
+  if(hot !== drag.hot){ if(drag.hot) drag.hot.classList.remove('drophot'); if(hot) hot.classList.add('drophot'); drag.hot = hot; }
+  // vị trí bằng translate (GPU), không bằng left/top — left/top đổi là trình duyệt dàn trang lại mỗi lần rê
+  drag.ghost.style.translate = (p.x - drag.opts.w/2) + 'px ' + (p.y - drag.lift - drag.opts.h/2) + 'px';
   drag.ghost.style.transform = 'rotate('+drag.tilt.toFixed(1)+'deg) scale(1.05)';
 }
 function dragEnd(e){
   if(!drag) return;
+  dragEv = null;
   const d = drag; drag = null;
   G.querySelectorAll('.dropready,.drophot').forEach(t => t.classList.remove('dropready','drophot'));
   d.el.classList.remove('draggingsrc');
@@ -259,9 +267,8 @@ function dragEnd(e){
   } else {
     const [lx, ly] = dropPt(e, d);
     if(d.opts.onLoose && d.opts.onLoose({clientX:lx, clientY:ly})){ g.remove(); return; } // e.g. undocking lamp/gas
-    g.style.transition = 'left .38s cubic-bezier(.3,1.5,.5,1), top .38s cubic-bezier(.3,1.5,.5,1), transform .38s';
-    g.style.left = (d.sx - d.opts.w/2) + 'px';
-    g.style.top  = (d.sy - d.opts.h/2) + 'px';
+    g.style.transition = 'translate .38s cubic-bezier(.3,1.5,.5,1), transform .38s';
+    g.style.translate = (d.sx - d.opts.w/2) + 'px ' + (d.sy - d.opts.h/2) + 'px';
     g.style.transform = 'rotate(0deg) scale(1)';
     setTimeout(()=>g.remove(), 400);
   }
@@ -374,7 +381,7 @@ function labTick(){
   lab.time--;
   const frac = lab.time/lab.dur, p = 1-frac;
   const bar = G.querySelector('.timerbar>div');
-  if(bar){ bar.style.width = (frac*100)+'%'; bar.style.background = frac>.5?'var(--green)':frac>.2?'var(--accent)':'var(--red)'; }
+  if(bar){ bar.style.transform = 'scaleX('+frac+')'; bar.style.background = frac>.5?'var(--green)':frac>.2?'var(--accent)':'var(--red)'; }
   const tl = G.querySelector('#tleft');
   if(tl) tl.textContent = Math.floor(lab.time/60)+':'+String(lab.time%60).padStart(2,'0');
   // vòng đếm ngược ở góc bóng thoại — đồng hồ chờ của riêng khách hiện tại
@@ -917,8 +924,8 @@ function igniteLadle(){
   if(!fuel.length){ SFX.err(); toast('Muôi đang trống — thả chất rắn từ tủ vào muôi rồi mới hơ lửa.'); return; }
   const lamp = G.querySelector('#sv_heat');
   if(lamp && !lab.heaterOn){   // đèn loé lên một nhịp cho thấy là vừa hơ qua lửa
-    lamp.style.setProperty('--flame', 1);
-    setTimeout(() => { if(lab && !lab.heaterOn) lamp.style.setProperty('--flame', 0); }, 1200);
+    setFx(lamp, 'flame', 1);
+    setTimeout(() => { if(lab && !lab.heaterOn) setFx(lamp, 'flame', 0); }, 1200);
   }
   if(lab.ladleLit){ toast('Muôi đang cháy rồi — đưa nhanh vào lọ khí!'); return; }
   lab.ladleLit = true;
@@ -1015,7 +1022,7 @@ function syncLadle(){
   const fuel = ladleFuel(), lit = lab.ladleLit && fuel.length > 0;
   sv.style.setProperty('--fuel', fuel.length ? 1 : 0);
   if(fuel.length) sv.style.setProperty('--lc', CHEMS[fuel[0]].c);
-  sv.style.setProperty('--flame', lit ? 1 : 0);
+  setFx(sv, 'flame', lit ? 1 : 0);
   sv.style.setProperty('--fc', FLAME_COL[fuel[0]] || '#ffb347');
   const it = G.querySelector('#tool_burn');
   if(it){
@@ -1268,7 +1275,7 @@ function updateBeaker(){
   }
   const gs = G.querySelector('#sv_gas');
   if(gs){ const full = tot(lab.gas) ? 1 : 0;
-          gs.style.setProperty('--gasop', full); gs.style.setProperty('--stopop', full); }
+          setFx(gs, 'gasop', full); gs.style.setProperty('--stopop', full); }
   const gcap = G.querySelector('#tool_gas .toolcap');   // bình kiêm lọ khí: nhãn cho biết đang chứa khí gì
   if(gcap){ const ks = Object.keys(lab.gas).filter(f => lab.gas[f] > 0);
             gcap.innerHTML = 'Thu khí' + (ks.length ? ' · ' + ks.map(sub).join(', ') : ''); }
@@ -1342,7 +1349,7 @@ function setHeat(on){
   lab.heaterOn = on;
   const it = G.querySelector('#tool_heat'), bk = G.querySelector('#beakerItem'),
         sv = G.querySelector('#sv_heat');
-  if(sv) sv.style.setProperty('--flame', on ? 1 : 0);
+  if(sv) setFx(sv, 'flame', on ? 1 : 0);
   if(bk){ bk.style.setProperty('--lift', (-HEAT_LIFT)+'px'); bk.classList.toggle('hot', on); }
   G.querySelectorAll('#tripod,.tri-sh').forEach(e => e.classList.toggle('up', on));
   if(it && TOOLPOS.heat){
@@ -1428,7 +1435,7 @@ function useFilter(){
   const moved = Object.keys(lab.mix).filter(isPrecip);
   if(!moved.length){ toast('Không có kết tủa nào trong cốc để lọc.'); return; }
   const fn = G.querySelector('#sv_filter');
-  if(fn){ fn.style.setProperty('--dripop', 1); setTimeout(()=>fn.style.setProperty('--dripop', 0), 1400); }
+  if(fn){ setFx(fn, 'dripop', 1); setTimeout(()=>setFx(fn, 'dripop', 0), 1400); }
   SFX.pour();
   moved.forEach(f => { lab.solid[f] = (lab.solid[f]||0) + lab.mix[f]; delete lab.mix[f]; });
   unlockAch('filter1');
@@ -1692,7 +1699,7 @@ function checkServe(cont, od){
 function ghostFX(od){
   const gh = document.createElement('div');
   gh.className = 'ghostslide';
-  const art = lab.sel==='gas' ? sym('sym-gasbottle',54,76,'--gasop:1;--stopop:1')
+  const art = lab.sel==='gas' ? sym('sym-gasbottle',54,76,'--gasop:1;--stopop:1;--gasoprun:running')
             : lab.sel==='solid' ? '<div class="dish" style="background:linear-gradient(transparent 40%,'+CHEMS[od.chem].c+' 40%)"></div>'
             : sym('sym-erlenmeyer',50,66,'--lc:'+(CHEMS[od.chem].c));
   gh.innerHTML = art;

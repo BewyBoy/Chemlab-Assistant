@@ -597,6 +597,12 @@ function vlValText(L){
 // các lớp svg cho một nhóm bóng, cùng thứ tự với molDraw (viền mực mờ → sticker trắng → que) để sticker các bóng chạm
 // nhau liền thành một miếng. Tay là một nét mọc từ tâm bóng: a = hướng, d = lệch ngang (liên kết đôi / ba là 2 / 3 nét
 // song song), w = bề dày, g = đã mọc bao nhiêu (0 → 1); d, w, độ dài tính theo đơn vị bóng, nhân với cỡ s của từng bóng
+// Ghi SVG chỉ khi nội dung thật sự đổi. Vòng vẽ của các trò ghép nguyên tử chạy mỗi khung hình; khi bóng đã
+// về chỗ thì chuỗi y hệt khung trước, gán lại innerHTML là bắt trình duyệt dựng lại cả hình 60 lần/giây vô ích.
+function setSvg(svg, html){
+  if(svg._html === html) return false;
+  svg._html = html; svg.innerHTML = html; return true;
+}
 function vlLayers(list){
   const f = n => n.toFixed(1);
   const segs = list.map(A => A.arms.filter(m => m.g > .02).map(m => {
@@ -1208,7 +1214,7 @@ const MG = {
     const dx = A => A.pc.leaving ? 0 : sh;
     const look = A => ({el:A.el, x:A.x + dx(A), y:A.y, s:A.s, arms:A.arms});
     const held = atoms.filter(A => A.pc.dragging);                      // bóng đang bị kéo: mờ đi như .draggingsrc
-    svg.innerHTML = vlLayers(atoms.filter(A => !A.pc.dragging).map(look)) + (held.length ? `<g opacity=".35">${vlLayers(held.map(look))}</g>` : '');
+    if(setSvg(svg, vlLayers(atoms.filter(A => !A.pc.dragging).map(look)) + (held.length ? `<g opacity=".35">${vlLayers(held.map(look))}</g>` : '')))
     atoms.forEach(A => { const r = atomR(A.el)*A.s, st = A.div.style;
       st.left = A.x + dx(A) + 'px'; st.top = A.y + 'px'; st.width = st.height = 2*r + 'px'; st.fontSize = Math.max(7, Math.round(r*.95)) + 'px'; });
     requestAnimationFrame(frame);
@@ -1651,7 +1657,7 @@ const MG = {
       if(ok) top += held.at.metal ? `<circle cx="${f(X.vx)}" cy="${f(X.y)}" r="${f(rad(X) + LW_DOT + 8)}" fill="none" stroke="#7aa95c" stroke-width="3"/>`
         : `<circle cx="${f(end.x)}" cy="${f(end.y)}" r="10" fill="none" stroke="#7aa95c" stroke-width="3"/>`;
     }
-    svg.innerHTML = vlLayers(atoms.map(A => ({el:A.el, x:A.vx, y:A.y, s:A.s, arms:A.arms}))) + deco + glow + top + dots + hitL + hitE + hitR;
+    if(setSvg(svg, vlLayers(atoms.map(A => ({el:A.el, x:A.vx, y:A.y, s:A.s, arms:A.arms}))) + deco + glow + top + dots + hitL + hitE + hitR))
     atoms.forEach(A => { const r = rad(A), st = A.div.style;
       st.left = A.vx + 'px'; st.top = A.y + 'px'; st.width = st.height = 2*r + 'px'; st.fontSize = Math.max(7, Math.round(r*.95)) + 'px'; });
   }
@@ -2000,7 +2006,7 @@ const MG = {
     if(held && near) top += line(slot(held), hold);
     if(hold && hold.moved && hold.o && near && els.length < MAX){ const s = nextSlot();
       top += line(hold, s) + `<circle cx="${f(s.x)}" cy="${f(s.y)}" r="11" fill="none" stroke="#7aa95c" stroke-width="3"/>`; }
-    svg.innerHTML = rings + vlLayers([{el:q.el, x:ax, y:CY, s:RN/atomR(q.el), arms:[]}]) + inner + deco + glow + top + dots + hitI + hit + hitF;
+    setSvg(svg, rings + vlLayers([{el:q.el, x:ax, y:CY, s:RN/atomR(q.el), arms:[]}]) + inner + deco + glow + top + dots + hitI + hit + hitF);
     ball.style.left = ax + 'px';
   }
   G.querySelector('#mgtime').style.display = ''; hud('Còn ' + TOTAL_T + ' giây', '#mgtime'); mgScore(0, qs.length); mgRun(2*TOTAL_T/qs.length); round();

@@ -29,6 +29,10 @@ $canShip = @(
   'js\che-do.js',           # minigame, pha nồng độ, chế độ khó, thẻ phản ứng
   'js\tham-quan.js',        # chuyến tham quan khu công nghiệp (visual novel)
   'js\khoi-dong.js',        # tự kiểm tra + vào game (nạp cuối)
+  'sw.js',                  # lưu sẵn game để chơi khi mất mạng
+  'fonts\itim-latin.woff2', 'fonts\itim-latin-ext.woff2', 'fonts\itim-vietnamese.woff2',
+  'fonts\patrick-hand-latin.woff2', 'fonts\patrick-hand-latin-ext.woff2', 'fonts\patrick-hand-vietnamese.woff2',
+  'fonts\OFL-Itim.txt', 'fonts\OFL-PatrickHand.txt',   # giấy phép font phải đi kèm font
   'favicon.ico',
   'favicon.png'
 )

@@ -291,6 +291,7 @@ function setDev(on){
 // rời tab / tắt màn hình giữa ca: tự mở thẻ Tạm nghỉ, không thì đồng hồ khách và đồng hồ câu vẫn chạy, quay lại khách
 // đã bỏ đi. Ở bàn thí nghiệm có lớp phủ khác mà đồng hồ vẫn chạy thì vẫn dừng; ở minigame lớp phủ nào cũng giữ đồng hồ
 document.addEventListener('visibilitychange', () => {
+  SFX.sleep(document.hidden);
   const b = document.hidden && G.querySelector('#bpause');
   if(b && ((lab && lab.timer) || !G.querySelector('.overlay'))) b.click();
 });
@@ -298,3 +299,7 @@ document.body.insertAdjacentHTML('afterbegin',
   '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + SVG_DEFS + '</defs></svg>');
 fit();
 showMenu();
+// lưu sẵn game để lần sau mất mạng vẫn chơi được (sw.js). Mở thẳng file trên máy (file://) hay trong iframe không cho
+// phép thì thôi, game vẫn chạy bình thường.
+if('serviceWorker' in navigator && /^https?:$/.test(location.protocol))
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

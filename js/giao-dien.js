@@ -6,6 +6,10 @@
 
 /* ---- inline-SVG helpers ---- */
 const ico = (id, s) => '<svg class="ico" width="'+(s||20)+'" height="'+(s||20)+'"><use href="#ico-'+id+'"/></svg>';
+// Bật/tắt phần động bên trong một symbol dụng cụ (lửa đèn cồn, khí trong ống, giọt phễu).
+// --name là độ hiện 0..1; --name+'run' cho animation CSS .fx-* (style.css) chạy khi phần đó hiện
+// và dừng khi ẩn, để bản sao ẩn trong <use> không ngốn CPU mỗi khung hình.
+function setFx(el, name, v){ el.style.setProperty('--'+name, v); el.style.setProperty('--'+name+'run', +v > 0 ? 'running' : 'paused'); }
 const sym = (id, w, h, style) => '<svg width="'+w+'" height="'+h+'"'+(style?' style="'+style+'"':'')+'><use href="#'+id+'"/></svg>';
 
 /* ---- synthesized sound effects (WebAudio, no files) ---- */
@@ -26,10 +30,15 @@ const SFX = (() => {
     if(ctx && ctx.state === 'suspended') ctx.resume();
     return ctx;
   };
+  // trần số tiếng hiệu ứng vang cùng lúc: bấm lọ liên tục không chồng hàng chục bộ dao động lên máy yếu (nhạc nền không tính)
+  const MAX_VOICES = 16; let voices = 0;
+  const voice = src => { voices++; src.onended = () => voices--; };
   function tone(f, d, type, v, f2, vol){
     const c = ac(); if(!c || muted) return;
+    if(vol === undefined && voices >= MAX_VOICES) return;
     v = (v||.1) * (vol === undefined ? sfxVol : vol); if(v <= 0) return;
     const o = c.createOscillator(), g = c.createGain();
+    if(vol === undefined) voice(o);
     o.type = type||'sine'; o.frequency.value = f;
     if(f2) o.frequency.exponentialRampToValueAtTime(f2, c.currentTime+d);
     g.gain.setValueAtTime(v, c.currentTime);
@@ -38,15 +47,21 @@ const SFX = (() => {
     o.start(); o.stop(c.currentTime+d+.02);
   }
   // fq2: quét tần số lọc tới fq2 trong suốt tiếng — ra tiếng "vù" của lửa bùng lên
+  // Một dải nhiễu trắng 2 s sinh một lần rồi dùng lại (mỗi tiếng bắt đầu ở một chỗ ngẫu nhiên), thay vì mỗi tiếng
+  // lại cấp phát và điền hàng chục nghìn mẫu bằng JS. Độ tắt dần nằm ở đường gain, nghe như cũ.
+  let noiseBuf = null;
   function noise(d, v, fq, q, fq2){
-    const c = ac(); if(!c || muted || sfxVol <= 0) return;
-    const n = Math.floor(c.sampleRate*d), b = c.createBuffer(1, n, c.sampleRate), ch = b.getChannelData(0);
-    for(let i=0;i<n;i++) ch[i] = (Math.random()*2-1)*(1-i/n);
-    const s = c.createBufferSource(); s.buffer = b;
+    const c = ac(); if(!c || muted || sfxVol <= 0 || voices >= MAX_VOICES) return;
+    if(!noiseBuf){
+      noiseBuf = c.createBuffer(1, Math.floor(c.sampleRate*2), c.sampleRate);
+      const ch = noiseBuf.getChannelData(0); for(let i=0;i<ch.length;i++) ch[i] = Math.random()*2-1;
+    }
+    const t = c.currentTime, s = c.createBufferSource(); s.buffer = noiseBuf; voice(s);
     const fl = c.createBiquadFilter(); fl.type='bandpass'; fl.frequency.value=fq||1200; fl.Q.value=q||1;
-    if(fq2) fl.frequency.exponentialRampToValueAtTime(fq2, c.currentTime + d);
-    const g = c.createGain(); g.gain.value = (v||.08) * sfxVol;
-    s.connect(fl); fl.connect(g); g.connect(c.destination); s.start();
+    if(fq2) fl.frequency.exponentialRampToValueAtTime(fq2, t + d);
+    const g = c.createGain(); g.gain.setValueAtTime((v||.08) * sfxVol, t); g.gain.linearRampToValueAtTime(0, t + d);
+    s.connect(fl); fl.connect(g); g.connect(c.destination);
+    s.start(t, Math.random()*Math.max(0, 2 - d), d); s.stop(t + d + .02);
   }
   /* Nhạc nền: hộp nhạc tự sinh trên thang ngũ cung, mỗi chương một giọng — không cần file nhạc.
      Giai điệu là bước ngẫu nhiên lên/xuống từng bậc nên nghe liền mạch mà không lặp y hệt. */
@@ -92,6 +107,11 @@ const SFX = (() => {
     // trình duyệt điện thoại chỉ cho phát tiếng sau một cú chạm — gọi cái này ở cú chạm đầu tiên
     unlock(){ unlocked = true; ac(); if(mus.theme != null && !mus.timer) musicPlay(mus.theme); },
     music(k){ if(k !== mus.theme || !mus.timer) musicPlay(k); },
+    // rời tab / tắt màn hình: dừng hẳn nhạc và cho bộ xử lý âm thanh ngủ (đỡ pin); quay lại thì phát tiếp
+    sleep(hidden){
+      if(hidden){ musicStop(); if(ctx && ctx.state === 'running') ctx.suspend(); }
+      else { if(ctx && ctx.state === 'suspended') ctx.resume(); if(mus.theme != null && !mus.timer) musicPlay(mus.theme); }
+    },
     musicRefresh(){ musicPlay(mus.theme); },
     pour(){ noise(.35,.11,700,.8); },
     sizzle(){ noise(.7,.05,5200,.6); },                                     // toả nhiệt: xèo
@@ -272,8 +292,8 @@ function showMenu(){
     <div class="menu-bench">${sym('sym-benchtex',1270,60)}</div>
     <div style="position:absolute;bottom:96px;left:120px">${sym('sym-tuberack',190,120)}</div>
     <div style="position:absolute;bottom:98px;left:330px">${sym('sym-erlenmeyer',86,116,'--lc:#7fc4c9')}</div>
-    <div style="position:absolute;bottom:98px;left:430px">${sym('sym-lamp',80,96,'--flame:1')}</div>
-    <div style="position:absolute;bottom:96px;right:340px">${sym('sym-gasbottle',88,124,'--gasop:.6')}</div>
+    <div style="position:absolute;bottom:98px;left:430px">${sym('sym-lamp',80,96,'--flame:1;--flamerun:running')}</div>
+    <div style="position:absolute;bottom:96px;right:340px">${sym('sym-gasbottle',88,124,'--gasop:.6;--gasoprun:running')}</div>
     <span class="mbub" style="left:352px;bottom:200px;width:14px;height:14px"></span>
     <span class="mbub" style="left:378px;bottom:190px;width:9px;height:9px;animation-delay:2.3s"></span>
     <span class="mbub" style="right:368px;bottom:210px;width:12px;height:12px;animation-delay:1.1s"></span>
@@ -1240,7 +1260,13 @@ function setFullscreen(on){
   const t = G.querySelector('#tglFull');
   if(t && fsOK()){ t.classList.toggle('on', fsOn()); t.setAttribute('aria-checked', fsOn()); }
 }));
+// hộp của #game trên màn hình: chỉ đổi khi fit() co giãn lại, nên đo một lần rồi nhớ — kéo–thả hỏi nó mỗi lần rê
+// chuột, đo lại mỗi lần là bắt trình duyệt tính lại bố cục giữa chừng
+let gameBox = null;
+const gameRect = () => gameBox || (gameBox = G.getBoundingClientRect());
+let benchBX = null;
 function fit(){
+  gameBox = null;
   const r = save.settings.res, k = r && r !== 'auto' ? r.split(':') : null;
   const a = Math.min(RES_MAX, Math.max(RES_MIN, k ? k[0]/k[1] : innerWidth/innerHeight));
   // vùng game 1280×720 luôn nằm trọn; chiều còn lại nới ra cho khớp tỷ lệ
@@ -1251,7 +1277,9 @@ function fit(){
   SCR.style.setProperty('--bx', BX+'px');
   SCR.style.setProperty('--by', BY+'px');
   SCR.style.transform = `translate(-50%,-50%) scale(${s})`;
-  const bench = G.querySelector('#benchsvg');            // cạnh trái bàn bám theo mép màn
-  if(bench) bench.outerHTML = benchSVG();
+  const bench = G.querySelector('#benchsvg');            // cạnh trái bàn bám theo mép màn — vẽ lại chỉ khi mép thật sự đổi
+  if(bench && (BX !== benchBX || !bench.isConnected)){ benchBX = BX; bench.outerHTML = benchSVG(); }
 }
-addEventListener('resize', fit);
+// kéo cửa sổ / thanh địa chỉ điện thoại co giãn bắn hàng chục sự kiện resize: gom lại, mỗi khung hình fit() một lần
+let fitQueued = false;
+addEventListener('resize', () => { if(fitQueued) return; fitQueued = true; requestAnimationFrame(() => { fitQueued = false; fit(); }); });
