@@ -209,7 +209,10 @@ const PROF_NO_RX = {
  'yeu-hon':     '<b>{m}</b> yếu hơn <b>{sm}</b> trong dãy hoạt động nên không đẩy được {sm} ra khỏi {salt}.',
  'kl-nuoc':     '<b>{list}</b> không tác dụng với nước ở nhiệt độ thường — chỉ kim loại rất mạnh như K, Na mới làm được.',
  'khong-tan':   '<b>{list}</b> không tan và không phản ứng với nước.',
- 'trao-doi':    'Hai muối chỉ trao đổi với nhau khi sinh ra chất <b>kết tủa</b> (hoặc khí) — {list} trộn vào vẫn tan hết.'
+ 'trao-doi':    'Hai muối chỉ trao đổi với nhau khi sinh ra chất <b>kết tủa</b> (hoặc khí) — {list} trộn vào vẫn tan hết.',
+ 'can-dac':     'Phản ứng này cần <b>{acid} ĐẶC</b> — axit trong cốc đang loãng. Ở ca tự do có lọ {acid} đặc trên kệ.',
+ 'thieu-xt':    'Đủ chất, đủ nhiệt rồi nhưng phản ứng này cần <b>chất xúc tác {cat}</b> — thêm một ít {cat} vào cốc (xúc tác không bị tiêu hao).',
+ 'thu-dong':    '<b>{m}</b> bị <b>thụ động</b> trong {acid} đặc nguội: một lớp oxit mỏng bọc ngoài nên không phản ứng. Phải <b>đun nóng</b> mới được.'
 };
 
 /* ---- nhắc trong ca ở bàn thí nghiệm (hiện ở góc dưới màn hình) ---- */

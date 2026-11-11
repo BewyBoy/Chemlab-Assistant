@@ -556,7 +556,69 @@ const REACTIONS = [
  /* ---------- 28. OXI HOÁ – KHỬ (mở rộng) ----------
     Thuốc tím oxi hoá HCl đặc ngay ở nhiệt độ thường — cách điều chế clo nhanh trong phòng thí nghiệm
     (cùng việc với MnO₂ + HCl đặc ở nhóm Halogen, nhưng không cần đun). */
- {rg:{KMnO4:2,HCl:16},        pr:{KCl:2,MnCl2:2,Cl2:5,H2O:8}, tag:{HCl:'đặc'}, obs:'Màu tím nhạt dần rồi mất, khí clo màu vàng lục mùi hắc bay ra.'}
+ {rg:{KMnO4:2,HCl:16},        pr:{KCl:2,MnCl2:2,Cl2:5,H2O:8}, tag:{HCl:'đặc'}, obs:'Màu tím nhạt dần rồi mất, khí clo màu vàng lục mùi hắc bay ra.'},
+ /* ---------- 29. AXIT SUNFURIC ĐẶC ----------
+    Chỉ chạy với phần axit ĐẶC trong cốc (lọ "H₂SO₄ đặc" ở ca tự do); rót vào nước là thành loãng.
+    Kim loại (kể cả Cu đứng sau H) bị oxi hoá lên hoá trị cao, giải phóng SO₂ chứ không phải H₂ — phải ĐUN NÓNG.
+    Al, Fe để nguội trong H₂SO₄ đặc thì thụ động: không có phương trình nguội nào cho chúng. */
+ {rg:{Cu:1,H2SO4:2},          pr:{CuSO4:1,SO2:1,H2O:2}, heat:1, tag:{H2SO4:'đặc'}, obs:'Đồng tan dần, dung dịch hoá xanh, có khí SO₂ mùi hắc bay ra.'},
+ {rg:{Fe:2,H2SO4:6},          pr:{'Fe2(SO4)3':1,SO2:3,H2O:6}, heat:1, tag:{H2SO4:'đặc'}, obs:'Sắt tan trong axit đặc nóng, dung dịch màu vàng nâu, khí SO₂ bay ra.'},
+ {rg:{Al:2,H2SO4:6},          pr:{'Al2(SO4)3':1,SO2:3,H2O:6}, heat:1, tag:{H2SO4:'đặc'}},
+ {rg:{Zn:1,H2SO4:2},          pr:{ZnSO4:1,SO2:1,H2O:2}, heat:1, tag:{H2SO4:'đặc'}},
+ {rg:{Mg:1,H2SO4:2},          pr:{MgSO4:1,SO2:1,H2O:2}, heat:1, tag:{H2SO4:'đặc'}},
+ {rg:{C:1,H2SO4:2},           pr:{CO2:1,SO2:2,H2O:2}, heat:1, tag:{H2SO4:'đặc'}, obs:'Than bị oxi hoá, hai khí CO₂ và SO₂ thoát ra.'},
+ {rg:{S:1,H2SO4:2},           pr:{SO2:3,H2O:2}, heat:1, tag:{H2SO4:'đặc'}},
+
+ /* ---------- 30. AXIT NITRIC — LOÃNG VÀ ĐẶC ----------
+    HNO₃ không giải phóng H₂ với kim loại nào. Loãng → NO (không màu, gặp không khí hoá nâu), đặc → NO₂ nâu đỏ.
+    Al, Fe thụ động trong HNO₃ đặc nguội: chỉ có phương trình đặc NÓNG cho chúng. */
+ {rg:{Cu:3,HNO3:8},           pr:{'Cu(NO3)2':3,NO:2,H2O:4}, tag:{HNO3:'loãng'}, obs:'Đồng tan, dung dịch hoá xanh, khí NO không màu thoát ra rồi hoá nâu ở miệng ống.'},
+ {rg:{Ag:3,HNO3:4},           pr:{AgNO3:3,NO:1,H2O:2}, tag:{HNO3:'loãng'}},
+ {rg:{Fe:1,HNO3:4},           pr:{'Fe(NO3)3':1,NO:1,H2O:2}, tag:{HNO3:'loãng'}},
+ {rg:{Al:1,HNO3:4},           pr:{'Al(NO3)3':1,NO:1,H2O:2}, tag:{HNO3:'loãng'}},
+ {rg:{Zn:3,HNO3:8},           pr:{'Zn(NO3)2':3,NO:2,H2O:4}, tag:{HNO3:'loãng'}},
+ {rg:{Mg:3,HNO3:8},           pr:{'Mg(NO3)2':3,NO:2,H2O:4}, tag:{HNO3:'loãng'}},
+ {rg:{'Fe(OH)2':3,HNO3:10},   pr:{'Fe(NO3)3':3,NO:1,H2O:8}, tag:{HNO3:'loãng'}},
+ {rg:{Fe3O4:3,HNO3:28},       pr:{'Fe(NO3)3':9,NO:1,H2O:14}, tag:{HNO3:'loãng'}},
+ {rg:{Cu:1,HNO3:4},           pr:{'Cu(NO3)2':1,NO2:2,H2O:2}, tag:{HNO3:'đặc'}, obs:'Đồng tan nhanh, dung dịch xanh, khí NO₂ màu nâu đỏ bốc lên.'},
+ {rg:{Ag:1,HNO3:2},           pr:{AgNO3:1,NO2:1,H2O:1}, tag:{HNO3:'đặc'}},
+ {rg:{Zn:1,HNO3:4},           pr:{'Zn(NO3)2':1,NO2:2,H2O:2}, tag:{HNO3:'đặc'}},
+ {rg:{Mg:1,HNO3:4},           pr:{'Mg(NO3)2':1,NO2:2,H2O:2}, tag:{HNO3:'đặc'}},
+ {rg:{Fe:1,HNO3:6},           pr:{'Fe(NO3)3':1,NO2:3,H2O:3}, heat:1, tag:{HNO3:'đặc'}},
+ {rg:{Al:1,HNO3:6},           pr:{'Al(NO3)3':1,NO2:3,H2O:3}, heat:1, tag:{HNO3:'đặc'}},
+ {rg:{C:1,HNO3:4},            pr:{CO2:1,NO2:4,H2O:2}, heat:1, tag:{HNO3:'đặc'}},
+ {rg:{S:1,HNO3:6},            pr:{H2SO4:1,NO2:6,H2O:2}, heat:1, tag:{HNO3:'đặc'}},
+ {rg:{NO:2,O2:1},             pr:{NO2:2}, obs:'Khí NO không màu gặp oxi hoá ngay thành NO₂ màu nâu đỏ.'},
+
+ /* ---------- 31. OXI HOÁ – KHỬ KHÁC (có điều kiện) ---------- */
+ // điều chế oxi: KClO₃ cần đun VÀ xúc tác MnO₂ (MnO₂ phải có trong cốc, không bị tiêu hao)
+ {rg:{KClO3:2},               pr:{KCl:2,O2:3}, heat:1, cat:['MnO2'], obs:'Que đóm còn tàn đỏ bùng cháy — khí oxi thoát ra.'},
+ {rg:{KClO3:1,HCl:6},         pr:{KCl:1,Cl2:3,H2O:3}, tag:{HCl:'đặc'}},
+ // clo với kiềm, vôi tôi, muối sắt(II). Cl₂ + H₂O ⇌ HCl + HClO cố ý KHÔNG có: game không chạy được phản ứng
+ // thuận nghịch dừng giữa chừng, mà cho chạy hết thì clo rót vào nước biến mất (hỏng đơn HCl từ H₂ + Cl₂ ngày 25)
+ {rg:{Cl2:1,NaOH:2},          pr:{NaCl:1,NaClO:1,H2O:1}, obs:'Tạo nước Gia-ven có tính tẩy màu.'},
+ {rg:{Cl2:1,'Ca(OH)2':1},     pr:{CaOCl2:1,H2O:1}, obs:'Tạo clorua vôi — chất tẩy trắng, sát trùng.'},
+ {rg:{FeCl2:2,Cl2:1},         pr:{FeCl3:2}, obs:'Dung dịch lục nhạt chuyển sang vàng nâu (Fe²⁺ → Fe³⁺).'},
+ // sắt(III) ↔ sắt(II) (Fe, Cu + FeCl₃ đã có ở nhóm kim loại + muối)
+ {rg:{Fe:1,'Fe2(SO4)3':1},    pr:{FeSO4:3}},
+ {rg:{Cu:1,'Fe2(SO4)3':1},    pr:{CuSO4:1,FeSO4:2}},
+ {rg:{'Fe(OH)2':4,O2:1,H2O:2}, pr:{'Fe(OH)3':4}, obs:'Kết tủa trắng xanh hoá nâu đỏ khi gặp oxi.'},
+ // sắt + lưu huỳnh, nhiệt nhôm, nhôm lưỡng tính
+ {rg:{Fe:1,S:1},              pr:{FeS:1}, heat:1, exo:1, obs:'Hỗn hợp bột sắt và lưu huỳnh nóng đỏ lên, tạo chất rắn màu đen FeS.'},
+ {rg:{Al:2,Fe2O3:1},          pr:{Al2O3:1,Fe:2}, heat:1, exo:1, obs:'Phản ứng nhiệt nhôm toả nhiệt rất mạnh, sắt nóng chảy chảy ra.'},
+ {rg:{Al:2,CuO:3},            pr:{Al2O3:1,Cu:3}, heat:1, exo:1},
+ {rg:{Al:2,NaOH:2,H2O:2},     pr:{NaAlO2:2,H2:3}, obs:'Nhôm tan trong dung dịch kiềm, sủi bọt khí H₂ — cách nhận ra nhôm.'},
+ {rg:{Al2O3:1,NaOH:2},        pr:{NaAlO2:2,H2O:1}},
+ {rg:{'Al(OH)3':1,NaOH:1},    pr:{NaAlO2:1,H2O:2}, obs:'Kết tủa keo trắng Al(OH)₃ tan trong kiềm dư.'},
+ // cacbon monooxit: điều chế và khử oxit (lò cao). C + H₂O → CO + H₂ (khí than ướt) cố ý KHÔNG có: cần ~1000 °C, đèn
+ // cồn không làm được — để thì cốc nào có than và nước đem đun cũng sinh CO
+ {rg:{C:1,CO2:1},             pr:{CO:2}, heat:1},
+ {rg:{CuO:1,CO:1},            pr:{Cu:1,CO2:1}, heat:1},
+ {rg:{Fe2O3:1,CO:3},          pr:{Fe:2,CO2:3}, heat:1, obs:'Như trong lò cao: CO khử oxit sắt thành sắt.'},
+ {rg:{Fe3O4:1,CO:4},          pr:{Fe:3,CO2:4}, heat:1},
+ {rg:{ZnO:1,CO:1},            pr:{Zn:1,CO2:1}, heat:1},
+ {rg:{CO:2,O2:1},             pr:{CO2:2}, heat:1, obs:'Khí CO cháy với ngọn lửa màu xanh nhạt.'},
+ {rg:{NH3:2,CuO:3},           pr:{Cu:3,N2:1,H2O:3}, heat:1, obs:'Bột CuO đen hoá đỏ — NH₃ khử đồng oxit.'}
 ];
 
 /* Mốc chia nhóm cho Sổ tay ở màn hình chính. i = số thứ tự phản ứng đầu tiên của nhóm.
@@ -589,7 +651,10 @@ const RX_GROUPS = [
  {i:416, t:'Kim loại đẩy kim loại (mở rộng)'},
  {i:449, t:'Oxit axit + kiềm, oxit bazơ + oxit axit (mở rộng)'},
  {i:459, t:'Nhiệt phân (mở rộng)'},
- {i:462, t:'Oxi hoá – khử (mở rộng)'}
+ {i:462, t:'Oxi hoá – khử (mở rộng)'},
+ {i:463, t:'Axit sunfuric đặc'},
+ {i:470, t:'Axit nitric loãng và đặc'},
+ {i:487, t:'Oxi hoá – khử khác (có điều kiện)'}
 ];
 
 /* =====================================================================

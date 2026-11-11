@@ -96,6 +96,15 @@ const CHEMS = {
  'Mg(OH)2':  {n:'Magie hiđroxit (trắng)',        s:'r', c:'#f2f2ec'},
  'Fe2(SO4)3':{n:'Sắt(III) sunfat',               s:'r', c:'#d9a86a', sol:1, slb:44},
  'Zn(OH)2':  {n:'Kẽm hiđroxit (trắng)',          s:'r', c:'#f2f2ec'},
+ // ---- oxi hoá – khử có điều kiện (phan-ung.js, nhóm 29 trở đi) ----
+ 'NO':        {n:'Nitơ monooxit (không màu, hoá nâu ngoài không khí)', s:'k', c:'#eef2f4'},
+ 'NO2':       {n:'Nitơ đioxit (nâu đỏ, độc)', s:'k', c:'#b5652a'},
+ 'CO':        {n:'Cacbon monooxit (độc)', s:'k', c:'#eef0ee'},
+ 'NaClO':     {n:'Natri hipoclorit (nước Gia-ven)', s:'r', c:'#eef3e0', sol:1},
+ 'CaOCl2':    {n:'Clorua vôi', s:'r', c:'#f2f2ec', sol:1},
+ 'FeS':       {n:'Sắt(II) sunfua (đen)', s:'r', c:'#3d3a36'},
+ 'NaAlO2':    {n:'Natri aluminat', s:'r', c:'#f4f2ec', sol:1},
+ 'KClO3':     {n:'Kali clorat', s:'r', c:'#f4f2ec', sol:1, slb:7},
  // ---- thêm khi rà mọi cặp chất: sản phẩm của các phản ứng bổ sung (phan-ung.js, nhóm 22 trở đi) ----
  Ag2O:        {n:'Bạc oxit (nâu đen)', s:'r', c:'#4a3a2a'},
  'Mg(NO3)2':  {n:'Magie nitrat', s:'r', c:'#f4f2ec', sol:1},
@@ -129,6 +138,13 @@ const CHEMS = {
  'Mn3(PO4)2': {n:'Mangan(II) photphat', s:'r', c:'#f0dcd8'}
 };
 const isPrecip = f => { const c = CHEMS[f]; return c.s === 'r' && !c.sol; };
+/* Axit ĐẶC: lọ trên kệ chiến dịch là axit loãng (1–2 M, xem SOL_CM). Ca tự do có thêm lọ axit đặc, mang khoá riêng
+   'X@đặc' trên kệ; rót vào cốc thì vẫn là chất X, game ghi thêm phần nào của X đang đặc (lab.dac, phong-thi-nghiem.js).
+   Phản ứng có tag {X:'đặc'} chỉ chạy với phần đặc, tag {X:'loãng'} chỉ với phần loãng (phan-ung.js).
+   CONC_MIN: tỉ lệ khối lượng axit / (axit + nước) tối thiểu để còn coi là đặc — dưới mức này axit đã bị pha loãng. */
+const CONC_SHELF = {'H2SO4@đặc':'H2SO4', 'HNO3@đặc':'HNO3', 'HCl@đặc':'HCl'};
+const baseChem = f => CONC_SHELF[f] || f;
+const CONC_MIN = {H2SO4:.7, HNO3:.5, HCl:.25};
 // mọi chất rắn tan đều lắng ở đáy cốc, phải khuấy (hoặc đun) mới tan — kể cả đường, muối: ngày 1 dạy đúng thao tác này.
 // slb (độ tan) hiện chỉ là dữ liệu tham khảo, chưa dùng để chia chất tan nhanh / chậm
 const SLOW_DISSOLVE = Object.keys(CHEMS).filter(f => CHEMS[f].s === 'r' && CHEMS[f].sol);

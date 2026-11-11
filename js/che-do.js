@@ -3793,7 +3793,10 @@ const RX_NOTES = [
   'Kim loại đứng trước trong dãy hoạt động (Mg Al Zn Fe … Cu Ag) đẩy kim loại đứng sau ra khỏi dung dịch muối.',
   'SO₂, P₂O₅ cũng làm được như CO₂: gặp kiềm thành muối + nước, gặp oxit bazơ tan thì kết hợp thẳng thành muối.',
   'Muối cacbonat không tan bị nhiệt tách thành oxit và khí CO₂.',
-  'Chất oxi hoá mạnh (thuốc tím) giành electron của chất khử (Cl trong HCl đặc), giải phóng khí clo.'
+  'Chất oxi hoá mạnh (thuốc tím) giành electron của chất khử (Cl trong HCl đặc), giải phóng khí clo.',
+  'H₂SO₄ ĐẶC, NÓNG oxi hoá được cả kim loại đứng sau H và phi kim, giải phóng SO₂ chứ không phải H₂; Al, Fe thụ động khi nguội.',
+  'HNO₃ không bao giờ giải phóng H₂: loãng cho NO, đặc cho NO₂ nâu đỏ. Al, Fe thụ động trong HNO₃ đặc nguội.',
+  'Mỗi phản ứng có điều kiện riêng: đun nóng, xúc tác (MnO₂), axit đặc hay loãng — thiếu điều kiện là không xảy ra.'
 ];
 const rxGroupOf = i => { let k = 0; RX_GROUPS.forEach((g, j) => { if(g.i <= i) k = j; }); return k; };
 // một phân tử = chùm bi: nguyên tố "trung tâm" ở giữa, O quây quanh, H bám ngoài cùng
