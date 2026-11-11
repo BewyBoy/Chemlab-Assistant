@@ -11,7 +11,7 @@ let DEBUG = location.hash === '#dev';   // khoi-dong.js bật/tắt được b�
 /* =====================  DATA  ===================== */
 // state s: r=rắn, l=lỏng, k=khí, d=dung dịch. sol: soluble (stays in solution).
 // a: acid (quỳ đỏ), b: base (quỳ xanh). c: display color.
-// slb: độ tan thực tế (g/100g nước, ~20°C) cho chất rắn tan — chỉ để so với NaCl xem có cần khuấy không (xem SLOW_DISSOLVE).
+// slb: độ tan thực tế (g/100g nước, ~20°C) cho chất rắn tan — dữ liệu tham khảo, game chưa dùng (xem SLOW_DISSOLVE).
 const CHEMS = {
  'H2O':      {n:'Nước',                          s:'l', c:'#cfe6f2', sol:1},
  'NaCl':     {n:'Muối ăn (natri clorua)',        s:'r', c:'#f4f2ec', sol:1, slb:36},
@@ -97,7 +97,8 @@ const CHEMS = {
  'Zn(OH)2':  {n:'Kẽm hiđroxit (trắng)',          s:'r', c:'#f2f2ec'}
 };
 const isPrecip = f => { const c = CHEMS[f]; return c.s === 'r' && !c.sol; };
-// solids less soluble than NaCl (36 g/100g nước) need stirring with the glass rod to dissolve
+// mọi chất rắn tan đều lắng ở đáy cốc, phải khuấy (hoặc đun) mới tan — kể cả đường, muối: ngày 1 dạy đúng thao tác này.
+// slb (độ tan) hiện chỉ là dữ liệu tham khảo, chưa dùng để chia chất tan nhanh / chậm
 const SLOW_DISSOLVE = Object.keys(CHEMS).filter(f => CHEMS[f].s === 'r' && CHEMS[f].sol);
 
 /* ---- reactions: rg = reagents (mol ratio), pr = products, heat = needs đèn cồn, exo = toả nhiệt ---- */
@@ -573,7 +574,7 @@ const ACH = {
  week2:   {n:'Tuần hoàn hảo II',   d:'3 sao cả tuần 2'},
  week3:   {n:'Tuần hoàn hảo III',  d:'3 sao cả tuần 3'},
  week4:   {n:'Tuần hoàn hảo IV',   d:'3 sao cả tuần 4'},
- all28:   {n:'Tốt nghiệp',         d:'Hoàn thành cả 28 ngày'},
+ all28:   {n:'Tốt nghiệp',         d:'Hoàn thành cả 31 ngày'},   // khoá cũ all28 giữ nguyên cho bản lưu cũ
  serve10: {n:'Người bán chăm chỉ', d:'Phục vụ 10 đơn hàng'},
  serve50: {n:'Trợ lý vàng',        d:'Phục vụ 50 đơn hàng'},
  oops:    {n:'Ối, nhầm rồi!',      d:'Giao nhầm hàng lần đầu (ai chẳng có lúc sai)'},
@@ -585,8 +586,6 @@ const ACH = {
  egg:     {n:'Phân tử bí mật',     d:'Ghép ra một chất "ngoài đề" ở trò lập công thức (ngày 4)'}
 };
 
-// days where a perfect no-dump run is possible → star 3 also requires "no waste"
-[0,1,5,7,8,10,11,12,13,14,15,21,24].forEach(i => DAYS[i].clean = 1);
 
 const TOOLNAMES = {spoon:'Khuấy', book:'Sổ tay', quy:'Giấy quỳ', gas:'Bình thu khí', heat:'Đèn cồn', filter:'Phễu lọc', elec:'Nguồn điện phân', burn:'Muôi đốt'};
 const TOOLSYM   = {spoon:'sym-stirrod', book:'sym-notebook', quy:'sym-litmusbox', gas:'sym-gasbottle', heat:'sym-lamp', filter:'sym-funnel', elec:'sym-electro', burn:'sym-burnspoon'};

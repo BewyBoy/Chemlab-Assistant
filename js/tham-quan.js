@@ -169,7 +169,7 @@ function showTrip(){
       clearTimeout(fadeT); optsEl.innerHTML = ''; optsEl.classList.remove('fade'); box.classList.remove('ask', 'opts');
       if(L.q && !answered[k]) setTimeout(() => ask(k, L), 200);
     },
-    gate: k => !lines[k].q || answered[k],
+    gate: k => !lines[k] || !lines[k].q || answered[k],   // k vượt câu cuối (nhấn Space lúc đang lật trang về lịch): cho qua
     end: () => {
       save.trips = (save.trips || 0) + 1; persist();
       go(showMap);

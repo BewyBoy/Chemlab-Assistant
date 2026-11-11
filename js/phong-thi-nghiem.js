@@ -334,7 +334,7 @@ function newLab(i, day){
   const hard = hardOn(), dur = hard ? Math.round(day.dur * 1.5) : day.dur;
   return {i, day, hard, dur, mix:{}, undissolved:{}, dissolveTotal:0, gas:{}, solid:{}, ladle:{}, ladleLit:false,
           heaterOn:false, elecOn:false, catcher:false, sel:'beaker',
-          time:dur, oi:0, served:0, wrong:0, waste:0, timer:null, lastColor:'', magicDose:1,
+          time:dur, oi:0, served:0, wrong:0, timer:null, lastColor:'', magicDose:1,
           otime:0, odur:0, waitStage:0, miss:0, lastWhy:'', cardQ:[], cardOpen:false,
           goggles:!hard, hood:false, hoodDay:hard && [...dayHave(day)].some(f => TOXIC.includes(f)),
           safety:0, safeHits:{}, firstPour:null, waterIn:false, mistakes:{}};
@@ -388,7 +388,7 @@ function endFree(){
 function finishLab(timeUp){
   if(!lab) return; // serve-timeout and timer can race — first one wins
   clearInterval(lab.timer);
-  const i = lab.i, st = {served:lab.served, wrong:lab.wrong, waste:lab.waste, hard:lab.hard,
+  const i = lab.i, st = {served:lab.served, wrong:lab.wrong, hard:lab.hard,
                          safety:lab.safety, mistakes:lab.mistakes};
   lab = null;
   // hết giờ giữa chừng: chữ "Hết giờ!" rơi xuống một nhịp, để không ai tưởng game tự nhảy sang màn khác
@@ -1326,12 +1326,14 @@ function updateBeaker(){
   if(save.items && save.items.notes){
     const snc = G.querySelector('#stickynote-content');
     if(snc){
+      // chế độ khó ghi khối lượng / thể tích như phiếu hàng (qtyStr) — ghi số mol là lộ luôn phép đổi mà chế độ khó bắt tự tính
+      const q = (f, v) => lab.hard ? qtyStr(f, v) : amt(v).replace(' mol', '');
       const itemsList = Object.keys(mix).filter(f => mix[f]>0).map(f => {
         let label = sub(f);
         if(isPrecip(f)) label = '↓' + label;
-        return `<div>• ${label}: ${amt(mix[f]).replace(' mol', '')}</div>`;
+        return `<div>• ${label}: ${q(f, mix[f])}</div>`;
       }).concat(Object.keys(ud).filter(f => ud[f]>0).map(f => {
-        return `<div>• ↓${sub(f)}: ${amt(ud[f]).replace(' mol', '')} <span style="font-size:10px; opacity:.65">(chưa tan)</span></div>`;
+        return `<div>• ↓${sub(f)}: ${q(f, ud[f])} <span style="font-size:10px; opacity:.65">(chưa tan)</span></div>`;
       })).join('');
       snc.innerHTML = itemsList || '<div style="opacity:.6">- cốc trống -</div>';
       const sw = G.querySelector('#sn-water');

@@ -40,6 +40,7 @@ function runStart(pat, held){
   const r = curRun = {pat:pat || 0, t:0, chain:0, best:0, fast:0, streak:0, iv:0};
   if(r.pat) r.iv = setInterval(() => { if(!held()) r.t += .25; }, 250);
 }
+const runStop = () => { if(curRun){ clearInterval(curRun.iv); curRun = null; } };   // bỏ dở lượt (về lịch / menu)
 const runItem = () => { if(curRun) curRun.t = 0; };                     // câu mới: đồng hồ của câu về 0
 const runLeft = () => curRun && curRun.pat ? Math.max(0, 1 - curRun.t/curRun.pat) : 0;
 const runStreak = () => curRun ? curRun.chain : 0;

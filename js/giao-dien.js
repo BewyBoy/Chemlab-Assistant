@@ -33,18 +33,19 @@ const SFX = (() => {
   // trần số tiếng hiệu ứng vang cùng lúc: bấm lọ liên tục không chồng hàng chục bộ dao động lên máy yếu (nhạc nền không tính)
   const MAX_VOICES = 16; let voices = 0;
   const voice = src => { voices++; src.onended = () => voices--; };
-  function tone(f, d, type, v, f2, vol){
+  // at: thời điểm phát theo đồng hồ âm thanh (nhạc nền xếp lịch trước); bỏ trống là phát ngay
+  function tone(f, d, type, v, f2, vol, at){
     const c = ac(); if(!c || muted) return;
     if(vol === undefined && voices >= MAX_VOICES) return;
     v = (v||.1) * (vol === undefined ? sfxVol : vol); if(v <= 0) return;
-    const o = c.createOscillator(), g = c.createGain();
+    const o = c.createOscillator(), g = c.createGain(), t = Math.max(at || 0, c.currentTime);
     if(vol === undefined) voice(o);
     o.type = type||'sine'; o.frequency.value = f;
-    if(f2) o.frequency.exponentialRampToValueAtTime(f2, c.currentTime+d);
-    g.gain.setValueAtTime(v, c.currentTime);
-    g.gain.exponentialRampToValueAtTime(.0001, c.currentTime+d);
+    if(f2) o.frequency.exponentialRampToValueAtTime(f2, t+d);
+    g.gain.setValueAtTime(v, t);
+    g.gain.exponentialRampToValueAtTime(.0001, t+d);
     o.connect(g); g.connect(c.destination);
-    o.start(); o.stop(c.currentTime+d+.02);
+    o.start(t); o.stop(t+d+.02);
   }
   // fq2: quét tần số lọc tới fq2 trong suốt tiếng — ra tiếng "vù" của lửa bùng lên
   // Một dải nhiễu trắng 2 s sinh một lần rồi dùng lại (mỗi tiếng bắt đầu ở một chỗ ngẫu nhiên), thay vì mỗi tiếng
@@ -83,14 +84,23 @@ const SFX = (() => {
     const th = THEMES[k];
     const note = i => th.root * Math.pow(2, (th.sc[((i % 5) + 5) % 5] + 12*Math.floor(i/5)) / 12);
     mus.step = 0; mus.pos = 5;
-    mus.timer = setInterval(() => {
-      const s = mus.step++;
-      if(s % 8 === 0) tone(note(s % 32 === 16 ? -2 : -5), 1.4, 'sine', .035, null, musVol);     // bè trầm: chủ âm, thỉnh thoảng lên bậc
-      if(Math.random() < .62){
-        mus.pos = Math.max(0, Math.min(9, mus.pos + [-2,-1,-1,1,1,2][Math.floor(Math.random()*6)]));
-        tone(note(mus.pos), .55, th.w, .028, null, musVol);
+    // xếp lịch trước ~0,3 s theo đồng hồ âm thanh: hẹn giờ của trình duyệt bị trễ (máy bận, tab nền) thì nhịp vẫn đều,
+    // không giật như phát từng nốt đúng lúc hẹn giờ gọi
+    const c = ac(), half = 60 / th.bpm / 2;
+    if(!c) return;
+    mus.at = c.currentTime + .05;
+    const plan = () => {
+      if(mus.at < c.currentTime) mus.at = c.currentTime + .05;   // vừa ngủ dậy (tab ẩn lâu): không dồn nốt cũ ra một lượt
+      for(const end = c.currentTime + .3; mus.at < end; mus.at += half){
+        const s = mus.step++;
+        if(s % 8 === 0) tone(note(s % 32 === 16 ? -2 : -5), 1.4, 'sine', .035, null, musVol, mus.at);   // bè trầm: chủ âm, thỉnh thoảng lên bậc
+        if(Math.random() < .62){
+          mus.pos = Math.max(0, Math.min(9, mus.pos + [-2,-1,-1,1,1,2][Math.floor(Math.random()*6)]));
+          tone(note(mus.pos), .55, th.w, .028, null, musVol, mus.at);
+        }
       }
-    }, 60000 / th.bpm / 2);
+    };
+    plan(); mus.timer = setInterval(plan, 100);
   }
   return {
     isMuted: () => muted,
@@ -274,6 +284,7 @@ function confirmModal(html, onYes, yesLabel, noLabel){
 
 /* =====================  SCENES  ===================== */
 function showMenu(){
+  runStop();
   SFX.music(0);
   // Ca tự do chuyển sang tấm lịch: nó là "ngày 1 của tháng sau", xem showMap().
   // Thử thách pha nồng độ (startConc) mở sau ngày 2 — ngày học khái niệm mol.
@@ -403,7 +414,7 @@ function showReport(d){
   SFX.page();
   const box = ov.querySelector('#rbox');
   const name = ov.querySelector('#rname');
-  if(name) name.oninput = () => { save.student = name.value.trim(); persist(); };
+  if(name){ let t = 0; name.oninput = () => { save.student = name.value.trim(); clearTimeout(t); t = setTimeout(persist, 400); }; name.onblur = persist; }
   ov.querySelector('#rclose').onclick = () => closeOv(ov);
   ov.querySelector('#rcsv').onclick = () => {
     if(own) d = reportData();
@@ -445,6 +456,7 @@ function showReport(d){
 
 const themeOf = i => 1 + Math.min(4, Math.floor(i/7));   // nhạc nền theo chương (SFX.music)
 function showMap(){
+  runStop();
   SFX.music(0);
   // hand-drawn red pen loop, revealed by stroke-dashoffset when an unplayed day is picked
   const circ = '<svg class="dnc" viewBox="0 0 48 40"><path d="M9,21 C6,9 20,4 30,6 C42,8 46,15 42,25 C37,36 15,39 8,31 C3,25 7,15 15,11" pathLength="100"/></svg>';
@@ -1212,7 +1224,7 @@ function showResult(i, st){
     detail = `<p style="font-size:16px">Đơn hoàn thành: <b>${st.served}/${all}</b> · Giao sai: <b>${st.wrong}</b>${st.hard ? ` · Lỗi an toàn: <b>${st.safety||0}</b>` : ''}</p>`;
     if(why.length) detail += `<p class="rswhy">Chưa đủ 3 sao vì ${why.join(', ')}.</p>`;
     save.served += st.served;
-    if(st.served === all) unlockAch('clean');
+    if(st.served === all && !st.wrong) unlockAch('clean');
   }
   const stars = sc.stars;
   // save progress — chế độ khó có cột sao và kỷ lục riêng, nhưng qua được thì vẫn mở ngày kế tiếp
@@ -1238,7 +1250,7 @@ function showResult(i, st){
     for(let d=w*7+1; d<=w*7+7; d++) if((save.stars[d]||0) < 3) ok = false;
     if(ok) unlockAch('week'+(w+1));
   }
-  if(Object.keys(save.stars).filter(k=>save.stars[k]>=1).length >= 28) unlockAch('all28');
+  if(DAYS.every((d, k) => (save.stars[k + 1] || 0) >= 1)) unlockAch('all28');
   if(num === 28 && stars === 3) unlockAch('master');
   persist();
   const cheer = stars===3?'Xuất sắc! Không chê vào đâu được!':stars===2?'Làm tốt lắm, gần hoàn hảo rồi!':stars===1?'Ổn đấy! Luyện thêm chút nữa nhé.':'Đừng nản — thử lại nào, ta tin trò!';

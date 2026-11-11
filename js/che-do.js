@@ -2198,6 +2198,7 @@ const MG = {
   // ống nhỏ giọt hạ xuống trên trạm, ba giọt rơi, rồi hiện tượng hiện ra (có sổ thì ghi luôn vào sổ)
   function drip(k, s){
     if(done || busy[s]) return;
+    if(!s) unlockAch('quy1');                    // trạm 0 là giấy quỳ: "Dùng giấy quỳ lần đầu"
     busy[s] = 1; unselect();
     const art = G.querySelector('.idf-st[data-s="'+s+'"] .idf-art'), res = testOf(st[s], samples[k]);
     const x = s ? 75 : 35 + 40*k, tip = s ? 4 : 30, land = s ? 58 : 65;   // toạ độ trong .idf-art: đầu ống → chỗ giọt rơi
