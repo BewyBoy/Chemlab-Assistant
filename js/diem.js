@@ -7,7 +7,8 @@
      NHANH     mỗi lần làm đúng +0…50 theo phần thời gian còn lại của lần đó: ở bàn thí nghiệm là vòng đồng hồ chờ
                trên phiếu khách; ở minigame là PAT giây cho mỗi câu (đồng hồ đứng khi tạm nghỉ / có thẻ phủ lên màn)
      CHUỖI     mỗi lần làm đúng +10 cho mỗi lần đúng liền ngay trước nó, tối đa +50. Sai một lần — giao sai, lỗi an
-               toàn, khách bỏ đi, trả lời sai — là chuỗi về 0
+               toàn, khách bỏ đi, trả lời sai — là chuỗi về 0. Ở bàn thí nghiệm chế độ thường, lần giao sai ĐẦU TIÊN
+               trong ca không tính (không đứt chuỗi, không mất HOÀN HẢO) — xem serve() trong phong-thi-nghiem.js
      HOÀN HẢO  đạt điều kiện 3 sao cũ (giao đủ, không giao sai, không lỗi an toàn / đúng tất cả): +100 mỗi phần,
                bằng đúng NHANH + CHUỖI tối đa của một lần đúng
    Mốc sao — k1, k2: số phần cần cho 1, 2 sao theo luật cũ (s1 đơn và đủ đơn; một nửa và 3/4 số câu):

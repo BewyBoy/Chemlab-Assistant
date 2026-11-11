@@ -267,6 +267,8 @@ function dragEnd(e){
   } else {
     const [lx, ly] = dropPt(e, d);
     if(d.opts.onLoose && d.opts.onLoose({clientX:lx, clientY:ly})){ g.remove(); return; } // e.g. undocking lamp/gas
+    // thả hàng trượt ra ngoài khay (vẫn ở phía khách): nói cho biết phải thả vào đâu, đừng chỉ bật về im lặng
+    if(lab && (DZ_ACCEPT[d.type]||[]).includes('cust') && gameXY({clientX:lx, clientY:ly}).x < 360) notify(PROF_LAB.thaKhay);
     g.style.transition = 'translate .38s cubic-bezier(.3,1.5,.5,1), transform .38s';
     g.style.translate = (d.sx - d.opts.w/2) + 'px ' + (d.sy - d.opts.h/2) + 'px';
     g.style.transform = 'rotate(0deg) scale(1)';
@@ -325,6 +327,8 @@ function dropAction(type, zone, data){
    (chốt lúc mở tiệm — đổi cài đặt giữa ca không làm lệch cách chấm). dur: thời lượng ca.
    An toàn: goggles (đã đeo kính & găng), hood (tủ hút đang bật), hoodDay (hôm nay có thể sinh
    khí độc), safety (số lỗi an toàn), firstPour/waterIn (để bắt lỗi rót nước vào axit).
+   Luật an toàn chỉ áp ở CHẾ ĐỘ KHÓ: chế độ thường coi như đã đeo đồ bảo hộ, không có tủ hút, không trừ sao;
+   rót nước vào axit thì giáo sư vẫn giảng (kiến thức), chỉ không tính lỗi.
    mistakes: đếm từng loại lỗi trong ca — đi vào báo cáo cho thầy cô. */
 function newLab(i, day){
   const hard = hardOn(), dur = hard ? Math.round(day.dur * 1.5) : day.dur;
@@ -332,12 +336,16 @@ function newLab(i, day){
           heaterOn:false, elecOn:false, catcher:false, sel:'beaker',
           time:dur, oi:0, served:0, wrong:0, waste:0, timer:null, lastColor:'', magicDose:1,
           otime:0, odur:0, waitStage:0, miss:0, lastWhy:'', cardQ:[], cardOpen:false,
-          goggles:false, hood:false, hoodDay:[...dayHave(day)].some(f => TOXIC.includes(f)),
+          goggles:!hard, hood:false, hoodDay:hard && [...dayHave(day)].some(f => TOXIC.includes(f)),
           safety:0, safeHits:{}, firstPour:null, waterIn:false, mistakes:{}};
 }
 function startLab(i){
   SFX.music(themeOf(i));
-  lab = newLab(i, DAYS[i]);
+  // chơi lại ngày đã qua (đã có sao): cùng các đơn nhưng khách đến theo thứ tự khác — lượt sau phải nhớ CÁCH làm,
+  // không phải nhớ thứ tự. Lần đầu (và ngày 1, ngày hướng dẫn) giữ đúng thứ tự đã soạn
+  const won = (hardOn() ? save.starsHard : save.stars)[i + 1] >= 1;
+  const day = won && i > 0 ? Object.assign({}, DAYS[i], {orders:shuffle(DAYS[i].orders)}) : DAYS[i];
+  lab = newLab(i, day);
   runStart();   // điểm nhanh lấy từ vòng đồng hồ chờ của từng khách (serve), không cần đồng hồ riêng
   renderLab();
   startCurtain();   // đồng hồ ca bật khi màn "Bắt đầu" sáng lại
@@ -358,14 +366,38 @@ function startFree(){
   runStart();
   renderLab();
   startCurtain();
-  toast('Kệ mở toàn bộ '+chems.length+' hoá chất — khách đến vô tận, nghịch thoải mái!');
+  notify('Kệ mở toàn bộ '+chems.length+' hoá chất — khách đến vô tận, nghịch thoải mái!');
 }
-function finishLab(){
+/* Kết thúc ca tự do: thẻ tổng kết như ngày thường — số đơn, kỷ lục, phản ứng mới vào sổ tay. Sao ở đây chỉ để vui
+   (3 / 6 / 10 đơn), không ghi vào lịch: ca tự do có một mục tiêu để phá thay vì chơi mãi không đích */
+const FREE_STARS = [3, 6, 10];
+function endFree(){
+  const n = lab.served, nr = lab.newRx || 0;
+  lab = null;
+  const rec = n > (save.freeBest || 0);
+  if(rec){ save.freeBest = n; persist(); }
+  const stars = FREE_STARS.filter(k => n >= k).length;
+  resultCard('Ca tự do kết thúc', stars, `<div class="resbody">
+    <p style="font-size:18px">Đơn hoàn thành: <b>${n}</b> · ${rec && n ? '<b class="rsrec">Kỷ lục mới!</b>' : 'Kỷ lục: <b>' + (save.freeBest || 0) + '</b>'}</p>
+    ${nr ? `<p>Phản ứng mới vào sổ tay: <b>${nr}</b></p>` : ''}
+    <p class="hand">“${FREE_STARS.join(' / ')} đơn trong một ca là 1 / 2 / 3 sao — thử phá kỷ lục nhé!”</p></div>
+    <div class="row resbtns">${resBtn('bmap', 'map', 'Bản đồ')}${resBtn('bretry', 'retry', 'Ca mới', ' main')}</div>`);
+  G.querySelector('#bretry').onclick = () => go(startFree);
+  G.querySelector('#bmap').onclick = () => go(showMap);
+}
+function finishLab(timeUp){
   if(!lab) return; // serve-timeout and timer can race — first one wins
   clearInterval(lab.timer);
   const i = lab.i, st = {served:lab.served, wrong:lab.wrong, waste:lab.waste, hard:lab.hard,
                          safety:lab.safety, mistakes:lab.mistakes};
   lab = null;
+  // hết giờ giữa chừng: chữ "Hết giờ!" rơi xuống một nhịp, để không ai tưởng game tự nhảy sang màn khác
+  if(timeUp){
+    const b = document.createElement('div'); b.className = 'timeup'; b.innerHTML = '<b>' + PROF_LAB.hetGio + '</b>';
+    G.appendChild(b); SFX.bell();
+    setTimeout(() => { b.remove(); showResult(i, st); }, 1400);
+    return;
+  }
   showResult(i, st);   // thẻ kết quả nảy lên ngay trên bàn thí nghiệm vừa đứng hình
 }
 
@@ -385,7 +417,7 @@ function labTick(){
   const tl = G.querySelector('#tleft');
   if(tl) tl.textContent = Math.floor(lab.time/60)+':'+String(lab.time%60).padStart(2,'0');
   // vòng đếm ngược ở góc bóng thoại — đồng hồ chờ của riêng khách hiện tại
-  if(lab.odur > 0 && lab.otime > 0) lab.otime--;
+  if(lab.odur > 0 && lab.otime > 0 && !G.querySelector('#custwalk.walking')) lab.otime--;   // đang bước vào thì chưa tính giờ chờ
   const ofrac = lab.odur > 0 ? lab.otime/lab.odur : 1;
   const ring = G.querySelector('.on-ring circle.fg');
   if(ring){ ring.style.strokeDashoffset = 88*(1-ofrac); ring.style.stroke = ofrac>.2?'var(--green)':'var(--red)'; }
@@ -408,10 +440,12 @@ function labTick(){
   const ck = G.querySelector('#clocksvg');
   if(ck){ ck.style.setProperty('--ckh', ((hours%12)*30)+'deg'); ck.style.setProperty('--ckm', ((hours*60)%60*6)+'deg'); }
   if(lab.heaterOn){
+    // khuấy, đun nóng hay nghiền nhỏ đều giúp chất rắn tan nhanh hơn (bài giảng ngày 1): đun thì tan dần, chậm hơn khuấy
+    if(tot(lab.undissolved) > 0 && Object.keys(lab.mix).some(f => CHEMS[f].s === 'l' || CHEMS[f].s === 'd')) dissolveStep(0.25, true);
     runReactions();   // điện phân không tự chạy — xem electrolyse()
     if(lab.time % 3 === 0 && Object.keys(lab.mix).some(f => CHEMS[f].s === 'l' || CHEMS[f].s === 'd')) SFX.boil();   // cốc đang sôi lục bục
   }
-  if(lab.time <= 0){ if(lab.day.free) lab.time = lab.dur; else { finishLab(); return; } } // free play: the day just starts over
+  if(lab.time <= 0){ if(lab.day.free) lab.time = lab.dur; else { finishLab(true); return; } } // free play: the day just starts over
   if(lab.odur > 0 && lab.otime <= 0) customerLeaves();
 }
 
@@ -424,7 +458,7 @@ function customerLeaves(){ // hết giờ chờ: khách bỏ đi, hàng đợi c
   custSay(fillLine(LEAVE_LINE, {ten:c[0]}));
   setExp('annoy');
   SFX.err();
-  toast('Khách bỏ đi — lỡ đơn "' + (od.pname || CHEMS[od.chem].n) + '".');
+  notify('Khách bỏ đi — lỡ đơn "' + (od.pname || CHEMS[od.chem].n) + '".');
   lab.oi++;
   if(lab.day.free) lab.day.orders.push(lab.day.freeOrder());
   custLeave();
@@ -542,6 +576,7 @@ function renderLab(){
       <div style="flex:1"></div>
       ${lab.hard ? `<button class="btn" id="bhbook" style="padding:5px 12px">${ico('book')} Công thức</button>` : ''}
       <button class="btn icobtn" id="bmute">${ico(SFX.isMuted()?'mute':'sound')}</button>
+      ${day.free ? '' : `<button class="btn" id="bhint" style="padding:5px 12px" title="Giáo sư nhắc bước kế tiếp">${ico('book')} Gợi ý</button>`}
       <button class="btn icobtn" id="bpause">${ico('pause')}</button>
     </div>
     <div class="wall">
@@ -550,7 +585,7 @@ function renderLab(){
       <div class="wallitem" style="left:352px;top:26px" id="winhost"><svg id="winsvg" width="100" height="123"><use href="#sym-window"/></svg></div>
       <div class="wallitem" style="left:648px;top:18px"><svg id="clocksvg" width="86" height="86"><use href="#sym-clock"/></svg></div>
       <div class="wallitem" style="left:900px;top:26px">${sym('sym-pipette',34,120,'--lc:#9b7bb8')}</div>
-      <div class="wallitem safetyhook" id="goggles" style="left:466px;top:86px" title="Bấm để đeo kính bảo hộ và găng tay">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>
+      ${lab.hard ? `<div class="wallitem safetyhook" id="goggles" style="left:466px;top:86px" title="Bấm để đeo kính bảo hộ và găng tay">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>` : ''}
       ${lab.hoodDay ? `<div class="wallitem hoodsw" id="hoodsw" style="left:464px;top:180px" title="Bấm để bật / tắt tủ hút">${HOOD_SVG}<div class="wallcap">Tủ hút: tắt</div></div>` : ''}
       ${stickyNoteHtml}
       ${!day.free && dayEqs(day).length ? `<div class="wallitem balpaper" id="balpaper" style="left:600px;top:116px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
@@ -571,6 +606,7 @@ function renderLab(){
     ${has('gas') ? '<svg class="rig gastube" id="gastube" viewBox="0 0 1280 720"><path id="gastubeline" fill="none" stroke="#3b3025" stroke-width="10" stroke-linecap="round"/><path id="gastubecore" fill="none" stroke="#f3f1e8" stroke-width="5.5" stroke-linecap="round"/></svg>' : ''}
     ${place({u:0, t:BT, w:BW, h:BH, id:'beakerItem', dz:'beaker', cls:'grab', z:4,
              art:BEAKER_SVG.replace('<svg ','<svg width="'+BW+'" height="'+BH+'" ')})}
+    <button class="btn undobtn" id="bundo" hidden title="Rút lại lần rót vừa rồi (khi chất chưa phản ứng)">↶ Rút lại</button>
     <div class="stirring-ring" id="stirring-ring"><svg width="52" height="52" viewBox="0 0 52 52">
       <circle class="bg" cx="26" cy="26" r="21"/><circle class="fg" cx="26" cy="26" r="21"/></svg><span class="stir-tag">Khuấy!</span></div>
     ${benchTools(day)}
@@ -583,7 +619,9 @@ function renderLab(){
   G.querySelector('#speech').onclick = custChat;
   G.querySelector('#bmute').onclick = e => { const m = SFX.toggle(); e.currentTarget.innerHTML = ico(m?'mute':'sound'); };
   const hb = G.querySelector('#bhbook'); if(hb) hb.onclick = showHardBook;
-  G.querySelector('#goggles').onclick = () => { if(lab.goggles) return; wearGoggles(); toast('Đã đeo kính bảo hộ và găng tay — an toàn là trên hết!'); };
+  const bh = G.querySelector('#bhint'); if(bh) bh.onclick = () => { SFX.talk(); showHint(); };
+  G.querySelector('#bundo').onclick = undoPour;
+  const gg = G.querySelector('#goggles'); if(gg) gg.onclick = () => { if(lab.goggles) return; wearGoggles(); toast('Đã đeo kính bảo hộ và găng tay — an toàn là trên hết!'); };
   const hs = G.querySelector('#hoodsw'); if(hs) hs.onclick = () => setHood(!lab.hood);
   const bp = G.querySelector('#balpaper'); if(bp) bp.onclick = () => {
     if(!lab) return;
@@ -611,7 +649,7 @@ function renderLab(){
     elec: () => { if(lab.elecOn){ setElec(false); return true; } return false; },
     gas:  () => { if(lab.catcher){ setCatch(false); return true; } return false; },
     // nhúng muôi vào cốc: không đốt trong cốc — nói rõ lý do thay vì lặng lẽ bật về
-    ladle: e => { if(overBeaker(e)){ SFX.err(); toast('Không đốt trong cốc! Đưa muôi đang cháy vào <b>lọ khí</b> (bình khí đã nạp O₂ hoặc Cl₂).'); } return false; }
+    ladle: e => { if(overBeaker(e)){ SFX.err(); notify('Không đốt trong cốc! Đưa muôi đang cháy vào <b>lọ khí</b> (bình khí đã nạp O₂ hoặc Cl₂).'); } return false; }
   };
   Object.keys(TOOLPOS).forEach(key => {
     const tl = TOOLBOX[key], el = G.querySelector('#tool_'+key);
@@ -629,7 +667,7 @@ function renderLab(){
       onClick: key === 'rod' ? (() => {
         if(tot(lab.undissolved) > 0){ dissolveStep(); return; }
         wiggleBeaker(); SFX.pour(); if(!runReactions()) explainNoRx(); updateBeaker();
-      }) : key === 'burn' ? (() => toast(ladleHint())) : undefined
+      }) : key === 'burn' ? (() => notify(ladleHint())) : undefined
     });
   });
   syncLadle();
@@ -682,12 +720,7 @@ function pauseLab(){
     closeOv(ov, () => { if(lab && lab.timer === null) lab.timer = setInterval(labTick, 1000); });
   ov.querySelector('#prestart').onclick = () => { const i = lab.i; lab = null; go(free ? startFree : ()=>playDay(i)); };
   ov.querySelector('#pmap').onclick = () => {
-    if(free){ // bank the shift: serve count feeds the same save fields the campaign uses
-      save.served += lab.served; persist();
-      if(save.served >= 10) unlockAch('serve10');
-      if(save.served >= 50) unlockAch('serve50');
-      toast('Ca tự do: '+lab.served+' đơn hoàn thành!');
-    }
+    if(free) return endFree();   // số đơn đã ghi dần trong serve(); ở đây chỉ tổng kết ca
     lab = null; go(showMap);
   };
 }
@@ -720,10 +753,21 @@ function runReactions(collect){
   }
   if(collect){ fired.forEach(x => collect.push(x)); return fired.length; }
   if(fired.length){
-    toast(fired.join('<br>'));
+    eqPop(fired);
+    // khí sinh ra mà chưa có bình hứng: nói rõ vì sao, đây là lỗi hay gặp nhất mà trước đây người chơi không được biết
+    if(fired.some(x => x.includes('bay mất')) && lab.day.tools.includes('gas')) notify(profLine(PROF_LAB.khiBayMat));
     if(!tot(lab.undissolved)) flashStirRing(); // quick fill-and-fade — same ring as stirring, but for an instant reaction
   }
   return fired.length;
+}
+// phương trình vừa chạy nổi lên trên miệng cốc rồi tan: người chơi thấy ngay mình vừa làm ra chất gì
+function eqPop(lines){
+  if(!lines || !lines.length || !G.querySelector('#beakerItem')) return;
+  G.querySelectorAll('.eqpop').forEach(x => x.remove());   // rót liên tiếp: chỉ giữ phương trình mới nhất, không chồng chữ
+  const bx = beakerBox(), e = document.createElement('div');
+  e.className = 'eqpop'; e.innerHTML = lines.join('<br>');
+  e.style.left = bx.cx + 'px'; e.style.top = (bx.top - 14) + 'px';
+  G.appendChild(e); e.onanimationend = () => e.remove();
 }
 /* Sổ tay ghi lại phản ứng NGƯỜI CHƠI ĐÃ TỰ CHẠY — mở ở màn hình chính, xem như
    những gì đã học được. Không hiện trong màn chơi nữa: đang bán hàng thì phải nhớ,
@@ -732,6 +776,7 @@ function learnRx(r){
   const i = REACTIONS.indexOf(r);
   if(i < 0 || save.rx.includes(i)) return;
   save.rx.push(i); persist();
+  if(lab) lab.newRx = (lab.newRx || 0) + 1;
   if(save.rx.length === REACTIONS.length) unlockAch('rxall');
   if(lab && cardsOn()) queueRxCard(r);   // lần đầu tự tay làm ra → giáo sư chiếu thẻ phản ứng
 }
@@ -836,14 +881,14 @@ function electrolyse(i, units){
   // mức độ phản ứng: theo lượng người chơi đặt, nhưng không vượt quá thứ đang có trong cốc
   const n = Math.min(units / r.rg[main],
                      ...Object.keys(r.rg).map(f => (lab.mix[f]||0) / r.rg[f]));
-  if(!(n > 0.004)){ toast('Không đủ chất để điện phân chừng đó.'); return; }
+  if(!(n > 0.004)){ notify('Không đủ chất để điện phân chừng đó.'); return; }
   const note = applyReaction(r, RQ(n));
   const zap = G.querySelector('#sv_elec');
   if(zap){ zap.style.setProperty('--zap', 1); setTimeout(()=>zap.style.setProperty('--zap', lab.elecOn?1:0), 700); }
   SFX.zap();
   const more = [];
   runReactions(more);                 // phản ứng kéo theo (không cần điện) chạy tiếp
-  toast([note].concat(more).join('<br>'));
+  eqPop([note].concat(more));
   updateBeaker();
 }
 
@@ -860,13 +905,13 @@ function pourChem(f, where){
   const c = CHEMS[f];
   if(where === 'jar' && !JAR_GASES.includes(f)){
     SFX.err();
-    toast(c.s === 'k' ? 'Lọ khí chỉ nạp sẵn <b>O₂</b> hoặc <b>Cl₂</b> để làm thí nghiệm đốt. Khí khác phải tự điều chế rồi hứng bằng bộ thu khí.'
+    notify(c.s === 'k' ? 'Lọ khí chỉ nạp sẵn <b>O₂</b> hoặc <b>Cl₂</b> để làm thí nghiệm đốt. Khí khác phải tự điều chế rồi hứng bằng bộ thu khí.'
                       : 'Lọ khí chỉ chứa <b>khí</b>. Chất rắn muốn đốt thì thả vào <b>muôi đốt</b>, còn lại rót vào cốc.');
     return;
   }
   if(where === 'ladle' && c.s !== 'r'){
     SFX.err();
-    toast('Muôi đốt chỉ đựng chất <b>rắn</b>. ' + (JAR_GASES.includes(f) ? 'Khí '+sub(f)+' thì nạp vào <b>lọ khí</b> (bình Thu khí).' : 'Chất này rót vào cốc.'));
+    notify('Muôi đốt chỉ đựng chất <b>rắn</b>. ' + (JAR_GASES.includes(f) ? 'Khí '+sub(f)+' thì nạp vào <b>lọ khí</b> (bình Thu khí).' : 'Chất này rót vào cốc.'));
     return;
   }
   pourSafety(f);
@@ -874,8 +919,22 @@ function pourChem(f, where){
 }
 const baseDose = () => (save.items && save.items.tools && !lab.hard) ? lab.magicDose : 1;
 
+/* Rút lại lần rót vừa rồi: rót lố một giọt thì trước đây chỉ còn cách đổ cả cốc. Chỉ rút được khi chất vừa rót CHƯA
+   phản ứng và cốc chưa bị đụng tới từ đó (khuấy, đun, lọc… là mất lượt rút). Phản ứng rồi thì không đảo ngược được. */
+const beakerSig = () => JSON.stringify([lab.mix, lab.undissolved, lab.gas, lab.solid]);
+const canUndo = () => lab && lab.undo && !lab.undo.reacted && lab.undo.after === beakerSig();
+function undoPour(){
+  if(!lab || !lab.undo) return;
+  if(!canUndo()){ SFX.err(); notify(profLine(PROF_LAB.khongHoanTac)); lab.undo = null; updateBeaker(); return; }
+  const b = lab.undo.before;
+  lab.mix = b.mix; lab.undissolved = b.und; lab.dissolveTotal = b.dt; lab.firstPour = b.fp; lab.waterIn = b.wi;
+  lab.undo = null; lab.lastWhy = '';
+  SFX.pour(); wiggleBeaker(); toast(PROF_LAB.hoanTac);
+  updateBeaker();
+}
 function addChem(f, dose){
   const th = G.querySelector('#tuthand'); if(th) th.remove();
+  const before = {mix:{...lab.mix}, und:{...lab.undissolved}, dt:lab.dissolveTotal, fp:lab.firstPour, wi:lab.waterIn};
   // quy tắc pha axit: cốc bắt đầu bằng H₂SO₄ mà chưa có nước thì không được rót nước vào sau
   if(f === 'H2O' && lab.firstPour === 'H2SO4' && !lab.waterIn)
     safetyHit('axit-nuoc', PROF_SAFETY['axit-nuoc']);
@@ -886,13 +945,17 @@ function addChem(f, dose){
   if(SLOW_DISSOLVE.includes(f)){ // settles at the bottom: no reactions, no serving until stirred in
     lab.undissolved[f] = RQ((lab.undissolved[f]||0) + dose);
     lab.dissolveTotal = RQ(lab.dissolveTotal + dose);
-    toast(doseStr(f, dose) + ' ' + sub(f) + ' — ít tan! Kéo đũa <b>Khuấy</b> vào cốc rồi khuấy tròn cho tan.');
+    (lab.toldSlow ? toast : notify)(doseStr(f, dose) + ' ' + sub(f) + ' — chưa tan! Kéo đũa <b>Khuấy</b> vào cốc rồi khuấy tròn cho tan.');
+    lab.toldSlow = true;
+    lab.undo = {before, reacted:false, after:beakerSig()};
     updateBeaker();
     return;
   }
   lab.mix[f] = RQ((lab.mix[f]||0) + dose);
   if(CHEMS[f].s === 'd') lab.mix.H2O = RQ((lab.mix.H2O||0) + dose); // dung dịch nào cũng mang theo nước
-  if(!runReactions()) explainNoRx(f);
+  const fired = runReactions();
+  if(!fired) explainNoRx(f);
+  lab.undo = {before, reacted:fired > 0, after:beakerSig()};
   updateBeaker();
 }
 
@@ -921,16 +984,16 @@ function loadLadle(f, dose){
 }
 function igniteLadle(){
   const fuel = ladleFuel();
-  if(!fuel.length){ SFX.err(); toast('Muôi đang trống — thả chất rắn từ tủ vào muôi rồi mới hơ lửa.'); return; }
+  if(!fuel.length){ SFX.err(); notify('Muôi đang trống — thả chất rắn từ tủ vào muôi rồi mới hơ lửa.'); return; }
   const lamp = G.querySelector('#sv_heat');
   if(lamp && !lab.heaterOn){   // đèn loé lên một nhịp cho thấy là vừa hơ qua lửa
     setFx(lamp, 'flame', 1);
     setTimeout(() => { if(lab && !lab.heaterOn) setFx(lamp, 'flame', 0); }, 1200);
   }
-  if(lab.ladleLit){ toast('Muôi đang cháy rồi — đưa nhanh vào lọ khí!'); return; }
+  if(lab.ladleLit){ notify('Muôi đang cháy rồi — đưa nhanh vào lọ khí!'); return; }
   lab.ladleLit = true;
   SFX.ignite();
-  toast(fuel.map(sub).join(', ') + ' trên muôi đã bén lửa — đưa nhanh vào <b>lọ khí</b>!');
+  notify(fuel.map(sub).join(', ') + ' trên muôi đã bén lửa — đưa nhanh vào <b>lọ khí</b>!');
   syncLadle(); updateCoach();
 }
 function dumpLadle(){
@@ -941,12 +1004,12 @@ function dumpLadle(){
 }
 function burnInJar(){
   const fuel = ladleFuel();
-  if(!fuel.length){ SFX.err(); toast('Muôi đang trống — thả chất rắn từ tủ vào muôi trước.'); return; }
-  if(!lab.ladleLit){ SFX.err(); toast('Chất trên muôi chưa bén lửa — kéo muôi qua <b>đèn cồn</b> để hơ trước đã.'); return; }
+  if(!fuel.length){ SFX.err(); notify('Muôi đang trống — thả chất rắn từ tủ vào muôi trước.'); return; }
+  if(!lab.ladleLit){ SFX.err(); notify('Chất trên muôi chưa bén lửa — kéo muôi qua <b>đèn cồn</b> để hơ trước đã.'); return; }
   const gases = Object.keys(lab.gas).filter(f => lab.gas[f] > 0);
   if(!gases.length){
     SFX.err(); lab.ladleLit = false; syncLadle();
-    toast('Lọ trống không — chút oxi trong lọ hết ngay, lửa tắt ngấm. Nạp <b>O₂</b> hoặc <b>Cl₂</b> vào lọ trước!');
+    notify('Lọ trống không — chút oxi trong lọ hết ngay, lửa tắt ngấm. Nạp <b>O₂</b> hoặc <b>Cl₂</b> vào lọ trước!');
     return;
   }
   const amtIn = f => CHEMS[f].s === 'k' ? (lab.gas[f]||0) : (lab.ladle[f]||0);
@@ -973,7 +1036,7 @@ function burnInJar(){
   if(!fired.length){
     SFX.err(); lab.ladleLit = false; syncLadle();
     const ox = gases.filter(f => JAR_GASES.includes(f));
-    toast(fuel.map(sub).join(', ') + (ox.length ? ' không cháy được trong khí ' + ox.map(sub).join(', ') + '.'
+    notify(fuel.map(sub).join(', ') + (ox.length ? ' không cháy được trong khí ' + ox.map(sub).join(', ') + '.'
                                                 : ' không cháy trong ' + gases.map(sub).join(', ') + ' — lọ cần khí <b>oxi</b> hoặc <b>clo</b>.')
           + ' Lửa tắt rồi.');
     return;
@@ -983,9 +1046,10 @@ function burnInJar(){
   SFX.roar(); if(fuel[0] === 'Fe') SFX.crackle();
   const left = ladleFuel();
   lab.ladleLit = false;   // hết chất cháy, hoặc hết khí trong lọ → lửa tắt
-  toast(fired.join('<br>') + (obs.length ? '<br><i>' + obs.join(' ') + '</i>' : '')
-        + (solids ? '<br>Chất rắn được gạt từ muôi ra <b>đĩa</b>.' : '')
-        + (left.length ? '<br>Lọ hết khí nên lửa tắt — trên muôi còn dư ' + left.map(sub).join(', ') + '.' : ''));
+  eqPop(fired);
+  const seen = [obs.length ? '<i>' + obs.join(' ') + '</i>' : '', solids ? 'Chất rắn được gạt từ muôi ra <b>đĩa</b>.' : '',
+    left.length ? 'Lọ hết khí nên lửa tắt — trên muôi còn dư ' + left.map(sub).join(', ') + '.' : ''].filter(Boolean);
+  if(seen.length) notify(seen.join('<br>'));
   syncLadle();
   updateBeaker();
 }
@@ -1087,7 +1151,7 @@ function explainNoRx(focus){
   if(!why || why === lab.lastWhy) return;
   lab.lastWhy = why;
   noteMistake(WHY_MISTAKE[noRxKey]);
-  setTimeout(() => { if(lab) toast('<b>Giáo sư:</b> ' + why); }, 350);
+  setTimeout(() => { if(lab) notify('<b>Giáo sư:</b> ' + why); }, 350);
 }
 
 /* =====================  AN TOÀN PHÒNG THÍ NGHIỆM  =====================
@@ -1137,10 +1201,11 @@ const WHY_MISTAKE = {'dot-sai-cho':'dot-sai-cho', 'thieu-nhiet':'thieu-nhiet', '
 function safetyHit(code, msg){
   if(lab.safeHits[code]) return;        // mỗi loại lỗi chỉ tính một lần trong ca
   lab.safeHits[code] = 1;
+  if(!lab.hard){ notify('<b>Giáo sư:</b> ' + msg); return; }   // chế độ thường: chỉ giảng, không tính lỗi
   const warnOnly = lab.i === 0;         // ngày đầu: chỉ nhắc cho quen, không trừ sao
   if(!warnOnly){ lab.safety++; noteMistake(code); runMiss(); }
   SFX.err();
-  toast('<b>Giáo sư:</b> ' + msg + ' <i>' + (warnOnly ? PROF_SAFETY.nhacThoi : PROF_SAFETY.truSao) + '</i>');
+  notify('<b>Giáo sư:</b> ' + msg + ' <i>' + (warnOnly ? PROF_SAFETY.nhacThoi : PROF_SAFETY.truSao) + '</i>');
 }
 function wearGoggles(){
   if(lab.goggles) return;
@@ -1282,6 +1347,21 @@ function updateBeaker(){
   if(lab.elecOn) renderElecPanel();
   updateCoach();
   syncDish();
+  // ngày 1 (hướng dẫn): hàng đã đúng thì khay trước mặt khách sáng lên — chỉ cho người mới biết bước cuối là giao.
+  // Các ngày sau không sáng, kẻo thành trò rót từng giọt chờ khay sáng thay vì tự đếm số mol
+  const tr = G.querySelector('#custtray');
+  if(tr) tr.classList.toggle('ready', autoCoach() && !!readyVessel());
+  const ub = G.querySelector('#bundo');
+  if(ub){ ub.hidden = !canUndo(); if(!ub.hidden){ const bx = beakerBox(); ub.style.left = (bx.cx + 74) + 'px'; ub.style.top = (bx.bot - 36) + 'px'; } }
+}
+// bình nào (cốc / bình khí / đĩa lọc) đang chứa đúng hàng của khách hiện tại, không có thì null
+function readyVessel(){
+  const od = lab.day.orders[lab.oi]; if(!od || !lab.otag) return null;
+  const keep = lab.sel; let hit = null;
+  for(const [sel, box] of [['beaker', lab.mix], ['gas', lab.gas], ['solid', lab.solid]]){
+    lab.sel = sel; if(checkServe(box, od) === true){ hit = sel; break; }
+  }
+  lab.sel = keep; return hit;
 }
 /* Đĩa lọc chỉ TỒN TẠI khi đang có chất trên nó, và có ô riêng bên phải cốc.
    Trước đây nó nhét chung ô với cái phễu và bị chính nhãn "Lọc" đè lên. */
@@ -1433,7 +1513,7 @@ function setCatch(on){
 }
 function useFilter(){
   const moved = Object.keys(lab.mix).filter(isPrecip);
-  if(!moved.length){ toast('Không có kết tủa nào trong cốc để lọc.'); return; }
+  if(!moved.length){ notify('Không có kết tủa nào trong cốc để lọc.'); return; }
   const fn = G.querySelector('#sv_filter');
   if(fn){ setFx(fn, 'dripop', 1); setTimeout(()=>setFx(fn, 'dripop', 0), 1400); }
   SFX.pour();
@@ -1455,15 +1535,16 @@ function stirMove(p, dist){
   drag.stir = 0;
   dissolveStep();
 }
-function dissolveStep(){
+// take: lượng tan mỗi bước (khuấy 0,5; đun nóng 0,25 mỗi giây). quiet: đun thì tan âm thầm, không lắc cốc, không tiếng rót
+function dissolveStep(take = 0.5, quiet = false){
   const f = Object.keys(lab.undissolved)[0];
-  const take = Math.min(0.5, lab.undissolved[f]);
+  take = Math.min(take, lab.undissolved[f]);
   lab.undissolved[f] = RQ(lab.undissolved[f] - take);
   if(lab.undissolved[f] <= 0) delete lab.undissolved[f];
   lab.mix[f] = RQ((lab.mix[f]||0) + take);
-  wiggleBeaker(); SFX.pour();
+  if(!quiet){ wiggleBeaker(); SFX.pour(); }
   runReactions();
-  if(tot(lab.undissolved) <= 0){ lab.dissolveTotal = 0; toast('Tan hết rồi — dung dịch đồng nhất!'); }
+  if(tot(lab.undissolved) <= 0){ lab.dissolveTotal = 0; (autoCoach() ? notify : toast)('Tan hết rồi — dung dịch đồng nhất!'); }
   updateBeaker(); // after the reset, so the ring deactivates in the same frame the last bit dissolves
 }
 
@@ -1595,15 +1676,32 @@ function coachText(){
   return 'Chưa ra <b>' + sub(t) + '</b>. Thử rót thêm chất khác từ tủ'
        + (day.tools.includes('heat') ? ', hoặc kéo <b>Đun nóng</b> vào cốc' : '') + ' xem sao.';
 }
-// ô hướng dẫn #coach đã bỏ khỏi cột khách (cột giờ chỉ có phiếu, lời khách và quầy) — thêm lại <div id="coach"> là chạy lại
+/* Gợi ý bước kế tiếp (coachText). Ô #coach cũ đã bỏ khỏi cột khách cho gọn; giờ gợi ý hiện qua notify():
+   · nút Gợi ý trên thanh trên cùng: bấm lúc nào cũng được, không mất điểm
+   · ngày 1 ở chế độ thường giáo sư tự nhắc mỗi khi bước kế tiếp đổi, như một bài hướng dẫn cầm tay
+   · khách đầu tiên của ngày có dụng cụ mới: giới thiệu dụng cụ đó một lần
+   · chế độ khó: mỗi lần giao sai mở thêm một bậc gợi ý tính toán (hardHint, che-do.js) */
+const profLine = t => /^<b>Giáo sư:/.test(t) ? t : '<b>Giáo sư:</b> ' + t;
+const autoCoach = () => lab && lab.i === 0 && !lab.hard && !lab.day.free;
+function showHint(){
+  if(!lab) return;
+  notify(profLine(coachText()) + (lab.hard && lab.miss ? '<div class="hardhint">' + hardHint(lab.day.orders[lab.oi], lab.miss) + '</div>' : ''));
+}
 function updateCoach(){
-  const el = G.querySelector('#coach'); if(!el || !lab) return;
-  // khách đầu tiên của ngày: giới thiệu dụng cụ mới trước đã
-  const isNew = k => TOOL_FIRST[k] === lab.i && !lab.day.free;
-  const fresh = ['rod','heat','burn','gas','filter','elec'].filter(isNew);
-  el.innerHTML = (lab.oi === 0 && fresh.length ? '<div class="newtool">' + fresh.map(k=>TOOL_TIP[k]).join('<br>') + '</div>' : '')
-    + coachText()
-    + (lab.hard && lab.miss ? '<div class="hardhint">' + hardHint(lab.day.orders[lab.oi], lab.miss) + '</div>' : '');
+  if(!lab || lab.day.free) return;
+  clearTimeout(lab.coachT);
+  lab.coachT = setTimeout(() => {      // gom các thay đổi dồn dập (rót, phản ứng, khuấy) — nhắc khi cốc đã yên
+    if(!lab || !lab.timer) return;
+    if(!lab.toolTold){
+      lab.toolTold = true;
+      ['rod','heat','burn','gas','filter','elec'].filter(k => TOOL_FIRST[k] === lab.i && (k !== 'rod' || autoCoach()))
+        .forEach((k, n) => setTimeout(() => { if(lab) notify('<div class="newtool">' + TOOL_TIP[k] + '</div>'); }, n*400));
+    }
+    if(autoCoach()){
+      const t = coachText();
+      if(t !== lab.lastCoach){ lab.lastCoach = t; notify(profLine(t)); }
+    }
+  }, 700);
 }
 
 function nextCustomer(){
@@ -1611,7 +1709,8 @@ function nextCustomer(){
   // mỗi khách có đồng hồ chờ riêng (vòng tròn ở góc bóng thoại): hết giờ thì bỏ đi,
   // nhờ vậy một đơn không pha được cũng không chặn cứng cả hàng đợi
   // backstop, không phải áp lực: gấp đôi phần chia đều, nên chơi bình thường gần như không bao giờ chạm
-  lab.odur = (lab.day.free ? 180 : Math.max(120, Math.round(lab.day.dur / lab.day.orders.length * 2))) * (lab.hard ? 1.5 : 1);
+  lab.odur = Math.round((lab.day.free ? 180 : Math.max(120, Math.round(lab.day.dur / lab.day.orders.length * 2)))
+    * (lab.hard ? 1.5 : 1) * (PATIENCE[od.who] || 1));
   lab.otime = lab.odur;
   lab.waitStage = 0;
   lab.miss = 0;      // bậc gợi ý chế độ khó tính riêng cho từng đơn
@@ -1733,11 +1832,22 @@ function serve(){
     SFX.coin(); setTimeout(SFX.clink, 150);
     updateBeaker();
     lab.oi++;
-    if(lab.day.free) lab.day.orders.push(lab.day.freeOrder()); // endless queue: refill one per serve
+    if(lab.day.free){
+      lab.day.orders.push(lab.day.freeOrder()); // endless queue: refill one per serve
+      // ghi ngay từng đơn: tắt tab giữa ca tự do không còn mất số đơn đã làm
+      save.served++; persist();
+      if(save.served >= 10) unlockAch('serve10');
+      if(save.served >= 50) unlockAch('serve50');
+    }
     custLeave();
   } else {
-    lab.wrong++;
-    noteMistake(REASON_MISTAKE[res.key] || res.key); runMiss();
+    // chế độ thường: lần giao sai đầu tiên trong ca không tính lỗi (không mất sao, không đứt chuỗi) — khách nói rõ sai
+    // chỗ nào, nên lần đó là một lần "kiểm tra thử". Trước đây giao thử là cách duy nhất để biết đúng chưa, mà giao
+    // thử thì mất sao thứ ba ngay, nên người chơi cứ sai là bấm chơi lại. Báo cáo cho thầy cô vẫn ghi lại lỗi.
+    const grace = !lab.hard && !lab.graced;
+    if(grace) lab.graced = true; else { lab.wrong++; runMiss(); }
+    noteMistake(REASON_MISTAKE[res.key] || res.key);
+    if(grace) setTimeout(() => { if(lab) notify(profLine(PROF_LAB.thaLoi)); }, 900);
     unlockAch('oops');
     custSay(fillLine(pickLine(COMPLAIN), {A:c[2], r:res.text + '!'}));
     setExp('annoy');
@@ -1746,6 +1856,6 @@ function serve(){
     [cu, nt].forEach(el => { el.classList.remove('shaken'); void el.offsetWidth; el.classList.add('shaken'); });
     setTimeout(()=>setExp('neutral'), 1800);
     // chế độ khó: mỗi lần giao sai mở thêm một bậc gợi ý — công thức → khối lượng mol → lời giải
-    if(lab.hard && lab.miss < 3){ lab.miss++; updateCoach(); }
+    if(lab.hard && lab.miss < 3){ lab.miss++; setTimeout(() => { if(lab) notify('<div class="hardhint">' + hardHint(od, lab.miss) + '</div>'); }, 900); }
   }
 }

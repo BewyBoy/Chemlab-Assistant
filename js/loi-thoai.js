@@ -212,6 +212,16 @@ const PROF_NO_RX = {
  'trao-doi':    'Hai muối chỉ trao đổi với nhau khi sinh ra chất <b>kết tủa</b> (hoặc khí) — {list} trộn vào vẫn tan hết.'
 };
 
+/* ---- nhắc trong ca ở bàn thí nghiệm (hiện ở góc dưới màn hình) ---- */
+const PROF_LAB = {
+ khiBayMat:  'Khí sinh ra bay mất rồi! Muốn giữ khí thì kéo <b>Thu khí</b> lên miệng cốc <b>trước khi</b> rót chất tạo khí.',
+ thaKhay:    'Muốn giao hàng thì thả cốc (bình khí, đĩa lọc) vào đúng <b>khay</b> trước mặt khách nhé.',
+ thaLoi:     'Lần giao sai đầu tiên trong ca ta <b>chưa tính lỗi</b> — khách đã nói sai chỗ nào, sửa lại rồi giao nhé. Từ lần sau, giao sai là mất sao thứ ba.',
+ hoanTac:    'Đã rút lại lần rót vừa rồi.',
+ khongHoanTac: 'Chất vừa rót đã phản ứng rồi, không rút lại được — đổ cốc ra <b>bồn rửa</b> nếu muốn làm lại.',
+ hetGio:     'Hết giờ! Tiệm đóng cửa'
+};
+
 /* ---- minigame Chuỗi phản ứng (ngày 31) và Cân bằng phương trình ---- */
 const PROF_MG = {
  chuoiBatDau:    'Chuỗi {i}/{n}: đi từ <b>{start}</b> tới <b>{target}</b> — kéo bình hoá chất vào ô trên mỗi mũi tên.',

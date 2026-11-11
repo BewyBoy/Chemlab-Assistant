@@ -141,6 +141,9 @@ const CUSTOMERS = [
  ['Cô Lan','y tá trạm xá','cô'], ['Ông Sáu','chủ ao cá','ông'], ['Bạn Tí','học sinh lớp 8','mình'], ['Chị Hoa','tiệm vàng bạc','chị'],
  ['Thầy Nam','giáo viên Hoá','thầy'], ['Cô Mai','quán chè','cô']
 ];
+/* ---- kiên nhẫn của từng khách: nhân vào đồng hồ chờ (vòng tròn ở góc bóng thoại), theo tính cách trong WAIT_LINES.
+   Bà Tư, Chú Ba chờ được lâu; Anh Minh vội, Bạn Tí nóng ruột; Chị Hoa kỹ tính. ---- */
+const PATIENCE = [1.25, 1.25, 1, 0.8, 1, 1.1, 0.8, 0.9, 1, 1.1];
 // mọi lời thoại NPC (khách, giáo sư, DAY_STORY của từng ngày): xem file loi-thoai.js
 // điền chỗ trống {x} trong câu thoại bằng vars.x — chỗ nào không có trong vars thì giữ nguyên
 const fillLine = (tpl, vars) => tpl.replace(/\{(\w+)\}/g, (all, k) => k in vars ? vars[k] : all);
@@ -416,7 +419,7 @@ DAYS.push(
 
  {
   story:DAY_STORY[21],
-  chems:['H2O','Zn','Fe','NaCl','HCl','H2SO4','NaOH','CuSO4','AgNO3','BaCl2'], tools:['spoon','book','quy','gas','heat','filter'], dur:680, s1:6,
+  chems:['H2O','Zn','Fe','NaCl','HCl','H2SO4','NaOH','CuSO4','AgNO3','BaCl2'], tools:['spoon','book','quy','gas','heat','filter'], dur:800, s1:6,
   orders:[ o(9,'Cu(OH)2',1,{pname:'đồng(II) hiđroxit'}),
            o(3,'H2',2,{pname:'khí hiđro (0,2 mol)'}),
            o(8,'ZnSO4',1,{pname:'kẽm sunfat'}),
@@ -511,7 +514,7 @@ DAYS.push(
  {
   story:DAY_STORY[28],
   chems:['H2O','Zn','Fe','Cu','C','O2','CO2','HCl','H2SO4','NaOH','KOH','Ca(OH)2','CuSO4','AgNO3','NaCl','BaCl2','Na2SO4'],
-  tools:['spoon','book','quy','gas','heat','filter'], dur:700, s1:6,
+  tools:['spoon','book','quy','gas','heat','filter'], dur:820, s1:6,
   orders:[ o(0,'NaCl',2,{pname:'muối ăn (trung hoà axit–bazơ)'}),
            o(2,'H2',1,{pname:'khí hiđro'}),
            o(7,'Ag',2,{pname:'bạc (Cu đẩy khỏi AgNO₃)'}),

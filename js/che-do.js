@@ -760,7 +760,7 @@ const MG = {
         world.add(bin, f, x, BODY_SC); SFX.coin();
       } else {
         flick(f, drop, bin); SFX.err();
-        toast(sub(f) + ' thuộc giỏ ' + day.bins[right] + ' chứ không phải ' + day.bins[b] + '!');
+        notify(sub(f) + ' thuộc giỏ ' + day.bins[right] + ' chứ không phải ' + day.bins[b] + '!');
       }
     };
     if(ok){ correct++; mgScore(correct, items.length); mgHit(); } else runMiss();
@@ -801,7 +801,7 @@ const MG = {
   if(!explore && day.hard && hardOn()) return MG.lewis(i, day);       // chế độ khó: sơ đồ Lewis
   const known = vlKnown(day).concat(explore ? vlElems() : []), EGGS = Object.keys(VL_EGG), qs = [];   // qs: 8 câu, bốc theo từng nhóm, không lặp chất; đơn chất chỉ nhận ở khám phá
   if(!explore) day.pools.forEach(([n, list]) => shuffle(list).map(vlQuestion).filter(q => !qs.some(o => o.f === q.f)).slice(0, n).forEach(q => qs.push(q)));
-  const TOTAL_T = 90, PTS = 10, EGG_BONUS = 20;
+  const TOTAL_T = 120, PTS = 10, EGG_BONUS = 20;   // 120 s cho 8 công thức: ngày đầu tiên có đồng hồ chung, đừng làm bức tường
   const ZW = 840, ZH = 430, SC = 2.2, PSC = 1.9, MAX = VL_MAX;         // SC: cỡ bóng trên bàn, PSC: ở cột trái
   // bóng trôi DRIFT px/s, hướng lắc ngẫu nhiên (NOISE·√dt — đổi hướng sau vài giây, không phụ thuộc số khung hình);
   // mỗi giây bị kéo về giữa sân PULL phần khoảng cách → cả cụm trôi chừng 4–5 px/s quanh giữa sân
@@ -900,7 +900,7 @@ const MG = {
   }
   function put(key, k, d){                  // d: điểm thả; null = bấm → bóng rơi vào giữa sân, bóng cũ dạt ra nhường chỗ
     if(phase !== 'build') return;
-    if(live().length >= MAX){ SFX.err(); toast('Khu vực tạo chất đầy rồi — bấm vào một bóng để bỏ bớt!'); return; }
+    if(live().length >= MAX){ SFX.err(); notify('Khu vực tạo chất đầy rồi — bấm vào một bóng để bỏ bớt!'); return; }
     relax(spawn(key, k, d || palPt(k), d || {x:ZW/2 + (Math.random() - .5)*60, y:ZH/2 + (Math.random() - .5)*40}));
     refresh(); SFX.clink();
   }
@@ -1360,7 +1360,7 @@ const MG = {
 
   function put(el, k, d){                   // d: điểm thả; null = bấm → bóng rơi vào giữa sân, các cụm cũ dạt ra nhường chỗ
     if(phase !== 'build') return;
-    if(live().length >= MAX){ SFX.err(); toast('Khu vực tạo chất đầy rồi — bấm vào một bóng để bỏ bớt!'); return; }
+    if(live().length >= MAX){ SFX.err(); notify('Khu vực tạo chất đầy rồi — bấm vào một bóng để bỏ bớt!'); return; }
     const from = d || palPt(k), to = d || {x:ZW/2 + (Math.random() - .5)*60, y:ZH/2 + (Math.random() - .5)*40};
     const A = {el, metal:LW_METAL.includes(el), R:atomR(el)*SC, x:from.x, y:from.y, vx:from.x, tx:to.x, ty:to.y, s:SC, ts:SC, rot:0, leaving:false, bad:0};
     layer.insertAdjacentHTML('beforeend', atomBall({el, x:A.x, y:A.y, r:A.R}, 'lw-b'));
@@ -2339,7 +2339,7 @@ const MG = {
       slipped = true; runMiss();
       c.classList.remove('flash-bad'); void c.offsetWidth; c.classList.add('flash-bad');
       SFX.err();
-      toast(c.dataset.m + ' chưa phải kim loại mạnh nhất còn lại đâu!');
+      notify(c.dataset.m + ' chưa phải kim loại mạnh nhất còn lại đâu!');
     }
   });
  },

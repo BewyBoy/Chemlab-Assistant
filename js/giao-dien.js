@@ -202,18 +202,28 @@ const spendCoins = n => { if(!DEBUG) save.spent = (save.spent||0) + n; };
 // chặn giữa chừng (itch.io iframe, Safari riêng tư) sẽ ném lỗi ngay tại chỗ gọi và văng game.
 const persist = () => { try { localStorage.setItem('chemlab_save', JSON.stringify(save)); } catch(e){} };
 
-// thông báo nhỏ ở góc dưới: chỉ hiện ở dev mode (#dev / mật khẩu), người chơi thường không thấy
-function toast(msg){
-  if(!DEBUG) return;
+// Hai loại thông báo nhỏ ở góc dưới:
+//   toast(msg) — ghi chú kỹ thuật (đã rót gì, đã đổ gì…): chỉ hiện ở dev mode (#dev / mật khẩu)
+//   notify(msg) — điều người chơi CẦN đọc: giáo sư giải thích vì sao không phản ứng, vì sao khí bay mất, làm sai chỗ nào.
+//                 Luôn hiện, nền giấy, đứng lâu hơn nếu câu dài; câu y hệt câu đang hiện thì không nhắc lại.
+function toast(msg){ if(DEBUG) showNote(msg, false); }
+function notify(msg){ showNote(msg, true); }
+function showNote(msg, keep){
+  if(keep){ const last = [...G.querySelectorAll('.toast.say')].pop(); if(last && last._msg === msg) return; }
+  // ở bàn thí nghiệm, lời nhắn người chơi nằm giữa phía trên (vùng tường) — góc dưới bên trái là khay giao hàng
+  const top = keep && !!G.querySelector('#beakerItem');
   const t = document.createElement('div');
-  t.className = 'toast'; t.innerHTML = msg;
-  G.appendChild(t); setTimeout(()=>t.remove(), 3600);
-  // thông báo mới nằm dưới cùng, cái cũ được đẩy lên trên thay vì bị đè mất chữ; giữ tối đa 3
-  const old = [...G.querySelectorAll('.toast')].filter(x => x !== t).reverse();
-  let y = 20 + t.offsetHeight + 8;
+  t.className = 'toast' + (keep ? ' say' : '') + (top ? ' say-top' : ''); t.innerHTML = msg; t._msg = msg;
+  const ms = keep ? Math.min(9000, 3500 + msg.replace(/<[^>]+>/g, '').length*45) : 3600;
+  t.style.animationDuration = ms + 'ms';
+  G.appendChild(t); setTimeout(()=>t.remove(), ms + 100);
+  // thông báo mới nằm sát mép (trên cùng / dưới cùng), cái cũ bị đẩy ra xa thay vì bị đè mất chữ.
+  // Giữ tối đa 2 lời nhắn ở trên (kẻo che phương trình nổi trên cốc), 3 ghi chú ở dưới
+  const old = [...G.querySelectorAll(top ? '.toast.say-top' : '.toast:not(.say-top)')].filter(x => x !== t).reverse();
+  let y = (top ? 74 : 20) + t.offsetHeight + 8;
   old.forEach((x, k) => {
-    if(k >= 2){ x.remove(); return; }
-    x.style.bottom = y + 'px';
+    if(k >= (top ? 1 : 2)){ x.remove(); return; }
+    x.style[top ? 'top' : 'bottom'] = y + 'px';
     y += x.offsetHeight + 8;
   });
 }
@@ -286,6 +296,8 @@ function showMenu(){
         ${mb('brx', '', ico('note')+' Sổ tay')}
         ${mb('bach', '', ico('trophy')+' Thành tựu')}
         ${storiesOwned() ? mb('bstory', '', ico('book')+' Truyện nguyên tố') : ''}
+        ${save.unlocked > 2 ? mb('bconc', '', ico('flask')+' Pha nồng độ') : ''}
+        ${mb('brep', '', ico('note')+' Báo cáo học tập')}
         ${mb('bset', '', ico('gear')+' Cài đặt')}
       </div>
     </div>
@@ -307,6 +319,8 @@ function showMenu(){
   G.querySelector('#brx').onclick = showRxBook;
   G.querySelector('#bach').onclick = showAch;
   const bst = G.querySelector('#bstory'); if(bst) bst.onclick = showStories;
+  const bcc = G.querySelector('#bconc'); if(bcc) bcc.onclick = () => go(startConc);
+  G.querySelector('#brep').onclick = () => showReport();
   G.querySelector('#bset').onclick = settingsModal;
 }
 
@@ -399,7 +413,7 @@ function showReport(d){
       a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
       a.download = 'bao-cao-hoa-hoc' + (d.n ? '-' + d.n.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').replace(/[^\w]+/g,'-') : '') + '.csv';
       document.body.appendChild(a); a.click(); a.remove();
-      toast('Đã tải bảng điểm — mở bằng Excel hoặc Google Sheets.');
+      notify('Đã tải bảng điểm — mở bằng Excel hoặc Google Sheets.');
     } catch(e){   // trang nhúng chặn tải file thì cho chép tay
       box.innerHTML = '<p class="rhint">Trình duyệt chặn tải file — chép bảng dưới đây dán vào Excel:</p><textarea class="rcode" readonly>' + csv.replace(/</g,'&lt;') + '</textarea>';
     }
@@ -412,7 +426,7 @@ function showReport(d){
     const ta = box.querySelector('textarea'); ta.focus(); ta.select();
     box.querySelector('#rcopy').onclick = () => {
       ta.select();
-      const done = () => toast('Đã sao chép mã báo cáo!');
+      const done = () => notify('Đã sao chép mã báo cáo!');
       if(navigator.clipboard) navigator.clipboard.writeText(code).then(done, () => { document.execCommand('copy'); done(); });
       else { document.execCommand('copy'); done(); }
     };
@@ -482,8 +496,8 @@ function showMap(){
   const hardTip = () => bh.title = 'Chế độ khó: ' + (hardOn() ? 'đang bật' : 'đang tắt') + ' — đơn hàng ghi theo gam và lít khí; minigame có bài khó riêng';
   if(bh){ hardTip(); bh.onclick = () => { save.settings.hard = !hardOn(); persist(); SFX.clink();
     bh.classList.toggle('on', hardOn()); bh.setAttribute('aria-pressed', hardOn()); hardTip();
-    toast(ico('hard',18) + ' Chế độ khó: <b>' + (hardOn() ? 'BẬT' : 'TẮT') + '</b>'); }; }
-  G.querySelectorAll('.freecard.locked').forEach(fc => fc.onclick = () => toast(ico('lock',16)+' Làm hết 31 ngày đã, rồi tháng sau tha hồ nghịch!'));
+    notify(ico('hard',18) + ' Chế độ khó: <b>' + (hardOn() ? 'BẬT' : 'TẮT') + '</b>'); }; }
+  G.querySelectorAll('.freecard.locked').forEach(fc => fc.onclick = () => notify(ico('lock',16)+' Làm hết 31 ngày đã, rồi tháng sau tha hồ nghịch!'));
   G.querySelectorAll('.day-card').forEach(c => {
     if(c.classList.contains('locked') || c.classList.contains('blank')) return;
     if(c.dataset.free){ c.onclick = () => go(startFree); return; }
@@ -848,7 +862,8 @@ const curtainOn = () => save.settings.curtain !== false;   // màn "Bắt đầu
    startLab chưa bật đồng hồ, xong màn này mới bật — trừ khi thẻ Tạm nghỉ đang mở (rời tab giữa chừng).
    Tắt màn này trong Cài đặt thì đồng hồ chạy ngay. */
 function startCurtain(){
-  const go = () => { if(lab && lab.timer === null && !G.querySelector('.overlay')) lab.timer = setInterval(labTick, 1000); };
+  // ca bắt đầu chạy: giáo sư giới thiệu dụng cụ mới / bước đầu tiên (updateCoach chỉ nói khi đồng hồ đã chạy)
+  const go = () => { if(lab && lab.timer === null && !G.querySelector('.overlay')){ lab.timer = setInterval(labTick, 1000); updateCoach(); } };
   if(!curtainOn()) return go();
   const c = document.createElement('div');
   c.className = 'startov';
@@ -1104,7 +1119,7 @@ function settingsModal(){
     SFX.clink();
     if(after) after();
   };
-  const lockedTgl = (id, msg) => ov.querySelector(id).onclick = () => { SFX.err(); toast(ico('lock',16)+' '+msg); };
+  const lockedTgl = (id, msg) => ov.querySelector(id).onclick = () => { SFX.err(); notify(ico('lock',16)+' '+msg); };
   flip('#tglCards', 'cards', cardsOn);
   flip('#tglCurtain', 'curtain', curtainOn);
   if(hardUnlocked()) flip('#tglHard', 'hard', hardOn);
@@ -1132,7 +1147,7 @@ function settingsModal(){
   ov.querySelector('#mclose').onclick = () => closeOv(ov);
   ov.querySelector('#breset').onclick = () => confirmModal(
     '<h2>'+ico('trash',22)+' Xoá dữ liệu?</h2><p style="margin:8px 0">Toàn bộ tiến trình, sao và thành tựu sẽ bị xoá và không thể khôi phục.</p>',
-    () => { save = {unlocked:1, stars:{}, starsHard:{}, best:{}, bestHard:{}, ach:[], served:0, spent:0, rx:[], hist:[], settings:{balance:true}}; persist(); closeOv(ov); toast('Đã xoá dữ liệu.'); showMenu(); },
+    () => { save = {unlocked:1, stars:{}, starsHard:{}, best:{}, bestHard:{}, ach:[], served:0, spent:0, rx:[], hist:[], settings:{balance:true}}; persist(); closeOv(ov); notify('Đã xoá dữ liệu.'); showMenu(); },
     'Xoá hết', 'Giữ lại');
   G.appendChild(ov);
 }
@@ -1189,7 +1204,13 @@ function showResult(i, st){
   } else {
     const all = day.orders.length;
     sc = runScore(all, st.served, day.s1, all, st.served === all && st.wrong === 0 && !st.safety);
-    detail = `<p style="font-size:16px">Đơn hoàn thành: <b>${st.served}/${all}</b> · Giao sai: <b>${st.wrong}</b> · Lỗi an toàn: <b>${st.safety||0}</b></p>`;
+    // 3 sao trượt vì đâu: nói thẳng trên thẻ, để lượt sau biết phải sửa gì
+    const why = [];
+    if(st.served < all) why.push('còn ' + (all - st.served) + ' đơn chưa giao');
+    if(st.wrong) why.push('giao sai ' + st.wrong + ' lần' + (st.hard ? '' : ' (lần sai đầu tiên đã được bỏ qua)'));
+    if(st.safety) why.push(st.safety + ' lỗi an toàn');
+    detail = `<p style="font-size:16px">Đơn hoàn thành: <b>${st.served}/${all}</b> · Giao sai: <b>${st.wrong}</b>${st.hard ? ` · Lỗi an toàn: <b>${st.safety||0}</b>` : ''}</p>`;
+    if(why.length) detail += `<p class="rswhy">Chưa đủ 3 sao vì ${why.join(', ')}.</p>`;
     save.served += st.served;
     if(st.served === all) unlockAch('clean');
   }
@@ -1253,7 +1274,7 @@ function setFullscreen(on){
   const d = document.documentElement;
   const p = on ? (d.requestFullscreen || d.webkitRequestFullscreen).call(d)
                : (document.exitFullscreen || document.webkitExitFullscreen).call(document);
-  if(p && p.catch) p.catch(() => toast('Trình duyệt không cho bật toàn màn hình — thử phím F11 nhé!'));
+  if(p && p.catch) p.catch(() => notify('Trình duyệt không cho bật toàn màn hình — thử phím F11 nhé!'));
 }
 // bật/tắt bằng phím Esc / F11 hay nút của trình duyệt cũng phải lật công tắc trong Cài đặt nếu đang mở
 ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => {

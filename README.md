@@ -14,15 +14,15 @@ Bạn, học trò của giáo sư Hoffmann, đã được thầy giao cho một 
 
 ### Có gì bên trong
 
-**31 ngày** đi từ mol tới điện phân · **67 hoá chất** · **167 phản ứng** cân bằng chuẩn, mỗi phản ứng có **thẻ hoạt hình** nguyên tử tách rồi ghép · **8 dụng cụ** mở dần theo bài · **8 minigame** · **20 thành tựu** · **chế độ khó** tự tính gam / ml / lít · nhạc nền và tiếng động tự sinh, không cần file âm thanh · ca tự do chơi mãi sau khi tốt nghiệp
+**31 ngày** đi từ mol tới điện phân · **67 hoá chất** · **167 phản ứng** cân bằng chuẩn, mỗi phản ứng có **thẻ hoạt hình** nguyên tử tách rồi ghép · **8 dụng cụ** mở dần theo bài · **8 minigame** · **20 thành tựu** · **chế độ khó** tự tính gam / ml / lít · nhạc nền và tiếng động tự sinh, không cần file âm thanh · ca tự do sau khi tốt nghiệp (tính sao theo số đơn, có kỷ lục)
 
 ### Chơi thế nào
 
-Đọc đơn hàng → kéo lọ hoá chất vào cốc (mỗi lần = 0,1 mol) → đun, khuấy, lọc hoặc hứng khí → kéo cốc cho khách. Phản ứng cháy làm như thật: nạp O₂ / Cl₂ vào lọ khí, cho chất rắn lên muôi đốt, hơ qua đèn cồn rồi đưa vào lọ. Sai thì đổ vào bồn rửa, làm lại — cốc không phản ứng thì giáo sư nói lý do. Mỗi ngày chấm tối đa 3 sao theo điểm; 1 sao là mở khoá ngày kế tiếp. Mỗi đơn / câu đúng 100 điểm, làm nhanh thêm tới 50, đúng liền thêm tới 50; 3 sao chỉ dành cho lượt không sai lần nào (thưởng hoàn hảo), nhanh mấy cũng không bù được một lỗi.
+Đọc đơn hàng → kéo lọ hoá chất vào cốc (mỗi lần = 0,1 mol) → đun, khuấy, lọc hoặc hứng khí → kéo cốc cho khách. Phản ứng cháy làm như thật: nạp O₂ / Cl₂ vào lọ khí, cho chất rắn lên muôi đốt, hơ qua đèn cồn rồi đưa vào lọ. Sai thì đổ vào bồn rửa, làm lại — cốc không phản ứng thì giáo sư nói lý do. Mỗi ngày chấm tối đa 3 sao theo điểm; 1 sao là mở khoá ngày kế tiếp. Mỗi đơn / câu đúng 100 điểm, làm nhanh thêm tới 50, đúng liền thêm tới 50; 3 sao chỉ dành cho lượt không sai lần nào (thưởng hoàn hảo), nhanh mấy cũng không bù được một lỗi — riêng lần giao sai đầu tiên mỗi ca (chế độ thường) không tính: khách nói rõ sai chỗ nào để sửa. Kẹt thì bấm **Gợi ý** cho giáo sư nhắc bước kế tiếp; rót lố thì **Rút lại** lần rót vừa rồi (khi chất chưa phản ứng). Ngày 1 giáo sư tự hướng dẫn từng bước. Chơi lại một ngày đã qua thì khách đến theo thứ tự khác.
 
 **Chế độ khó** (bật ở lịch chọn ngày hoặc Cài đặt): phiếu hàng ghi khối lượng / thể tích khí, mỗi lần lấy hoá chất phải tự cân, đong; sai số cho phép 5%, giao sai thì mở dần gợi ý. Ngày 3 khó thành bài **tạo ion**: mỗi câu một nguyên tử vẽ đủ các lớp electron (lớp ngoài cùng xếp theo sơ đồ Lewis), tự cho nguyên tử nhường electron lớp ngoài hoặc nhận các electron tự do trôi quanh cho thành ion bền như khí hiếm. Ngày 4 khó thành bài **sơ đồ Lewis**: nối hai chấm electron thành liên kết cộng hoá trị, kéo electron của kim loại sang phi kim thành liên kết ion. Thêm **Thử thách pha nồng độ** (Cₘ, C%) ở menu chính.
 
-**An toàn phòng thí nghiệm** là luật chơi: đeo kính & găng trước khi lấy hoá chất, bật tủ hút khi làm với khí độc (Cl₂, SO₂, NH₃), pha axit thì rót axit vào nước. Phạm lỗi thì mất sao thứ ba.
+**An toàn phòng thí nghiệm** là luật của chế độ khó: đeo kính & găng trước khi lấy hoá chất, bật tủ hút khi làm với khí độc (Cl₂, SO₂, NH₃), pha axit thì rót axit vào nước. Phạm lỗi thì mất sao thứ ba. Chế độ thường không có luật này; rót nước vào axit thì giáo sư vẫn giảng nhưng không tính lỗi.
 
 **Tham quan khu công nghiệp:** mua vé bằng đồng đỏ (ô ngày 2 tháng sau trên lịch, mở sau khi qua ngày 31) rồi theo giáo sư và kỹ sư Minh qua lò vôi, lò cao luyện gang, nhà máy điện phân nhôm — phần visual novel có tranh nền từng cảnh và câu hỏi nhanh ở mỗi xưởng.
 
