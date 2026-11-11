@@ -551,7 +551,12 @@ const REACTIONS = [
  /* ---------- 27. NHIỆT PHÂN (MỞ RỘNG) ---------- */
  {rg:{MgCO3:1}, pr:{MgO:1,CO2:1}, heat:1, obs:'Xuất hiện kết tủa MgO; Sủi bọt khí CO₂.'},
  {rg:{ZnCO3:1}, pr:{ZnO:1,CO2:1}, heat:1, obs:'Xuất hiện kết tủa ZnO; Sủi bọt khí CO₂.'},
- {rg:{Ag2CO3:1}, pr:{Ag2O:1,CO2:1}, heat:1, obs:'Xuất hiện kết tủa nâu đen Ag₂O; Sủi bọt khí CO₂.'}
+ {rg:{Ag2CO3:1}, pr:{Ag2O:1,CO2:1}, heat:1, obs:'Xuất hiện kết tủa nâu đen Ag₂O; Sủi bọt khí CO₂.'},
+
+ /* ---------- 28. OXI HOÁ – KHỬ (mở rộng) ----------
+    Thuốc tím oxi hoá HCl đặc ngay ở nhiệt độ thường — cách điều chế clo nhanh trong phòng thí nghiệm
+    (cùng việc với MnO₂ + HCl đặc ở nhóm Halogen, nhưng không cần đun). */
+ {rg:{KMnO4:2,HCl:16},        pr:{KCl:2,MnCl2:2,Cl2:5,H2O:8}, tag:{HCl:'đặc'}, obs:'Màu tím nhạt dần rồi mất, khí clo màu vàng lục mùi hắc bay ra.'}
 ];
 
 /* Mốc chia nhóm cho Sổ tay ở màn hình chính. i = số thứ tự phản ứng đầu tiên của nhóm.
@@ -583,7 +588,8 @@ const RX_GROUPS = [
  {i:308, t:'Muối + muối (mở rộng)'},
  {i:416, t:'Kim loại đẩy kim loại (mở rộng)'},
  {i:449, t:'Oxit axit + kiềm, oxit bazơ + oxit axit (mở rộng)'},
- {i:459, t:'Nhiệt phân (mở rộng)'}
+ {i:459, t:'Nhiệt phân (mở rộng)'},
+ {i:462, t:'Oxi hoá – khử (mở rộng)'}
 ];
 
 /* =====================================================================

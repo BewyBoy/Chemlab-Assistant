@@ -3792,7 +3792,8 @@ const RX_NOTES = [
   'Hai muối tan trao đổi gốc với nhau khi tạo được một muối không tan: cacbonat, sunfit, photphat, BaSO₄, AgCl…',
   'Kim loại đứng trước trong dãy hoạt động (Mg Al Zn Fe … Cu Ag) đẩy kim loại đứng sau ra khỏi dung dịch muối.',
   'SO₂, P₂O₅ cũng làm được như CO₂: gặp kiềm thành muối + nước, gặp oxit bazơ tan thì kết hợp thẳng thành muối.',
-  'Muối cacbonat không tan bị nhiệt tách thành oxit và khí CO₂.'
+  'Muối cacbonat không tan bị nhiệt tách thành oxit và khí CO₂.',
+  'Chất oxi hoá mạnh (thuốc tím) giành electron của chất khử (Cl trong HCl đặc), giải phóng khí clo.'
 ];
 const rxGroupOf = i => { let k = 0; RX_GROUPS.forEach((g, j) => { if(g.i <= i) k = j; }); return k; };
 // một phân tử = chùm bi: nguyên tố "trung tâm" ở giữa, O quây quanh, H bám ngoài cùng
