@@ -14,7 +14,7 @@ Bạn, học trò của giáo sư Hoffmann, đã được thầy giao cho một 
 
 ### Có gì bên trong
 
-**31 ngày** đi từ mol tới điện phân · **67 hoá chất** · **183 phản ứng** cân bằng chuẩn, mỗi phản ứng có **thẻ hoạt hình** nguyên tử tách rồi ghép · **8 dụng cụ** mở dần theo bài · **8 minigame** · **20 thành tựu** · **chế độ khó** tự tính gam / ml / lít · nhạc nền và tiếng động tự sinh, không cần file âm thanh · ca tự do sau khi tốt nghiệp (tính sao theo số đơn, có kỷ lục)
+**31 ngày** đi từ mol tới điện phân · **67 hoá chất** · **462 phản ứng** cân bằng chuẩn, mỗi phản ứng có **thẻ hoạt hình** nguyên tử tách rồi ghép · **8 dụng cụ** mở dần theo bài · **8 minigame** · **20 thành tựu** · **chế độ khó** tự tính gam / ml / lít · nhạc nền và tiếng động tự sinh, không cần file âm thanh · ca tự do sau khi tốt nghiệp (tính sao theo số đơn, có kỷ lục)
 
 ### Chơi thế nào
 

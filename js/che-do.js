@@ -3786,7 +3786,13 @@ const RX_NOTES = [
   'Nitơ rất trơ, phải ép với hiđro ở nhiệt độ cao mới ra amoniac.',
   'Axit sunfuric đặc háo nước: rút hết H và O khỏi đường, chỉ còn lại than.',
   'Dòng điện tách hợp chất thành những chất đơn giản hơn.',
-  'Nước vôi Ca(OH)₂ là bazơ tan như NaOH: trung hoà axit, và gặp muối có hiđroxit không tan thì tạo kết tủa.'
+  'Nước vôi Ca(OH)₂ là bazơ tan như NaOH: trung hoà axit, và gặp muối có hiđroxit không tan thì tạo kết tủa.',
+  'Axit hoà tan oxit bazơ và bazơ thành muối + nước; với muối cacbonat, sunfit thì sủi bọt khí; NH₃ gặp axit thành muối amoni (phân đạm).',
+  'Kiềm (NaOH, KOH, Ca(OH)₂) gặp muối của kim loại có hiđroxit không tan thì tạo kết tủa; gặp muối amoni thì bay ra khí NH₃.',
+  'Hai muối tan trao đổi gốc với nhau khi tạo được một muối không tan: cacbonat, sunfit, photphat, BaSO₄, AgCl…',
+  'Kim loại đứng trước trong dãy hoạt động (Mg Al Zn Fe … Cu Ag) đẩy kim loại đứng sau ra khỏi dung dịch muối.',
+  'SO₂, P₂O₅ cũng làm được như CO₂: gặp kiềm thành muối + nước, gặp oxit bazơ tan thì kết hợp thẳng thành muối.',
+  'Muối cacbonat không tan bị nhiệt tách thành oxit và khí CO₂.'
 ];
 const rxGroupOf = i => { let k = 0; RX_GROUPS.forEach((g, j) => { if(g.i <= i) k = j; }); return k; };
 // một phân tử = chùm bi: nguyên tố "trung tâm" ở giữa, O quây quanh, H bám ngoài cùng

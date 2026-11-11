@@ -355,7 +355,8 @@ function startLab(i){
 function startFree(){
   SFX.music(3);
   const labDays = DAYS.filter(d => !d.mg);
-  const chems = [...new Set(labDays.flatMap(d => d.chems))];
+  // K không nằm trên kệ ngày nào, nên trước đây các phản ứng của K / K₂O không bao giờ làm được (sổ tay không thể đủ)
+  const chems = [...new Set(labDays.flatMap(d => d.chems).concat(['K']))];
   const pool = labDays.flatMap(d => d.orders);
   // ponytail: orders sampled from the 28-day campaign — always solvable with the union shelf
   const freeOrder = () => { const od = Object.assign({}, pick(pool)); delete od.line; return od; };
@@ -1298,37 +1299,53 @@ function pourFX(f){
 }
 
 /* ---- beaker visuals ---- */
-/* Giấy nhớ ca tự do: ca tự do là chỗ nghịch đủ thứ, nên giấy nhớ ghi hết mọi chất đang có — trong cốc (tan, kết tủa,
-   chưa tan), bình khí, đĩa lọc, muôi đốt: màu, công thức, tên, lượng, và nhãn axit / bazơ / kết tủa / khí.
-   Rê chuột lên một dòng là hiện "Bạn có biết?" của chất đó. Danh sách dài thì cuộn trong giấy. */
-const shortName = f => CHEMS[f].n.replace(/\s*\([^()]*\)\s*$/, '');   // chỉ bỏ ngoặc cuối: "Đồng(II) oxit (đen)" → "Đồng(II) oxit"
-function chemTags(f, where){
-  const c = CHEMS[f], t = [];
-  if(where === 'und') t.push('chưa tan');
-  else if(isPrecip(f)){   // kim loại, oxit là chất rắn không tan; hiđroxit, muối không tan mới gọi là kết tủa
-    const a = Object.keys(atomCounts(f));
-    t.push(a.length === 1 || (a.length === 2 && a.includes('O')) ? 'không tan' : 'kết tủa');
+/* Giấy nhớ ca tự do: ghi đúng những hạt đang có. Chất điện li đã tan (axit, kiềm, muối tan) phân li thành ION TỰ DO,
+   cộng dồn theo từng loại ion (NaCl + Na₂SO₄ → một dòng Na⁺); kết tủa, chất chưa tan, nước, đường, khí giữ nguyên
+   công thức hợp chất. Thêm bình khí, đĩa lọc, muôi đốt nếu có. Chỉ ghi công thức và lượng — không tên, không nhãn. */
+const ION_Z = {Cl:-1, NO3:-1, HCO3:-1, OH:-1, MnO4:null, SO4:-2, CO3:-2, SO3:-2, PO4:-3};
+const CAT_Z = {H:1, Na:1, K:1, NH4:1, Ag:1, Ca:2, Ba:2, Mg:2, Zn:2, Cu:2, Mn:2, Al:3, Fe:null};
+const ION_COL = {'Cu2+':'#4f9fd8', 'Fe2+':'#bcd6b4', 'Fe3+':'#d9a86a', 'Mn2+':'#f3dfe0', 'MnO4-':'#8a3d9e', 'MnO42-':'#3e7d4a'};
+// công thức → {cat, zc, nc, an, za, na} nếu là axit / bazơ / muối của các ion trên, không thì null
+function ionParts(f){
+  for(const an of Object.keys(ION_Z).sort((a, b) => b.length - a.length)){
+    const m = new RegExp('^(?:\\((NH4)\\)(\\d+)|(NH4|[A-Z][a-z]?)(\\d*))(?:\\(' + an + '\\)(\\d+)|' + an + '(\\d*))$').exec(f);
+    if(!m) continue;
+    const cat = m[1] || m[3]; if(!(cat in CAT_Z) || (cat === 'H' && an === 'OH')) continue;
+    const nc = +(m[2] || m[4] || 1), na = +(m[5] || m[6] || 1);
+    let zc = CAT_Z[cat], za = ION_Z[an];
+    if(za === null) za = -zc*nc/na; if(zc === null) zc = -za*na/nc;
+    return {cat, zc, nc, an, za, na};
   }
-  else if(c.s === 'k') t.push('khí');
-  else if(f !== 'H2O' && (c.sol || c.s === 'd')) t.push('đã tan');
-  if(c.a) t.push('axit'); if(c.b) t.push('bazơ');
-  return t;
+  return null;
 }
+const dissolves = f => f !== 'H2O' && f !== 'C12H22O11' && (CHEMS[f].sol || CHEMS[f].s === 'd') && ionParts(f);
+const ionHTML = (base, z) => sub(base) + '<sup>' + (Math.abs(z) > 1 ? Math.abs(z) : '') + (z > 0 ? '+' : '−') + '</sup>';
 function renderFreeNote(){
   const host = G.querySelector('#freenote-body'); if(!host) return;
-  const q = (f, v) => lab.hard && f !== 'H2O' ? qtyStr(f, v) : amt(v);
-  const row = (f, v, where) => `<div class="fn-row"${CHEM_FACTS[f] ? ' title="' + CHEM_FACTS[f].replace(/"/g, '&quot;') + '"' : ''}>`
-    + `<i class="fn-sw" style="background:${CHEMS[f].c}"></i><b>${sub(f)}</b><span class="fn-q">${q(f, v)}</span>`
-    + `<span class="fn-nm">${shortName(f)}${chemTags(f, where).map(t => ' <em class="fn-t fn-' + (t === 'đã tan' ? 'tan' : t === 'chưa tan' ? 'und' : t === 'kết tủa' || t === 'không tan' ? 'ppt' : t === 'khí' ? 'gas' : t === 'axit' ? 'acid' : 'base') + '">' + t + '</em>').join('')}</span></div>`;
+  const n10 = v => v/10;
+  const qty = (v, base) => lab.hard && base !== 'H2O' ? fmt(n10(v)*molarMass(base), 2) + ' g' : amt(v);
+  const row = (html, v, base, col) => `<div class="fn-row"><i class="fn-sw" style="background:${col || 'transparent'}"></i>`
+    + `<b>${html}</b><span class="fn-q">${qty(v, base)}</span></div>`;
   const list = o => Object.keys(o).filter(f => o[f] > 0);
-  // trong cốc: chất tan trước, kết tủa sau, nước cuối cùng; chất chưa tan riêng một nhóm
-  const inCup = list(lab.mix).sort((a, b) => (a === 'H2O') - (b === 'H2O') || isPrecip(a) - isPrecip(b) || lab.mix[b] - lab.mix[a]);
+  // cốc: gom ion từ mọi chất điện li đã tan
+  const ions = new Map(), mols = [];
+  list(lab.mix).forEach(f => {
+    const p = dissolves(f);
+    if(!p){ mols.push(f); return; }
+    [[p.cat, p.zc, p.nc], [p.an, p.za, p.na]].forEach(([base, z, k]) => {
+      const key = base + (Math.abs(z) > 1 ? Math.abs(z) : '') + (z > 0 ? '+' : '-');
+      const o = ions.get(key) || {base, z, v:0}; o.v += lab.mix[f]*k; ions.set(key, o);
+    });
+  });
+  const ionRows = [...ions.entries()].sort((a, b) => (b[1].z > 0) - (a[1].z > 0) || b[1].v - a[1].v)
+    .map(([key, o]) => row(ionHTML(o.base, o.z), RQ(o.v), o.base, ION_COL[key]));
+  mols.sort((a, b) => (a === 'H2O') - (b === 'H2O') || lab.mix[b] - lab.mix[a]);
+  const molRows = mols.map(f => row(sub(f), lab.mix[f], f, CHEMS[f].c)).concat(list(lab.undissolved).map(f => row(sub(f), lab.undissolved[f], f, CHEMS[f].c)));
+  const plain = o => list(o).map(f => row(sub(f), o[f], f, CHEMS[f].c)).join('');
   const sec = (title, rows) => rows ? '<div class="fn-sec">' + title + '</div>' + rows : '';
-  const html = sec('Cốc', inCup.map(f => row(f, lab.mix[f], 'mix')).join('') + list(lab.undissolved).map(f => row(f, lab.undissolved[f], 'und')).join(''))
-    + sec('Bình khí', list(lab.gas).map(f => row(f, lab.gas[f], 'gas')).join(''))
-    + sec('Đĩa lọc', list(lab.solid).map(f => row(f, lab.solid[f], 'solid')).join(''))
-    + sec('Muôi đốt' + (lab.ladleLit ? ' (đang cháy)' : ''), list(lab.ladle).map(f => row(f, lab.ladle[f], 'ladle')).join(''));
-  host.innerHTML = html || '<div class="fn-empty">Cốc trống — rót gì vào thử xem!</div>';
+  const cup = ionRows.join('') + (ionRows.length && molRows.length ? '<hr class="fn-hr">' : '') + molRows.join('');
+  const html = sec('Cốc', cup) + sec('Bình khí', plain(lab.gas)) + sec('Đĩa lọc', plain(lab.solid)) + sec('Muôi đốt', plain(lab.ladle));
+  host.innerHTML = html || '<div class="fn-empty">Cốc trống</div>';
 }
 function updateBeaker(){
   if(lab.day.free) renderFreeNote();
