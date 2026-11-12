@@ -161,12 +161,31 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .custwalk .charsvg.side{display:none}
 .custwalk.walking .charsvg.side{display:inline}
 .custwalk.walking .charsvg:not(.side){display:none}
-.custwalk.walking .side .sarm{transform-box:fill-box;transform-origin:50% 4%;animation:armswing .55s ease-in-out infinite alternate}
-@keyframes armswing{from{transform:rotate(-16deg)}to{transform:rotate(16deg)}}
+/* dáng nghiêng (js/nhan-vat-nghieng.js): mỗi nhóm khớp có khung vô hình tâm đúng khớp → origin 50% 50% là khớp.
+   Nhịp bước 1,1 s (mỗi bước .55 s): tay gần đánh ra trước / sau, cẳng tay gập khi đưa ra trước (bàn tay nhô lên khỏi
+   mép bàn), tay xa ngược nhịp; người nhún một lần mỗi bước (thấp lúc tay ở hai đầu, cao lúc tay đi ngang thân);
+   đầu gật bù; đuôi tóc / tóc dài / ba lô đung đưa trễ nhịp. Bà Tư cổ điển ôm bánh mì: tay gần chỉ đung đưa khẽ. */
+.side .sd-arm,.side .sd-fore,.side .sd-far,.side .sd-forefar,.side .sd-hold,.side .sd-head,.side .sd-sway{transform-box:fill-box;transform-origin:50% 50%}
+.side .sd-fore,.side .sd-forefar{transform:rotate(8deg)}
+.side .sd-hold{transform:rotate(8deg)}
+.side .sd-fore.sd-forehold{transform:rotate(100deg)}
+.custwalk.walking .side .sd-arm{animation:sdarm .55s ease-in-out infinite alternate}
+.custwalk.walking .side .sd-far{animation:sdarm .55s ease-in-out infinite alternate-reverse}
+.custwalk.walking .side .sd-fore{animation:sdfore .55s ease-in-out infinite alternate}
+.custwalk.walking .side .sd-forefar{animation:sdfore .55s ease-in-out infinite alternate-reverse}
+.custwalk.walking .side .sd-fore.sd-forehold{animation:none}
+.custwalk.walking .side .sd-hold{animation:sdhold .55s ease-in-out infinite alternate}
+.custwalk.walking .side .sd-head{animation:sdhead .55s ease-in-out infinite}
+.custwalk.walking .side .sd-sway{animation:sdsway .55s ease-in-out -.18s infinite alternate}
+@keyframes sdarm{from{transform:rotate(-22deg)}to{transform:rotate(35deg)}}
+@keyframes sdfore{from{transform:rotate(12deg)}to{transform:rotate(96deg)}}
+@keyframes sdhold{from{transform:rotate(3deg)}to{transform:rotate(12deg)}}
+@keyframes sdhead{0%,100%{transform:rotate(0)}50%{transform:rotate(-2deg)}}
+@keyframes sdsway{from{transform:rotate(-6deg)}to{transform:rotate(7deg)}}
 .custwalk .charsvg{transform-origin:50% 100%;transition:transform .15s}
 .custzone:hover .custwalk:not(.walking) .charsvg{transform:translateY(-3px)}
 .custwalk.walking .charsvg{animation:custbob .55s ease-in-out infinite}
-@keyframes custbob{0%,100%{transform:translateY(0) rotate(-1.5deg)}25%,75%{transform:translateY(-7px) rotate(0)}50%{transform:translateY(0) rotate(1.5deg)}}
+@keyframes custbob{0%,100%{transform:translateY(0) rotate(-.6deg)}50%{transform:translateY(-6px) rotate(.4deg)}}
 .custwalk.shaken .charsvg{animation:shake .3s 2}
 .newtool{background:#fff3c4;border:1.2px solid var(--ink);border-radius:4.8px;padding:3px 7px;margin:-1px -3px 5px;}
 .day-card.freecard .dt{font-family:var(--fh)}

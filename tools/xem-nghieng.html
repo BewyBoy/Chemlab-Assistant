@@ -2,15 +2,30 @@
 <html lang="vi"><head><meta charset="utf-8"><title>Xem dáng nghiêng</title>
 <link rel="stylesheet" href="../style.css">
 <style>
-body{background:#f4ecd8;margin:0;padding:16px;font:14px system-ui;color:#3b3025;overflow:auto;height:auto}
-.row{display:flex;gap:6px;align-items:flex-end;border-bottom:1px solid #d8ccb0;padding:8px 0}
-.lbl{width:120px;flex:none}
-.cell{position:relative;width:160px;height:202px;overflow:hidden;background:#fffdf6;border:1px solid #e3d8bd;border-radius:6px;text-align:center;line-height:0}
+/* Trang xem thử dáng nghiêng (js/nhan-vat-nghieng.js). Mỗi khách 3 hàng (3 skin):
+   đang đi (nghiêng, có cử động) · nghiêng vui · nghiêng bực · thẳng · chồng hình (thẳng + nghiêng mờ, để soát chỗ đổi hình).
+   Khung cắt đúng như trong game (cao 202px, hình cao 250px). Tham số:
+     ?c=<0..9>  chỉ một khách      ?k=<0..2> chỉ một skin      ?full  không cắt (thấy cả người)
+     ?t=<giây>  dừng mọi cử động ở thời điểm t (chụp ảnh từng pha bước)      ?still  tắt cử động
+     ?walk      hàng "pha bước": 6 pha của một chu kỳ cạnh nhau (dùng với ?c=…&k=…) */
+html,body{overflow:auto!important;height:auto!important;position:static!important}
+html,body{background:#f4ecd8}
+body{margin:0;padding:12px;font:13px system-ui;color:#3b3025}
+#screen,#rotate{display:none!important}
+.row{display:flex;gap:6px;align-items:flex-end;border-bottom:1px solid #d8ccb0;padding:6px 0}
+.lbl{width:96px;flex:none;align-self:center}
+.cell{position:relative;width:250px;height:202px;overflow:hidden;background:#fffdf6;border:1px solid #e3d8bd;border-radius:6px;text-align:center;line-height:0;flex:none}
+.full .cell{height:256px}
 .cell svg{height:250px}
-.walkdemo .sarm{transform-box:fill-box;transform-origin:50% 4%;animation:armswing .55s ease-in-out infinite alternate}
+.cell .ov{position:absolute;left:0;right:0;top:0}
+.cell .ov svg{opacity:.5}
+.cell .cap{position:absolute;left:4px;top:3px;font-size:11px;line-height:1;color:#8a7a62;z-index:3}
+/* ô "đang đi" dùng đúng lớp của game (.custwalk.walking) nhưng đặt tĩnh trong ô */
+.cell.custwalk{position:relative;top:auto;left:auto;right:auto}
+.still .custwalk *, .still .custwalk .charsvg{animation:none!important}
 </style></head><body>
-<p>Dáng nghiêng (đi từ phải sang trái) cạnh dáng thẳng — mỗi skin: nghiêng · nghiêng vui · thẳng. Khung cắt đúng như trong game (cao 202px).</p>
 <div id="out"></div>
+<div id="screen"><div id="game"></div></div>
 <script>window.EYE_RATIO_TRY = +new URLSearchParams(location.search).get('ratio') || 0;</script>
 <script src="../js/loi-thoai.js"></script>
 <script src="../js/nhan-vat.js"></script>
@@ -22,12 +37,34 @@ body{background:#f4ecd8;margin:0;padding:16px;font:14px system-ui;color:#3b3025;
 <script src="../js/nhan-vat-skin.js"></script>
 <script src="../js/nhan-vat-nghieng.js"></script>
 <script>
-const out = document.getElementById('out'), only = new URLSearchParams(location.search).get('c');
+const q = new URLSearchParams(location.search), only = q.get('c'), onlyK = q.get('k');
+if(q.has('full')) document.body.classList.add('full');
+if(q.has('still')) document.body.classList.add('still');
+const out = document.getElementById('out');
+const cell = (svg, cap, cls) => `<div class="cell${cls ? ' ' + cls : ''}"><span class="cap">${cap}</span>${svg}</div>`;
 CUSTOMERS.forEach((c, i) => {
   if(only != null && +only !== i) return;
-  let h = `<div class="row"><div class="lbl">${i}. ${c[0]}</div>`;
-  for(let k = 0; k < SKIN_COUNT; k++)
-    h += `<div class="cell walkdemo">${custSideSVG(i, 'neutral', k)}</div><div class="cell">${custSideSVG(i, 'happy', k)}</div><div class="cell">${custSVG(i, 'neutral', k)}</div>`;
-  out.insertAdjacentHTML('beforeend', h + '</div>');
+  for(let k = 0; k < SKIN_COUNT; k++){
+    if(onlyK != null && +onlyK !== k) continue;
+    const sk = skinsOf(i + 1)[k] || {};
+    let h = `<div class="row"><div class="lbl">${i}. ${c[0]}<br><small>${sk.ten || ''}</small></div>`;
+    if(q.has('walk')){
+      for(let p = 0; p < 6; p++) h += cell(custSideSVG(i, 'neutral', k), 'pha ' + p, 'custwalk walking ph' + p);
+    } else {
+      h += cell(custSideSVG(i, 'neutral', k), 'đi', 'custwalk walking')
+        + cell(custSideSVG(i, 'happy', k), 'vui') + cell(custSideSVG(i, 'annoy', k), 'bực')
+        + cell(custSVG(i, 'neutral', k), 'thẳng')
+        + `<div class="cell"><span class="cap">chồng hình</span>${custSVG(i, 'neutral', k)}<div class="ov">${custSideSVG(i, 'neutral', k)}</div></div>`;
+    }
+    out.insertAdjacentHTML('beforeend', h + '</div>');
+  }
+});
+// dừng cử động ở thời điểm t (giây); ?walk: mỗi ô một pha, cách nhau 1/6 chu kỳ bước (1,1 s)
+const T = q.get('t');
+if(T != null || q.has('walk')) requestAnimationFrame(() => {
+  document.querySelectorAll('.custwalk').forEach(el => {
+    const ph = [...el.classList].find(s => /^ph\d$/.test(s));
+    el.getAnimations({subtree:true}).forEach(an => { an.pause(); an.currentTime = (T != null ? +T*1000 : 0) + (ph ? +ph.slice(2)*1100/6 : 0); });
+  });
 });
 </script></body></html>
