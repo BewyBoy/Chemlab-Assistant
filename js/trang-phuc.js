@@ -259,13 +259,13 @@ const TRANG_PHUC = (() => {
           // áo thun sọc xanh ô liu
           + g('<path d="M104,176 q-32,9 -46,30 q-14,20 -16,84 l156,0 q-2,-64 -16,-84 q-14,-21 -46,-30 q-14,8 -32,0z" fill="url(#tp6s2_soc)"/>', 3.2)
           // quai (viền mực) + yếm cao su rêu sẫm kéo cao lên ngực
-          + '<path d="M86,206 l-6,-20 M154,206 l6,-20" fill="none" stroke="' + INK + '" stroke-width="12" stroke-linecap="round"/>'
-          + '<path d="M86,206 l-6,-20 M154,206 l6,-20" fill="none" stroke="#56663c" stroke-width="7" stroke-linecap="round"/>'
-          + g('<path d="M82,204 h76 l4,76 h-84z" fill="#4e5e37"/>', 2.6)
+          + '<path d="M86,198 l-4,-14 M154,198 l4,-14" fill="none" stroke="' + INK + '" stroke-width="12" stroke-linecap="round"/>'
+          + '<path d="M86,198 l-4,-14 M154,198 l4,-14" fill="none" stroke="#56663c" stroke-width="7" stroke-linecap="round"/>'
+          + g('<path d="M82,196 h76 l4,84 h-84z" fill="#4e5e37"/>', 2.6)
           + tpArms(6, 'url(#tp6s2_soc)', 'url(#tp6s2_soc)'),
         // phù hiệu cá chép nhỏ in trên yếm (trên mép bàn)
-        prop: g('<ellipse cx="120" cy="211" rx="27" ry="15" fill="#efe6c8"/>', 2.2)
-          + '<g transform="translate(118,211) scale(.5) translate(-118,-234)">' + g('<path d="M78,236 q28,-26 60,0 q-28,24 -60,0z" fill="#ef9a52"/>'
+        prop: g('<ellipse cx="120" cy="207" rx="27" ry="15" fill="#efe6c8"/>', 2.2)
+          + '<g transform="translate(118,207) scale(.5) translate(-118,-234)">' + g('<path d="M78,236 q28,-26 60,0 q-28,24 -60,0z" fill="#ef9a52"/>'
             + '<path d="M138,236 l20,-14 q-4,14 0,28z" fill="#e07a3c"/>'
             + '<path d="M100,224 q8,-8 18,-2 z" fill="#e07a3c" stroke-width="2"/>'
             + '<path d="M108,230 q4,6 0,12 M118,230 q4,6 0,12" fill="none" stroke-width="1.8" opacity=".5"/>'

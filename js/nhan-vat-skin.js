@@ -146,7 +146,7 @@ function custArt(i, k){
 /* DÁNG NGƯỜI — mỗi khách một vóc: [rộng, cao] nhân lên cả hình, neo ở giữa đáy (chân đứng yên). Trẻ con nhỏ hẳn,
    Anh Minh to ngang, Ông Sáu thấp đậm, Thầy Nam cao, Chị Hoa mảnh… Dùng chung cho hình thẳng (custSVG) và hình
    nghiêng (custSideSVG) nên hai hình vẫn khớp nhau. custHead (ảnh đầu cắt theo HD_HEADS) không áp. */
-const DANG = {1:[0.98, 0.92], 2:[0.95, 1], 3:[0.86, 0.86], 4:[1.07, 1.02], 5:[0.94, 0.99], 6:[1.04, 0.94], 7:[0.84, 0.84], 8:[0.92, 1.02], 9:[0.98, 1.05], 10:[0.94, 0.95]};
+const DANG = {1:[0.98, 0.92], 2:[0.95, 1], 3:[0.9, 0.9], 4:[1.07, 1.02], 5:[0.94, 0.99], 6:[1.04, 0.94], 7:[0.88, 0.88], 8:[0.92, 1.02], 9:[0.98, 1.05], 10:[0.94, 0.95]};
 function dangNguoi(svg, hd){
   const d = DANG[hd], vb = svg.match(/viewBox="0 0 (\d+) (\d+)"/);
   if(!d || !vb) return svg;
