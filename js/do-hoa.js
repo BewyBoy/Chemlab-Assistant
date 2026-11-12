@@ -1931,10 +1931,12 @@ const CUST_PROPS = {
   0: '<g stroke="#3b3025" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" transform="rotate(-20 150 228)">'
    + '<rect x="104" y="214" width="92" height="28" rx="14" fill="#d99a52"/>'
    + '<path d="M126,222 l9,12 M147,220 l9,12 M168,220 l9,12" fill="none" stroke-width="2.4" opacity=".65"/></g>',
-  // 2 · Bé Na — học sinh: khăn quàng đỏ (che luôn cái cà vạt khiến em trông như dân văn phòng)
-  2: '<g stroke="#3b3025" stroke-width="3" stroke-linejoin="round">'
-   + '<path d="M126,193 L150,264 L174,193 q-24,11 -48,0z" fill="#d9364a"/>'
-   + '<path d="M138,185 q12,-6 24,0 q-2,12 -12,12 q-10,0 -12,-12z" fill="#e8515f"/></g>',
+  // 2 · Bé Na — học sinh: khăn quàng đỏ cỡ thật — nút thắt nhỏ ở cổ áo + hai đuôi ngắn (≤ 35 đv dưới cổ), không che áo;
+  //   cổ áo em ở x≈160 nên dịch +9. Cà vạt ảnh raster của hình gốc được bỏ trong nhan-vat-sua.js
+  2: '<g stroke="#3b3025" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" transform="translate(9,0)">'
+   + '<path d="M127,189 q23,10 46,0 l-1,5 q-22,10 -44,0z" fill="#d9364a"/>'
+   + '<path d="M146,197 l-11,22 l8,-1.5 l8,-18.5z" fill="#d9364a"/><path d="M154,197 l9,21 l-8,-1 l-6,-18.5z" fill="#c22d40"/>'
+   + '<path d="M142,190 q8,-5 16,0 q1,9 -8,11 q-9,-2 -8,-11z" fill="#e8515f"/></g>',
   // 3 · Anh Minh — thợ xây: mũ bảo hộ
   3: '<g stroke="#3b3025" stroke-width="3" stroke-linejoin="round">'
    + '<path d="M64,76 q0,-48 56,-48 q56,0 56,48z" fill="#f0b429"/>'
@@ -1947,15 +1949,19 @@ const CUST_PROPS = {
    + '<circle cx="110" cy="224" r="7" fill="#c7c7c7" stroke="#3b3025" stroke-width="2"/></g>'
    + '<g stroke="#3b3025" stroke-width="2"><rect x="150" y="206" width="21" height="21" rx="4" fill="#fff"/>'
    + '<path d="M160.5,211 v11 M155,216.5 h11" stroke="#d9364a" stroke-width="3.6" stroke-linecap="round"/></g>',
-  // 5 · Ông Sáu — chủ ao cá: con cá
-  5: '<g stroke="#3b3025" stroke-width="3" stroke-linejoin="round">'
-   + '<path d="M82,228 q24,-22 52,0 q-24,22 -52,0z" fill="#7fb3d5"/>'
-   + '<path d="M134,228 l20,-13 v26z" fill="#5a9bc4"/>'
-   + '<circle cx="95" cy="223" r="2.8" fill="#3b3025" stroke="none"/></g>',
-  // 6 · Bạn Tí — học sinh: khăn quàng đỏ
-  6: '<g stroke="#3b3025" stroke-width="3" stroke-linejoin="round">'
-   + '<path d="M101,197 L120,252 L139,197 q-19,9 -38,0z" fill="#d9364a"/>'
-   + '<path d="M110,190 q10,-5 20,0 q-2,11 -10,11 q-8,0 -10,-11z" fill="#e8515f"/></g>',
+  // 5 · Ông Sáu — chủ ao cá: miếng vải thêu con cá khâu trên ngực trái gi-lê (nhỏ, nằm hẳn trên mép bàn y = 226)
+  5: '<g stroke="#3b3025" stroke-linejoin="round" stroke-linecap="round">'
+   + '<rect x="129" y="196" width="29" height="20" rx="5" fill="#efe6c8" stroke-width="2.2"/>'
+   + '<rect x="132" y="199" width="23" height="14" rx="3" fill="none" stroke="#a08a55" stroke-width="1.1" stroke-dasharray="2 1.6"/>'
+   + '<path d="M135,206 q7,-6.5 14,0 q-7,6.5 -14,0z" fill="#5a9bc4" stroke-width="1.4"/>'
+   + '<path d="M149,206 l5,-4 v8z" fill="#4a87b0" stroke-width="1.4"/>'
+   + '<path d="M143,203.5 q1.5,2.5 0,5" fill="none" stroke="#2f6a92" stroke-width="1"/>'
+   + '<circle cx="138.4" cy="205.3" r="1" fill="#3b3025" stroke="none"/></g>',
+  // 6 · Bạn Tí — học sinh: khăn quàng đỏ cỡ thật — nút thắt nhỏ ở cổ áo + hai đuôi ngắn
+  6: '<g stroke="#3b3025" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">'
+   + '<path d="M101,184 q19,9 38,0 l-1,5 q-18,9 -36,0z" fill="#d9364a"/>'
+   + '<path d="M116,192 l-11,26 l8,-1.5 l8,-22z" fill="#d9364a"/><path d="M124,192 l10,25 l-8,-1 l-6,-22z" fill="#c22d40"/>'
+   + '<path d="M113,186 q7,-4.5 14,0 q1,8 -7,10 q-8,-2 -7,-10z" fill="#e8515f"/></g>',
   // 7 · Chị Hoa — tiệm vàng bạc: dây chuyền và hoa tai vàng
   7: '<g fill="none" stroke="#c8a227" stroke-width="3.2" stroke-linecap="round"><path d="M97,190 q23,28 46,0"/></g>'
    + '<g stroke="#8a6238" stroke-width="2"><circle cx="120" cy="214" r="5.5" fill="#f0c419"/>'
