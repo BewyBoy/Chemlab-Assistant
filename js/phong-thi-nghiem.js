@@ -1885,9 +1885,12 @@ function nextCustomer(){
   custSay(line);
   sp.classList.add('hush');                       // khách đứng trước khay rồi mới nói
   // mỗi lượt ghé một bộ đồ (nhan-vat-skin.js): đổi theo ngày và lượt khách, chơi lại đúng ngày thì vẫn y như cũ
-  // hai hình: nhìn thẳng (đứng trước khay) + nhìn nghiêng (nhan-vat-nghieng.js, hiện lúc .walking)
   const skin = custSkinFor(lab.i, lab.oi, od.who), tall = s => s.replace('<svg ', '<svg style="height:250px" ');
-  cw.innerHTML = '<div class="cwin">' + tall(custSVG(od.who, 'neutral', skin)) + tall(custSideSVG(od.who, 'neutral', skin)) + '</div>';
+  // WALK_VIEW '3/4': một hình thẳng đã bọc lớp (nhan-vat-xoay.js) — lúc .walking xoay 3/4, dừng lại thì quay mặt thẳng.
+  // 'nghieng': hai hình, nhìn thẳng (đứng trước khay) + nhìn nghiêng hẳn (nhan-vat-nghieng.js, hiện lúc .walking)
+  cw.innerHTML = '<div class="cwin">' + (WALK_VIEW === '3/4' && typeof custTurnSVG === 'function'
+    ? tall(custTurnSVG(od.who, 'neutral', skin))
+    : tall(custSVG(od.who, 'neutral', skin)) + tall(custSideSVG(od.who, 'neutral', skin))) + '</div>';
   custWalk(cw, 'in', () => sp.classList.remove('hush'));
   updateCoach();
   SFX.bell();
@@ -1912,8 +1915,9 @@ function setExp(exp){
   G.querySelectorAll('#cust .charsvg').forEach(sv => sv.setAttribute('data-exp', exp));
 }
 /* Khách đi bộ từ phải sang trái: 'in' = từ mép phải khung bước vào, dừng trước khay; 'out' = đi tiếp ra mép trái.
-   Lúc bước thì hiện dáng nghiêng, nhún nhẹ, tay đánh theo nhịp (.walking); đứng lại thì quay mặt thẳng. Xong thì gọi done. Mỗi lần gọi huỷ lượt đi trước còn dở. */
+   Lúc bước (.walking) thì hiện dáng đi theo WALK_VIEW — 3/4 hoặc nghiêng hẳn — và nhún nhẹ; đứng lại thì quay mặt thẳng. Xong thì gọi done. Mỗi lần gọi huỷ lượt đi trước còn dở. */
 const WALK_MS = 1100;
+const WALK_VIEW = '3/4';   // dáng lúc đi: '3/4' (nghiêng vừa phải, dựng từ hình thẳng) hoặc 'nghieng' (nghiêng hẳn)
 function custWalk(cw, dir, done){
   clearTimeout(cw._walk);
   if(dir === 'in'){

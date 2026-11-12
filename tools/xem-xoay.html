@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><title>Xem dáng 3/4</title>
+<link rel="stylesheet" href="../style.css">
+<style>
+body{background:#f4ecd8;margin:0;padding:16px;font:14px system-ui;color:#3b3025;overflow:auto;height:auto}
+.row{display:flex;gap:6px;align-items:flex-end;border-bottom:1px solid #d8ccb0;padding:8px 0}
+.lbl{width:110px;flex:none}
+.cell{position:relative;width:236px;height:202px;overflow:hidden;background:#fffdf6;border:1px solid #e3d8bd;border-radius:6px;text-align:center;line-height:0;flex:none}
+body.full .cell{height:250px}
+.cell svg{height:250px}
+.cell.auto .turn{cursor:pointer}
+</style></head><body>
+<p>Dáng 3/4 dựng từ hình thẳng (js/nhan-vat-xoay.js). Mỗi hàng: thẳng · 3/4 bộ cổ điển · 3/4 bộ 2 (vui) · 3/4 bộ 3 (bực) · ô cuối tự quay qua lại · nghiêng hẳn.
+Tham số: <code>?c=N</code> một khách, <code>?full</code> bỏ khung cắt mép bàn.</p>
+<div id="out"></div>
+<script>window.EYE_RATIO_TRY = +new URLSearchParams(location.search).get('ratio') || 0;</script>
+<script src="../js/loi-thoai.js"></script>
+<script src="../js/nhan-vat.js"></script>
+<script src="../js/phan-ung.js"></script>
+<script src="../js/du-lieu.js"></script>
+<script src="../js/do-hoa.js"></script>
+<script src="../js/trang-phuc.js"></script>
+<script src="../js/nhan-vat-sua.js"></script>
+<script src="../js/nhan-vat-skin.js"></script>
+<script src="../js/nhan-vat-nghieng.js"></script>
+<script src="../js/nhan-vat-xoay.js"></script>
+<script>
+const q = new URLSearchParams(location.search), out = document.getElementById('out'), only = q.get('c');
+if(q.has('full')) document.body.classList.add('full');
+const turned = s => s.replace('class="charsvg turn"', 'class="charsvg turn is-turned"');
+CUSTOMERS.forEach((c, i) => {
+  if(only != null && +only !== i) return;
+  out.insertAdjacentHTML('beforeend', `<div class="row"><div class="lbl">${i}. ${c[0]}</div>`
+    + `<div class="cell">${custSVG(i, 'neutral', 0)}</div>`
+    + `<div class="cell">${turned(custTurnSVG(i, 'neutral', 0))}</div>`
+    + `<div class="cell">${turned(custTurnSVG(i, 'happy', 1))}</div>`
+    + `<div class="cell">${turned(custTurnSVG(i, 'annoy', 2))}</div>`
+    + `<div class="cell auto">${custTurnSVG(i, 'neutral', 0)}</div>`
+    + `<div class="cell">${custSideSVG(i, 'neutral', 0)}</div></div>`);
+});
+// ô tự quay: 3/4 ↔ thẳng mỗi 1,2 giây
+setInterval(() => document.querySelectorAll('.cell.auto .turn').forEach(s => s.classList.toggle('is-turned')), 1200);
+</script></body></html>
