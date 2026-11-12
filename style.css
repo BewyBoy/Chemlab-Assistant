@@ -1231,3 +1231,13 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .charsvg[data-exp="happy"] .eo-open{display:none}
 .charsvg[data-exp="neutral"] .eo-smiley .eo-arc{display:inline}
 .charsvg[data-exp="neutral"] .eo-smiley .eo-open{display:none}
+/* bực: mí sụp chéo đè lên chấm mắt; người mắt cười lúc vui thì nhắm tít > < */
+.charsvg .eo-glare,.charsvg .eo-laugh{display:none}
+.charsvg[data-exp="annoy"] .eo-glare{display:inline}
+.charsvg[data-exp="happy"] .eo-smiley .eo-arc{display:none}
+.charsvg[data-exp="happy"] .eo-smiley .eo-laugh{display:inline}
+/* lông mày theo biểu cảm (.brw gắn trong nhan-vat-skin.js): bực thì chau xuống giữa trán, vui thì nhướn lên */
+.charsvg .brw{transform-box:fill-box;transform-origin:center}
+.charsvg[data-exp="annoy"] .brw-l{transform:translateY(3px) rotate(13deg)}
+.charsvg[data-exp="annoy"] .brw-r{transform:translateY(3px) rotate(-13deg)}
+.charsvg[data-exp="happy"] .brw{transform:translateY(-3px)}

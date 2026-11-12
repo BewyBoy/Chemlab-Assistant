@@ -310,4 +310,9 @@ function sideArt(i, k){
   return (sideMemo[key] = `<svg xmlns="http://www.w3.org/2000/svg" class="charsvg side" data-exp="neutral" viewBox="${vb}" overflow="visible">${defs}`
     + `${inner}</svg>`);
 }
-function custSideSVG(i, exp, k){ return sideArt(i, k).replace('data-exp="neutral"', 'data-exp="' + exp + '"'); }
+const sideDangMemo = {};
+function custSideSVG(i, exp, k){
+  const key = i + ':' + (k || 0);
+  const art = sideDangMemo[key] || (sideDangMemo[key] = typeof dangNguoi === 'function' ? dangNguoi(sideArt(i, k), i + 1) : sideArt(i, k));   // cùng vóc với hình thẳng
+  return art.replace('data-exp="neutral"', 'data-exp="' + exp + '"');
+}

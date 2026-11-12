@@ -24,6 +24,7 @@ $canShip = @(
   'js\bai-giang.js',        # lời giáo sư giảng từng ngày — thiếu là vào ngày nào cũng lỗi
   'js\do-hoa.js',          # kho SVG + nhân vật
   'js\trang-phuc.js',       # trang phục (skin) của nhân vật
+  'js\nhan-vat-sua.js',     # vá hình gốc nhân vật
   'js\nhan-vat-skin.js',    # mắt chấm + ghép trang phục
   'js\nhan-vat-nghieng.js', # dáng nghiêng lúc đi
   'js\diem.js',             # luật tính điểm & mốc sao

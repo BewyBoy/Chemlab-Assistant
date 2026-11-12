@@ -19,7 +19,7 @@ const EYE_STYLE = [
   {r:3.8, k:0.85},                   // 2 Chú Ba — hơi nheo, quen nắng ruộng
   {r:4.4, k:1.15, lash:1},           // 3 Bé Na — chấm to, một nét mi
   {r:3.8, k:0.8},                    // 4 Anh Minh — dẹt, trông vội
-  {r:4.0, k:1.1, lash:1},            // 5 Cô Lan
+  {r:4.0, k:1.1, lash:1, dx:1, dy:-3.5},   // 5 Cô Lan — dời chấm vào giữa tròng kính (dx: ra phía đuôi mắt, dy: lên)
   {r:3.2, k:0.8, crease:1},          // 6 Ông Sáu — nhỏ, có nếp nhăn đuôi mắt
   {r:4.6, k:1.2},                    // 7 Bạn Tí — to tròn, tinh nghịch
   {r:4.0, k:1.0, lash:2},            // 8 Chị Hoa — hai nét mi
@@ -46,9 +46,16 @@ function gEnd(s, at){
 }
 function dotEyes(i, eyes, lid){
   const st = EYE_STYLE[i] || {r:3.8, k:1}, r = st.r, {rx, ry} = eyeDims(r, st.k), f = v => (+v).toFixed(1);
-  const open = [], arc = [];
+  const open = [], arc = [], glare = [], laugh = [];
   eyes.forEach(([x, y], n) => {
     const s = n === 0 ? 1 : -1;      // mắt trái: đuôi mắt hướng trái (s = 1), mắt phải ngược lại
+    x -= s*(st.dx || 0); y += st.dy || 0;
+    // bực: mí sụp chéo — cao ở đuôi mắt, thấp ở đầu mắt; miếng màu da che phần chấm phía trên nét mí
+    const xo = x - s*(rx + 3), xi = x + s*(rx + 3), yo = y - ry - 1.5, yi = y - ry*0.1;
+    glare.push(`<path d="M${f(xo)},${f(yo - 4)} L${f(xi)},${f(yo - 4)} L${f(xi)},${f(yi)} L${f(xo)},${f(yo)} Z" fill="${lid}"/>`
+      + `<path d="M${f(xo)},${f(yo)} L${f(xi)},${f(yi)}" fill="none" stroke="${EYE_INK}" stroke-width="2.6" stroke-linecap="round"/>`);
+    // người "mắt cười" lúc vui: nhắm tít kiểu > <
+    laugh.push(`<path d="M${f(x - s*(r + 1))},${f(y - 4.5)} L${f(x + s*r)},${f(y)} L${f(x - s*(r + 1))},${f(y + 4.5)}" fill="none" stroke="${EYE_INK}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`);
     open.push(`<ellipse cx="${f(x)}" cy="${f(y)}" rx="${rx}" ry="${ry}" fill="${EYE_INK}"/>`);
     arc.push(`<path d="M${f(x - r - 2)},${f(y + 1)} q${f(r + 2)},${f(-(r + 4))} ${f(2*r + 4)},0" fill="none" stroke="${EYE_INK}" stroke-width="2.6" stroke-linecap="round"/>`);
     const lash = [];
@@ -58,8 +65,20 @@ function dotEyes(i, eyes, lid){
     open.push(...lash); arc.push(...lash);
     open.push(`<rect class="blinklid" x="${f(x - rx - 1.5)}" y="${f(y - ry - 1.5)}" width="${f(2*rx + 3)}" height="${f(2*ry + 3)}" rx="${f(rx)}" fill="${lid}"/>`);
   });
-  return `<g class="eyes2${st.smiley ? ' eo-smiley' : ''}"><g class="eo-open">${open.join('')}</g><g class="eo-arc">${arc.join('')}</g></g>`;
+  return `<g class="eyes2${st.smiley ? ' eo-smiley' : ''}"><g class="eo-open">${open.join('')}</g><g class="eo-glare">${glare.join('')}</g>`
+    + `<g class="eo-arc">${arc.join('')}</g>${st.smiley ? `<g class="eo-laugh">${laugh.join('')}</g>` : ''}</g>`;
 }
+/* Lông mày theo biểu cảm: gắn lớp .brw .brw-l / .brw-r cho hai nét lông mày của hình gốc (style.css xoay / nhấc chúng
+   theo data-exp). Nhận ra lông mày nhờ kiểu tô riêng: mảng mực viền 1px — khách khung 200x280 ghi bằng thuộc tính,
+   hình vẽ tay khung 280 ghi trong style. Trái / phải theo toạ độ x đầu nét (mặt giữa x≈120 trong hệ toạ độ của nét). */
+function tagBrows(svg){
+  const side = x => +x < 120 ? 'l' : 'r';
+  return svg
+    .replace(/<path d="M([\d.]+),[\d.]+[^"]*z" fill="#3b3025" stroke="#3b3025" stroke-width="1"\/>/g, (m, x) => m.replace('<path ', `<path class="brw brw-${side(x)}" `))
+    .replace(/<path d="M([\d.]+),[\d.]+[^"]*Z" style="fill:rgb\(59,48,37\);fill-rule:nonzero;stroke:rgb\(59,48,37\);stroke-width:1px;[^"]*"\/>/g, (m, x) => m.replace('<path ', `<path class="brw brw-${side(x)}" `));
+}
+// dấu bực (hai nét đỏ cạnh thái dương) của khách khung 200x280: người đội mũ thì dời xuống cạnh tai cho khỏi đè lên mũ
+const ANNOY_MARK = {4:'M190,108 l5,-9 l5,9 M202,114 l5,-9', 7:'M190,112 l5,-9 l5,9 M202,118 l5,-9'};
 // thay nhóm mắt cũ (nhóm <g stroke="#3b3025" stroke-width="2"> cuối cùng có mí chớp hoặc mắt trăng khuyết)
 function reworkEyes(svg, i){
   const head = '<g stroke="#3b3025" stroke-width="2">';
@@ -79,7 +98,11 @@ function reworkEyes(svg, i){
   }
   return svg;
 }
-if(typeof HD_CHARS !== 'undefined') for(let i = 0; i < HD_CHARS.length; i++) HD_CHARS[i] = reworkEyes(HD_CHARS[i], i);
+if(typeof HD_CHARS !== 'undefined') for(let i = 0; i < HD_CHARS.length; i++){
+  HD_CHARS[i] = tagBrows(reworkEyes(HD_CHARS[i], i));
+  if(ANNOY_MARK[i]) HD_CHARS[i] = HD_CHARS[i].split('M170,74 l5,-9 l5,9 M182,80 l5,-9').join(ANNOY_MARK[i]);
+  if(typeof suaHinhGoc === 'function') HD_CHARS[i] = suaHinhGoc(HD_CHARS[i], i);   // vá hình gốc: js/nhan-vat-sua.js
+}
 
 /* ---------- TRANG PHỤC ---------- */
 const SKIN_CLASSIC = 'Cổ điển';
@@ -120,7 +143,22 @@ function custArt(i, k){
   const prop = sk.prop !== undefined ? sk.prop : (CUST_PROPS[i] || '');
   return (custArtMemo2[key] = applySkin(HD_CHARS[i + 1].replace('</svg>', prop + '</svg>'), i + 1, k));
 }
-function custSVG(i, exp, k){ return custArt(i, k).replace('data-exp="neutral"', 'data-exp="' + exp + '"'); }
+/* DÁNG NGƯỜI — mỗi khách một vóc: [rộng, cao] nhân lên cả hình, neo ở giữa đáy (chân đứng yên). Trẻ con nhỏ hẳn,
+   Anh Minh to ngang, Ông Sáu thấp đậm, Thầy Nam cao, Chị Hoa mảnh… Dùng chung cho hình thẳng (custSVG) và hình
+   nghiêng (custSideSVG) nên hai hình vẫn khớp nhau. custHead (ảnh đầu cắt theo HD_HEADS) không áp. */
+const DANG = {1:[0.98, 0.92], 2:[0.95, 1], 3:[0.86, 0.86], 4:[1.07, 1.02], 5:[0.94, 0.99], 6:[1.04, 0.94], 7:[0.84, 0.84], 8:[0.92, 1.02], 9:[0.98, 1.05], 10:[0.94, 0.95]};
+function dangNguoi(svg, hd){
+  const d = DANG[hd], vb = svg.match(/viewBox="0 0 (\d+) (\d+)"/);
+  if(!d || !vb) return svg;
+  const cx = +vb[1] === 280 ? 156 : 120, H = +vb[2];
+  return svg.replace(/(<svg[^>]*>)([\s\S]*)(<\/svg>)/, (m, a, b, c) =>
+    `${a}<g transform="translate(${(cx*(1 - d[0])).toFixed(2)},${(H*(1 - d[1])).toFixed(2)}) scale(${d[0]},${d[1]})">${b}</g>${c}`);
+}
+const custDangMemo = {};
+function custSVG(i, exp, k){
+  const key = i + ':' + (k || 0), art = custDangMemo[key] || (custDangMemo[key] = dangNguoi(custArt(i, k), i + 1));
+  return art.replace('data-exp="neutral"', 'data-exp="' + exp + '"');
+}
 function custHead(i, k){ return custArt(i, k).replace(/viewBox="[^"]+"/, 'viewBox="' + HD_HEADS[i + 1] + '"'); }
 const profMemo = {};
 function profSVG(exp, k){
