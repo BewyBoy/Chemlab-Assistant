@@ -1,5 +1,5 @@
 /* =====================================================================
-   ĐIỂM & SAO — luật chấm chung cho mọi lượt chơi: một ca ở bàn thí nghiệm, một minigame, thử thách pha nồng độ.
+   ĐIỂM & SAO — luật chấm chung cho mọi lượt chơi: một ca ở bàn thí nghiệm, một minigame.
    Đổi luật thì chỉ sửa file này.
 
    Một lượt có N phần (đơn hàng / câu / điểm của màn) và làm được k phần — đếm như trước giờ.
@@ -26,7 +26,7 @@ const PTS_PERFECT = PTS_FAST + PTS_STREAK*STREAK_CAP;   // = thưởng tối đa
 // PAT: số giây cho một câu ở minigame không có đồng hồ chung (identify: cho mỗi lọ) — xong ngay thì +50, hết PAT
 // giây thì +0. Minigame có đồng hồ chung (lập công thức, sơ đồ Lewis, tạo ion) tính như đồng hồ chờ của khách: gấp
 // đôi phần chia đều. Số đoán trước khi playtest — chỉnh ở đây.
-const PAT = {bins:8, identify:60, redox:15, sort:6, ptable:15, chain:45, balance:60, conc:90};
+const PAT = {bins:8, identify:60, redox:15, sort:6, ptable:15, chain:45, balance:60};
 
 const starLimits = (n, k1, k2) => [PTS_OK*k1, PTS_OK*k2, (PTS_OK + PTS_PERFECT)*n];
 // NHANH + CHUỖI lớn nhất có thể của n lần đúng liền, xong ngay tức thì

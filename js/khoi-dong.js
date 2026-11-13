@@ -251,24 +251,12 @@ if(DEBUG){
       else console.assert(x.hoi && x.chon.length >= 2 && x.khen && x.giai, 'tham quan: câu hỏi thiếu phần — ' + x.hoi);
     });
   });
-  // hard mode: molar mass parser + tolerance + generated challenges are self-consistent
+  // chế độ khó: tính khối lượng mol từ công thức (cả dấu ngoặc)
   console.assert(molarMass('NaCl') === 58.5, 'Mr NaCl');
   console.assert(molarMass('Ca(OH)2') === 74, 'Mr Ca(OH)2');
   console.assert(molarMass('CuSO4') === 160, 'Mr CuSO4');
   console.assert(molarMass('C12H22O11') === 342, 'Mr saccarozơ');
   console.assert(molarMass('Cu(NO3)2') === 188, 'Mr Cu(NO3)2 (dấu ngoặc)');
-  console.assert(within(104.9,100) && !within(106,100), 'ngưỡng 5%');
-  for(let t=0; t<300; t++){
-    const c = makeChallenge();
-    console.assert(c, 'makeChallenge trả null');
-    if(!c) continue;
-    const total = c.totalMode === 'b' ? c.bTarget : c.aTarget + c.bTarget;
-    // đáp án đúng phải qua; lệch 6% ở một số liệu phải trượt
-    console.assert(within(c.aTarget,c.aTarget) && within(total,c.totalTarget), 'đáp án đúng lại trượt');
-    console.assert(!within(c.aTarget*1.06, c.aTarget), '+6% vẫn qua?!');
-    console.assert(c.aTarget<=c.aMax && c.bTarget<=c.bMax, 'mục tiêu vượt thang trượt');
-    console.assert(Math.abs(c.reveal(c.aTarget,c.bTarget) - c.targetC) < c.targetC*0.02, 'nồng độ đạt ≠ yêu cầu');
-  }
 }
 /* Dev mode lúc chạy: gõ "benben1304" để bật, nhấn Esc 3 lần liên tiếp để tắt. */
 function setDev(on){

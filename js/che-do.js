@@ -1,5 +1,5 @@
 /* =====================================================================
-   CÁC CHẾ ĐỘ PHỤ — 8 minigame, thử thách pha nồng độ, chế độ khó trong ca (tự cân đong),
+   CÁC CHẾ ĐỘ PHỤ — 8 minigame, chế độ khó trong ca (tự cân đong),
    thẻ phản ứng hoạt hình.
    ===================================================================== */
 'use strict';
@@ -3446,11 +3446,8 @@ function ptQuiz(day){
   return qs;
 }
 
-/* =====================  CHẾ ĐỘ KHÓ: PHA NỒNG ĐỘ (Cₘ & C%)  ===================== */
-// Dạy nồng độ mol (Cₘ) và nồng độ phần trăm (C%): dùng CÂN để đong khối lượng chất rắn,
-// ỐNG ĐONG để đong thể tích nước / dung dịch gốc. Giao hàng đạt khi mọi số liệu lệch ≤ 5%.
-const CONC_TOL = 0.05;                       // sai số tối đa 5%
-const within = (v, t) => t > 0 && Math.abs(v - t) <= CONC_TOL * t;
+/* =====================  TIỆN ÍCH TÍNH TOÁN (chế độ khó trong ca)  ===================== */
+const CONC_TOL = 0.05;                       // sai số tối đa 5% khi tự cân đong
 // khối lượng mol tính từ công thức (bảng nguyên tử khối KHTN 8)
 const ATOM = {H:1,C:12,N:14,O:16,Na:23,Mg:24,Al:27,P:31,S:32,Cl:35.5,K:39,Ca:40,Mn:55,Fe:56,Cu:64,Zn:65,Ag:108,Ba:137};
 // đếm nguyên tử trong một công thức, có ngoặc: 'Ca(OH)2' → {Ca:1, O:2, H:2}
@@ -3474,191 +3471,7 @@ function molarMass(f){
   return Object.keys(c).reduce((s, el) => s + ATOM[el]*c[el], 0);
 }
 const fmt = (n, d) => (+n.toFixed(d==null?1:d)).toString().replace('.', ',');
-const niceCeil = x => { const p = Math.pow(10, Math.floor(Math.log10(x))); const h = p/2; return Math.max(h, Math.ceil(x/h)*h); };
 const pick = a => a[Math.floor(Math.random()*a.length)];
-const CONC_SOLUTES = ['NaCl','KCl','CuSO4','Na2CO3','NaNO3','C12H22O11']; // chất rắn tan, Mr đẹp
-
-function makeChallenge(){
-  for(let tries=0; tries<80; tries++){
-    const who = Math.floor(Math.random()*CUSTOMERS.length);
-    const kind = pick(['cm_solid','cm_dilute','cpct']);
-    const sol = pick(CONC_SOLUTES), Mr = molarMass(sol), nm = CHEMS[sol].n.toLowerCase(), col = CHEMS[sol].c;
-    const base = {who, sol, solColor:col};
-    if(kind === 'cm_solid'){
-      const V = pick([100,150,200,250]), M = pick([0.5,1,2]);
-      const n = M*V/1000, mass = n*Mr;
-      if(mass > 110) continue;
-      return Object.assign(base, {
-        order:`Pha ${V} ml dung dịch ${nm} ${fmt(M,2)}M.`,
-        hint:`M(${sub(sol)}) = ${fmt(Mr,1)} g/mol · Cₘ = n / V(lít) · n = m / M`,
-        aLabel:'Cân (chất tan)', aUnit:'g', aStep:0.1, aMax:niceCeil(mass*2.2), aTarget:mass,
-        bUnit:'ml', bMax:niceCeil(V*1.7), bTarget:V,
-        totalMode:'b', totalTarget:V, targetC:M, cUnit:'M',
-        reveal:(a,b) => b>0 ? (a/Mr)/(b/1000) : 0,
-        solve:`n = Cₘ·V = ${fmt(M,2)}·${fmt(V/1000,3)} = ${fmt(n,3)} mol → m = n·M = ${fmt(n,3)}·${fmt(Mr,1)} = <b>${fmt(mass,1)} g</b>; đong <b>${V} ml</b> nước.`
-      });
-    }
-    if(kind === 'cm_dilute'){
-      const stockM = pick([1,2]);
-      const M = pick([0.25,0.5,1].filter(x => x < stockM));
-      const V = pick([100,200,300]);
-      const Vs = M*V/stockM, w = V - Vs;
-      if(Vs < 10 || w < 10) continue;
-      return Object.assign(base, {
-        order:`Pha ${V} ml dung dịch ${nm} ${fmt(M,2)}M từ dung dịch gốc ${stockM}M.`,
-        hint:`Pha loãng: C₁·V₁ = C₂·V₂ (số mol không đổi), rồi thêm nước cho đủ ${V} ml.`,
-        aLabel:`Dung dịch gốc ${stockM}M`, aUnit:'ml', aStep:1, aMax:niceCeil(Vs*2.2), aTarget:Vs,
-        bUnit:'ml', bMax:niceCeil(w*1.9), bTarget:w,
-        totalMode:'sum', totalTarget:V, targetC:M, cUnit:'M',
-        reveal:(a,b) => (a+b)>0 ? stockM*a/(a+b) : 0,
-        solve:`V₁ = C₂·V₂ / C₁ = ${fmt(M,2)}·${V} / ${stockM} = <b>${fmt(Vs,1)} ml</b> dung dịch gốc; thêm <b>${fmt(w,1)} ml</b> nước cho đủ ${V} ml.`
-      });
-    }
-    // cpct: nồng độ phần trăm
-    const mdd = pick([100,150,200]), P = pick([5,10,15,20]);
-    const mct = P*mdd/100, w = mdd - mct;
-    if(mct > 110) continue;
-    return Object.assign(base, {
-      order:`Pha ${mdd} g dung dịch ${nm} ${P}%.`,
-      hint:`C% = m(chất tan) / m(dung dịch) × 100 · m(nước) = m(dd) − m(chất tan) · 1 ml nước ≈ 1 g`,
-      aLabel:'Cân (chất tan)', aUnit:'g', aStep:0.1, aMax:niceCeil(mct*2.4), aTarget:mct,
-      bUnit:'ml', bMax:niceCeil(w*1.6), bTarget:w,
-      totalMode:'sum', totalTarget:mdd, targetC:P, cUnit:'%',
-      reveal:(a,b) => (a+b)>0 ? a/(a+b)*100 : 0,
-      solve:`m(chất tan) = C%·m(dd)/100 = ${P}·${mdd}/100 = <b>${fmt(mct,1)} g</b>; m(nước) = ${mdd} − ${fmt(mct,1)} = <b>${fmt(w,1)} g</b>.`
-    });
-  }
-  return null;
-}
-
-let conc = null;
-function startConc(){
-  SFX.music(3);
-  conc = {list: Array.from({length:5}, makeChallenge).filter(Boolean), ci:0, correct:0};
-  mgRun(PAT.conc);
-  renderConc();
-}
-function renderConc(){
-  const c = conc.list[conc.ci];
-  conc.a = 0; conc.b = 0; runItem();
-  G.innerHTML = `<div class="scene" style="padding:0">
-    <div class="hudboard">
-      <span class="hud-title">Chế độ khó · Pha nồng độ</span>
-      <div style="flex:1"></div>
-      <span class="hudstat">Câu ${conc.ci+1}/${conc.list.length}</span>
-      <span class="hudstat">${ico('check',15)} Đúng: <span id="ccor">${conc.correct}</span></span>
-      <button class="btn icobtn" id="cmute">${ico(SFX.isMuted()?'mute':'sound')}</button>
-      <button class="btn icobtn" id="cquit">${ico('close')}</button>
-    </div>
-    <style>
-      .concwrap{display:flex;gap:30px;justify-content:center;align-items:flex-start;padding:30px 26px}
-      .conc-order{max-width:430px}
-      .conc-ask{font-family:var(--fh);font-size:19px;margin-top:2px}
-      .conc-hint{margin-top:12px;padding:9px 11px;background:#fffdf5;border:1.2px dashed var(--ink);border-radius:6px;font-size:14px;line-height:1.5}
-      .conc-bench{display:flex;gap:26px;align-items:center;background:var(--card);border:1.2px solid var(--ink);border-radius:9.6px;padding:20px 24px;}
-      .conc-panel{display:flex;flex-direction:column;gap:5px;min-width:310px}
-      .conc-read{font-size:15px;margin-top:6px}
-      .conc-read b{font-family:var(--fh)}
-      .conc-panel input[type=range]{width:310px;accent-color:var(--accent);height:22px;cursor:pointer}
-      .conc-face{flex:none}
-    </style>
-    <div class="concwrap">
-      <div class="paper conc-order">
-        <div class="row" style="gap:12px;align-items:center">
-          <div class="conc-face">${custSVG(c.who,'neutral').replace('<svg ','<svg style="height:104px" ')}</div>
-          <div><b style="font-family:var(--fh);font-size:18px">${CUSTOMERS[c.who][0]}</b>
-            <div class="conc-ask">“${c.order}”</div></div>
-        </div>
-        <div class="conc-hint">${ico('book',14)} ${c.hint}</div>
-        <div class="row" style="margin-top:14px;gap:8px">
-          <button class="btn" id="cbook">${ico('book')} Sổ tay công thức</button>
-          <button class="btn big" id="cserve">${ico('flask')} Giao cho khách</button>
-        </div>
-      </div>
-      <div class="conc-bench">
-        <svg id="cbk" width="150" height="192" viewBox="0 0 120 152" aria-hidden="true">
-          <rect id="cbk-liq" x="17" width="86" y="146" height="0" rx="2"/>
-          <path d="M14,10 L14,140 Q14,148 22,148 L98,148 Q106,148 106,140 L106,10" fill="none" stroke="#3b3025" stroke-width="3"/>
-          <path d="M14,10 L2,4 M106,10 L118,4" stroke="#3b3025" stroke-width="3" fill="none"/>
-        </svg>
-        <div class="conc-panel">
-          <div class="conc-read">${ico('flask',14)} <b>${c.aLabel}:</b> <span id="craA">0</span> ${c.aUnit}</div>
-          <input type="range" id="csA" min="0" max="${c.aMax}" step="${c.aStep}" value="0">
-          <div class="conc-read">${ico('flask',14)} <b>Nước:</b> <span id="craB">0</span> ${c.bUnit}</div>
-          <input type="range" id="csB" min="0" max="${c.bMax}" step="1" value="0">
-        </div>
-      </div>
-    </div>
-  </div>`;
-  const sA = G.querySelector('#csA'), sB = G.querySelector('#csB');
-  sA.oninput = () => { conc.a = +sA.value; updateConc(); };
-  sB.oninput = () => { conc.b = +sB.value; updateConc(); };
-  G.querySelector('#cserve').onclick = serveConc;
-  G.querySelector('#cbook').onclick = showConcBook;
-  G.querySelector('#cquit').onclick = () => go(showMenu);
-  G.querySelector('#cmute').onclick = e => { const m = SFX.toggle(); e.currentTarget.innerHTML = ico(m?'mute':'sound'); };
-  updateConc();
-}
-function updateConc(){
-  const c = conc.list[conc.ci];
-  G.querySelector('#craA').textContent = fmt(conc.a, c.aStep < 1 ? 1 : 0);
-  G.querySelector('#craB').textContent = fmt(conc.b, 0);
-  const total = c.totalMode === 'b' ? conc.b : conc.a + conc.b;
-  const maxV = c.totalTarget * 1.9;
-  const H = Math.max(0, Math.min(1, total / maxV)) * 116;
-  const liq = G.querySelector('#cbk-liq');
-  liq.setAttribute('y', 146 - H); liq.setAttribute('height', H);
-  liq.setAttribute('fill', lerpHex('#cfe6f2', c.solColor, conc.a > 0 ? 0.4 : 0));
-}
-function showConcBook(){
-  modal('<h2>'+ico('book',22)+' Sổ tay công thức</h2><div style="text-align:left;font-size:15px;line-height:1.9">'
-    + '<div><b>Nồng độ mol:</b> Cₘ = n / V &nbsp;(n: mol chất tan, V: lít dung dịch)</div>'
-    + '<div><b>Số mol ↔ khối lượng:</b> n = m / M &nbsp;⇒&nbsp; m = n · M</div>'
-    + '<div><b>Pha loãng:</b> C₁·V₁ = C₂·V₂ &nbsp;(số mol chất tan không đổi)</div>'
-    + '<div><b>Nồng độ phần trăm:</b> C% = m(chất tan) / m(dung dịch) × 100</div>'
-    + '<div style="opacity:.75">m(dung dịch) = m(chất tan) + m(nước); 1 ml nước ≈ 1 g</div>'
-    + '<div style="margin-top:6px;opacity:.75">Được chấp nhận nếu mọi số liệu lệch không quá <b>5%</b>.</div></div>');
-}
-function serveConc(){
-  const c = conc.list[conc.ci];
-  const total = c.totalMode === 'b' ? conc.b : conc.a + conc.b;
-  const okA = within(conc.a, c.aTarget), okT = within(total, c.totalTarget);
-  const pass = okA && okT;
-  if(pass){ conc.correct++; G.querySelector('#ccor').textContent = conc.correct; SFX.coin(); setTimeout(SFX.clink,150); }
-  else { SFX.err(); runMiss(); }
-  if(pass) runPop(G.querySelector('#ccor').parentNode, runHit());
-  const achieved = c.reveal(conc.a, conc.b);
-  const last = conc.ci >= conc.list.length - 1;
-  const chk = ok => ico(ok ? 'check' : 'close', 15);
-  const ov = document.createElement('div'); ov.className = 'overlay';
-  ov.innerHTML = `<div class="modal" style="max-width:560px">
-    <h2>${ico(pass?'check':'close',22)} ${pass?'Chuẩn! Sai số trong 5%':'Chưa đạt — lệch quá 5%'}</h2>
-    <div style="text-align:left;font-size:15px;line-height:1.7">
-      <div>${chk(okA)} ${c.aLabel}: <b>${fmt(conc.a, c.aStep<1?1:0)} ${c.aUnit}</b> · cần ${fmt(c.aTarget,1)} ${c.aUnit}</div>
-      <div>${chk(okT)} Tổng ${c.totalMode==='b'?'thể tích':'khối lượng'}: <b>${fmt(total,1)}</b> · cần ${fmt(c.totalTarget,1)}</div>
-      <div style="margin-top:6px">Nồng độ đạt được: <b>${fmt(achieved,2)} ${c.cUnit}</b> · yêu cầu <b>${fmt(c.targetC,2)} ${c.cUnit}</b></div>
-      <div style="margin-top:8px;padding-top:8px;border-top:1.2px dashed var(--ink)"><b>Cách tính:</b><br>${c.solve}</div>
-    </div>
-    <div class="center" style="margin-top:12px"><button class="btn big" id="cnext">${last?'Xem kết quả':'Câu tiếp '+ico('next')}</button></div>
-  </div>`;
-  G.appendChild(ov);
-  ov.querySelector('#cnext').onclick = () => { closeOv(ov); if(last) concResult(); else { conc.ci++; renderConc(); } };
-}
-function concResult(){
-  const n = conc.list.length, cor = conc.correct;
-  const sc = runScore(n, cor, Math.ceil(n*.5), Math.ceil(n*.75), cor === n), stars = sc.stars;   // cùng luật với minigame
-  if(cor > (save.hardBest||0)){ save.hardBest = cor; persist(); }
-  const rec = sc.pts > (save.concBest || 0);
-  if(rec){ save.concBest = sc.pts; persist(); }
-  resultCard('Kết thúc chế độ khó', stars, `<div class="resbody">
-      <p style="font-size:18px">Đúng <b>${cor}/${n}</b> câu · Nhiều nhất: <b>${Math.max(cor, save.hardBest||0)}/${n}</b></p>
-      ${scoreHTML(sc, rec, save.concBest)}
-      <p class="hand">“${stars===3?'Bậc thầy nồng độ — không lệch một li!':stars>=1?'Khá lắm! Luyện thêm cho chắc công thức nhé.':'Ôn lại Cₘ và C% rồi thử lại nào, trò làm được mà!'}”</p>
-    </div>
-    <div class="row resbtns">${resBtn('cagain', 'retry', 'Chơi lại')}${resBtn('cmenu', 'home', 'Về menu', ' main')}</div>`);
-  G.querySelector('#cagain').onclick = () => go(startConc);
-  G.querySelector('#cmenu').onclick = () => go(showMenu);
-}
 
 /* =====================  CHẾ ĐỘ KHÓ TRONG CA: TỰ TÍNH GAM / ML / LÍT  =====================
    Bản thường: mỗi lần nghiêng lọ = 0,1 mol, phiếu ghi sẵn số mol. Chế độ khó: phiếu ghi

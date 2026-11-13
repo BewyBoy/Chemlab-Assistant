@@ -288,7 +288,6 @@ function showMenu(){
   runStop();
   SFX.music(0);
   // Ca tự do chuyển sang tấm lịch: nó là "ngày 1 của tháng sau", xem showMap().
-  // Thử thách pha nồng độ (startConc) mở sau ngày 2 — ngày học khái niệm mol.
   const inProgress = save.unlocked > 1; // đã qua ít nhất ngày 1 → có gì đó để "tiếp tục"
   const nextDay = Math.min(save.unlocked, DAYS.length);
   // nút menu: "> nhãn <" — hai mũi nhọn hiện khi hover (style.css .menu-btns .sel); ::before của .btn đã là đế chống rung
@@ -303,7 +302,6 @@ function showMenu(){
         ${mb('brx', '', ico('note')+' Sổ tay')}
         ${mb('bach', '', ico('trophy')+' Thành tựu')}
         ${storiesOwned() ? mb('bstory', '', ico('book')+' Truyện nguyên tố') : ''}
-        ${save.unlocked > 2 ? mb('bconc', '', ico('flask')+' Pha nồng độ') : ''}
         ${mb('bset', '', ico('gear')+' Cài đặt')}
       </div>
     </div>
@@ -318,7 +316,6 @@ function showMenu(){
   G.querySelector('#brx').onclick = showRxBook;
   G.querySelector('#bach').onclick = showAch;
   const bst = G.querySelector('#bstory'); if(bst) bst.onclick = showStories;
-  const bcc = G.querySelector('#bconc'); if(bcc) bcc.onclick = () => go(startConc);
   G.querySelector('#bset').onclick = settingsModal;
 }
 
@@ -1049,7 +1046,7 @@ function settingsModal(){
 
 /* =====================  RESULT & GRADING  ===================== */
 /* Thẻ kết quả: cảnh vừa chơi đứng hình, tối lại phía sau; thẻ nảy vào giữa, rồi từng sao được
-   rót đầy như chất lỏng (mặt sóng dâng trong viền sao). Dùng chung cho mọi ngày và pha nồng độ. */
+   rót đầy như chất lỏng (mặt sóng dâng trong viền sao). Dùng chung cho mọi ngày. */
 const STAR_PTS = '12,2 15.1,8.3 22,9.3 17,14.1 18.2,21 12,17.8 5.8,21 7,14.1 2,9.3 8.9,8.3';   // = ico-star
 // mặt sóng chu kỳ 12, trải từ x=-24 tới 48 để trượt ngang đúng một chu kỳ mà không hở mép
 const wavePath = y => 'M-24 '+y+'q3 -2.2 6 0'+' t6 0'.repeat(11)+'V26H-24Z';
