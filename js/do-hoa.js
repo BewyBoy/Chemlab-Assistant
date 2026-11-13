@@ -208,7 +208,6 @@ const SVG_DEFS = `
 </symbol>
 
 
-<!-- ============================================================
      GAS COLLECTION BOTTLE
      ============================================================ -->
 <symbol id="sym-gasbottle" viewBox="0 0 120 170" xmlns="http://www.w3.org/2000/svg">
@@ -319,6 +318,9 @@ const SVG_DEFS = `
   <!-- Shadow -->
   <ellipse cx="60" cy="147" rx="14" ry="3" fill="#3b3025" opacity="0.12"/>
 </symbol>
+=======
+
+
 <defs>
 
   <!-- === GRADIENTS & CLIP PATHS (all ids prefixed cnB) === -->
@@ -1029,103 +1031,11 @@ const SVG_DEFS = `
 
 </defs>
 
-<!-- ==================== TOOLS ==================== -->
-
-<!-- Alcohol Lamp -->
-<!-- Giá đỡ vòng (kiềng sắt) — dựng theo bản vẽ tay frame: đế phẳng nhìn phối cảnh,
-     trụ đứng, vòng đỡ chìa sang trái. Chỉ hiện khi đang đun. -->
-<!-- Kiềng đun + lưới amiăng. Không đun trực tiếp trên ngọn lửa được — cốc phải đặt
-     lên lưới, nên khi bật đèn thì kiềng hiện ra đỡ cốc.
-     Kiềng phải RỘNG HƠN đáy cốc thì mới đỡ được — hẹp hơn là nhìn ra ngay là sai. -->
-<symbol id="sym-tripod" viewBox="0 0 160 60">
-  <!-- chân sau, vẽ trước để vành kiềng đè lên -->
-  <path d="M80,24 L80,54" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
-  <!-- vành kiềng -->
-  <ellipse cx="80" cy="22" rx="58" ry="10" fill="none" stroke="#3b3025" stroke-width="5"/>
-  <!-- lưới amiăng đặt trên vành -->
-  <rect x="34" y="9" width="92" height="13" rx="3" fill="#e8e0cc" stroke="#3b3025" stroke-width="3"/>
-  <path d="M49,9 L49,22 M64,9 L64,22 M80,9 L80,22 M96,9 L96,22 M111,9 L111,22"
-        stroke="#3b3025" stroke-width="1.2" opacity=".45"/>
-  <path d="M34,15.5 L126,15.5" stroke="#3b3025" stroke-width="1.2" opacity=".45"/>
-  <!-- 2 chân trước -->
-  <path d="M26,26 L14,54" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
-  <path d="M134,26 L146,54" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
-</symbol>
-
-<symbol id="sym-ringstand" viewBox="0 0 150 256">
-  <!-- vòng đỡ (vẽ trước để trụ đè lên chỗ giao nhau) -->
-  <ellipse cx="56" cy="44" rx="46" ry="13" fill="none" stroke="#3b3025" stroke-width="5"/>
-  <!-- tay nối vòng ra trụ -->
-  <path d="M101,45 L114,47" fill="none" stroke="#3b3025" stroke-width="5" stroke-linecap="round"/>
-  <!-- trụ đứng -->
-  <path d="M118,28 L118,230" fill="none" stroke="#3b3025" stroke-width="7" stroke-linecap="round"/>
-  <path d="M115,36 L115,222" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity="0.3"/>
-  <!-- đế phẳng nhìn phối cảnh -->
-  <path d="M74,222 L134,212 L148,228 L88,240 Z" fill="#e8e0cc" stroke="#3b3025"
-        stroke-width="4.5" stroke-linejoin="round"/>
-  <path d="M88,240 L88,250 L148,238 L148,228" fill="#c9c0a6" stroke="#3b3025"
-        stroke-width="4" stroke-linejoin="round"/>
-</symbol>
-
-<!-- Chuông thu khí: cái phễu ÚP NGƯỢC chụp lên miệng cốc. Khí bốc lên bị dồn vào
-     cổ hẹp rồi theo ống dẫn sang bình. Miệng loe phải rộng bằng miệng cốc. -->
-<symbol id="sym-gashood" viewBox="0 0 200 130">
-  <!-- thân phễu úp -->
-  <path d="M4,112 L64,44 Q68,36 76,36 L92,36 Q100,36 104,44 L172,112 Z"
-        fill="#ffffff" fill-opacity="0.18" stroke="#3b3025" stroke-width="4"
-        stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- vệt sáng trên mặt kính -->
-  <path d="M40,92 Q60,62 74,46" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round" opacity="0.4"/>
-  <!-- vành miệng loe (nhìn phối cảnh) -->
-  <ellipse cx="88" cy="112" rx="84" ry="12" fill="#ffffff" fill-opacity="0.14"
-           stroke="#3b3025" stroke-width="4"/>
-  <!-- cổ hẹp -->
-  <path d="M72,20 L72,40 Q88,44 96,40 L96,20 Z" fill="#e6ecef"
-        stroke="#3b3025" stroke-width="3.5" stroke-linejoin="round"/>
-  <ellipse cx="84" cy="20" rx="12" ry="4.5" fill="#e6ecef" stroke="#3b3025" stroke-width="3"/>
-  <!-- ống ra: nét viền dày rồi lòng ống sáng đè lên -->
-  <path d="M92,20 Q140,10 176,24 Q196,32 198,50" fill="none" stroke="#3b3025" stroke-width="10" stroke-linecap="round"/>
-  <path d="M92,20 Q140,10 176,24 Q196,32 198,50" fill="none" stroke="#f3f1e8" stroke-width="5.5" stroke-linecap="round"/>
-</symbol>
 
 
 
-<symbol id="sym-lamp" viewBox="0 0 100 120">
-  <!-- Đèn cồn — dựng theo bản vẽ tay dencon: thân bè thấp có vai gãy góc,
-       nhãn chữ nhật lõm ở bụng, cổ đồng ngắn to bản, bấc dài ngoằn ngoèo. -->
 
-  <!-- thân thuỷ tinh, vai gãy góc kiểu vẽ tay -->
-  <path d="M20,96 Q18,106 27,110 Q50,113 73,110 Q82,106 80,96 L75,78 Q68,67 56,65 L44,65 Q32,67 25,78 Z"
-        fill="url(#teCGlassBody)" stroke="#3b3025" stroke-width="3.5"
-        stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- cồn bên trong -->
-  <path d="M23,84 Q50,80 77,84 L79,96 Q50,101 21,96 Z" fill="url(#teCFuelLiq)"/>
-  <!-- nhãn chữ nhật lõm ở bụng (đúng bản vẽ) -->
-  <path d="M28,86 Q50,83 72,86 L71,102 Q50,105 29,102 Z"
-        fill="none" stroke="#3b3025" stroke-width="2.5"
-        stroke-linecap="round" stroke-linejoin="round" opacity="0.85"/>
-  <!-- bóng sáng vai trái -->
-  <path d="M30,74 Q34,70 39,69" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/>
 
-  <!-- cổ đồng: khối trụ ngắn to bản, có vành trên -->
-  <path d="M35,48 L35,64 Q50,68 65,64 L65,48 Z" fill="url(#teCBrassGrad)"
-        stroke="#3b3025" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <ellipse cx="50" cy="48" rx="15" ry="5" fill="url(#teCBrassGrad)" stroke="#3b3025" stroke-width="3"/>
-  <path d="M37,57 Q50,60 63,57" fill="none" stroke="#a8821e" stroke-width="1.5" stroke-linecap="round"/>
-
-  <!-- bấc: sợi dài chạy từ trong bình lên, ngoằn ngoèo như nét vẽ tay -->
-  <path d="M52,92 Q46,86 51,78 Q56,70 50,62 Q45,55 50,48 Q54,42 51,36"
-        fill="none" stroke="#3b3025" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- đoạn bấc nhô ra khỏi cổ: cháy thì bị ngọn lửa nuốt nên mờ dần theo --flame -->
-  <path d="M51,36 Q49,32 53,29" fill="none" stroke="#3b3025" stroke-width="4" stroke-linecap="round"
-        opacity="calc(1 - var(--flame,0))"/>
-
-  <!-- ngọn lửa — bật bằng --flame -->
-  <g style="opacity:var(--flame,0)">
-    <path d="M52,40 Q41,31 44,17 Q46,3 52,-2 Q58,3 60,17 Q63,31 52,40 Z" fill="url(#teCFlamOuter)" stroke="#d9634f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="fx-flame"/>
-    <path d="M52,38 Q46,32 47,22 Q49,12 52,7 Q55,12 57,22 Q58,32 52,38 Z" fill="#6f9ec9" fill-opacity="0.8" stroke="none" class="fx-flame fx-core"/>
-  </g>
-</symbol>
 
 <!-- Stirring Spoon -->
 <symbol id="sym-spoon" viewBox="0 0 100 100">
@@ -1157,55 +1067,8 @@ const SVG_DEFS = `
   </g>
 </symbol>
 
-<!-- Electrolysis rig: battery + two electrodes -->
-<symbol id="sym-electro" viewBox="0 0 90 100">
-  <!-- battery body -->
-  <rect x="18" y="8" width="54" height="30" rx="5" fill="#e8b84b" stroke="#3b3025" stroke-width="3"/>
-  <rect x="18" y="8" width="18" height="30" rx="5" fill="#d9634f" stroke="#3b3025" stroke-width="3"/>
-  <text x="27" y="28" font-size="14" font-weight="bold" fill="#fffdf5" text-anchor="middle" font-family="sans-serif">−</text>
-  <text x="54" y="28" font-size="14" font-weight="bold" fill="#3b3025" text-anchor="middle" font-family="sans-serif">+</text>
-  <!-- wires -->
-  <path d="M28,38 Q24,58 30,78" fill="none" stroke="#3b3025" stroke-width="3" stroke-linecap="round"/>
-  <path d="M62,38 Q66,58 60,78" fill="none" stroke="#3b3025" stroke-width="3" stroke-linecap="round"/>
-  <!-- electrode plates -->
-  <rect x="26" y="76" width="8" height="20" rx="2" fill="#8a8d90" stroke="#3b3025" stroke-width="2.5"/>
-  <rect x="56" y="76" width="8" height="20" rx="2" fill="#c96f33" stroke="#3b3025" stroke-width="2.5"/>
-  <!-- spark when powered -->
-  <g opacity="var(--zap,0)">
-    <path d="M43,52 L47,45 L45,52 L49,46" fill="none" stroke="#e8b84b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="30" cy="74" r="3" fill="#dbeefc" opacity="0.8"/>
-    <circle cx="60" cy="74" r="3" fill="#dbeefc" opacity="0.8"/>
-  </g>
-</symbol>
 
-<!-- Glass stirring rod (long, so its tip visibly reaches the bottom of a tall beaker) -->
-<symbol id="sym-stirrod" viewBox="0 0 36 160">
-  <path d="M24,6 L12,150" stroke="#3b3025" stroke-width="8" stroke-linecap="round"/>
-  <path d="M24,6 L12,150" stroke="#cfe4ea" stroke-width="5" stroke-linecap="round"/>
-  <path d="M23,10 L13,140" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity="0.6"/>
-  <ellipse cx="23.5" cy="8" rx="1.8" ry="1.2" fill="#ffffff" opacity="0.7" transform="rotate(-8,23.5,8)"/>
-</symbol>
 
-<!-- Muôi đốt (muỗng đốt hoá chất): vòng cầm, cán thép dài, NẮP tròn để đậy miệng lọ khí,
-     chén nhỏ ở đầu dưới đựng chất cháy. --fuel/--lc = chất trên chén, --flame/--fc = lửa. -->
-<symbol id="sym-burnspoon" viewBox="0 0 50 170">
-  <circle cx="25" cy="10" r="7" fill="none" stroke="#3b3025" stroke-width="3.5"/>
-  <path d="M25,17 L25,148" stroke="#3b3025" stroke-width="6" stroke-linecap="round"/>
-  <path d="M25,17 L25,148" stroke="#c9cdd2" stroke-width="2.6" stroke-linecap="round"/>
-  <ellipse cx="25" cy="62" rx="21" ry="6" fill="#c9cdd2" stroke="#3b3025" stroke-width="3"/>
-  <path d="M9,60 Q25,56 41,60" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity=".6"/>
-  <path d="M12,148 Q12,162 25,163 Q38,162 38,148 Z" fill="#aab1b8" stroke="#3b3025" stroke-width="3" stroke-linejoin="round"/>
-  <ellipse cx="25" cy="148" rx="13" ry="3.6" fill="#8a9198" stroke="#3b3025" stroke-width="2.5"/>
-  <g style="opacity:var(--fuel,0)">
-    <path d="M14,148 Q15,140 20,140 Q23,134 28,139 Q34,137 36,148 Z" fill="var(--lc,#ccd2d8)"
-          stroke="#3b3025" stroke-width="2" stroke-linejoin="round"/>
-  </g>
-  <g style="opacity:var(--flame,0)">
-    <path d="M25,146 Q11,136 16,120 Q19,108 25,99 Q31,108 34,120 Q39,136 25,146 Z"
-          fill="var(--fc,#ffb347)" fill-opacity=".9" stroke="#d9634f" stroke-width="1.5" stroke-linejoin="round" class="fx-ladle"/>
-    <path d="M25,144 Q19,136 21,126 Q23,118 25,113 Q27,118 29,126 Q31,136 25,144 Z" fill="#fffbe6" opacity=".85"/>
-  </g>
-</symbol>
 
 <!-- Kính bảo hộ + găng tay treo trên móc tường. Bấm để đeo trước khi lấy hoá chất. -->
 <symbol id="sym-goggles" viewBox="0 0 100 70">
@@ -1803,106 +1666,151 @@ const SVG_DEFS = `
 
 </svg>
 `;
-const BEAKER_SVG = `
-<svg id="beakersvg" viewBox="0 0 200 240" xmlns="http://www.w3.org/2000/svg" width="230">
-  <defs>
-    <clipPath id="bkclip">
-      <path d="M16,222 Q14,224 16,226 L184,226 Q186,224 184,222 L184,22 Q184,20 182,20 L18,20 Q16,20 16,22 Z"/>
-    </clipPath>
-    <linearGradient id="gwAglass1" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.04"/>
-    </linearGradient>
-    <linearGradient id="gwAliquid1" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#cfe6f2" stop-opacity="0.95"/>
-      <stop offset="100%" stop-color="#a8cfe8" stop-opacity="0.95"/>
-    </linearGradient>
-  </defs>
+/* ---- DỤNG CỤ DỰNG TỪ MÔ HÌNH 3D ----
+   Bàn được xếp trong Blender (ban_lam_viec.py), rồi mỗi dụng cụ được "nướng" thành mảng màu + nét viền
+   nhìn chéo xuống T3D_ELEV° (T3D trong do-hoa-3d.js; 1 đơn vị viewBox = 1 mm). Hai dáng cho mỗi thứ:
+   sym-X là lúc dùng (lắp vào bộ, cầm trên tay), sym-X-cat là lúc cất cạnh thảm (đũa nằm, phễu úp, đèn đậy nắp…).
+   Các lớp ĐỘNG (lửa, khí, giọt lọc, tia điện, chất trên muôi) vẫn là hình vẽ tay: at3d() dời chúng
+   sao cho điểm gốc cũ (ox,oy) rơi đúng điểm neo mới, co theo tỉ lệ s. */
+const at3d = (p, ox, oy, s, g) => '<g transform="translate(' + (p[0] - ox*s).toFixed(1) + ',' + (p[1] - oy*s).toFixed(1)
+  + ') scale(' + s.toFixed(3) + ')">' + g + '</g>';
+/* Nét nướng sẵn chia lớp (class trong T3D[id].d): o = viền phần đặc, ge = viền kính (cả miệng cốc / lọ),
+   (không class) = nét trong phần đặc, g = nét trong của kính, gb = nét nhìn xuyên qua kính.
+   Viền 3px, nét trong 0.8px, giữ đúng px dù hình co hay phóng x1.5 khi lắp vào bộ; g là vệt mờ (soft3d)
+   cắt theo vùng kính k nên không loang ra nền; gb bỏ cho gọn. */
+const INK3D = {o: 3, ge: 3, i: 0.8};
+const ink3d = id => {
+  const t = T3D[id], p = {};
+  t.d.replace(/<path (?:class="(\w+)" )?d="([^"]*)"\/>/g, (m, c, d) => { p[c || 'i'] = d; });
+  const line = c => p[c] ? '<path vector-effect="non-scaling-stroke" stroke-width="' + INK3D[c] + '" d="' + p[c] + '"/>' : '';
+  return (p.g ? '<clipPath id="k-' + id + '">' + t.k + '</clipPath><g clip-path="url(#k-' + id + ')"><path d="' + p.g
+      + '" fill="none" stroke="#3b3025" stroke-opacity=".55" stroke-width="1.5" stroke-linecap="round" filter="url(#soft3d)"/></g>' : '')
+    + '<g fill="none" stroke="#3b3025" stroke-linecap="round" stroke-linejoin="round">' + line('i') + line('o') + line('ge') + '</g>';
+};
+// mảng màu → lớp động nằm dưới nét → nét viền → lớp động nằm trên
+const sym3d = (id, under, over) => '<symbol id="' + id + '" viewBox="0 0 ' + T3D[id].w + ' ' + T3D[id].h + '">'
+  + T3D[id].f + (under || '') + ink3d(id) + (over || '') + '</symbol>';
+const SIN_E = Math.sin(T3D_ELEV * Math.PI / 180);   // vòng tròn nằm ngang hiện thành elip ry = r·SIN_E
 
-  <!-- Liquid clip group -->
-  <g clip-path="url(#bkclip)">
-    <rect id="bk-liquid" x="14" y="222" width="172" height="0" fill="#cfe6f2" opacity="0.9" style="transition:all .4s"/>
-    <rect id="bk-precip" x="14" y="222" width="172" height="0" fill="#ddd" stroke="#3b3025" stroke-width="2.5" stroke-opacity=".55"/>
-    <g id="bk-precip-tex" opacity="0">
-      <circle cx="30" cy="223" r="2.2" fill="#3b3025" opacity="0.18"/>
-      <circle cx="48" cy="224" r="1.6" fill="#3b3025" opacity="0.15"/>
-      <circle cx="65" cy="222" r="2.5" fill="#3b3025" opacity="0.18"/>
-      <circle cx="82" cy="224" r="1.8" fill="#3b3025" opacity="0.16"/>
-      <circle cx="100" cy="223" r="2.0" fill="#3b3025" opacity="0.18"/>
-      <circle cx="118" cy="224" r="1.5" fill="#3b3025" opacity="0.14"/>
-      <circle cx="136" cy="222" r="2.3" fill="#3b3025" opacity="0.17"/>
-      <circle cx="154" cy="224" r="1.7" fill="#3b3025" opacity="0.15"/>
-      <circle cx="170" cy="223" r="2.0" fill="#3b3025" opacity="0.18"/>
-      <circle cx="42" cy="225" r="1.4" fill="#3b3025" opacity="0.13"/>
-    </g>
-  </g>
+/* Cốc: lớp chất rắn là hình chữ nhật cắt theo bóng lòng cốc (bkclip) + elip mặt trên; cột nước là hình trụ
+   (path bk-liquid) từ mặt nước xuống mặt chất rắn. updateBeaker đặt các mốc theo BK (đơn vị viewBox của sym-beaker). */
+const BK = (() => {
+  const t = T3D['sym-beaker'], a = t.a, rx = t.r.inner, ry = rx * SIN_E;
+  return {w: t.w, h: t.h, cx: a.bottom[0], bot: a.bottom[1], top: a.rim[1], rx, ry,
+          hMax: a.bottom[1] - a.rim[1] - ry * 0.5};   // đầy nhất: mặt thoáng dưới miệng nửa elip
+})();
+// bóng trụ cốc bán kính r: nửa elip miệng phía sau + hai thành + nửa elip đáy phía trước
+const bkSil = (r, top = BK.top) => 'M' + (BK.cx - r) + ',' + top + ' A' + r + ',' + (r * SIN_E) + ' 0 0 1 ' + (BK.cx + r) + ',' + top
+  + ' L' + (BK.cx + r) + ',' + BK.bot + ' A' + r + ',' + (r * SIN_E) + ' 0 0 1 ' + (BK.cx - r) + ',' + BK.bot + ' Z';
+const GLASS_FILL = r => '<path d="' + bkSil(r) + '" fill="' + T3D_GLASS.fill + '" fill-opacity="' + T3D_GLASS.op + '"/>';
+/* Nét của cốc VẼ TAY: viền + miệng đổ, vệt mờ ở miệng và vòng đáy, gradient ngắn hai thành, vạch chia.
+   Nguồn: Blender/sym-beaker3.svg, chỉnh trong Affinity trên nền bản nướng sym-beaker; toạ độ = T3D × 6.55
+   (BEAKER_SVG co lại 1/6.55). Toàn vector: vệt mờ là 6 nét chồng mờ dần, thành là gradient thường, không filter.
+   Sửa file SVG đó rồi chuyển lại thành ba chuỗi dưới (bỏ id, gradient đổi tên bk-…, nằm trong SVG_DEFS_3D).
+   BEAKER_RING (vòng đáy) tách riêng: BEAKER_SVG vẽ nó DƯỚI lớp chất rắn — nhìn qua nước thì thấy, chất rắn lắng thì che. */
+const BEAKER_GRAD = "<linearGradient id=\"bk-thanh-trai\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"0\"><stop offset=\"0\" style=\"stop-color:#3b3025;stop-opacity:0.55\"/><stop offset=\"0.45\" style=\"stop-color:#3b3025;stop-opacity:0.2\"/><stop offset=\"1\" style=\"stop-color:#3b3025;stop-opacity:0\"/></linearGradient><linearGradient id=\"bk-thanh-phai\" x1=\"1\" y1=\"0\" x2=\"0\" y2=\"0\"><stop offset=\"0\" style=\"stop-color:#3b3025;stop-opacity:0.55\"/><stop offset=\"0.45\" style=\"stop-color:#3b3025;stop-opacity:0.2\"/><stop offset=\"1\" style=\"stop-color:#3b3025;stop-opacity:0\"/></linearGradient>";
+const BEAKER_RING = "<path d=\"M460.4,598.0L455.4,582.9L436.7,553.5L422.4,541.0L391.9,520.7M386.3,518.1L344.7,503.0L296.7,494.5L247.6,494.5L199.7,503.0L156.7,518.8L121.3,541.0L97.0,567.9L83.9,598.0M92.0,622.9L92.0,592.8L104.5,564.0L128.1,538.4L161.7,516.8L181.6,508.3L225.2,497.1L271.9,493.2L341.5,501.7L382.6,516.8M390.7,521.4L416.2,538.4L439.9,564.0L452.3,592.8L452.3,622.9M88.3,598.7L97.0,638.0L104.5,652.4L128.1,677.9L161.7,699.5L202.8,713.9L271.9,723.1L319.1,719.2L382.6,699.5L416.2,677.9L429.3,665.5L447.3,638.0L455.4,598.7\" style=\"fill:none;stroke:#3b3025;stroke-opacity:0.07;stroke-width:30px;stroke-linecap:round;stroke-linejoin:round;\"/><path d=\"M460.4,598.0L455.4,582.9L436.7,553.5L422.4,541.0L391.9,520.7M386.3,518.1L344.7,503.0L296.7,494.5L247.6,494.5L199.7,503.0L156.7,518.8L121.3,541.0L97.0,567.9L83.9,598.0M92.0,622.9L92.0,592.8L104.5,564.0L128.1,538.4L161.7,516.8L181.6,508.3L225.2,497.1L271.9,493.2L341.5,501.7L382.6,516.8M390.7,521.4L416.2,538.4L439.9,564.0L452.3,592.8L452.3,622.9M88.3,598.7L97.0,638.0L104.5,652.4L128.1,677.9L161.7,699.5L202.8,713.9L271.9,723.1L319.1,719.2L382.6,699.5L416.2,677.9L429.3,665.5L447.3,638.0L455.4,598.7\" style=\"fill:none;stroke:#3b3025;stroke-opacity:0.07;stroke-width:25px;stroke-linecap:round;stroke-linejoin:round;\"/><path d=\"M460.4,598.0L455.4,582.9L436.7,553.5L422.4,541.0L391.9,520.7M386.3,518.1L344.7,503.0L296.7,494.5L247.6,494.5L199.7,503.0L156.7,518.8L121.3,541.0L97.0,567.9L83.9,598.0M92.0,622.9L92.0,592.8L104.5,564.0L128.1,538.4L161.7,516.8L181.6,508.3L225.2,497.1L271.9,493.2L341.5,501.7L382.6,516.8M390.7,521.4L416.2,538.4L439.9,564.0L452.3,592.8L452.3,622.9M88.3,598.7L97.0,638.0L104.5,652.4L128.1,677.9L161.7,699.5L202.8,713.9L271.9,723.1L319.1,719.2L382.6,699.5L416.2,677.9L429.3,665.5L447.3,638.0L455.4,598.7\" style=\"fill:none;stroke:#3b3025;stroke-opacity:0.07;stroke-width:20px;stroke-linecap:round;stroke-linejoin:round;\"/><path d=\"M460.4,598.0L455.4,582.9L436.7,553.5L422.4,541.0L391.9,520.7M386.3,518.1L344.7,503.0L296.7,494.5L247.6,494.5L199.7,503.0L156.7,518.8L121.3,541.0L97.0,567.9L83.9,598.0M92.0,622.9L92.0,592.8L104.5,564.0L128.1,538.4L161.7,516.8L181.6,508.3L225.2,497.1L271.9,493.2L341.5,501.7L382.6,516.8M390.7,521.4L416.2,538.4L439.9,564.0L452.3,592.8L452.3,622.9M88.3,598.7L97.0,638.0L104.5,652.4L128.1,677.9L161.7,699.5L202.8,713.9L271.9,723.1L319.1,719.2L382.6,699.5L416.2,677.9L429.3,665.5L447.3,638.0L455.4,598.7\" style=\"fill:none;stroke:#3b3025;stroke-opacity:0.07;stroke-width:15px;stroke-linecap:round;stroke-linejoin:round;\"/><path d=\"M460.4,598.0L455.4,582.9L436.7,553.5L422.4,541.0L391.9,520.7M386.3,518.1L344.7,503.0L296.7,494.5L247.6,494.5L199.7,503.0L156.7,518.8L121.3,541.0L97.0,567.9L83.9,598.0M92.0,622.9L92.0,592.8L104.5,564.0L128.1,538.4L161.7,516.8L181.6,508.3L225.2,497.1L271.9,493.2L341.5,501.7L382.6,516.8M390.7,521.4L416.2,538.4L439.9,564.0L452.3,592.8L452.3,622.9M88.3,598.7L97.0,638.0L104.5,652.4L128.1,677.9L161.7,699.5L202.8,713.9L271.9,723.1L319.1,719.2L382.6,699.5L416.2,677.9L429.3,665.5L447.3,638.0L455.4,598.7\" style=\"fill:none;stroke:#3b3025;stroke-opacity:0.07;stroke-width:10px;stroke-linecap:round;stroke-linejoin:round;\"/><path d=\"M460.4,598.0L455.4,582.9L436.7,553.5L422.4,541.0L391.9,520.7M386.3,518.1L344.7,503.0L296.7,494.5L247.6,494.5L199.7,503.0L156.7,518.8L121.3,541.0L97.0,567.9L83.9,598.0M92.0,622.9L92.0,592.8L104.5,564.0L128.1,538.4L161.7,516.8L181.6,508.3L225.2,497.1L271.9,493.2L341.5,501.7L382.6,516.8M390.7,521.4L416.2,538.4L439.9,564.0L452.3,592.8L452.3,622.9M88.3,598.7L97.0,638.0L104.5,652.4L128.1,677.9L161.7,699.5L202.8,713.9L271.9,723.1L319.1,719.2L382.6,699.5L416.2,677.9L429.3,665.5L447.3,638.0L455.4,598.7\" style=\"fill:none;stroke:#3b3025;stroke-opacity:0.07;stroke-width:5px;stroke-linecap:round;stroke-linejoin:round;\"/>";
+const BEAKER_ART = "<g><path d=\"M442.985,222.072c0,0 -20.242,18.322 -32.08,24.878c-12.71,7.04 -29.413,12.901 -44.18,17.361c-15.547,4.695 -31.864,8.741 -49.102,10.811c-17.293,2.077 -30.634,3.774 -52.375,4.254c-25.611,0.565 -69.382,-1.736 -98.542,-12.785c-27.862,-10.557 -82.997,-54.304 -91.075,-66.21m367.353,21.691c3.928,-4.801 11.784,-14.403 11.784,-14.403l13.748,-30.77l0,-31.425l-5.238,-15.713c0,0 -11.614,-21.286 -20.295,-29.461c-9.272,-8.731 -28.34,-19.69 -35.336,-22.928c-10.147,-4.695 -24.276,-10.475 -39.151,-14.165c-19.151,-4.752 -50.426,-11.194 -71.703,-12.782c-17.203,-1.284 -45.543,-2.752 -63.125,0c-21.929,3.433 -44.769,4.808 -70.075,14.41c-25.847,9.807 -77.333,34.074 -77.333,34.074l-37.747,7.263m0,0l-2.947,16.367c0,0 7.311,23.69 13.335,37.992c8.006,19.006 8.115,22.441 16.731,39.849\" style=\"fill:none;stroke:#3b3025;stroke-opacity:0.07;stroke-width:30px;stroke-linecap:round;stroke-linejoin:round;\"/><path d=\"M442.985,222.072c0,0 -20.242,18.322 -32.08,24.878c-12.71,7.04 -29.413,12.901 -44.18,17.361c-15.547,4.695 -31.864,8.741 -49.102,10.811c-17.293,2.077 -30.634,3.774 -52.375,4.254c-25.611,0.565 -69.382,-1.736 -98.542,-12.785c-27.862,-10.557 -82.997,-54.304 -91.075,-66.21m367.353,21.691c3.928,-4.801 11.784,-14.403 11.784,-14.403l13.748,-30.77l0,-31.425l-5.238,-15.713c0,0 -11.614,-21.286 -20.295,-29.461c-9.272,-8.731 -28.34,-19.69 -35.336,-22.928c-10.147,-4.695 -24.276,-10.475 -39.151,-14.165c-19.151,-4.752 -50.426,-11.194 -71.703,-12.782c-17.203,-1.284 -45.543,-2.752 -63.125,0c-21.929,3.433 -44.769,4.808 -70.075,14.41c-25.847,9.807 -77.333,34.074 -77.333,34.074l-37.747,7.263m0,0l-2.947,16.367c0,0 7.311,23.69 13.335,37.992c8.006,19.006 8.115,22.441 16.731,39.849\" style=\"fill:none;stroke:#3b3025;stroke-opacity:0.07;stroke-width:25px;stroke-linecap:round;stroke-linejoin:round;\"/><path d=\"M442.985,222.072c0,0 -20.242,18.322 -32.08,24.878c-12.71,7.04 -29.413,12.901 -44.18,17.361c-15.547,4.695 -31.864,8.741 -49.102,10.811c-17.293,2.077 -30.634,3.774 -52.375,4.254c-25.611,0.565 -69.382,-1.736 -98.542,-12.785c-27.862,-10.557 -82.997,-54.304 -91.075,-66.21m367.353,21.691c3.928,-4.801 11.784,-14.403 11.784,-14.403l13.748,-30.77l0,-31.425l-5.238,-15.713c0,0 -11.614,-21.286 -20.295,-29.461c-9.272,-8.731 -28.34,-19.69 -35.336,-22.928c-10.147,-4.695 -24.276,-10.475 -39.151,-14.165c-19.151,-4.752 -50.426,-11.194 -71.703,-12.782c-17.203,-1.284 -45.543,-2.752 -63.125,0c-21.929,3.433 -44.769,4.808 -70.075,14.41c-25.847,9.807 -77.333,34.074 -77.333,34.074l-37.747,7.263m0,0l-2.947,16.367c0,0 7.311,23.69 13.335,37.992c8.006,19.006 8.115,22.441 16.731,39.849\" style=\"fill:none;stroke:#3b3025;stroke-opacity:0.07;stroke-width:20px;stroke-linecap:round;stroke-linejoin:round;\"/><path d=\"M442.985,222.072c0,0 -20.242,18.322 -32.08,24.878c-12.71,7.04 -29.413,12.901 -44.18,17.361c-15.547,4.695 -31.864,8.741 -49.102,10.811c-17.293,2.077 -30.634,3.774 -52.375,4.254c-25.611,0.565 -69.382,-1.736 -98.542,-12.785c-27.862,-10.557 -82.997,-54.304 -91.075,-66.21m367.353,21.691c3.928,-4.801 11.784,-14.403 11.784,-14.403l13.748,-30.77l0,-31.425l-5.238,-15.713c0,0 -11.614,-21.286 -20.295,-29.461c-9.272,-8.731 -28.34,-19.69 -35.336,-22.928c-10.147,-4.695 -24.276,-10.475 -39.151,-14.165c-19.151,-4.752 -50.426,-11.194 -71.703,-12.782c-17.203,-1.284 -45.543,-2.752 -63.125,0c-21.929,3.433 -44.769,4.808 -70.075,14.41c-25.847,9.807 -77.333,34.074 -77.333,34.074l-37.747,7.263m0,0l-2.947,16.367c0,0 7.311,23.69 13.335,37.992c8.006,19.006 8.115,22.441 16.731,39.849\" style=\"fill:none;stroke:#3b3025;stroke-opacity:0.07;stroke-width:15px;stroke-linecap:round;stroke-linejoin:round;\"/><path d=\"M442.985,222.072c0,0 -20.242,18.322 -32.08,24.878c-12.71,7.04 -29.413,12.901 -44.18,17.361c-15.547,4.695 -31.864,8.741 -49.102,10.811c-17.293,2.077 -30.634,3.774 -52.375,4.254c-25.611,0.565 -69.382,-1.736 -98.542,-12.785c-27.862,-10.557 -82.997,-54.304 -91.075,-66.21m367.353,21.691c3.928,-4.801 11.784,-14.403 11.784,-14.403l13.748,-30.77l0,-31.425l-5.238,-15.713c0,0 -11.614,-21.286 -20.295,-29.461c-9.272,-8.731 -28.34,-19.69 -35.336,-22.928c-10.147,-4.695 -24.276,-10.475 -39.151,-14.165c-19.151,-4.752 -50.426,-11.194 -71.703,-12.782c-17.203,-1.284 -45.543,-2.752 -63.125,0c-21.929,3.433 -44.769,4.808 -70.075,14.41c-25.847,9.807 -77.333,34.074 -77.333,34.074l-37.747,7.263m0,0l-2.947,16.367c0,0 7.311,23.69 13.335,37.992c8.006,19.006 8.115,22.441 16.731,39.849\" style=\"fill:none;stroke:#3b3025;stroke-opacity:0.07;stroke-width:10px;stroke-linecap:round;stroke-linejoin:round;\"/><path d=\"M442.985,222.072c0,0 -20.242,18.322 -32.08,24.878c-12.71,7.04 -29.413,12.901 -44.18,17.361c-15.547,4.695 -31.864,8.741 -49.102,10.811c-17.293,2.077 -30.634,3.774 -52.375,4.254c-25.611,0.565 -69.382,-1.736 -98.542,-12.785c-27.862,-10.557 -82.997,-54.304 -91.075,-66.21m367.353,21.691c3.928,-4.801 11.784,-14.403 11.784,-14.403l13.748,-30.77l0,-31.425l-5.238,-15.713c0,0 -11.614,-21.286 -20.295,-29.461c-9.272,-8.731 -28.34,-19.69 -35.336,-22.928c-10.147,-4.695 -24.276,-10.475 -39.151,-14.165c-19.151,-4.752 -50.426,-11.194 -71.703,-12.782c-17.203,-1.284 -45.543,-2.752 -63.125,0c-21.929,3.433 -44.769,4.808 -70.075,14.41c-25.847,9.807 -77.333,34.074 -77.333,34.074l-37.747,7.263m0,0l-2.947,16.367c0,0 7.311,23.69 13.335,37.992c8.006,19.006 8.115,22.441 16.731,39.849\" style=\"fill:none;stroke:#3b3025;stroke-opacity:0.07;stroke-width:5px;stroke-linecap:round;stroke-linejoin:round;\"/></g><g><path d=\"M68.7,216.3 L90.7,246.3 L90.7,539.2 L68.7,599.2 Z\" style=\"fill:url(#bk-thanh-trai);\"/><path d=\"M476,216.3 L454,246.3 L454,539.2 L476,599.2 Z\" style=\"fill:url(#bk-thanh-phai);\"/></g><g><path d=\"M380.135,664.640l26.842,-10.475l0,3.273l-25.533,12.439l-1.309,-5.237m1.309,5.237l-1.309,-5.237l26.842,-10.475m-37.317,-32.08l47.792,-20.95l0,3.928l-46.483,21.605l-1.309,-4.583m1.309,4.583l-1.309,-4.583l47.792,-20.95m-37.317,-32.08l26.842,-10.475l0,3.273l-25.533,12.439l-1.309,-5.237m1.309,5.237l-1.309,-5.237l26.842,-10.475m-37.317,-32.08l47.792,-20.95l0,3.928l-46.483,21.605l-1.309,-4.583m1.309,4.583l-1.309,-4.583l47.792,-20.95m-37.317,-32.08l26.842,-10.475l0,3.273l-25.533,12.439l-1.309,-5.237m1.309,5.237l-1.309,-5.237l26.842,-10.475m-37.317,-32.08l47.792,-20.95l0,3.928l-46.483,21.605l-1.309,-4.583m1.309,4.583l-1.309,-4.583l47.792,-20.95m-37.317,-32.08l26.842,-11.13l0,3.928l-25.533,12.439l-1.309,-5.238m1.309,5.238l-1.309,-5.238l26.842,-11.13m-37.317,-31.425l47.792,-20.95l0,3.928l-46.483,21.605l-1.309,-4.583m1.309,4.583l-1.309,-4.583l47.792,-20.95\" style=\"fill:none;fill-rule:nonzero;stroke:#3b3025;stroke-width:1.67px;\"/></g><g><path d=\"M68.742,599.172l2.958,30.441m-2.339,-413.255l-0.618,382.814l10.475,45.828l19.641,28.806l14.403,13.094l37.317,22.259l45.173,15.712l75.944,9.166l76.598,-9.166l45.173,-15.712l36.663,-22.259l26.188,-27.497l8.511,-14.403l9.82,-45.828l1.309,-382.992m-417.036,-16.367c5.291,11.696 28.479,36.008 37.972,45.828c5.343,5.527 45.173,26.733 64.814,34.698c16.873,6.843 34.948,10.961 53.03,13.094c23.132,2.728 57.831,5.456 85.764,3.273c27.734,-2.167 81.836,-16.367 81.836,-16.367l24.223,-9.82l40.591,-24.878l28.806,-29.461l9.166,-16.367c0,0 7.202,-23.241 7.202,-34.698c0,-11.457 -2.481,-23.449 -7.202,-34.044c-4.91,-11.021 -15.931,-24.333 -22.259,-32.08c-4.495,-5.502 -9.885,-10.338 -15.713,-14.403c-9.384,-6.547 -40.591,-24.878 -40.591,-24.878l-24.223,-9.82l-53.03,-13.094l-86.419,-3.273l-28.152,3.273l-53.03,13.094l-69.397,31.425l-56.958,18.331l-3.928,21.605c0,0 19.204,60.231 27.497,78.563Z\" style=\"fill:none;fill-rule:nonzero;stroke:#3b3025;stroke-width:12.5px;\"/></g>";
 
-  <!-- Meniscus (game positions via transform) -->
-  <path id="bk-meniscus" opacity="0" fill="#00000018"
-    d="M16,0 Q100,-6 184,0 L184,4 Q100,10 16,4 Z"/>
+const SVG_DEFS_3D = (() => {
+  const A = id => T3D[id].a, R = id => T3D[id].r;
+  const lamp = A('sym-lamp'), sp = A('sym-burnspoon'), el = A('sym-electro'), jar = A('sym-gasbottle'), jarR = A('sym-gasbottle-rig'),
+        fn = A('sym-funnel'), tri = A('sym-tripod');
+  // đèn cồn: lửa vẽ tay cao 42 (gốc 52,40 → đỉnh 52,-2) dựng lên đầu bấc
+  const FLAME = '<g style="opacity:var(--flame,0)">'
+    + '<path d="M52,40 Q41,31 44,17 Q46,3 52,-2 Q58,3 60,17 Q63,31 52,40 Z" fill="url(#teCFlamOuter)" stroke="#d9634f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">'
+    + '<animateTransform attributeName="transform" type="skewX" values="0;3;-2;1;0" dur="0.6s" repeatCount="indefinite"/>'
+    + '<animate attributeName="d" values="M52,40 Q41,31 44,17 Q46,3 52,-2 Q58,3 60,17 Q63,31 52,40 Z;M52,40 Q40,32 43,16 Q46,1 52,-3 Q58,2 61,16 Q64,32 52,40 Z;M52,40 Q42,30 44,18 Q47,4 52,-1 Q57,4 60,18 Q62,30 52,40 Z;M52,40 Q41,31 44,17 Q46,3 52,-2 Q58,3 60,17 Q63,31 52,40 Z" dur="0.6s" repeatCount="indefinite"/></path>'
+    + '<path d="M52,38 Q46,32 47,22 Q49,12 52,7 Q55,12 57,22 Q58,32 52,38 Z" fill="#6f9ec9" fill-opacity="0.8" stroke="none">'
+    + '<animateTransform attributeName="transform" type="skewX" values="0;-2;2;0" dur="0.6s" repeatCount="indefinite"/></path></g>';
+  // muôi đốt: chén vẽ tay rộng 26 (tâm miệng 25,148); đụn chất (--fuel) và lửa (--flame) ngồi trên miệng chén
+  const LADLE = '<g style="opacity:var(--fuel,0)"><path d="M14,148 Q15,140 20,140 Q23,134 28,139 Q34,137 36,148 Z" fill="var(--lc,#ccd2d8)" stroke="#3b3025" stroke-width="2" stroke-linejoin="round"/></g>'
+    + '<g style="opacity:var(--flame,0)"><path d="M25,146 Q11,136 16,120 Q19,108 25,99 Q31,108 34,120 Q39,136 25,146 Z" fill="var(--fc,#ffb347)" fill-opacity=".9" stroke="#d9634f" stroke-width="1.5" stroke-linejoin="round">'
+    + '<animateTransform attributeName="transform" type="rotate" values="0 25 146;5 25 146;-4 25 146;2 25 146;0 25 146" dur="0.5s" repeatCount="indefinite"/></path>'
+    + '<path d="M25,144 Q19,136 21,126 Q23,118 25,113 Q27,118 29,126 Q31,136 25,144 Z" fill="#fffbe6" opacity=".85"/></g>';
+  // điện phân: tia điện + bọt khí ở hai điện cực vẽ tay (30,74) và (60,74)
+  const ZAP = '<g opacity="var(--zap,0)"><path d="M43,52 L47,45 L45,52 L49,46" fill="none" stroke="#e8b84b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+    + '<circle cx="30" cy="74" r="3" fill="#dbeefc" opacity="0.8"/><circle cx="60" cy="74" r="3" fill="#dbeefc" opacity="0.8"/></g>';
+  // bình thu khí: luồng khí trong thân (miệng vẽ tay 66,32 → đáy 66,118) và nút chặn trên miệng
+  const GAS = '<g style="opacity:var(--gasop,0)">' + [
+      ['M66,96 Q82,86 77,70 Q72,54 56,59 Q44,64 48,78', 2.4, .6, '0,-6', '3s', '0s'],
+      ['M52,112 Q40,100 44,84 Q48,70 62,75 Q72,79 68,91', 2.4, .5, '0,-8', '4s', '1s'],
+      ['M80,110 Q90,98 85,84 Q79,70 66,76', 2.2, .4, '0,-5', '3.5s', '0.5s']]
+    .map(([d, w, o, dy, dur, b]) => '<path d="' + d + '" fill="none" stroke="#6f9ec9" stroke-width="' + w + '" stroke-linecap="round" opacity="' + o + '">'
+      + '<animateTransform attributeName="transform" type="translate" values="0,0;' + dy + ';0,0" dur="' + dur + '" begin="' + b + '" repeatCount="indefinite"/></path>').join('') + '</g>';
+  // luồng khí co theo THÂN bình (miệng rim → đáy thân mid; ống mềm bên dưới không tính) và bị cắt gọn trong lòng bình
+  const jarGas = id => { const a = A(id), r = R(id).body, top = a.rim[1], bot = a.mid[1], cx = a.rim[0], ry = r * SIN_E;
+    return '<clipPath id="gc-' + id + '"><path d="M' + (cx - r) + ',' + top + ' A' + r + ',' + ry + ' 0 0 1 ' + (cx + r) + ',' + top
+      + ' L' + (cx + r) + ',' + bot + ' A' + r + ',' + ry + ' 0 0 1 ' + (cx - r) + ',' + bot + ' Z"/></clipPath>'
+      + '<g clip-path="url(#gc-' + id + ')">' + at3d(a.rim, 66, 32, (bot - top) / 86, GAS) + '</g>'; };
+  const STOPPER = '<g style="opacity:var(--stopop,0)"><path d="M46,30 Q48,20 66,19 Q84,20 86,30 Q84,38 66,39 Q48,38 46,30 Z" fill="#c89a63" stroke="#3b3025" stroke-width="2.5" stroke-linejoin="round"/>'
+    + '<path d="M52,27 Q66,25 80,27" fill="none" stroke="#8a6238" stroke-width="1.2" stroke-linecap="round" opacity="0.55"/></g>';
+  // phễu: giọt nhỏ ở đầu cuống vẽ tay (60,145); phễu vẽ tay rộng 100
+  const DRIPS = '<g style="opacity:var(--dripop,0)">' + ['0s', '0.9s'].map(b =>
+      '<path d="M60,145 Q58,150 60,155 Q62,150 60,145 Z" fill="#6f9ec9" opacity="0.8" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round">'
+      + '<animateTransform attributeName="transform" type="translate" values="0,0;0,12;0,12" dur="1.8s" begin="' + b + '" repeatCount="indefinite"/>'
+      + '<animate attributeName="opacity" values="0;0.8;0" dur="1.8s" begin="' + b + '" repeatCount="indefinite"/></path>').join('') + '</g>';
+  // lưới kiềng: mắt lưới thép là hoạ tiết phủ trong bốn góc lưới (nét 3D chỉ giữ khung + tấm amiăng)
+  const GAUZE = '<pattern id="gz3d" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="scale(1,' + SIN_E.toFixed(2) + ')">'
+    + '<path d="M0,0 L7,0 M0,0 L0,7" stroke="#3b3025" stroke-width="1" opacity=".45"/></pattern>'
+    + '<path d="M' + [0, 1, 2, 3].map(i => tri['g' + i].join(',')).join(' L') + ' Z" fill="#e8e0cc" fill-opacity=".55"/>'
+    + '<path d="M' + [0, 1, 2, 3].map(i => tri['g' + i].join(',')).join(' L') + ' Z" fill="url(#gz3d)"/>';
+  const spoonOver = id => at3d(A(id).cup, 25, 148, R(id).cup / 13, LADLE);
+  // đĩa thuỷ tinh: chất rắn lọc / gạt ra từ muôi hiện bằng --sop (0/1), màu --lc
+  // lớp BỘT (không bóng): mép lởm chởm, ụ bột hơi gồ ở giữa, rắc hạt sáng / tối — hạt rải theo chuỗi số cố định
+  // nên lần nào cũng ra cùng một hình
+  const dish = (() => { const f = A('sym-dish').floor, rx = R('sym-dish').floor, ry = rx * SIN_E;
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const blob = (cx, cy, ax, ay, n, j) => 'M' + Array.from({length: n}, (_, i) => { const a = i / n * 2 * Math.PI, k = 1 - rnd() * j;
+      return (cx + Math.cos(a) * ax * k).toFixed(1) + ',' + (cy + Math.sin(a) * ay * k).toFixed(1); }).join(' L') + ' Z';
+    const grains = Array.from({length: 80}, (_, i) => { const a = rnd() * 2 * Math.PI, d = Math.sqrt(rnd()) * 0.88;
+      return '<circle cx="' + (f[0] + Math.cos(a) * rx * d).toFixed(1) + '" cy="' + (f[1] + Math.sin(a) * ry * d).toFixed(1)
+        + '" r="' + (0.45 + rnd() * 0.7).toFixed(2) + '" fill="' + (i % 2 ? '#ffffff' : '#000000') + '" opacity="' + (i % 2 ? .4 : .2) + '"/>'; }).join('');
+    return '<g style="opacity:var(--sop,0)">'
+      + '<path d="' + blob(f[0], f[1], rx, ry, 28, 0.12) + '" fill="var(--lc,#6f9ec9)" stroke="#3b3025" stroke-opacity=".35" stroke-width=".8" stroke-linejoin="round"/>'
+      + '<path d="' + blob(f[0], f[1] - ry * 0.14, rx * 0.62, ry * 0.6, 20, 0.15) + '" fill="#ffffff" opacity=".08"/>'
+      + grains + '</g>'; })();
+  // vệt mờ cho nét trong của kính (đơn vị mm của từng symbol) + gradient hai thành của cốc vẽ tay
+  return '<filter id="soft3d" filterUnits="userSpaceOnUse" x="-50" y="-50" width="400" height="400"><feGaussianBlur stdDeviation="0.7"/></filter>'
+    + BEAKER_GRAD + sym3d('sym-tripod', GAUZE) + sym3d('sym-ringstand') + sym3d('sym-filterstand') + sym3d('sym-gashood')
+    + sym3d('sym-lamp', '', at3d(lamp.wick, 52, 40, (lamp.wick[1] - lamp.tip[1]) / 42, FLAME)) + sym3d('sym-lamp-cat')
+    + sym3d('sym-burnspoon', '', spoonOver('sym-burnspoon')) + sym3d('sym-burnspoon-cat', '', spoonOver('sym-burnspoon-cat'))
+    + sym3d('sym-electro', '', at3d(el.elL, 30, 74, (el.elR[0] - el.elL[0]) / 30, ZAP)) + sym3d('sym-electro-cat')
+    + sym3d('sym-gasbottle', jarGas('sym-gasbottle'), at3d(jar.rim, 66, 28, 2 * R('sym-gasbottle').body / 40 * 0.8, STOPPER))
+    // bình đang lắp trên giá thu khí: không có ống mềm riêng, ống dẫn cắm thẳng vào vòi đáy (nozzle)
+    + sym3d('sym-gasbottle-rig', jarGas('sym-gasbottle-rig'), at3d(jarR.rim, 66, 28, 2 * R('sym-gasbottle-rig').body / 40 * 0.8, STOPPER))
+    + sym3d('sym-funnel', '', at3d(fn.tip, 60, 145, R('sym-funnel').rim / 50, DRIPS)) + sym3d('sym-funnel-cat')
+    + sym3d('sym-stirrod') + sym3d('sym-stirrod-cat') + sym3d('sym-dish', dish);
+})();
 
-  <!-- Glass artwork on top -->
-  <g id="bk-glass">
-    <!-- Glass body fill (translucent) -->
-    <path d="M18,21 L18,218 Q18,223 22,224 L178,224 Q182,223 182,218 L182,21 Q182,19 180,19 L20,19 Q18,19 18,21 Z"
-          fill="#ffffff" opacity="0.15" stroke="none"/>
-
-    <!-- Main beaker outline with spout at upper left -->
-    <path d="M182,19 Q183,18 183,17 L183,215 Q183,226 175,227 L25,227 Q17,226 17,215 L17,19 Q17,16 20,16 L170,16 Q173,16 175,18 Q178,22 180,24 L182,19 Z"
-          fill="none" stroke="#3b3025" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-
-    <!-- Spout detail at upper left lip -->
-    <path d="M20,16 Q14,14 10,10 Q9,8 12,9 Q16,12 20,14"
-          fill="none" stroke="#3b3025" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M10,10 Q8,7 9,6 Q10,5 12,7 Q14,10 17,13"
-          fill="none" stroke="#3b3025" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-
-    <!-- Bottom rounded corners accentuation -->
-    <path d="M17,215 Q17,228 25,228 L175,228 Q183,228 183,215"
-          fill="none" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
-
-    <!-- Graduation ticks on right inner wall -->
-    <!-- 25% mark (~168 from top, y≈68 in 200px range from 20 to 220) -->
-    <line x1="162" y1="170" x2="176" y2="170" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-    <text x="164" y="167" font-size="9" fill="#3b3025" opacity="0.55" font-family="inherit">50</text>
-
-    <!-- 50% mark -->
-    <line x1="162" y1="120" x2="176" y2="120" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-    <text x="158" y="117" font-size="9" fill="#3b3025" opacity="0.55" font-family="inherit">100</text>
-
-    <!-- 75% mark -->
-    <line x1="162" y1="70" x2="176" y2="70" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-    <text x="158" y="67" font-size="9" fill="#3b3025" opacity="0.55" font-family="inherit">150</text>
-
-    <!-- 100% mark -->
-    <line x1="162" y1="28" x2="176" y2="28" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-    <text x="158" y="25" font-size="9" fill="#3b3025" opacity="0.55" font-family="inherit">200</text>
-
-    <!-- mL label -->
-    <text x="165" y="200" font-size="8" fill="#3b3025" opacity="0.45" font-family="inherit" transform="rotate(-90,165,200)">mL</text>
-
-    <!-- Shine highlights on left side (two curved vertical strokes) -->
-    <path d="M30,28 Q28,80 29,140 Q29,170 31,200"
-          fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" opacity="0.35"/>
-    <path d="M40,35 Q38,90 39,150"
-          fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" opacity="0.28"/>
-
-    <!-- Subtle shadow on inside right -->
-    <path d="M176,25 Q178,80 177,200"
-          fill="none" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity="0.08"/>
-  </g>
-
-  <!-- Condensation drops (shown while heating) -->
-  <g id="bk-drops" opacity="0">
-    <path d="M50,32 Q48,35 50,39 Q52,35 50,32 Z" fill="#ffffff" opacity="0.6" stroke="#3b3025" stroke-width="1.5"/>
-    <path d="M70,24 Q68,27 70,31 Q72,27 70,24 Z" fill="#ffffff" opacity="0.6" stroke="#3b3025" stroke-width="1.5"/>
-    <path d="M90,30 Q88,34 90,38 Q92,34 90,30 Z" fill="#ffffff" opacity="0.6" stroke="#3b3025" stroke-width="1.5"/>
-    <path d="M110,22 Q108,26 110,30 Q112,26 110,22 Z" fill="#ffffff" opacity="0.6" stroke="#3b3025" stroke-width="1.5"/>
-    <path d="M130,28 Q128,32 130,36 Q132,32 130,28 Z" fill="#ffffff" opacity="0.6" stroke="#3b3025" stroke-width="1.5"/>
-    <path d="M150,24 Q148,28 150,32 Q152,28 150,24 Z" fill="#ffffff" opacity="0.6" stroke="#3b3025" stroke-width="1.5"/>
-  </g>
-</svg>
-`;
+const BEAKER_SVG = (() => {
+  const {w, h, cx, bot, top, rx, ry} = BK, sk = w / 165;   // sk: hạt / giọt vẽ cho cốc rộng 165 → co theo cốc 3D
+  const ell = 'M' + (cx - rx) + ',0 A' + rx + ',' + ry + ' 0 1 1 ' + (cx + rx) + ',0 A' + rx + ',' + ry + ' 0 1 1 ' + (cx - rx) + ',0 Z';
+  const dots = [-.7, -.45, -.2, .05, .3, .55, .75, -.58, .18, .64].map((u, i) =>
+    '<circle cx="' + (cx + u * rx).toFixed(1) + '" cy="' + (bot + ry * .35 + (i % 3) * sk).toFixed(1) + '" r="' + ((1.4 + (i * 7 % 5) * .25) * sk).toFixed(2)
+    + '" fill="#3b3025" opacity="0.16"/>').join('');
+  const drops = [-.6, -.36, -.12, .12, .36, .6].map((u, i) => { const x = (cx + u * rx).toFixed(1), y = (top + (14 + (i % 2) * 8) * sk).toFixed(1);
+    return '<path d="M' + x + ',' + y + ' q' + (-2*sk) + ',' + (3*sk) + ' 0,' + (7*sk) + ' q' + (2*sk) + ',' + (-4*sk) + ' 0,' + (-7*sk)
+      + ' Z" fill="#ffffff" opacity="0.6" stroke="#3b3025" stroke-width="1" vector-effect="non-scaling-stroke"/>'; }).join('');
+  return '<svg id="beakersvg" width="100%" height="100%" viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg">'
+    + '<defs><clipPath id="bkclip"><path d="' + bkSil(rx) + '"/></clipPath></defs>'
+    // từ dưới lên: vòng đáy kính → lớp chất rắn lắng (đặc, che vòng đáy) → cột nước. Cột nước là đúng một hình trụ
+    // từ elip mặt nước xuống elip MẶT lớp chất rắn (updateBeaker vẽ path): mặt chất rắn nhìn qua nước thì nhuốm màu
+    // nước, còn thân lớp chất rắn phía trước nằm ngay sau thành kính nên giữ nguyên màu.
+    + '<g transform="scale(' + (1 / 6.55).toFixed(5) + ')">' + BEAKER_RING + '</g>'
+    + '<g clip-path="url(#bkclip)">'
+    +   '<rect id="bk-precip" x="' + (cx - rx - 2) + '" y="' + bot + '" width="' + (2 * rx + 4) + '" height="0" fill="#ddd"/>'
+    // mặt trên lớp chất rắn: elip nằm ngang (sáng hơn chút), không phải nóc phẳng của hình chữ nhật
+    +   '<path id="bk-precip-surf" d="' + ell + '" opacity="0" fill="#eee" stroke="#3b3025" stroke-width="1.2" vector-effect="non-scaling-stroke" stroke-opacity=".45"/>'
+    +   '<g id="bk-precip-tex" opacity="0">' + dots + '</g>'
+    +   '<path id="bk-liquid" d="" fill="#cfe6f2" opacity="0.8" style="transition:d .4s,fill .4s"/>'
+    +   '<g id="bk-swirl"></g>'   // vệt đổi màu loang ra TRONG lòng cốc (bị bkclip cắt), xem updateBeaker
+    + '</g>'
+    + '<path id="bk-meniscus" d="' + ell + '" opacity="0" fill="#ffffff22" stroke="#3b3025" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-opacity=".45"/>'
+    + '<g id="bk-glass">' + GLASS_FILL(rx * 1.09) + '<g transform="scale(' + (1 / 6.55).toFixed(5) + ')">' + BEAKER_ART + '</g></g>'
+    + '<g id="bk-drops" opacity="0">' + drops + '</g>'
+    + '</svg>';
+})();
 /* chars.js — hand-drawn SVG character portraits for Chemlab Assistant
    Globals: CUST_LOOKS, custSVG, profSVG
    ES2019, no imports, no backticks, no DOM access */

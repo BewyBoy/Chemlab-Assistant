@@ -296,7 +296,7 @@ document.addEventListener('visibilitychange', () => {
   if(b && ((lab && lab.timer) || !G.querySelector('.overlay'))) b.click();
 });
 document.body.insertAdjacentHTML('afterbegin',
-  '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + SVG_DEFS + '</defs></svg>');
+  '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + SVG_DEFS + SVG_DEFS_3D + '</defs></svg>');
 fit();
 showMenu();
 // lưu sẵn game để lần sau mất mạng vẫn chơi được (sw.js). Mở thẳng file trên máy (file://) hay trong iframe không cho

@@ -202,9 +202,9 @@ const PROF_SAFETY = {
    {fuel} = chất đem đốt, {gas} = khí trong lọ, {m} = kim loại, {acid} = axit,
    {sm} = kim loại trong muối, {salt} = muối, {list} = danh sách chất trong cốc ---- */
 const PROF_NO_RX = {
- 'dot-sai-cho': 'Phản ứng CHÁY không làm trong cốc: thả <b>{fuel}</b> vào <b>muôi đốt</b>, hơ qua đèn cồn cho bén lửa, rồi đưa vào lọ khí đã nạp <b>{gas}</b>.',
+ 'dot-sai-cho': 'Phản ứng CHÁY không làm trong cốc: thả <b>{fuel}</b> vào <b>muôi đốt</b> (muôi treo lên giá), kéo đèn cồn vào dưới muôi cho bén lửa, rồi đưa vào lọ khí đã nạp <b>{gas}</b>.',
  'khong-muoi':  '{fuel} chỉ cháy khi được đốt nóng trong khí {gas} — hôm nay không có muôi đốt.',
- 'thieu-nhiet': 'Đủ chất rồi, nhưng phản ứng này cần <b>nhiệt</b> — kéo <b>Đun nóng</b> vào cốc.',
+ 'thieu-nhiet': 'Đủ chất rồi, nhưng phản ứng này cần <b>nhiệt</b> — kéo <b>đèn cồn</b> vào cốc.',
  'sau-hidro':   '<b>{m}</b> đứng sau <b>H</b> trong dãy hoạt động (K Na Mg Al Zn Fe <b>H</b> Cu Ag) nên không đẩy được hiđro ra khỏi axit {acid}.',
  'yeu-hon':     '<b>{m}</b> yếu hơn <b>{sm}</b> trong dãy hoạt động nên không đẩy được {sm} ra khỏi {salt}.',
  'kl-nuoc':     '<b>{list}</b> không tác dụng với nước ở nhiệt độ thường — chỉ kim loại rất mạnh như K, Na mới làm được.',
