@@ -1883,7 +1883,7 @@ function nextCustomer(){
   lab.talkI = 0;
   const sp = G.querySelector('#speech'), cw = G.querySelector('#custwalk');
   custSay(line);
-  sp.classList.add('hush');                       // khách đứng trước khay rồi mới nói
+  sp.classList.add('hush');                       // khách đứng trước khay, quay mặt thẳng rồi mới nói
   // mỗi lượt ghé một bộ đồ (nhan-vat-skin.js): đổi theo ngày và lượt khách, chơi lại đúng ngày thì vẫn y như cũ
   const skin = custSkinFor(lab.i, lab.oi, od.who), tall = s => s.replace('<svg ', '<svg style="height:250px" ');
   // WALK_VIEW '3/4': hình thẳng đã bọc lớp (nhan-vat-xoay.js: đi vào ở dáng 3/4, tới khay thì quay mặt thẳng) + hình
@@ -1891,7 +1891,9 @@ function nextCustomer(){
   cw.innerHTML = '<div class="cwin">' + tall(WALK_VIEW === '3/4' && typeof custTurnSVG === 'function'
     ? custTurnSVG(od.who, 'neutral', skin) : custSVG(od.who, 'neutral', skin))
     + tall(custSideSVG(od.who, 'neutral', skin)) + '</div>';
-  custWalk(cw, 'in', () => sp.classList.remove('hush'));
+  // dáng 3/4: tới khay còn một nhịp quay mặt về phía người chơi (transition .32s trong style.css) rồi bóng thoại mới hiện
+  const faceMs = cw.querySelector('.charsvg.turn') ? 320 : 0, me = lab;
+  custWalk(cw, 'in', () => setTimeout(() => { if(lab === me && !cw.classList.contains('turnout') && !cw.classList.contains('away')) sp.classList.remove('hush'); }, faceMs));
   updateCoach();
   SFX.bell();
 }
@@ -1931,7 +1933,13 @@ function custWalk(cw, dir, done){
     inn.style.transition = '';
     cw.classList.remove('from');
     finish();
-  } else if(cw.querySelector('.charsvg.turn')){
+  } else {
+    // bóng thoại chỉ hiện lúc khách nhìn thẳng người chơi: khách vừa quay đi là tắt (lúc vào: xem nextCustomer)
+    const sp = G.querySelector('#speech');
+    if(sp) sp.classList.add('hush');
+  }
+  if(dir === 'in') return;
+  if(cw.querySelector('.charsvg.turn')){
     cw.classList.add('turnout');                 // đứng tại chỗ xoay người sang 3/4…
     cw._walk = setTimeout(() => {                // …rồi nghiêng hẳn và bước đi
       cw.classList.remove('turnout');
@@ -1940,10 +1948,12 @@ function custWalk(cw, dir, done){
     }, TURN_MS);
   } else { cw.classList.add('walking', 'away'); finish(); }
 }
-// khách xong việc (nhận hàng hoặc chờ lâu bỏ đi): đứng một nhịp cho thấy nét mặt, rồi đi ra; hết khách thì đóng ca
+// khách xong việc (nhận hàng hoặc chờ lâu bỏ đi): đứng một nhịp cho thấy nét mặt và kịp đọc câu cuối (bóng thoại tắt
+// ngay khi khách quay đi), rồi đi ra; hết khách thì đóng ca
+const LEAVE_BEAT_MS = 900;
 function custLeave(){
   const cw = G.querySelector('#custwalk'), next = lab.oi >= lab.day.orders.length ? finishLab : nextCustomer;
-  setTimeout(() => { if(lab && cw.isConnected) custWalk(cw, 'out', () => { if(lab) next(); }); }, 500);
+  setTimeout(() => { if(lab && cw.isConnected) custWalk(cw, 'out', () => { if(lab) next(); }); }, LEAVE_BEAT_MS);
 }
 // giao được thì trả về true, không thì {key, text}: key là khoá REASON_LINES (loi-thoai.js), text là câu khách nói
 function checkServe(cont, od){
