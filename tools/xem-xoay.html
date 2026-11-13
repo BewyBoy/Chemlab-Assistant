@@ -10,7 +10,7 @@ body.full .cell{height:250px}
 .cell svg{height:250px}
 .cell.auto .turn{cursor:pointer}
 </style></head><body>
-<p>Dáng 3/4 dựng từ hình thẳng (js/nhan-vat-xoay.js). Mỗi hàng: thẳng · 3/4 bộ cổ điển · 3/4 bộ 2 (vui) · 3/4 bộ 3 (bực) · ô cuối tự quay qua lại · nghiêng hẳn.
+<p>Dáng 3/4 dựng từ hình thẳng (js/nhan-vat-xoay.js). Mỗi hàng: thẳng · 3/4 bộ cổ điển đang bước (tay đánh) · 3/4 bộ 2 (vui) · 3/4 bộ 3 (bực) · ô cuối tự quay qua lại · nghiêng hẳn.
 Tham số: <code>?c=N</code> một khách, <code>?full</code> bỏ khung cắt mép bàn.</p>
 <div id="out"></div>
 <script>window.EYE_RATIO_TRY = +new URLSearchParams(location.search).get('ratio') || 0;</script>
@@ -27,12 +27,12 @@ Tham số: <code>?c=N</code> một khách, <code>?full</code> bỏ khung cắt m
 <script>
 const q = new URLSearchParams(location.search), out = document.getElementById('out'), only = q.get('c');
 if(q.has('full')) document.body.classList.add('full');
-const turned = s => s.replace('class="charsvg turn"', 'class="charsvg turn is-turned"');
+const turned = s => s.replace('class="charsvg turn"', 'class="charsvg turn is-turned"'), walking = s => s.replace('class="charsvg turn"', 'class="charsvg turn is-turned is-walking"');
 CUSTOMERS.forEach((c, i) => {
   if(only != null && +only !== i) return;
   out.insertAdjacentHTML('beforeend', `<div class="row"><div class="lbl">${i}. ${c[0]}</div>`
     + `<div class="cell">${custSVG(i, 'neutral', 0)}</div>`
-    + `<div class="cell">${turned(custTurnSVG(i, 'neutral', 0))}</div>`
+    + `<div class="cell">${walking(custTurnSVG(i, 'neutral', 0))}</div>`
     + `<div class="cell">${turned(custTurnSVG(i, 'happy', 1))}</div>`
     + `<div class="cell">${turned(custTurnSVG(i, 'annoy', 2))}</div>`
     + `<div class="cell auto">${custTurnSVG(i, 'neutral', 0)}</div>`

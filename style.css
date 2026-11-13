@@ -192,6 +192,14 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .custwalk.walking .turn .tq-body,.custwalk.turnout .turn .tq-body,.turn.is-turned .tq-body{transform:scaleX(.84)}
 /* có hình 3/4 thì: đi vào = hình 3/4 (ẩn hình nghiêng); đi ra (.away) = hình nghiêng hẳn; .turnout = xoay tại chỗ trước khi đi ra */
 .custwalk.walking:not(.away) .charsvg.turn{display:inline}
+/* tay đánh theo nhịp bước (cùng nhịp custbob .55s): xoay dương = bàn tay đưa về phía trước (bên trái màn hình);
+   tay đưa ra trước thì nhấc lên và co ngắn lại vì chĩa về phía người xem; hai tay ngược nhịp.
+   .holds (Bà Tư ôm bánh mì): tay chỉ đung đưa khẽ */
+.custwalk.walking:not(.away) .turn .tq-arml,.turn.is-walking .tq-arml{animation:tqarm .55s ease-in-out infinite alternate}
+.custwalk.walking:not(.away) .turn .tq-armr,.turn.is-walking .tq-armr{animation:tqarm .55s ease-in-out infinite alternate-reverse}
+.turn.holds .tq-arml,.turn.holds .tq-armr{animation-name:tqhold!important}
+@keyframes tqarm{from{transform:rotate(-5deg) translateY(1px) scaleY(1)}to{transform:rotate(8deg) translateY(-6px) scaleY(.93)}}
+@keyframes tqhold{from{transform:rotate(-1.5deg)}to{transform:rotate(2deg) translateY(-1px)}}
 .custwalk.walking:not(.away) .charsvg.turn ~ .charsvg.side{display:none}
 .custwalk .charsvg{transform-origin:50% 100%;transition:transform .15s}
 .custzone:hover .custwalk:not(.walking) .charsvg{transform:translateY(-3px)}

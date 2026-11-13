@@ -8,6 +8,8 @@
      .tq-earfar  tai / khuyên tai phía xa (bên trái hình): lùi vào sau mặt rồi ẩn
      .tq-earnear tai / khuyên tai phía gần: nhích vào trong
      .tq-body    mọi thứ dưới cằm (thân, tay, trang phục, đạo cụ): ép hẹp quanh trục giữa — vai xoay nghiêng
+     .tq-arml / .tq-armr  hai cánh tay (tay áo + bàn tay, kể cả tay vẽ lại trong lớp trang phục), nằm TRONG .tq-body:
+                 lúc bước thì đánh quanh vai, hai tay ngược nhịp
    Sọ, tóc, mũ, cổ đứng yên. Vì dựng từ hình thẳng nên cả 3 bộ đồ, mọi biểu cảm và chớp mắt đều có sẵn, và khi
    khách dừng trước khay thì các lớp trượt về chỗ cũ (transition trong style.css) — khách quay mặt về phía người
    chơi chứ không đổi hình đột ngột.
@@ -69,6 +71,9 @@ function xoayBuild(svgStr){
     return '';
   };
   const origin = (cls, B) => cls === 'tq-body' ? [cx, H] : cls === 'tq-feat' || cls === 'tq-nose' ? [cx, ey + 10] : [B.cx, B.cy];
+  // cánh tay: mảnh dọc dưới vai, nằm hẳn ngoài lõi thân (tay áo, bàn tay, nét ngón tay)
+  const armSide = B => B.y0 >= ey + 70 && B.w <= 54 ? (B.x1 <= cx - 36 ? 'l' : B.x0 >= cx + 36 ? 'r' : '') : '';
+  const arms = {l:[], r:[]};
   const SKIP = /^(defs|style|title|desc|clippath|mask|pattern|lineargradient|radialgradient|filter)$/;
   const walk = (P, depth) => {
     for(const el of [...P.children]){
@@ -78,11 +83,24 @@ function xoayBuild(svgStr){
       const B = box(el);
       if(!B) continue;
       const cls = classify(B);
+      if(cls === 'tq-body'){
+        const side = armSide(B);
+        if(side){ arms[side].push([el, B]); continue; }
+        // nhóm dưới cằm có lẫn cánh tay: xét từng phần tử con để tách tay ra
+        if(tag === 'g' && depth < 5 && el.children.length && [...el.children].some(c => { const b = box(c); return b && armSide(b); })){ walk(el, depth + 1); continue; }
+      }
       if(cls){ wrap(el, cls, ...origin(cls, B)); continue; }
       if(tag === 'g' && depth < 5 && el.children.length) walk(el, depth + 1);   // nhóm lẫn nhiều lớp: xét từng phần tử con
     }
   };
   walk(svg, 0);
+  // bọc tay: lớp trong đánh quanh vai (đỉnh khung bao chung của cả cánh tay), lớp ngoài ép hẹp cùng thân
+  for(const side of ['l', 'r']){
+    if(!arms[side].length) continue;
+    const u = arms[side].reduce((a, [, B]) => ({x0:Math.min(a.x0, B.x0), y0:Math.min(a.y0, B.y0), x1:Math.max(a.x1, B.x1)}), {x0:1e9, y0:1e9, x1:-1e9});
+    const sx = side === 'l' ? u.x1 - 8 : u.x0 + 8, sy = u.y0 + 6;   // khớp vai: phía trong, sát đỉnh tay áo
+    for(const [el] of arms[side]){ wrap(el, 'tq-arm' + side, sx, sy); wrap(el.parentNode, 'tq-body', cx, H); }
+  }
   svg.removeAttribute('style');
   svg.setAttribute('data-exp', 'neutral');
   svg.setAttribute('class', 'charsvg turn');
@@ -92,12 +110,15 @@ function xoayBuild(svgStr){
 }
 
 const xoayMemo = {};
+const XOAY_HOLDS = {'0:0':1};
 // hình 3/4 của khách i (0..9, như custSVG), biểu cảm exp, skin k — cùng vóc (dangNguoi) với hình thẳng
 function custTurnSVG(i, exp, k){
   k = k || 0;
   const key = i + ':' + k;
   if(!xoayMemo[key]){
-    const built = xoayBuild(custArt(i, k));
+    let built = xoayBuild(custArt(i, k));
+    // khách đang ôm đồ trước ngực bằng hai tay (Bà Tư cổ điển ôm bánh mì): tay chỉ đung đưa khẽ (.holds trong style.css)
+    if(XOAY_HOLDS[i + ':' + k]) built = built.replace('class="charsvg turn"', 'class="charsvg turn holds"');
     xoayMemo[key] = typeof dangNguoi === 'function' ? dangNguoi(built, i + 1) : built;
   }
   return xoayMemo[key].replace('data-exp="neutral"', 'data-exp="' + exp + '"');
