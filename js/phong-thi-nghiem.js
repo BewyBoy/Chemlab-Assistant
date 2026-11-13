@@ -1886,11 +1886,11 @@ function nextCustomer(){
   sp.classList.add('hush');                       // khách đứng trước khay rồi mới nói
   // mỗi lượt ghé một bộ đồ (nhan-vat-skin.js): đổi theo ngày và lượt khách, chơi lại đúng ngày thì vẫn y như cũ
   const skin = custSkinFor(lab.i, lab.oi, od.who), tall = s => s.replace('<svg ', '<svg style="height:250px" ');
-  // WALK_VIEW '3/4': một hình thẳng đã bọc lớp (nhan-vat-xoay.js) — lúc .walking xoay 3/4, dừng lại thì quay mặt thẳng.
-  // 'nghieng': hai hình, nhìn thẳng (đứng trước khay) + nhìn nghiêng hẳn (nhan-vat-nghieng.js, hiện lúc .walking)
-  cw.innerHTML = '<div class="cwin">' + (WALK_VIEW === '3/4' && typeof custTurnSVG === 'function'
-    ? tall(custTurnSVG(od.who, 'neutral', skin))
-    : tall(custSVG(od.who, 'neutral', skin)) + tall(custSideSVG(od.who, 'neutral', skin))) + '</div>';
+  // WALK_VIEW '3/4': hình thẳng đã bọc lớp (nhan-vat-xoay.js: đi vào ở dáng 3/4, tới khay thì quay mặt thẳng) + hình
+  // nghiêng hẳn (nhan-vat-nghieng.js: lúc đi ra). 'nghieng': hình thẳng thường + hình nghiêng hẳn cho cả lúc vào lẫn ra.
+  cw.innerHTML = '<div class="cwin">' + tall(WALK_VIEW === '3/4' && typeof custTurnSVG === 'function'
+    ? custTurnSVG(od.who, 'neutral', skin) : custSVG(od.who, 'neutral', skin))
+    + tall(custSideSVG(od.who, 'neutral', skin)) + '</div>';
   custWalk(cw, 'in', () => sp.classList.remove('hush'));
   updateCoach();
   SFX.bell();
@@ -1915,11 +1915,14 @@ function setExp(exp){
   G.querySelectorAll('#cust .charsvg').forEach(sv => sv.setAttribute('data-exp', exp));
 }
 /* Khách đi bộ từ phải sang trái: 'in' = từ mép phải khung bước vào, dừng trước khay; 'out' = đi tiếp ra mép trái.
-   Lúc bước (.walking) thì hiện dáng đi theo WALK_VIEW — 3/4 hoặc nghiêng hẳn — và nhún nhẹ; đứng lại thì quay mặt thẳng. Xong thì gọi done. Mỗi lần gọi huỷ lượt đi trước còn dở. */
-const WALK_MS = 1100;
-const WALK_VIEW = '3/4';   // dáng lúc đi: '3/4' (nghiêng vừa phải, dựng từ hình thẳng) hoặc 'nghieng' (nghiêng hẳn)
+   WALK_VIEW '3/4': vào ở dáng 3/4 → tới khay thì quay mặt thẳng → xong việc thì xoay người (.turnout: qua dáng 3/4
+   một nhịp TURN_MS) → nghiêng hẳn rồi bước ra. 'nghieng': nghiêng hẳn cả lúc vào lẫn ra.
+   Lúc bước (.walking) có nhún nhẹ; xong thì gọi done. Mỗi lần gọi huỷ lượt đi trước còn dở. */
+const WALK_MS = 1100, TURN_MS = 240;
+const WALK_VIEW = '3/4';   // '3/4' hoặc 'nghieng'
 function custWalk(cw, dir, done){
   clearTimeout(cw._walk);
+  const finish = () => { cw._walk = setTimeout(() => { cw.classList.remove('walking'); if(done) done(); }, WALK_MS); };
   if(dir === 'in'){
     const inn = cw.querySelector('.cwin') || cw;
     inn.style.transition = 'none';
@@ -1927,8 +1930,15 @@ function custWalk(cw, dir, done){
     void cw.offsetWidth;
     inn.style.transition = '';
     cw.classList.remove('from');
-  } else cw.classList.add('walking', 'away');
-  cw._walk = setTimeout(() => { cw.classList.remove('walking'); if(done) done(); }, WALK_MS);
+    finish();
+  } else if(cw.querySelector('.charsvg.turn')){
+    cw.classList.add('turnout');                 // đứng tại chỗ xoay người sang 3/4…
+    cw._walk = setTimeout(() => {                // …rồi nghiêng hẳn và bước đi
+      cw.classList.remove('turnout');
+      cw.classList.add('walking', 'away');
+      finish();
+    }, TURN_MS);
+  } else { cw.classList.add('walking', 'away'); finish(); }
 }
 // khách xong việc (nhận hàng hoặc chờ lâu bỏ đi): đứng một nhịp cho thấy nét mặt, rồi đi ra; hết khách thì đóng ca
 function custLeave(){

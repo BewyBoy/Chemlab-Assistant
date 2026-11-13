@@ -182,15 +182,17 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 @keyframes sdhold{from{transform:rotate(3deg)}to{transform:rotate(12deg)}}
 @keyframes sdhead{0%,100%{transform:rotate(0)}50%{transform:rotate(-2deg)}}
 @keyframes sdsway{from{transform:rotate(-6deg)}to{transform:rotate(7deg)}}
-/* dáng 3/4 (js/nhan-vat-xoay.js): hình thẳng đã bọc lớp; lúc bước (.walking) các lớp trượt sang trái thành mặt
-   nghiêng vừa phải, dừng lại thì trượt về — khách quay mặt về phía người chơi. .is-turned: giữ dáng 3/4 (trang xem thử) */
+/* dáng 3/4 (js/nhan-vat-xoay.js): hình thẳng đã bọc lớp; lúc bước vào (.walking) và lúc xoay người trước khi đi ra
+   (.turnout) các lớp trượt sang trái thành mặt nghiêng vừa phải, dừng lại thì trượt về — khách quay mặt về phía người chơi. .is-turned: giữ dáng 3/4 (trang xem thử) */
 .charsvg.turn .tq-feat,.charsvg.turn .tq-nose,.charsvg.turn .tq-earfar,.charsvg.turn .tq-earnear,.charsvg.turn .tq-body{transition:transform .32s ease-out,opacity .2s}
-.custwalk.walking .turn .tq-feat,.turn.is-turned .tq-feat{transform:translateX(-10px) scaleX(.9)}
-.custwalk.walking .turn .tq-nose,.turn.is-turned .tq-nose{transform:translateX(-16px) scaleX(.9)}
-.custwalk.walking .turn .tq-earfar,.turn.is-turned .tq-earfar{transform:translateX(10px);opacity:0}
-.custwalk.walking .turn .tq-earnear,.turn.is-turned .tq-earnear{transform:translateX(-5px)}
-.custwalk.walking .turn .tq-body,.turn.is-turned .tq-body{transform:scaleX(.84)}
-.custwalk.walking .charsvg.turn{display:inline}
+.custwalk.walking .turn .tq-feat,.custwalk.turnout .turn .tq-feat,.turn.is-turned .tq-feat{transform:translateX(-10px) scaleX(.9)}
+.custwalk.walking .turn .tq-nose,.custwalk.turnout .turn .tq-nose,.turn.is-turned .tq-nose{transform:translateX(-16px) scaleX(.9)}
+.custwalk.walking .turn .tq-earfar,.custwalk.turnout .turn .tq-earfar,.turn.is-turned .tq-earfar{transform:translateX(10px);opacity:0}
+.custwalk.walking .turn .tq-earnear,.custwalk.turnout .turn .tq-earnear,.turn.is-turned .tq-earnear{transform:translateX(-5px)}
+.custwalk.walking .turn .tq-body,.custwalk.turnout .turn .tq-body,.turn.is-turned .tq-body{transform:scaleX(.84)}
+/* có hình 3/4 thì: đi vào = hình 3/4 (ẩn hình nghiêng); đi ra (.away) = hình nghiêng hẳn; .turnout = xoay tại chỗ trước khi đi ra */
+.custwalk.walking:not(.away) .charsvg.turn{display:inline}
+.custwalk.walking:not(.away) .charsvg.turn ~ .charsvg.side{display:none}
 .custwalk .charsvg{transform-origin:50% 100%;transition:transform .15s}
 .custzone:hover .custwalk:not(.walking) .charsvg{transform:translateY(-3px)}
 .custwalk.walking .charsvg{animation:custbob .55s ease-in-out infinite}
