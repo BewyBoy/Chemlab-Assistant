@@ -1,6 +1,6 @@
 /* =====================================================================
    GIAO DIỆN — âm thanh & nhạc nền, lưu tiến trình, menu, lịch, cửa hàng, vào ngày (playDay, màn "Bắt đầu"),
-   giấy cân bằng, cài đặt, báo cáo học tập, màn kết quả.
+   giấy cân bằng, cài đặt, màn kết quả.
    ===================================================================== */
 'use strict';
 
@@ -194,7 +194,7 @@ if(save.settings.balance === undefined) save.settings.balance = true; // cân b�
 const nobalOwned = () => !!(save.items && save.items.nobalance);   // mua ở Cửa hàng mới được tắt cân bằng
 const balanceOn = () => !nobalOwned() || save.settings.balance !== false;
 if(!save.starsHard) save.starsHard = {};               // sao chế độ khó lưu riêng, không đè sao thường
-if(!save.hist) save.hist = [];                         // nhật ký từng lượt chơi, cho báo cáo học tập
+if(!save.hist) save.hist = [];                         // nhật ký từng lượt chơi (ngày nào đã chơi: lessonSeen)
 if(!save.best) save.best = {};                         // kỷ lục điểm từng ngày (js/diem.js)
 if(!save.bestHard) save.bestHard = {};                 // kỷ lục điểm chế độ khó
 const hardUnlocked = () => (save.stars[DAYS.length]||0) >= 1 || (save.starsHard[DAYS.length]||0) >= 1;   // đã qua ngày cuối lần đầu
@@ -304,7 +304,6 @@ function showMenu(){
         ${mb('bach', '', ico('trophy')+' Thành tựu')}
         ${storiesOwned() ? mb('bstory', '', ico('book')+' Truyện nguyên tố') : ''}
         ${save.unlocked > 2 ? mb('bconc', '', ico('flask')+' Pha nồng độ') : ''}
-        ${mb('brep', '', ico('note')+' Báo cáo học tập')}
         ${mb('bset', '', ico('gear')+' Cài đặt')}
       </div>
     </div>
@@ -320,7 +319,6 @@ function showMenu(){
   G.querySelector('#bach').onclick = showAch;
   const bst = G.querySelector('#bstory'); if(bst) bst.onclick = showStories;
   const bcc = G.querySelector('#bconc'); if(bcc) bcc.onclick = () => go(startConc);
-  G.querySelector('#brep').onclick = () => showReport();
   G.querySelector('#bset').onclick = settingsModal;
 }
 
@@ -337,110 +335,6 @@ function showAch(){
   }).join('');
   modal('<h2>'+ico('trophy',22)+' Thành tựu ('+save.ach.length+'/'+Object.keys(ACH).length+')</h2>'
     + '<div class="hgrid">'+rows+'</div>', null, 'hcard');
-}
-
-/* =====================  BÁO CÁO HỌC TẬP (cho thầy cô)  =====================
-   Gom nhật ký save.hist thành bảng theo ngày: sao, số lượt, giao sai, lỗi an toàn, lỗi hay gặp.
-   Học sinh tải bảng .csv hoặc gửi một MÃ (chữ thường, dán vào Zalo được); thầy cô mở game,
-   dán mã vào "Xem mã của học sinh" là thấy đúng bảng đó — không cần máy chủ nào. */
-const REPORT_TAG = 'TLHHN1-';
-function reportData(){
-  const days = DAYS.map((day, k) => {
-    const hs = save.hist.filter(h => h.d === k + 1), m = {};
-    hs.forEach(h => Object.keys(h.m || {}).forEach(c => m[c] = (m[c]||0) + h.m[c]));
-    const sum = key => hs.reduce((a, h) => a + (h[key]||0), 0);
-    return [save.stars[k+1]||0, save.starsHard[k+1]||0, hs.length, sum('w'), sum('sf'), m, sum('sv')];
-  });
-  return {v:1, n:save.student || '', at:Date.now(), rx:save.rx.length, d:days};
-}
-const encodeReport = d => REPORT_TAG + btoa(unescape(encodeURIComponent(JSON.stringify(d))));
-function decodeReport(code){
-  const s = (code || '').replace(/\s+/g, '');
-  if(!s.startsWith(REPORT_TAG)) return null;
-  try { const d = JSON.parse(decodeURIComponent(escape(atob(s.slice(REPORT_TAG.length))))); return d && d.v === 1 && Array.isArray(d.d) ? d : null; }
-  catch(e){ return null; }
-}
-const topMistakes = (m, k) => Object.keys(m).filter(c => MISTAKES[c]).sort((a, b) => m[b] - m[a]).slice(0, k);
-function reportCSV(d){
-  const q = s => '"' + String(s).replace(/"/g, '""') + '"';
-  const rows = [['Ngày','Bài','Sao','Sao chế độ khó','Số lượt chơi','Đơn đã giao','Giao sai / trả lời sai','Lỗi an toàn','Lỗi hay gặp']];
-  d.d.forEach((r, k) => { if(!r[2] && !r[0] && !r[1]) return;
-    rows.push([k+1, DAYS[k].t, r[0], r[1], r[2], r[6]||0, r[3], r[4], topMistakes(r[5], 3).map(c => MISTAKES[c] + ' (' + r[5][c] + ')').join('; ')]); });
-  return '﻿' + 'Học sinh: ' + q(d.n || '(chưa ghi tên)') + '\n' + rows.map(r => r.map(q).join(',')).join('\n');
-}
-function showReport(d){
-  const own = !d;          // không truyền d = báo cáo của chính máy này
-  d = d || reportData();
-  const played = d.d.map((r, k) => ({r, k})).filter(x => x.r[2] || x.r[0] || x.r[1]);
-  const all = {};
-  d.d.forEach(r => Object.keys(r[5]).forEach(c => all[c] = (all[c]||0) + r[5][c]));
-  const served = d.d.reduce((a, r) => a + (r[6]||0), 0), wrong = d.d.reduce((a, r) => a + r[3], 0);
-  const safety = d.d.reduce((a, r) => a + r[4], 0);
-  const passed = d.d.filter(r => r[0] >= 1 || r[1] >= 1).length;
-  const stars = d.d.reduce((a, r) => a + r[0], 0), hstars = d.d.reduce((a, r) => a + r[1], 0);
-  const tile = (v, l) => '<div class="rtile"><b>' + v + '</b><span>' + l + '</span></div>';
-  const rows = played.map(({r, k}) => '<tr><td>' + (k+1) + '</td><td class="rt">' + DAYS[k].t + (DAYS[k].mg ? ' ' + ico('dice',12) : '') + '</td>'
-    + '<td class="rs">' + starStr(r[0]) + '</td><td class="rs hard">' + (r[1] ? starStr(r[1]) : '—') + '</td><td>' + r[2] + '</td>'
-    + '<td>' + r[3] + '</td><td>' + (r[4] || '—') + '</td><td class="rm">' + topMistakes(r[5], 2).map(c => MISTAKES[c]).join('; ') + '</td></tr>').join('');
-  const top = topMistakes(all, 5);
-  const ov = document.createElement('div');
-  ov.className = 'overlay';
-  ov.innerHTML = '<div class="modal report">'
-    + '<h2>' + ico('note',22) + ' Báo cáo học tập' + (own ? '' : ' <small>(mã của học sinh)</small>') + '</h2>'
-    + (own ? '<div class="row" style="gap:8px;margin:2px 0 10px"><b>Học sinh / lớp:</b><input id="rname" class="rname" maxlength="40" placeholder="vd. Nguyễn An — 8A2" value="' + (d.n||'').replace(/"/g,'&quot;') + '"></div>'
-           : '<p style="margin:2px 0 10px"><b>Học sinh / lớp:</b> ' + (d.n ? d.n.replace(/</g,'&lt;') : '<i>(chưa ghi tên)</i>') + ' · mã tạo lúc ' + new Date(d.at).toLocaleString('vi-VN') + '</p>')
-    + '<div class="rtiles">' + tile(passed + '/' + DAYS.length, 'ngày đã qua') + tile(stars + ' ★', 'sao' + (hstars ? ' · khó ' + hstars + ' ★' : ''))
-    + tile(d.rx + '/' + REACTIONS.length, 'phản ứng đã tự làm') + tile(served + wrong ? Math.round(served / (served + wrong) * 100) + '%' : '—', 'giao đúng ngay')
-    + tile(safety, 'lỗi an toàn') + '</div>'
-    + (top.length ? '<div class="rtop"><b>Lỗi hay gặp nhất:</b> ' + top.map(c => MISTAKES[c] + ' <i>×' + all[c] + '</i>').join(' · ') + '</div>' : '')
-    + (played.length ? '<table class="rtable"><tr><th>Ngày</th><th>Bài</th><th>Sao</th><th>Khó</th><th>Lượt</th><th>Sai</th><th>An toàn</th><th>Lỗi hay gặp</th></tr>' + rows + '</table>'
-                     : '<p class="center" style="opacity:.7">Chưa chơi ngày nào — chơi vài ca rồi quay lại xem nhé.</p>')
-    + '<div class="row" style="justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap">'
-    + '<button class="btn" id="rcsv">' + ico('note') + ' Tải bảng điểm (.csv)</button>'
-    + (own ? '<button class="btn" id="rcode">' + ico('star') + ' Mã gửi thầy cô</button><button class="btn" id="rread">' + ico('book') + ' Xem mã của học sinh</button>' : '')
-    + '<button class="btn" id="rclose">Đóng</button></div><div id="rbox"></div></div>';
-  G.appendChild(ov);
-  SFX.page();
-  const box = ov.querySelector('#rbox');
-  const name = ov.querySelector('#rname');
-  if(name){ let t = 0; name.oninput = () => { save.student = name.value.trim(); clearTimeout(t); t = setTimeout(persist, 400); }; name.onblur = persist; }
-  ov.querySelector('#rclose').onclick = () => closeOv(ov);
-  ov.querySelector('#rcsv').onclick = () => {
-    if(own) d = reportData();
-    const csv = reportCSV(d);
-    try {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv;charset=utf-8'}));
-      a.download = 'bao-cao-hoa-hoc' + (d.n ? '-' + d.n.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').replace(/[^\w]+/g,'-') : '') + '.csv';
-      document.body.appendChild(a); a.click(); a.remove();
-      notify('Đã tải bảng điểm — mở bằng Excel hoặc Google Sheets.');
-    } catch(e){   // trang nhúng chặn tải file thì cho chép tay
-      box.innerHTML = '<p class="rhint">Trình duyệt chặn tải file — chép bảng dưới đây dán vào Excel:</p><textarea class="rcode" readonly>' + csv.replace(/</g,'&lt;') + '</textarea>';
-    }
-  };
-  if(!own) return;
-  ov.querySelector('#rcode').onclick = () => {
-    const code = encodeReport(reportData());
-    box.innerHTML = '<p class="rhint">Gửi mã này cho thầy cô (Zalo, Messenger…). Thầy cô mở game → <b>Báo cáo học tập</b> → <b>Xem mã của học sinh</b> → dán vào.</p>'
-      + '<textarea class="rcode" readonly>' + code + '</textarea><div class="center"><button class="btn" id="rcopy">Sao chép mã</button></div>';
-    const ta = box.querySelector('textarea'); ta.focus(); ta.select();
-    box.querySelector('#rcopy').onclick = () => {
-      ta.select();
-      const done = () => notify('Đã sao chép mã báo cáo!');
-      if(navigator.clipboard) navigator.clipboard.writeText(code).then(done, () => { document.execCommand('copy'); done(); });
-      else { document.execCommand('copy'); done(); }
-    };
-  };
-  ov.querySelector('#rread').onclick = () => {
-    box.innerHTML = '<p class="rhint">Dán mã học sinh gửi (bắt đầu bằng <b>' + REPORT_TAG + '</b>):</p><textarea class="rcode" id="rin"></textarea>'
-      + '<div class="center"><button class="btn big" id="rgo">Xem báo cáo</button></div><div class="dosemsg" id="rerr"></div>';
-    const inp = box.querySelector('#rin'); inp.focus();
-    box.querySelector('#rgo').onclick = () => {
-      const dd = decodeReport(inp.value);
-      if(!dd){ box.querySelector('#rerr').textContent = 'Mã không đúng — kiểm tra đã chép đủ cả đoạn chưa.'; return; }
-      showReport(dd);
-    };
-  };
 }
 
 const themeOf = i => 1 + Math.min(4, Math.floor(i/7));   // nhạc nền theo chương (SFX.music)
@@ -1222,9 +1116,9 @@ function showResult(i, st){
   const rec = sc.pts > (bests[num] || 0);
   if(rec) bests[num] = sc.pts;
   if(stars >= 1 && num >= save.unlocked && num < DAYS.length) save.unlocked = num + 1;
-  // nhật ký từng lượt chơi — nguồn cho báo cáo học tập (giữ 400 lượt gần nhất)
+  // nhật ký từng lượt chơi (giữ 400 lượt gần nhất)
   save.hist.push(day.mg ? {d:num, h:st.hard ? 1 : 0, s:stars, w:st.total - st.correct, t:Date.now()}
-    : {d:num, h:st.hard ? 1 : 0, s:stars, sv:st.served, w:st.wrong, sf:st.safety||0, m:st.mistakes||{}, t:Date.now()});
+    : {d:num, h:st.hard ? 1 : 0, s:stars, sv:st.served, w:st.wrong, sf:st.safety||0, t:Date.now()});
   if(save.hist.length > 400) save.hist.splice(0, save.hist.length - 400);
   persist();
   if(st.hard && stars >= 1) unlockAch('hard1');

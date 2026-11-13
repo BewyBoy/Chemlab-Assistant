@@ -361,8 +361,7 @@ function dropAction(type, zone, data){
    An toàn: goggles (đã đeo kính & găng), hood (tủ hút đang bật), hoodDay (hôm nay có thể sinh
    khí độc), safety (số lỗi an toàn), firstPour/waterIn (để bắt lỗi rót nước vào axit).
    Luật an toàn chỉ áp ở CHẾ ĐỘ KHÓ: chế độ thường coi như đã đeo đồ bảo hộ, không có tủ hút, không trừ sao;
-   rót nước vào axit thì giáo sư vẫn giảng (kiến thức), chỉ không tính lỗi.
-   mistakes: đếm từng loại lỗi trong ca — đi vào báo cáo cho thầy cô. */
+   rót nước vào axit thì giáo sư vẫn giảng (kiến thức), chỉ không tính lỗi. */
 function newLab(i, day){
   const hard = hardOn(), dur = hard ? Math.round(day.dur * 1.5) : day.dur;
   return {i, day, hard, dur, mix:{}, undissolved:{}, dissolveTotal:0, gas:{}, solid:{}, ladle:{}, ladleLit:false,
@@ -370,7 +369,7 @@ function newLab(i, day){
           time:dur, oi:0, served:0, wrong:0, waste:0, timer:null, lastColor:'', magicDose:1,
           otime:0, odur:0, waitStage:0, miss:0, lastWhy:'', cardQ:[], cardOpen:false,
           goggles:!hard, hood:false, hoodDay:hard && [...dayHave(day)].some(f => TOXIC.includes(f)),
-          safety:0, safeHits:{}, firstPour:null, waterIn:false, mistakes:{}, dac:{}};
+          safety:0, safeHits:{}, firstPour:null, waterIn:false, dac:{}};
 }
 function startLab(i){
   SFX.music(themeOf(i));
@@ -424,7 +423,7 @@ function finishLab(timeUp){
   if(!lab) return; // serve-timeout and timer can race — first one wins
   clearInterval(lab.timer);
   const i = lab.i, st = {served:lab.served, wrong:lab.wrong, hard:lab.hard,
-                         safety:lab.safety, mistakes:lab.mistakes};
+                         safety:lab.safety};
   lab = null;
   // hết giờ giữa chừng: chữ "Hết giờ!" rơi xuống một nhịp, để không ai tưởng game tự nhảy sang màn khác
   if(timeUp){
@@ -487,7 +486,7 @@ function labTick(){
 function customerLeaves(){ // hết giờ chờ: khách bỏ đi, hàng đợi chạy tiếp (không tính là giao sai)
   if(!lab) return;
   lab.odur = 0;
-  noteMistake('khach-bo-di'); runMiss();
+  runMiss();
   const od = lab.day.orders[lab.oi], c = CUSTOMERS[od.who];
   lab.otag = null;
   custSay(fillLine(LEAVE_LINE, {ten:c[0]}));
@@ -1039,7 +1038,6 @@ function acidSplash(acid, water){
       + `--dx:${Math.cos(ang)*dist}px;--dy:${Math.sin(ang)*dist}px;animation-delay:${Math.random()*.15}s`;
     G.appendChild(d); d.onanimationend = () => d.remove();
   }
-  noteMistake('axit-nuoc');
   const ub = G.querySelector('#bundo'); if(ub) ub.hidden = true;   // ca đã dừng: không rút lại được nữa
   notify(profLine(fillLine(PROF_LAB.axitBan, {acid:sub(acid), nuoc:water === 'H2O' ? 'nước' : 'dung dịch ' + sub(water)})));
   setTimeout(() => { if(!lab) return; lab.day.free ? endFree(PROF_LAB.axitBanTieuDe) : finishLab(); }, 2200);
@@ -1258,7 +1256,6 @@ function ladleHint(){
 const ACTIVITY = ['K','Na','Mg','Al','Zn','Fe','H','Cu','Ag'];
 const METALS = ACTIVITY.filter(m => m !== 'H');
 const metalOf = f => (f.match(/^(K|Na|Mg|Al|Zn|Fe|Cu|Ag|Ca|Ba|Mn)(?![a-z])/) || [])[1];
-let noRxKey = null;   // khoá PROF_NO_RX của câu whyNoReaction trả về gần nhất
 function whyNoReaction(focus){
   const mix = lab.mix, tools = lab.day.tools;
   const has = f => (mix[f]||0) > 0.009;
@@ -1266,9 +1263,8 @@ function whyNoReaction(focus){
   const liquid = here.some(f => CHEMS[f].s === 'l' || CHEMS[f].s === 'd');
   const ready = r => Object.keys(r.rg).every(f => has(f) || (f === 'H2O' && liquid));
   const hit = inv => !focus || inv.includes(focus);
-  // câu nói lấy từ PROF_NO_RX (loi-thoai.js); khoá câu (noRxKey) cho biết loại lỗi để ghi báo cáo (WHY_MISTAKE)
-  noRxKey = null;
-  const say = (k, v) => { noRxKey = k; return fillLine(PROF_NO_RX[k], v || {}); };
+  // câu nói lấy từ PROF_NO_RX (loi-thoai.js)
+  const say = (k, v) => fillLine(PROF_NO_RX[k], v || {});
   for(const r of REACTIONS) if(r.burn && ready(r)){
     const g = Object.keys(r.rg).find(f => CHEMS[f].s === 'k'), fu = Object.keys(r.rg).find(f => f !== g);
     if(hit([g, fu])) return say(tools.includes('burn') ? 'dot-sai-cho' : 'khong-muoi', {fuel:sub(fu), gas:sub(g)});
@@ -1314,7 +1310,6 @@ function explainNoRx(focus){
   const why = whyNoReaction(focus);
   if(!why || why === lab.lastWhy) return;
   lab.lastWhy = why;
-  noteMistake(WHY_MISTAKE[noRxKey]);
   setTimeout(() => { if(lab) notify('<b>Giáo sư:</b> ' + why); }, 350);
 }
 
@@ -1347,28 +1342,12 @@ const TRAY_SVG = '<svg class="traysvg" viewBox="0 0 340 140">'
   + '<path d="M122,32 L200,32 M66,98 L100,98" stroke="#fff" stroke-width="3.5" stroke-linecap="round" opacity=".8"/>'
   + '<path class="tray-dz" d="M90,6 L334,6 L291,137 L22,137 Z"/>'
   + '</g></svg>';
-function noteMistake(code){ if(lab && code) lab.mistakes[code] = (lab.mistakes[code]||0) + 1; }
-/* Các loại lỗi đếm vào báo cáo cho thầy cô — gom từ câu khách phàn nàn, lời giáo sư giải thích
-   vì sao cốc không phản ứng, lỗi an toàn và khách bỏ đi. */
-const MISTAKES = {
-  'chua-khuay':'Giao khi chất còn chưa tan', 'trong':'Giao vật đựng trống', 'vat-dung':'Giao sai vật đựng (khí / chất rắn)',
-  'khong-co':'Không ra được chất khách cần', 'lan-chat':'Hàng lẫn chất khác (sai tỉ lệ)', 'sai-luong':'Sai lượng chất',
-  'thieu-nuoc':'Quên pha với nước', 'dot-sai-cho':'Đốt trong cốc thay vì lọ khí', 'thieu-nhiet':'Quên đun nóng',
-  'day-hoat-dong':'Nhầm dãy hoạt động kim loại', 'khong-tan':'Dùng chất không tan / không tác dụng với nước',
-  'trao-doi':'Trộn muối không tạo kết tủa', 'kinh':'Quên đeo kính bảo hộ', 'axit-nuoc':'Rót nước vào axit',
-  'tu-hut':'Làm với khí độc khi chưa bật tủ hút', 'khach-bo-di':'Để khách chờ quá lâu',
-  'nong-do':'Nhầm axit đặc / loãng'
-};
-// khoá câu thoại (REASON_LINES / PROF_NO_RX trong loi-thoai.js) → loại lỗi; khoá không có ở đây là trùng tên với loại lỗi
-const REASON_MISTAKE = {'vat-dung-khi':'vat-dung', 'vat-dung-ran':'vat-dung', 'nhieu-qua':'sai-luong', 'it-qua':'sai-luong'};
-const WHY_MISTAKE = {'dot-sai-cho':'dot-sai-cho', 'thieu-nhiet':'thieu-nhiet', 'sau-hidro':'day-hoat-dong',
-  'yeu-hon':'day-hoat-dong', 'kl-nuoc':'khong-tan', 'khong-tan':'khong-tan', 'trao-doi':'trao-doi', 'can-dac':'nong-do', 'thu-dong':'nong-do', 'thieu-xt':'thieu-nhiet'};
 function safetyHit(code, msg){
   if(lab.safeHits[code]) return;        // mỗi loại lỗi chỉ tính một lần trong ca
   lab.safeHits[code] = 1;
   if(!lab.hard){ notify('<b>Giáo sư:</b> ' + msg); return; }   // chế độ thường: chỉ giảng, không tính lỗi
   const warnOnly = lab.i === 0;         // ngày đầu: chỉ nhắc cho quen, không trừ sao
-  if(!warnOnly){ lab.safety++; noteMistake(code); runMiss(); }
+  if(!warnOnly){ lab.safety++; runMiss(); }
   SFX.err();
   notify('<b>Giáo sư:</b> ' + msg + ' <i>' + (warnOnly ? PROF_SAFETY.nhacThoi : PROF_SAFETY.truSao) + '</i>');
 }
@@ -2229,7 +2208,6 @@ function serve(){
     // thử thì mất sao thứ ba ngay, nên người chơi cứ sai là bấm chơi lại. Báo cáo cho thầy cô vẫn ghi lại lỗi.
     const grace = !lab.hard && !lab.graced;
     if(grace) lab.graced = true; else { lab.wrong++; runMiss(); }
-    noteMistake(REASON_MISTAKE[res.key] || res.key);
     if(grace) setTimeout(() => { if(lab) notify(profLine(PROF_LAB.thaLoi)); }, 900);
     unlockAch('oops');
     custSay(fillLine(pickLine(COMPLAIN), {A:c[2], r:res.text + '!'}));

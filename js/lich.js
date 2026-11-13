@@ -1,7 +1,6 @@
 /* =====================================================================
    LỊCH — tên tháng và mô tả từng ngày. Sửa chữ ở đây là đủ, không cần đụng file khác.
-   Mô tả của một ngày hiện ở: ô lịch, thanh trên cùng khi chơi
-   và báo cáo học tập.
+   Mô tả của một ngày hiện ở: ô lịch và thanh trên cùng khi chơi.
 
    Cách sửa:
      • Mỗi dòng trong `ngay` là một ngày, từ ngày 1 đến ngày 31 (số ngày ghi ở cuối dòng).

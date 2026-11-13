@@ -1044,25 +1044,6 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .resstep{display:flex;align-items:center;gap:6px;flex:none}
 .resstep .btn{width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .resstep b{min-width:68px;text-align:center;font-family:var(--fh);font-size:17px}
-/* ---- báo cáo học tập ---- */
-.report{width:820px;max-width:820px}
-.report h2 small{font-size:15px;opacity:.6}
-.rname{flex:1;height:34px;font-family:var(--fh);font-size:16px;border:1.2px solid var(--ink);border-radius:8px;padding:0 10px;background:#fff;color:var(--ink);-webkit-user-select:text;user-select:text}
-.rtiles{display:flex;gap:8px;margin-bottom:8px}
-.rtile{flex:1;background:#fff7de;border:1.2px solid var(--ink);border-radius:10px;padding:6px 8px;text-align:center;}
-.rtile b{display:block;font-family:var(--fh);font-size:22px}
-.rtile span{font-size:12px;opacity:.75}
-.rtop{font-size:13.5px;background:#fdeceb;border:1.2px dashed #c9524b;border-radius:8px;padding:5px 9px;margin-bottom:8px}
-.rtop i{opacity:.7}
-.rtable{width:100%;border-collapse:collapse;font-size:13px}
-.rtable th,.rtable td{border:1.2px solid #3b302555;padding:3px 6px;text-align:center}
-.rtable th{background:#efe4cc;font-family:var(--fh);font-size:13.5px}
-.rtable .rt{text-align:left}
-.rtable .rm{text-align:left;font-size:12px;color:#8f3526}
-.rtable .rs{color:#c99a1e;white-space:nowrap}
-.rtable .rs.hard{color:#d9634f}
-.rhint{font-size:13.5px;margin:10px 0 4px}
-.rcode{width:100%;height:76px;font-family:monospace;font-size:11.5px;border:1.2px solid var(--ink);border-radius:8px;padding:6px;word-break:break-all;-webkit-user-select:text;user-select:text}
 /* ---- góc an toàn trên tường: kính & găng, tủ hút ---- */
 .safetyhook,.hoodsw{cursor:pointer;transition:transform .15s;z-index:3}
 .safetyhook:hover,.hoodsw:hover{transform:translateY(-3px) rotate(-2deg)}

@@ -26,8 +26,6 @@ Bạn, học trò của giáo sư Hoffmann, đã được thầy giao cho một 
 
 **Tham quan khu công nghiệp:** mua vé bằng đồng đỏ (ô ngày 2 tháng sau trên lịch, mở sau khi qua ngày 31) rồi theo giáo sư và kỹ sư Minh qua lò vôi, lò cao luyện gang, nhà máy điện phân nhôm — phần visual novel có tranh nền từng cảnh và câu hỏi nhanh ở mỗi xưởng.
 
-**Cho thầy cô:** menu **Báo cáo học tập** tổng hợp sao, số lượt, lỗi hay gặp theo từng ngày. Học sinh tải bảng `.csv` hoặc gửi một mã; thầy cô dán mã vào **Xem mã của học sinh** là thấy đúng bảng đó, không cần máy chủ.
-
 ### Chạy trên máy
 
 HTML/CSS/JS thuần — không framework, không bước build, không phụ thuộc.
@@ -47,7 +45,7 @@ npx --yes http-server -p 8642 -c-1 .
 | `js/do-hoa-3d.js` | **Sinh tự động** từ Blender (`ban_lam_viec.py`): hình dụng cụ vẽ từ mô hình 3D (dáng dùng + dáng cất) và bố cục bàn — thảm làm việc, chỗ cất từng dụng cụ. Đừng sửa tay |
 | `js/do-hoa.js` | Kho SVG dụng cụ / lọ / biểu tượng, nhân vật; nét cốc thủy tinh vẽ tay (`BEAKER_ART`, chuyển từ `Blender/sym-beaker3.svg`) |
 | `js/diem.js` | Luật tính điểm (đúng, nhanh, chuỗi, hoàn hảo) và mốc sao — chỉnh luật chấm ở đây |
-| `js/giao-dien.js` | Âm thanh & nhạc nền, lưu tiến trình, menu, lịch, cài đặt, báo cáo, kết quả |
+| `js/giao-dien.js` | Âm thanh & nhạc nền, lưu tiến trình, menu, lịch, cài đặt, kết quả |
 | `js/phong-thi-nghiem.js` | Bàn thí nghiệm, kéo–thả, phản ứng, đốt, an toàn, khách hàng |
 | `js/che-do.js` | Minigame, pha nồng độ, chế độ khó, thẻ phản ứng |
 | `js/tham-quan.js` | Chuyến tham quan khu công nghiệp: kịch bản, câu hỏi, tranh nền từng cảnh — sửa lời ở đây |

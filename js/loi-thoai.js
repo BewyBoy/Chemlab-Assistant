@@ -166,7 +166,7 @@ const COMPLAIN = [
 ];
 
 /* ---- lý do giao sai (khách nói, ghép vào {r} ở trên; game tự thêm dấu ! cuối câu).
-   Đừng đổi tên khoá bên trái — game dùng nó để đếm lỗi vào báo cáo cho thầy cô. ---- */
+   Đừng đổi tên khoá bên trái — game dùng nó để chọn câu theo loại lỗi. ---- */
 const REASON_LINES = {
  'chua-khuay':   'trong cốc còn chất chưa tan kìa, khuấy đều đã chứ',
  'trong':        'vật đựng đang trống trơn mà',
