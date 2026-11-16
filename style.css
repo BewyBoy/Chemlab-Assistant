@@ -182,7 +182,8 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 @keyframes sdsway{from{transform:rotate(-6deg)}to{transform:rotate(7deg)}}
 /* dáng 3/4 (js/nhan-vat-xoay.js): hình thẳng đã bọc lớp; lúc bước vào (.walking) và lúc xoay người trước khi đi ra
    (.turnout) các lớp trượt sang trái thành mặt nghiêng vừa phải, dừng lại thì trượt về — khách quay mặt về phía người chơi. .is-turned: giữ dáng 3/4 (trang xem thử) */
-.charsvg.turn .tq-feat,.charsvg.turn .tq-nose,.charsvg.turn .tq-earfar,.charsvg.turn .tq-earnear,.charsvg.turn .tq-body{transition:transform .32s ease-out,opacity .2s}
+.charsvg.turn .tq-feat,.charsvg.turn .tq-nose,.charsvg.turn .tq-earfar,.charsvg.turn .tq-earnear,.charsvg.turn .tq-body,.charsvg.turn .tq-blushfar{transition:transform .32s ease-out,opacity .2s}
+.custwalk.walking .turn .tq-blushfar,.custwalk.turnout .turn .tq-blushfar,.turn.is-turned .tq-blushfar{transform:translateX(-3px) scaleX(.5);opacity:.55}
 .custwalk.walking .turn .tq-feat,.custwalk.turnout .turn .tq-feat,.turn.is-turned .tq-feat{transform:translateX(-10px) scaleX(.9)}
 .custwalk.walking .turn .tq-nose,.custwalk.turnout .turn .tq-nose,.turn.is-turned .tq-nose{transform:translateX(-16px) scaleX(.9)}
 .custwalk.walking .turn .tq-earfar,.custwalk.turnout .turn .tq-earfar,.turn.is-turned .tq-earfar{transform:translateX(10px);opacity:0}

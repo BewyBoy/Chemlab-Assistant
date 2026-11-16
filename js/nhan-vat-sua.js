@@ -146,6 +146,17 @@ const SUA = {
   }
 };
 
+/* Vá chung cho mọi hình (chạy trước SUA[i]):
+   • mảng bóng má trái 'M80,122 …' (mực mờ 7%) không theo khuôn mặt khi mặt bị thu hẹp / đổi khung, nên lòi ra ngoài
+     hàm thành một vệt xám (Bạn Tí, Chị Hoa, Thầy Nam, Chú Ba, Bé Na…) — bỏ đi;
+   • quai nón lá của Chú Ba (nét đỏ 'M71.8,76C66.726,96.067…') nằm SAU khuôn mặt, chỉ thò ra mép má và dưới cằm như
+     một viền đỏ lạc chỗ — bỏ đi. */
+const SUA_CHUNG = [
+  /<path d="M80,122 q-6,20 8,34[^"]*"[^>]*\/>/g,
+  /<path d="M80,122C76,135\.333[^"]*"[^>]*\/>/g,      // cùng mảng bóng ấy, cú pháp của hình vẽ tay khung 280x280
+  /<path d="M71\.8,76C66\.726,96\.067[^"]*"[^>]*\/>/g
+];
 function suaHinhGoc(svg, i){
+  SUA_CHUNG.forEach(re => { svg = svg.replace(re, ''); });
   return SUA[i] ? SUA[i](svg) : svg;
 }

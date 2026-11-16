@@ -6,6 +6,7 @@
      .tq-feat    nét trên mặt (mắt, lông mày, má hồng, miệng, kính, nếp nhăn, râu lún phún…): trượt về bên trái, ép hẹp
      .tq-nose    mũi: nhô gần người xem nhất nên trượt nhiều nhất
      .tq-earfar  tai / khuyên tai phía xa (bên trái hình): lùi vào sau mặt rồi ẩn
+     .tq-blushfar má hồng phía xa: co hẹp và nhạt đi (trượt theo nét mặt là tràn ra ngoài viền mặt)
      .tq-earnear tai / khuyên tai phía gần: nhích vào trong
      .tq-body    mọi thứ dưới cằm (thân, tay, trang phục, đạo cụ): ép hẹp quanh trục giữa — vai xoay nghiêng
      .tq-arml / .tq-armr  hai cánh tay (tay áo + bàn tay, kể cả tay vẽ lại trong lớp trang phục), nằm TRONG .tq-body:
@@ -26,7 +27,7 @@ let xoayHost = null;
 // bọc lớp cho một chuỗi SVG hình thẳng; trả về chuỗi SVG mới (class "charsvg turn"). Không có DOM thì trả nguyên.
 function xoayBuild(svgStr){
   if(typeof document === 'undefined' || !document.body) return svgStr;
-  if(!xoayHost){
+  if(!xoayHost || !xoayHost.isConnected){   // khung đo bị gỡ khỏi trang (thay cả body) thì dựng lại, kẻo đo hụt ra hình thẳng
     xoayHost = document.createElement('div');
     xoayHost.setAttribute('aria-hidden', 'true');
     xoayHost.style.cssText = 'position:absolute;left:-9999px;top:0;width:300px;height:300px;visibility:hidden;pointer-events:none;overflow:hidden';
@@ -82,6 +83,11 @@ function xoayBuild(svgStr){
       if(/\b(x-neutral|x-happy|x-annoy|eyes2)\b/.test(cl)){ wrap(el, 'tq-feat', cx, ey + 10); continue; }   // miệng theo biểu cảm, mắt
       const B = box(el);
       if(!B) continue;
+      // má hồng (ellipse tô gradient má) bên trái trục mặt: lớp riêng, không trượt theo nét mặt
+      // (cả nhóm <g> chỉ bọc một má hồng — diversify dời má theo khuôn mặt mới bằng một nhóm như thế)
+      const blushEl = x => x.tagName.toLowerCase() === 'ellipse' && /blush|Radial/.test(x.getAttribute('fill') || x.getAttribute('style') || '');
+      const isBlush = blushEl(el) || (tag === 'g' && el.children.length === 1 && blushEl(el.children[0]));
+      if(isBlush && B.cx < cx - 10 && B.cy > ey && B.cy < ey + 50){ wrap(el, 'tq-blushfar', B.x1, B.cy); continue; }
       const cls = classify(B);
       if(cls === 'tq-body'){
         const side = armSide(B);
