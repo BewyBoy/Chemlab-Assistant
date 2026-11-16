@@ -144,8 +144,8 @@ const TRANG_PHUC = (() => {
         swap: [['fill:rgb(106,74,41)', 'fill:#a95e45']],
         over:
           // quai yếm (viền mực) + yếm bò kéo cao lên ngực
-          '<path d="M130,206 l-6,-20 M190,206 l6,-20" fill="none" stroke="' + INK + '" stroke-width="12" stroke-linecap="round"/>'
-          + '<path d="M130,206 l-6,-20 M190,206 l6,-20" fill="none" stroke="#5f80a8" stroke-width="7" stroke-linecap="round"/>'
+          '<path d="M130,206 Q128,195 122,190 M190,206 Q192,195 198,190" fill="none" stroke="' + INK + '" stroke-width="12" stroke-linecap="round"/>'
+          + '<path d="M130,206 Q128,195 122,190 M190,206 Q192,195 198,190" fill="none" stroke="#5f80a8" stroke-width="7" stroke-linecap="round"/>'
           + g('<path d="M124,204 h72 l2,40 q10,6 12,36 h-100 q2,-30 12,-36z" fill="#6f8fb5"/>'
             + '<path d="M144,212 h32 v16 q-16,5 -32,0z" fill="#86a4c6"/>', 2.6) },
       { ten: 'Kỹ sư nông nghiệp',
@@ -233,8 +233,8 @@ const TRANG_PHUC = (() => {
           + g('<path d="M98,176 q22,9 44,0 l-22,40z" fill="#2f8f88"/>', 2.4)
           + '<path d="M120,216 v64" fill="none" stroke="#3b3025" stroke-width="2" opacity=".5"/>'
           // băng tay chữ thập đỏ
-          + `<g clip-path="url(#tp5s2_arm)">${g('<rect x="20" y="200" width="60" height="18" fill="#fffdf5"/><path d="M20,200 h60 M20,218 h60" fill="none" stroke="#d9364a" stroke-width="2.6"/>'
-            + '<path d="M46,203 v12 M40,209 h12" stroke="#d9364a" stroke-width="3.6"/>', 2)}</g>`
+          + `<g clip-path="url(#tp5s2_arm)">${g('<rect x="20" y="206" width="60" height="18" fill="#fffdf5"/><path d="M20,206 h60 M20,224 h60" fill="none" stroke="#d9364a" stroke-width="2.6"/>'
+            + '<path d="M53,209 v12 M47,215 h12" stroke="#d9364a" stroke-width="3.6"/>', 2)}</g>`
           + '<path d="M56,196 q-22,10 -24,46 q-1,16 4,28 q4,8 14,7 q8,-1 11,-9 q3,-36 5,-58 q-2,-14 -10,-13z" fill="none" stroke="#3b3025" stroke-width="3.2" stroke-linejoin="round"/>'
           // mũ y tế xanh ngọc
           + g('<path d="M76,74 q-2,-40 44,-42 q46,2 44,42 q-20,-14 -44,-14 q-24,0 -44,14z" fill="#3fa39a"/>'

@@ -346,7 +346,7 @@ const SD_CHARS = {
     }
   },
 
-  /* 6 · Ông Sáu — chủ ao cá: mập, mũi củ tỏi, hói, vành tóc bạc, râu quai nón + ria mép */
+  /* 6 · Ông Sáu — chủ ao cá: mập, mũi củ tỏi, hói hẳn, không râu (khớp hình thẳng) */
   6: {cx:120, ey:102, nb:180, ox:6, D:106, bust:4, hunch:3, skin:['#f6e2ca', '#ecc99f', '#cf9f6d'], hc:SD_GREY, ear:[16, 2],
     h:{top:-52, back:58, nape:32, fx:-48, fs:10, n:{tx:-68, ty:22, bx:-52, by:31, r:9, hump:-3}, lu:-52, ll:-50, my:46, ch:[-47, 62], jaw:[22, 56]},
     look(k){
@@ -354,10 +354,8 @@ const SD_CHARS = {
         {body:['#c3cd96', '#a9b67a'], sleeve:['#c9dcec', '#a6c1da']},
         {body:'stripe', sleeve:'stripe'}][k];
     },
-    hair(x){   // vành tóc bạc quanh gáy + nếp trán trên đầu hói
-      return (x.k === 1 ? '' : sdLn('M-36,-40 q14,-8 30,-6 M-38,-32 q14,-7 28,-5', SD_INK, 1.5, '.4'))
-        + sdG(`<path d="M22,-10 C32,-17 48,-18 60,-10 C65,4 63,22 56,34 C48,34 40,28 34,20 C29,13 24,6 22,0 C20,-4 20,-7 22,-10 Z" fill="${x.H}"/>`, 2.8)
-        + sdLn('M28,-12 C42,-6 50,8 50,26 M18,-6 C30,-2 38,8 40,20', SD_INK, 1.4, '.35');
+    hair(x){   // hói hẳn như hình thẳng (bỏ vành tóc bạc sau tai): chỉ còn nếp nhăn trán
+      return x.k === 1 ? '' : sdLn('M-36,-40 q14,-8 30,-6 M-38,-32 q14,-7 28,-5', SD_INK, 1.5, '.4');
     },
     hat(x){
       if(x.k !== 1) return '';
@@ -367,11 +365,8 @@ const SD_CHARS = {
     },
     face(x){
       const {h} = x, n = h.n, ex = h.fx + 16, H = x.H;
-      // râu quai nón (từ tóc mai trước tai, ôm hàm, phủ cằm) + ria mép rậm che môi trên
+      // không râu (đã bỏ theo hình thẳng): chỉ lông mày rậm và nếp mũi
       return sdBrow(ex - 12, -14, 24, 5.4, 1)
-        + sdG(`<path d="M8,0 C10,20 16,40 24,56 C22,70 8,80 -12,82 C-30,84 -48,78 -55,64 C-58,58 -56,52 -51,50 C-44,55 -34,55 -26,50 C-12,42 -2,22 2,2 Z" fill="${H}"/>`, 2.8)
-        + sdLn('M-44,64 q6,6 14,4 M-24,70 q8,4 16,-2 M0,60 q6,2 10,-4 M8,24 q4,10 4,20', SD_INK, 1.4, '.35')
-        + sdG(`<path d="M${n.bx - 2},${n.by - 1} C-60,${n.by + 2} -64,40 -59,45 C-54,46 -50,42 -44,43 C-38,44 -32,44 -30,40 C-30,34 -40,30 ${n.bx - 2},${n.by - 1} Z" fill="${H}"/>`, 2.6)
         + sdLn(`M${n.tx + 6},${n.ty - 2} c4,-4 9,-2 10,3`, SD_INK, 1.6, '.5');
     },
     mouth: [-48, 48],

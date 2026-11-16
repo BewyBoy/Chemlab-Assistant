@@ -85,11 +85,11 @@ const SUA = {
     // (b) gi-lê + hai ống tay: nâu → xanh ô-liu
     svg = suaDoiMau(svg, 'hd6', 'c5cloth',  ['#8d9a55', '#74803f']);
     svg = suaDoiMau(svg, 'hd6', 'c5clothL', ['#74803f', '#5a6430']);
-    // (c) râu phải nằm TRÊN áo: đánh dấu râu và các miệng (miệng nằm sát mép trên râu) để custArt (nhan-vat-skin.js)
-    //     dời chúng ra cuối hình, sau cả quần áo của bộ đồ (over) lẫn đạo cụ (miếng thêu cá, quai yếm)
-    svg = svg.replace(/<g transform="([^"]*)"><path fill="url\(#hd6_c5hair\)" stroke="#3b3025" stroke-width="2\.6" stroke-linejoin="round" d="M84,138/,
-      '<g data-ontop="1" transform="$1"><path fill="url(#hd6_c5hair)" stroke="#3b3025" stroke-width="2.6" stroke-linejoin="round" d="M84,138');
-    svg = svg.replace(/<g class="x-(neutral|happy|annoy)">/g, '<g data-ontop="1" class="x-$1">');
+    // (c) bỏ râu quai nón
+    svg = suaBo(svg, 'd="M84,138 q-6,26 6,44');
+    // (d) bỏ vành tóc bạc ôm sau tai (trông như cái chụp tai); thu thành chỏm thì lại thành tai nhọn — để hói hẳn
+    svg = suaBo(svg, 'd="M60,132 q-10,-18 4,-32');
+    svg = suaBo(svg, 'd="M180,132 q10,-18 -4,-32');
     return svg;
   },
 
@@ -163,7 +163,20 @@ const SUA_CHUNG = [
   /<path d="M80,122C76,135\.333[^"]*"[^>]*\/>/g,      // cùng mảng bóng ấy, cú pháp của hình vẽ tay khung 280x280
   /<path d="M71\.8,76C66\.726,96\.067[^"]*"[^>]*\/>/g
 ];
+/* Cổ áo sơ mi của hai hình vẽ tay khung 280 (Bà Tư, Chú Ba): mép dưới lõm, hai đầu nhọn vểnh — trông như con dơi.
+   Đổi thành hai vạt cổ tròn, mép dưới lồi (giữ nguyên chỗ nối cổ và màu). */
+const SUA_CO_AO = [
+  ['M120,180C112,181.333 104.667,185.333 98,192C109.333,190.667 116.667,193 120,199L120,180Z', 'M120,180C112,181.3 104.7,185.3 99,191C104,198 113,201 120,199L120,180Z'],
+  ['M120,180C128,181.333 135.333,185.333 142,192C130.667,190.667 123.333,193 120,199L120,180Z', 'M120,180C128,181.3 135.3,185.3 141,191C136,198 127,201 120,199L120,180Z'],
+  ['M120,182C111.333,183.333 103.333,187.667 96,195C108,193 116,195.333 120,202L120,182Z', 'M120,182C111.3,183.3 103.3,187.7 97,194C102,201 112,204 120,202L120,182Z'],
+  ['M120,182C128.667,183.333 136.667,187.667 144,195C132,193 124,195.333 120,202L120,182Z', 'M120,182C128.7,183.3 136.7,187.7 143,194C138,201 128,204 120,202L120,182Z']
+];
+/* Chấm / cúc thừa: Chị Hoa có một cúc trắng cũ ngay dưới mặt dây chuyền; Thầy Nam có hai hàng cúc chồng nhau
+   (cúc xám #d9d3c0 của hình gốc xen giữa cúc của cổ áo) — bỏ cúc thừa. */
+const SUA_CHAM = {8:['<circle cx="120" cy="226" r="3" fill="#fff"'], 9:['<circle cx="120" cy="240" r="3" fill="#d9d3c0"', '<circle cx="120" cy="266" r="3" fill="#d9d3c0"']};
 function suaHinhGoc(svg, i){
   SUA_CHUNG.forEach(re => { svg = svg.replace(re, ''); });
+  SUA_CO_AO.forEach(([a, b]) => { svg = svg.split(a).join(b); });
+  (SUA_CHAM[i] || []).forEach(k => { svg = suaBo(svg, k); });
   return SUA[i] ? SUA[i](svg) : svg;
 }
