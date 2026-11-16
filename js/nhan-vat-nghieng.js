@@ -72,8 +72,9 @@ function sdEye(hd, x, y, lid){
     + `<path d="M${f(xo)},${f(yo)} L${f(xi)},${f(yi)}" fill="none" stroke="${ink}" stroke-width="2.6" stroke-linecap="round"/>`;
   const laugh = `<path d="M${f(x - s*(r + 1))},${f(y - 4.5)} L${f(x + s*r)},${f(y)} L${f(x - s*(r + 1))},${f(y + 4.5)}" fill="none" stroke="${ink}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`;
   const lash = [];
-  if(st.lash) lash.push(`<path d="M${f(x - s*(rx + 0.5))},${f(y - ry*0.5)} l${f(-s*4.5)},-4" fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>`);
-  if(st.lash > 1) lash.push(`<path d="M${f(x - s*rx*0.4)},${f(y - ry - 0.5)} l${f(-s*3)},-4.5" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`);
+  const lm = (dx, dy) => ` class="eo-lash" style="--lx:${f(dx)}px;--ly:${f(dy)}px"`;   // lông mi bám mí khi chớp (style.css)
+  if(st.lash) lash.push(`<path${lm(-s*0.55*rx, 0.74*ry)} d="M${f(x - s*(rx + 0.5))},${f(y - ry*0.5)} l${f(-s*4.5)},-4" fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>`);
+  if(st.lash > 1) lash.push(`<path${lm(-s*0.22*rx, 1.24*ry + 0.5)} d="M${f(x - s*rx*0.4)},${f(y - ry - 0.5)} l${f(-s*3)},-4.5" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`);
   if(st.crease) lash.push(`<path d="M${f(x - s*(rx + 3))},${f(y + 1)} l${f(-s*4)},2 M${f(x - s*(rx + 3))},${f(y + 3.5)} l${f(-s*3.5)},3" fill="none" stroke="${SD_INK}" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>`);
   const open = `<ellipse cx="${f(x)}" cy="${f(y)}" rx="${rx}" ry="${ry}" fill="${ink}"/>` + lash.join('')
     + `<rect class="blinklid" x="${f(x - rx - 1.5)}" y="${f(y - ry - 1.5)}" width="${f(2*rx + 3)}" height="${f(2*ry + 3)}" rx="${f(rx)}" fill="${lid}"/>`;

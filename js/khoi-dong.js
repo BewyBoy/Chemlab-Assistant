@@ -286,35 +286,53 @@ document.addEventListener('visibilitychange', () => {
 document.body.insertAdjacentHTML('afterbegin',
   '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + SVG_DEFS + SVG_DEFS_3D + '</defs></svg>');
 fit();
-/* Màn mở đầu: nền đen + logo (tạm, chờ logo thật) hiện dần, rồi mới hiện "Nhấn để bắt đầu"; chạm / bấm phím thì màn
-   đen mờ đi, lộ menu đã dựng sẵn bên dưới. Cú chạm này cũng là cú chạm đầu tiên mà trình duyệt đòi để phát tiếng
-   (SFX.unlock). Chế độ dev (#dev) bỏ qua màn này. Thay logo: sửa SPLASH_LOGO (chuỗi HTML / SVG, hoặc một <img>). */
+/* Mở game: (1) màn đen + logo (tạm, chờ logo thật) hiện dần rồi TỰ TẮT; chạm sớm thì tắt luôn. (2) Màn tiêu đề:
+   ảnh menu nhưng chưa có nút, chỉ một dòng "Nhấn START để bắt đầu" ở dưới; chạm / bấm phím thì các nút hiện ra.
+   Cú chạm ấy cũng là cú chạm đầu tiên mà trình duyệt đòi để phát tiếng (SFX.unlock). Chế độ dev (#dev) bỏ qua cả hai.
+   Thay logo: sửa SPLASH_LOGO (chuỗi HTML / SVG, hoặc một <img>). */
 const SPLASH_LOGO = '<svg class="splash-mark" viewBox="0 0 200 200" aria-hidden="true">'
   + '<rect x="6" y="6" width="188" height="188" rx="34" fill="none" stroke="#f4ecd8" stroke-width="4" stroke-dasharray="14 10" opacity=".55"/>'
   + '<path d="M80,46 h40 M86,46 v42 l-34,62 q-6,14 10,14 h76 q16,0 10,-14 l-34,-62 v-42" fill="none" stroke="#f4ecd8" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>'
   + '<path d="M62,132 q38,-14 76,0 l8,14 q4,8 -6,8 h-80 q-10,0 -6,-8z" fill="#7fc4c9"/>'
   + '<circle cx="92" cy="116" r="6" fill="#7fc4c9"/><circle cx="108" cy="100" r="4" fill="#7fc4c9"/></svg>'
   + '<div class="splash-name">LOGO</div>';
-function showSplash(){
-  if(DEBUG) return;
-  const sp = document.createElement('div');
-  sp.className = 'splash'; sp.setAttribute('role', 'button'); sp.setAttribute('aria-label', 'Nhấn để bắt đầu');
-  sp.innerHTML = '<div class="splash-logo">' + SPLASH_LOGO + '</div><div class="splash-tap">Nhấn để bắt đầu</div>';
-  document.body.appendChild(sp);
-  let ready = false;
-  const tReady = setTimeout(() => { ready = true; sp.classList.add('ready'); }, 1400);   // logo hiện trước, rồi mới mời chạm
-  const start = e => {
-    if(!ready){ ready = true; clearTimeout(tReady); sp.classList.add('ready'); return; }   // chạm sớm: hiện ngay lời mời
-    if(e && e.type === 'keydown' && /^(Shift|Control|Alt|Meta|Tab)$/.test(e.key)) return;
-    sp.removeEventListener('pointerdown', start); removeEventListener('keydown', start);
-    SFX.unlock(); SFX.page();
-    sp.classList.add('out');
-    setTimeout(() => sp.remove(), 650);
-  };
-  sp.addEventListener('pointerdown', start); addEventListener('keydown', start);
+const SPLASH_MS = 2600;   // logo hiện dần (~1,3 s) rồi đứng một nhịp, sau đó màn đen tự mờ đi
+function hideSplash(){
+  const sp = document.querySelector('.splash:not(.out)');
+  if(!sp) return;
+  clearTimeout(sp._t);
+  sp.classList.add('out');
+  setTimeout(() => sp.remove(), 650);
 }
-showMenu();       // menu dựng sẵn dưới màn mở đầu
-showSplash();
+function showSplash(){
+  const sp = document.createElement('div');
+  sp.className = 'splash'; sp.setAttribute('aria-hidden', 'true');
+  sp.innerHTML = '<div class="splash-logo">' + SPLASH_LOGO + '</div>';
+  document.body.appendChild(sp);
+  sp._t = setTimeout(hideSplash, SPLASH_MS);
+}
+function titleScreen(){
+  const sc = G.querySelector('.menu-main') && G.querySelector('.menu-main').closest('.scene');
+  if(!sc) return;
+  sc.classList.add('titlemode');
+  sc.insertAdjacentHTML('beforeend', '<div class="menu-press">Nhấn START để bắt đầu</div>');
+  const start = e => {
+    if(e.type === 'keydown' && /^(Shift|Control|Alt|Meta|Tab|Escape)$/.test(e.key)) return;
+    if(e.type === 'keydown' && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+    e.preventDefault(); e.stopPropagation();
+    if(document.querySelector('.splash:not(.out)')){ hideSplash(); return; }   // còn màn đen: chạm sớm chỉ để tắt nó
+    removeEventListener('pointerdown', start, true); removeEventListener('keydown', start, true);
+    // cú bấm này không được rơi xuống nút vừa hiện ra dưới ngón tay
+    const eat = ev => { ev.stopPropagation(); ev.preventDefault(); };
+    addEventListener('click', eat, true); setTimeout(() => removeEventListener('click', eat, true), 450);
+    SFX.unlock(); SFX.page();
+    sc.classList.remove('titlemode');
+    const pr = sc.querySelector('.menu-press'); if(pr) pr.remove();
+  };
+  addEventListener('pointerdown', start, true); addEventListener('keydown', start, true);
+}
+showMenu();
+if(!DEBUG){ titleScreen(); showSplash(); }
 // lưu sẵn game để lần sau mất mạng vẫn chơi được (sw.js). Mở thẳng file trên máy (file://) hay trong iframe không cho
 // phép thì thôi, game vẫn chạy bình thường.
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol))

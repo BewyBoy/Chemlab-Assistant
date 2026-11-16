@@ -59,8 +59,10 @@ function dotEyes(i, eyes, lid){
     open.push(`<ellipse cx="${f(x)}" cy="${f(y)}" rx="${rx}" ry="${ry}" fill="${EYE_INK}"/>`);
     arc.push(`<path d="M${f(x - r - 2)},${f(y + 1)} q${f(r + 2)},${f(-(r + 4))} ${f(2*r + 4)},0" fill="none" stroke="${EYE_INK}" stroke-width="2.6" stroke-linecap="round"/>`);
     const lash = [];
-    if(st.lash) lash.push(`<path d="M${f(x - s*(rx + 0.5))},${f(y - ry*0.5)} l${f(-s*4.5)},-4" fill="none" stroke="${EYE_INK}" stroke-width="2" stroke-linecap="round"/>`);
-    if(st.lash > 1) lash.push(`<path d="M${f(x - s*rx*0.4)},${f(y - ry - 0.5)} l${f(-s*3)},-4.5" fill="none" stroke="${EYE_INK}" stroke-width="1.8" stroke-linecap="round"/>`);
+    // lông mi bám mí: lúc chớp dời theo (--lx, --ly) tới hai đầu nét mắt nhắm (chấm dẹt ở 62% chiều cao, rộng ×1,55)
+    const lm = (dx, dy) => ` class="eo-lash" style="--lx:${f(dx)}px;--ly:${f(dy)}px"`;
+    if(st.lash) lash.push(`<path${lm(-s*0.55*rx, 0.74*ry)} d="M${f(x - s*(rx + 0.5))},${f(y - ry*0.5)} l${f(-s*4.5)},-4" fill="none" stroke="${EYE_INK}" stroke-width="2" stroke-linecap="round"/>`);
+    if(st.lash > 1) lash.push(`<path${lm(-s*0.22*rx, 1.24*ry + 0.5)} d="M${f(x - s*rx*0.4)},${f(y - ry - 0.5)} l${f(-s*3)},-4.5" fill="none" stroke="${EYE_INK}" stroke-width="1.8" stroke-linecap="round"/>`);
     if(st.crease) lash.push(`<path d="M${f(x - s*(rx + 3))},${f(y + 1)} l${f(-s*4)},2 M${f(x - s*(rx + 3))},${f(y + 3.5)} l${f(-s*3.5)},3" fill="none" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>`);
     open.push(...lash); arc.push(...lash);
     open.push(`<rect class="blinklid" x="${f(x - rx - 1.5)}" y="${f(y - ry - 1.5)}" width="${f(2*rx + 3)}" height="${f(2*ry + 3)}" rx="${f(rx)}" fill="${lid}"/>`);
