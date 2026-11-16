@@ -130,7 +130,8 @@ const TRANG_PHUC = (() => {
           + g('<path d="M104,74 q4,-46 56,-48 q46,0 58,44 q-8,-14 -30,-18 q-28,-6 -56,2 q-20,6 -28,20z" fill="#d9634f"/>', 2.8)
           + '<g fill="#fff6ea"><circle cx="134" cy="44" r="3.4"/><circle cx="160" cy="36" r="3.4"/><circle cx="186" cy="42" r="3.4"/><circle cx="148" cy="56" r="3"/><circle cx="174" cy="55" r="3"/></g>'
           // tạp dề caro kéo cao lên ngực, quai đeo cổ
-          + g('<path d="M140,186 l2,20 M180,186 l-2,20" fill="none" stroke-width="3"/>', 2.6)
+          + '<path d="M141,205 Q141,192 147,182 M179,205 Q179,192 173,182" fill="none" stroke="' + INK + '" stroke-width="9" stroke-linecap="round"/>'
+          + '<path d="M141,205 Q141,192 147,182 M179,205 Q179,192 173,182" fill="none" stroke="#e8907d" stroke-width="5" stroke-linecap="round"/>'
           + g('<path d="M136,204 q24,-6 48,0 l2,34 q12,2 14,8 l2,36 h-84 l2,-36 q2,-6 14,-8z" fill="url(#tp1s2_caro)"/>', 2.6),
         // bỏ giỏ bánh (nằm dưới mép bàn)
         prop: '' }
@@ -190,9 +191,9 @@ const TRANG_PHUC = (() => {
       { ten: 'Áo phản quang',
         grad: { c3cloth: ['#3f6198', '#304f80'], c3clothL: ['#304f80', '#243e68'] },
         over:
-          '<clipPath id="tp4s1_vest"><path d="M104,178 q-34,8 -50,30 q-14,20 -16,84 l172,0 q-2,-64 -16,-84 q-16,-22 -50,-30 l-16,40 h-8z"/></clipPath>'
+          '<clipPath id="tp4s1_vest"><path d="M100,178 q-34,8 -50,30 q-14,20 -16,84 l172,0 q-2,-64 -16,-84 q-16,-22 -50,-30 l-16,40 h-8z"/></clipPath>'
           // áo gi-lê cam phản quang, chừa cổ chữ V (áo trong xanh than)
-          + g('<path d="M104,178 q-34,8 -50,30 q-14,20 -16,84 l172,0 q-2,-64 -16,-84 q-16,-22 -50,-30 l-16,40 h-8z" fill="#f0883e"/>', 3.2)
+          + g('<path d="M100,178 q-34,8 -50,30 q-14,20 -16,84 l172,0 q-2,-64 -16,-84 q-16,-22 -50,-30 l-16,40 h-8z" fill="#f0883e"/>', 3.2)
           // hai sọc phản quang kéo lên ngực cho thấy trên mép bàn
           + `<g clip-path="url(#tp4s1_vest)">${g('<rect x="30" y="198" width="180" height="9" fill="#e9eef0"/><rect x="30" y="214" width="180" height="9" fill="#e9eef0"/>', 2)}</g>`
           + g('<path d="M120,218 v62" fill="none" stroke-width="2.4"/>', 2)
@@ -289,11 +290,12 @@ const TRANG_PHUC = (() => {
       { ten: 'Áo khoác gió',
         grad: { c6cloth: ['#f8a24a', '#ee8a2e'], c6clothL: ['#ee8a2e', '#d27220'] },
         over:
-          '<clipPath id="tp7s2_body"><path d="M104,178 q-34,8 -50,30 q-14,20 -16,84 l172,0 q-2,-64 -16,-84 q-16,-22 -50,-30 q-16,9 -40,0z M56,196 q-22,10 -24,46 q-1,16 4,28 q4,8 14,7 q8,-1 11,-9 q3,-36 5,-58 q-2,-14 -10,-13z M184,196 q22,10 24,46 q1,16 -4,28 q-4,8 -14,7 q-8,-1 -11,-9 q-3,-36 -5,-58 q2,-14 10,-13z"/></clipPath>'
+          '<clipPath id="tp7s2_body"><path d="M100,178 q-34,8 -50,30 q-14,20 -16,84 l172,0 q-2,-64 -16,-84 q-16,-22 -50,-30 q-16,9 -40,0z M56,196 q-22,10 -24,46 q-1,16 4,28 q4,8 14,7 q8,-1 11,-9 q3,-36 5,-58 q-2,-14 -10,-13z M184,196 q22,10 24,46 q1,16 -4,28 q-4,8 -14,7 q-8,-1 -11,-9 q-3,-36 -5,-58 q2,-14 10,-13z"/></clipPath>'
           // dải phối màu kem + xanh than ngang ngực và tay (cao, thấy trên mép bàn)
-          + `<clipPath id="tp7s2_torso"><path d="M104,178 q-34,8 -50,30 q-14,20 -16,84 l172,0 q-2,-64 -16,-84 q-16,-22 -50,-30 q-16,9 -40,0z"/></clipPath>`
+          + `<clipPath id="tp7s2_torso"><path d="M100,178 q-34,8 -50,30 q-14,20 -16,84 l172,0 q-2,-64 -16,-84 q-16,-22 -50,-30 q-16,9 -40,0z"/></clipPath>`
           + `<g clip-path="url(#tp7s2_torso)"><rect x="20" y="197" width="200" height="10" fill="#f4ecd6"/><rect x="20" y="207" width="200" height="6" fill="#2f5592"/>`
           + `<path d="M20,197 h200 M20,213 h200" stroke="${INK}" stroke-width="2"/></g>`
+          + tpArms(7)
           + g('<path d="M56,196 q-22,10 -24,46 q-1,16 4,28 q4,8 14,7 q8,-1 11,-9 q3,-36 5,-58 q-2,-14 -10,-13z M184,196 q22,10 24,46 q1,16 -4,28 q-4,8 -14,7 q-8,-1 -11,-9 q-3,-36 -5,-58 q2,-14 10,-13z" fill="none"/>', 3.2)
           // khoá kéo
           + '<path d="M120,190 v90" fill="none" stroke="#b8661a" stroke-width="2.6"/>',
@@ -332,6 +334,8 @@ const TRANG_PHUC = (() => {
     /* ---------- 9 · Thầy Nam — giáo viên Hoá (khung 200x280; cổ áo sơ mi của diversify nằm trên cùng; màu nhận diện: trắng + vàng mù tạt) ---------- */
     9: [
       { ten: 'Gi-lê len giảng đường',
+        // bỏ khuy áo sơ mi lòi ra đúng mũi chữ V của gi-lê
+        swap: [['<circle cx="120" cy="248" r="3"/>', '']],
         over:
           // áo gi-lê len vàng mù tạt, cổ chữ V, sọc gân
           '<clipPath id="tp9s1_vest"><path d="M104,174 q-38,10 -54,32 q-15,21 -17,94 l174,0 q-2,-73 -17,-94 q-16,-22 -54,-32 L120,244z"/></clipPath>'
@@ -353,11 +357,10 @@ const TRANG_PHUC = (() => {
           // áo blouse trắng mở vạt
           + g('<path d="M104,172 q-38,10 -54,32 q-15,21 -17,96 h60 l0,-80 l-6,-10 l8,-6 z" fill="url(#tp9s2_coat)"/>'
             + '<path d="M136,172 q38,10 54,32 q15,21 17,96 h-60 l0,-80 l6,-10 l-8,-6 z" fill="url(#tp9s2_coat)"/>', 3.2)
-          + g('<path d="M104,172 l-10,18 l-6,10 M136,172 l10,18 l6,10" fill="none" stroke-width="2" opacity=".55"/>', 2)
-          // ống nghiệm to cắm túi ngực
-          + g('<rect x="163" y="186" width="10" height="28" rx="5" fill="#fffdf5"/>'
-            + '<path d="M163.8,200 h8.4 v9 q0,4.2 -4.2,4.2 q-4.2,0 -4.2,-4.2z" fill="#9b7bb8" stroke="none"/>', 2)
-          + g('<path d="M154,204 h28 v20 q-14,4 -28,0z" fill="#f4f1e8"/>', 2.2)
+          // ống nghiệm to cắm túi ngực (túi nằm gọn giữa vạt áo và tay áo)
+          + g('<rect x="153" y="186" width="10" height="28" rx="5" fill="#fffdf5"/>'
+            + '<path d="M153.8,200 h8.4 v9 q0,4.2 -4.2,4.2 q-4.2,0 -4.2,-4.2z" fill="#9b7bb8" stroke="none"/>', 2)
+          + g('<path d="M145,204 h25 v20 q-12.5,4 -25,0z" fill="#f4f1e8"/>', 2.2)
           + tpArms(9, 'url(#tp9s2_coat)', 'url(#tp9s2_coat)') }
     ],
 

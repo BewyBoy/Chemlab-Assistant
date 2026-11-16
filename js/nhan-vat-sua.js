@@ -79,6 +79,23 @@ const SUA = {
   },
 
   /* ---------- 6 · Ông Sáu ---------- */
+  /* ---------- 1 · Bà Tư: bỏ hàng khuy vàng nhỏ trên áo (một khuy lòi ra ngay dưới quai túi bánh mì) ---------- */
+  1(svg){
+    return svg.split('fill:rgb(232,184,75);stroke:rgb(59,48,37);stroke-width:1.6px').join('fill:none;stroke:none;stroke-width:1.6px');
+  },
+
+  /* ---------- 7 · Bạn Tí: mặt đã hạ thấp (FACE_META.small) nên mũi bắt đầu thấp hơn, nhưng nét cánh mũi vẫn ở y 130 —
+     cắt ngang giữa mũi thành dấu chéo. Dời nét cánh mũi xuống sát chân mũi mới. ---------- */
+  7(svg){
+    return svg.replace('<path d="M113,130 q7,4 14,0" stroke-width="1.8"', '<path d="M115,139 q5,3 10,0" stroke-width="1.8"');
+  },
+
+  /* ---------- 5 · Cô Lan: lòng chữ V của cổ áo — nửa trái tô gradient tay áo (xanh tối), nửa phải màu kem → trông như
+     hai mảnh vải khác nhau. Cả hai nửa là áo lót kem (bộ scrubs đổi cả hai sang xanh, xem trang-phuc.js). ---------- */
+  5(svg){
+    return svg.replace('<path fill="url(#hd5_c4clothL)" d="M120,176 q-14,2 -26,13 q19,-3 26,7z"', '<path fill="#f3eddc" d="M120,176 q-14,2 -26,13 q19,-3 26,7z"');
+  },
+
   6(svg){
     // (a) nét cung mờ lơ lửng phía trên đỉnh đầu hói
     svg = suaBo(svg, 'd="M108,48 q10,-6 18,0"');
@@ -161,7 +178,9 @@ const SUA = {
 const SUA_CHUNG = [
   /<path d="M80,122 q-6,20 8,34[^"]*"[^>]*\/>/g,
   /<path d="M80,122C76,135\.333[^"]*"[^>]*\/>/g,      // cùng mảng bóng ấy, cú pháp của hình vẽ tay khung 280x280
-  /<path d="M71\.8,76C66\.726,96\.067[^"]*"[^>]*\/>/g
+  /<path d="M71\.8,76C66\.726,96\.067[^"]*"[^>]*\/>/g,
+  // nếp nhăn mờ ở hai góc hàm: không theo khuôn mặt khi mặt bị đổi / xoay, thành vết lạc ngoài hàm (Ông Sáu, Bà Tư)
+  /<path d="M(?:80|160),150[ Cq][^"]*"[^>]*\/>/g
 ];
 /* Cổ áo sơ mi của hai hình vẽ tay khung 280 (Bà Tư, Chú Ba): mép dưới lõm, hai đầu nhọn vểnh — trông như con dơi.
    Đổi thành hai vạt cổ tròn, mép dưới lồi (giữ nguyên chỗ nối cổ và màu). */

@@ -67,6 +67,8 @@ function xoayBuild(svgStr){
     // tai, khuyên tai: mảnh nhỏ sát hai mép mặt
     if(B.w <= 30 && B.h <= 44 && B.cy >= ey - 16 && B.cy <= ey + 30 && adx >= 44 && adx <= 68) return dx < 0 ? 'tq-earfar' : 'tq-earnear';
     if(B.w <= 18 && B.h <= 30 && B.cy >= ey + 22 && B.cy <= ey + 52 && adx >= 34 && adx <= 60) return dx < 0 ? 'tq-earfar' : 'tq-earnear';
+    // tóc mai mảnh thò dưới vành mũ, sát mép mặt (Anh Minh): theo tai — bên xa ẩn đi, bên gần nhích vào
+    if(B.w <= 12 && B.h >= 8 && B.h <= 40 && B.cy >= ey - 40 && B.cy < ey && adx >= 40 && adx <= 66) return dx < 0 ? 'tq-earfar' : 'tq-earnear';
     // dưới cằm: thân, tay, trang phục, đạo cụ
     if(B.y0 >= ey + 56) return 'tq-body';
     return '';
@@ -89,7 +91,10 @@ function xoayBuild(svgStr){
       const isBlush = blushEl(el) || (tag === 'g' && el.children.length === 1 && blushEl(el.children[0]));
       if(isBlush && B.cx < cx - 10 && B.cy > ey && B.cy < ey + 50){ wrap(el, 'tq-blushfar', B.x1, B.cy); continue; }
       // mảng bóng mờ dưới cằm / trên cổ: đứng yên cùng cổ (trượt theo nét mặt là lòi ra cạnh cổ)
-      if(+(el.getAttribute('opacity') || 1) < .3 && B.cy > ey + 40 && B.y1 < ey + 80) continue;
+      // độ mờ của phần tử (hoặc của phần tử con duy nhất, khi nó bọc trong một <g> dời toạ độ); hình vẽ tay ghi trong style
+      const one = tag === 'g' && el.children.length === 1 ? el.children[0] : el;
+      const opOf = x => +(x.getAttribute('opacity') || 1) * +(((x.getAttribute('style') || '').match(/fill-opacity:([\d.]+)/) || [, 1])[1]);
+      if(opOf(el) * (one === el ? 1 : opOf(one)) < .3 && B.cy > ey + 28 && B.y1 < ey + 80) continue;
       const cls = classify(B);
       if(cls === 'tq-body'){
         const side = armSide(B);
@@ -97,6 +102,8 @@ function xoayBuild(svgStr){
         // nhóm dưới cằm có lẫn cánh tay: xét từng phần tử con để tách tay ra
         if(tag === 'g' && depth < 5 && el.children.length && [...el.children].some(c => { const b = box(c); return b && armSide(b); })){ walk(el, depth + 1); continue; }
       }
+      // nhóm nét mặt có lẫn mảng bóng mờ dưới cằm (hình vẽ tay): xét từng con để mảng bóng đứng yên
+      if(cls === 'tq-feat' && tag === 'g' && depth < 5 && [...el.querySelectorAll('path')].some(x => /fill-opacity:0?\.[0-2]/.test(x.getAttribute('style') || ''))){ walk(el, depth + 1); continue; }
       if(cls){ wrap(el, cls, ...origin(cls, B)); continue; }
       if(tag === 'g' && depth < 5 && el.children.length) walk(el, depth + 1);   // nhóm lẫn nhiều lớp: xét từng phần tử con
     }
