@@ -136,6 +136,13 @@ function applySkin(svg, i, k){
   return svg.replace(/(id="|url\(#|href="#)(hd\d+)/g, '$1$2k' + k);
 }
 // ghép hình khách: thân (đã đổi mắt) + trang phục skin k + đạo cụ (skin có thể thay đạo cụ cổ điển: prop:'' là bỏ)
+// nhóm <g data-ontop="1"> (đánh dấu ở nhan-vat-sua.js, vd. râu Ông Sáu) dời ra cuối hình, giữ thứ tự: nằm trên mọi lớp
+// quần áo và đạo cụ ghép sau
+function lenTren(svg){
+  const moved = [];
+  for(let at; (at = svg.indexOf('<g data-ontop="1"')) >= 0;){ const end = gEnd(svg, at); if(end < 0) break; moved.push(svg.slice(at, end)); svg = svg.slice(0, at) + svg.slice(end); }
+  return moved.length ? svg.replace(/<\/svg>\s*$/, moved.join('') + '</svg>') : svg;
+}
 const custArtMemo2 = {};
 function custArt(i, k){
   k = k || 0;
@@ -143,7 +150,7 @@ function custArt(i, k){
   if(custArtMemo2[key]) return custArtMemo2[key];
   const sk = skinsOf(i + 1)[k] || {};
   const prop = sk.prop !== undefined ? sk.prop : (CUST_PROPS[i] || '');
-  return (custArtMemo2[key] = applySkin(HD_CHARS[i + 1].replace('</svg>', prop + '</svg>'), i + 1, k));
+  return (custArtMemo2[key] = lenTren(applySkin(HD_CHARS[i + 1].replace('</svg>', prop + '</svg>'), i + 1, k)));
 }
 /* DÁNG NGƯỜI — mỗi khách một vóc: [rộng, cao] nhân lên cả hình, neo ở giữa đáy (chân đứng yên). Trẻ con nhỏ hẳn,
    Anh Minh to ngang, Ông Sáu thấp đậm, Thầy Nam cao, Chị Hoa mảnh… Dùng chung cho hình thẳng (custSVG) và hình

@@ -1835,10 +1835,13 @@ if(typeof SPECS !== 'undefined' && typeof diversify === 'function'){
    khách 3–9 dùng khung 200x280 (mặt ở y≈105, cổ áo y≈185, ngực y 195–255, thân x 35–185).
    Không có đạo cụ cho Chú Ba (đã có nón lá) và Thầy Nam (đã có áo blouse). */
 const CUST_PROPS = {
-  // 0 · Bà Tư — lò bánh mì: ổ bánh mì ôm chéo trước ngực
-  0: '<g stroke="#3b3025" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" transform="rotate(-20 150 228)">'
-   + '<rect x="104" y="214" width="92" height="28" rx="14" fill="#d99a52"/>'
-   + '<path d="M126,222 l9,12 M147,220 l9,12 M168,220 l9,12" fill="none" stroke-width="2.4" opacity=".65"/></g>',
+  // 0 · Bà Tư — lò bánh mì: túi giấy đựng bánh mì đeo chéo (quai qua vai phải, túi bên hông trái, hai ổ bánh thò lên)
+  0: '<g stroke="#3b3025" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">'
+   + '<path d="M184,183 Q192,186 194,192 L124,226" fill="none" stroke-width="9"/><path d="M184,183 Q192,186 194,192 L124,226" fill="none" stroke="#a97c4b" stroke-width="4.5"/>'
+   + '<rect x="104" y="182" width="17" height="58" rx="8.5" transform="rotate(-14 112 211)" fill="#d99a52"/>'
+   + '<rect x="122" y="190" width="16" height="52" rx="8" transform="rotate(10 130 216)" fill="#e0a85e"/>'
+   + '<path d="M108,192 l6,4 M110,202 l6,4 M127,200 l-6,4 M126,210 l-6,4" fill="none" stroke-width="2" opacity=".6"/>'
+   + '<path d="M98,210 L146,210 L142,262 L102,262 Z" fill="#e9d8b4"/><path d="M98,210 l6,6 l6,-6 l6,6 l6,-6 l6,6 l6,-6 l6,6 l6,-6" fill="none" stroke-width="2"/></g>',
   // 2 · Bé Na — học sinh: khăn quàng đỏ cỡ thật — nút thắt nhỏ ở cổ áo + hai đuôi ngắn (≤ 35 đv dưới cổ), không che áo;
   //   cổ áo em ở x≈160 nên dịch +9. Cà vạt ảnh raster của hình gốc được bỏ trong nhan-vat-sua.js
   2: '<g stroke="#3b3025" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" transform="translate(9,0)">'

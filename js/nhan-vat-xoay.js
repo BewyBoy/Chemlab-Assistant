@@ -88,6 +88,8 @@ function xoayBuild(svgStr){
       const blushEl = x => x.tagName.toLowerCase() === 'ellipse' && /blush|Radial/.test(x.getAttribute('fill') || x.getAttribute('style') || '');
       const isBlush = blushEl(el) || (tag === 'g' && el.children.length === 1 && blushEl(el.children[0]));
       if(isBlush && B.cx < cx - 10 && B.cy > ey && B.cy < ey + 50){ wrap(el, 'tq-blushfar', B.x1, B.cy); continue; }
+      // mảng bóng mờ dưới cằm / trên cổ: đứng yên cùng cổ (trượt theo nét mặt là lòi ra cạnh cổ)
+      if(+(el.getAttribute('opacity') || 1) < .3 && B.cy > ey + 40 && B.y1 < ey + 80) continue;
       const cls = classify(B);
       if(cls === 'tq-body'){
         const side = armSide(B);

@@ -61,9 +61,11 @@ function suaDoiMau(svg, hd, duoi, mau){
 const SUA = {
   /* ---------- 3 · Bé Na: bỏ cà vạt (ảnh raster #hd3__Image15) ----------
      Trước đây khăn quàng to che luôn cà vạt; nay khăn quàng thu nhỏ (CUST_PROPS[2]) nên cà vạt lộ ra,
-     trông như dân văn phòng — bỏ hẳn. Cổ áo (#hd3__Image14) giữ nguyên. */
+     trông như dân văn phòng — bỏ hẳn. Cổ áo (#hd3__Image14) cũng bỏ: đó là một mảng bóng raster mờ, không có
+     cà vạt thì nó thành vệt xám nhoè hai bên nút khăn quàng. */
   3(svg){
-    return suaBo(svg, 'xlink:href="#hd3__Image15"');
+    svg = suaBo(svg, 'xlink:href="#hd3__Image15"');
+    return suaBo(svg, 'xlink:href="#hd3__Image14"');
   },
 
   /* ---------- 4 · Anh Minh: tóc chỉ còn phần dưới mũ ----------
@@ -83,6 +85,11 @@ const SUA = {
     // (b) gi-lê + hai ống tay: nâu → xanh ô-liu
     svg = suaDoiMau(svg, 'hd6', 'c5cloth',  ['#8d9a55', '#74803f']);
     svg = suaDoiMau(svg, 'hd6', 'c5clothL', ['#74803f', '#5a6430']);
+    // (c) râu phải nằm TRÊN áo: đánh dấu râu và các miệng (miệng nằm sát mép trên râu) để custArt (nhan-vat-skin.js)
+    //     dời chúng ra cuối hình, sau cả quần áo của bộ đồ (over) lẫn đạo cụ (miếng thêu cá, quai yếm)
+    svg = svg.replace(/<g transform="([^"]*)"><path fill="url\(#hd6_c5hair\)" stroke="#3b3025" stroke-width="2\.6" stroke-linejoin="round" d="M84,138/,
+      '<g data-ontop="1" transform="$1"><path fill="url(#hd6_c5hair)" stroke="#3b3025" stroke-width="2.6" stroke-linejoin="round" d="M84,138');
+    svg = svg.replace(/<g class="x-(neutral|happy|annoy)">/g, '<g data-ontop="1" class="x-$1">');
     return svg;
   },
 
