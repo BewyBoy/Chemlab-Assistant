@@ -1274,3 +1274,10 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .menu-press{position:absolute;left:0;right:0;bottom:46px;z-index:5;text-align:center;font-family:var(--fh);font-size:30px;color:var(--ink);text-shadow:0 0 10px #fffdf5,0 0 4px #fffdf5;pointer-events:none;animation:titlepress 1.6s ease-in-out infinite}
 @keyframes titlepress{50%{opacity:.35}}
 @media (prefers-reduced-motion:reduce){.splash-logo{animation:none;opacity:1;transform:none}.menu-press{animation:none}}
+/* tên màn ở thẻ Tạm nghỉ (thay cho tên trên ô lịch / thanh trên cùng) */
+.pausetitle{font-family:var(--fh);font-size:20px;margin:-6px 0 14px;opacity:.85}
+/* ô lịch: sticker hoá học (molBox của che-do.js) thay cho tên ngày */
+.day-card .dstk{display:flex;align-items:center;justify-content:center;max-height:none;overflow:visible}
+.day-card .molbox{position:relative;flex:none}
+.day-card .mol{position:absolute;inset:0}
+.day-card .atom{transition:none}

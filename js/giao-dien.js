@@ -197,7 +197,7 @@ if(!save.starsHard) save.starsHard = {};               // sao chế độ khó l
 if(!save.hist) save.hist = [];                         // nhật ký từng lượt chơi (ngày nào đã chơi: lessonSeen)
 if(!save.best) save.best = {};                         // kỷ lục điểm từng ngày (js/diem.js)
 if(!save.bestHard) save.bestHard = {};                 // kỷ lục điểm chế độ khó
-const hardUnlocked = () => (save.stars[DAYS.length]||0) >= 1 || (save.starsHard[DAYS.length]||0) >= 1;   // đã qua ngày cuối lần đầu
+const hardUnlocked = () => DEBUG;   // chế độ khó tạm chỉ có ở chế độ dev (nút trên lịch, công tắc trong Cài đặt)
 const hardOn  = () => hardUnlocked() && save.settings.hard === true;     // chế độ khó: tự tính gam / ml / lít
 const cardsOn = () => save.settings.cards !== false;   // thẻ phản ứng khi khám phá: bật mặc định
 // sổ ghi chép ở màn xác định chất: phải mua ở Cửa hàng; mua rồi bật/tắt ngay trong Cửa hàng (mặc định bật)
@@ -341,7 +341,7 @@ function showMap(){
   // hand-drawn red pen loop, revealed by stroke-dashoffset when an unplayed day is picked
   const circ = '<svg class="dnc" viewBox="0 0 48 40"><path d="M9,21 C6,9 20,4 30,6 C42,8 46,15 42,25 C37,36 15,39 8,31 C3,25 7,15 15,11" pathLength="100"/></svg>';
   let cells = '';
-  const fo = DEBUG || (save.stars[DAYS.length]||0) >= 1;   // tháng sau (ca tự do, tham quan) mở khi qua ngày 31
+  const fo = DEBUG || (save.stars[DAYS.length]||0) >= 1;   // tháng sau (ca tự do) mở khi qua ngày 31
   for(let d=0; d < Math.ceil(DAYS.length/7)*7; d++){
     if(d === DAYS.length){   // hết 31 ngày thì sang tháng mới: ngày 1 là ca tự do, chơi mãi
       cells += `<div class="day-card freecard${fo?'':' locked'}" data-free="1">
@@ -350,19 +350,14 @@ function showMap(){
         <div class="st">${fo?ico('dice',18):''}</div></div>`;
       continue;
     }
-    if(d === DAYS.length + 1){   // ngày 2 tháng sau: chuyến tham quan khu công nghiệp (js/tham-quan.js), chưa có vé thì ghi giá vé
-      cells += `<div class="day-card freecard tripcard${fo?'':' locked'}" data-trip="1">
-        <div class="dt">${LICH.thamQuan}</div>
-        <div class="dn"><span class="dnw">2</span>${fo?'':' '+ico('lock',14)}</div>
-        <div class="st">${!fo ? '' : tripOwned() ? ico('factory',18) : TQ_GIA + ' ' + ico('coinred',14)}</div></div>`;
-      continue;
-    }
     if(d > DAYS.length){ cells += '<div class="day-card blank"></div>'; continue; } // trailing blanks, like a real month page
     const day = DAYS[d], num = d+1;
     const open = DEBUG || num <= save.unlocked;
     const st = save.stars[num] || 0, sth = save.starsHard[num] || 0;
-    cells += `<div class="day-card${open?'':' locked'}${d%7===6?' sun':''}" data-d="${d}">
-      <div class="dt">${day.t}</div>
+    // ô lịch dán sticker hoá học của ngày (LICH.sticker, vẽ như minigame ngày 3); tên ngày hiện ở thẻ Tạm nghỉ khi chơi
+    const stk = LICH.sticker && LICH.sticker[d];
+    cells += `<div class="day-card${open?'':' locked'}${d%7===6?' sun':''}${day.trip?' tripday':''}" data-d="${d}" title="${day.t}">
+      <div class="dt dstk">${stk ? molBox(stk, 78, 58, 1.15) : day.t}</div>
       <div class="dn"><span class="dnw">${num}${open && !st && !sth ? circ : ''}</span>${open?'':' '+ico('lock',14)}</div>
       <div class="st">${open||st?dayStars(st, sth):''}</div></div>`;
   }
@@ -393,7 +388,6 @@ function showMap(){
   G.querySelectorAll('.day-card').forEach(c => {
     if(c.classList.contains('locked') || c.classList.contains('blank')) return;
     if(c.dataset.free){ c.onclick = () => go(startFree); return; }
-    if(c.dataset.trip){ c.onclick = tripTicket; return; }   // js/tham-quan.js
     c.onclick = () => {
       if(c.classList.contains('circled')) return; // nav already scheduled
       if(c.querySelector('.dnc')){ c.classList.add('circled'); SFX.page(); setTimeout(()=>go(()=>playDay(+c.dataset.d)), 520); }
@@ -745,7 +739,7 @@ function showLesson(i, onEnd){
    thì đồng hồ mới chạy (startCurtain). */
 function playDay(i){
   if(lessonHard(i) ? !lessonHardSeen(i+1) : BAI_GIANG[i] && !lessonSeen(i+1)) return showLesson(i);
-  (DAYS[i].mg ? startMinigame : startLab)(i);
+  (DAYS[i].trip ? startTrip : DAYS[i].mg ? startMinigame : startLab)(i);   // startTrip: js/tham-quan.js
 }
 // thời lượng từng nhịp (giây) — tối dần, chữ rơi vào, đứng giữa, rơi ra, sáng lại; style.css chia % theo đúng các số này
 const START_HOLD = .5, START_MS = (.2 + .3 + START_HOLD + .3 + .2)*1000;
@@ -1001,7 +995,7 @@ function settingsModal(){
     + tgl('tglFull','expand','Toàn màn hình',fsOn(),!fsOK())
     + tgl('tglCards','star','Thẻ phản ứng',cardsOn())
     + tgl('tglBalance','note','Giấy cân bằng sẵn',!balanceOn(),!nobalOwned())
-    + tgl('tglHard','flask','Chế độ khó',hardOn(),!hardUnlocked())
+    + (hardUnlocked() ? tgl('tglHard','flask','Chế độ khó',hardOn()) : '')
     + tgl('tglCurtain','play','Màn "Bắt đầu"',curtainOn())
     + '</div></div></div>';
   const flip = (id, key, get, after) => ov.querySelector(id).onclick = e => {
@@ -1014,8 +1008,7 @@ function settingsModal(){
   const lockedTgl = (id, msg) => ov.querySelector(id).onclick = () => { SFX.err(); notify(ico('lock',16)+' '+msg); };
   flip('#tglCards', 'cards', cardsOn);
   flip('#tglCurtain', 'curtain', curtainOn);
-  if(hardUnlocked()) flip('#tglHard', 'hard', hardOn);
-  else lockedTgl('#tglHard', 'Hoàn thành trò chơi lần đầu để mở khoá chế độ khó!');
+  if(hardUnlocked()) flip('#tglHard', 'hard', hardOn);   // ngoài chế độ dev không có công tắc này
   if(nobalOwned()) flip('#tglBalance', 'balance', () => !balanceOn());
   else lockedTgl('#tglBalance', 'Mua vật phẩm ở Cửa hàng để mở khoá!');
   // toàn màn hình không lưu vào save: trình duyệt chỉ cho bật khi người chơi bấm; công tắc theo trạng thái thật (xem fullscreenchange)
@@ -1089,7 +1082,7 @@ function showResult(i, st){
   const day = DAYS[i], num = i+1;
   let sc, detail = '';
   // sao theo điểm (js/diem.js); mốc 1 / 2 sao = số phần cần theo luật cũ, 3 sao chỉ lượt hoàn hảo mới đủ điểm
-  if(day.mg){
+  if(day.mg || day.trip){   // minigame và ngày đi thực tế: chấm theo số câu đúng
     const n = st.total;
     sc = runScore(n, st.correct, Math.ceil(n*.5), Math.ceil(n*.75), n > 0 && st.correct === n);
     detail = `<p style="font-size:18px">${st.label || 'Trả lời đúng'}: <b>${st.correct}/${st.total}</b></p>`;
@@ -1114,7 +1107,7 @@ function showResult(i, st){
   if(rec) bests[num] = sc.pts;
   if(stars >= 1 && num >= save.unlocked && num < DAYS.length) save.unlocked = num + 1;
   // nhật ký từng lượt chơi (giữ 400 lượt gần nhất)
-  save.hist.push(day.mg ? {d:num, h:st.hard ? 1 : 0, s:stars, w:st.total - st.correct, t:Date.now()}
+  save.hist.push(day.mg || day.trip ? {d:num, h:st.hard ? 1 : 0, s:stars, w:st.total - st.correct, t:Date.now()}
     : {d:num, h:st.hard ? 1 : 0, s:stars, sv:st.served, w:st.wrong, sf:st.safety||0, t:Date.now()});
   if(save.hist.length > 400) save.hist.splice(0, save.hist.length - 400);
   persist();

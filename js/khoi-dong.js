@@ -9,12 +9,16 @@
 if(DEBUG){
   console.assert(DAYS.length === 31, 'DAYS phải đủ 31 ngày');
   console.assert(LICH.ngay.length === DAYS.length && DAYS.every(d => d.t), 'js/lich.js: cần đúng một mô tả cho mỗi ngày');
-  console.assert(BAI_GIANG.length === DAYS.length && BAI_GIANG.every(d => d.length), 'js/bai-giang.js: cần đúng một bài giảng (ít nhất một câu) cho mỗi ngày');
+  console.assert(BAI_GIANG.length === DAYS.length && BAI_GIANG.every((d, k) => DAYS[k].trip ? d === null : d && d.length),
+    'js/bai-giang.js: cần đúng một bài giảng (ít nhất một câu) cho mỗi ngày; ngày đi thực tế ghi null');
+  console.assert(LICH.sticker.length === DAYS.length && LICH.sticker.every(f => { try { return molHTML(f, 60, 50, 1).length > 50; } catch(e){ return false; } }),
+    'js/lich.js: cần đúng một sticker vẽ được cho mỗi ngày');
+  DAYS.filter(d => d.trip).forEach(d => console.assert(TRIPS[d.trip], 'ngày đi thực tế trỏ tới chuyến không có: ' + d.trip));
   // bài giảng chế độ khó: ngày có thật, có câu; ngày minigame phải có bài khó riêng (day.hard) thì mới có gì mới để giảng
   Object.keys(BAI_GIANG_KHO).forEach(k => { const d = DAYS[k - 1];
-    console.assert(d && BAI_GIANG_KHO[k].length && (!d.mg || d.hard), 'js/bai-giang.js: BAI_GIANG_KHO ngày ' + k + ' không dùng được'); });
+    console.assert(d && !d.trip && BAI_GIANG_KHO[k].length && (!d.mg || d.hard), 'js/bai-giang.js: BAI_GIANG_KHO ngày ' + k + ' không dùng được'); });
   DAYS.forEach((day, i) => {
-    if(day.mg) return;
+    if(day.mg || day.trip) return;
     const have = new Set(day.chems);          // bao đóng: pha ra được gì từ kệ của ngày đó
     for(let grew = true; grew;){ grew = false;
       for(const r of REACTIONS)
@@ -241,8 +245,9 @@ if(DEBUG){
       console.assert(q.why && q.show.every(s => PT_BY[s]), tag + 'thiếu lời giải / ô tô sai');
     });
   });
-  // chuyến tham quan (js/tham-quan.js): cảnh nền có thật, câu hỏi đủ lời khen / giải thích, người nói có trong TQ_NGUOI
-  THAM_QUAN.forEach(sc => {
+  // các chuyến đi thực tế (js/tham-quan.js): cảnh nền có thật, câu hỏi đủ lời khen / giải thích, người nói có trong TQ_NGUOI
+  Object.values(TRIPS).forEach(t => console.assert(t.loi.some(sc => sc.loi.some(x => typeof x !== 'string')), 'đi thực tế: chuyến không có câu hỏi nào để chấm sao'));
+  Object.values(TRIPS).flatMap(t => t.loi).forEach(sc => {
     console.assert(TQ_NEN[sc.nen] && sc.ten && sc.loi.length && (!sc.hinhcat || TQ_CAT[sc.hinhcat]), 'tham quan: cảnh "' + sc.ten + '" thiếu nền / lời / hình cắt');
     sc.loi.forEach(x => {
       if(typeof x === 'string'){ const L = tqLine(x, 0);

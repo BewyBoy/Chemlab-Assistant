@@ -206,7 +206,8 @@ function o(who, chem, n, opts){
   return Object.assign({who, chem, n}, opts||{});
 }
 
-/* ---- 31 days, 5 chương. Lab day: {story, chems, tools, dur, orders, s1}. Minigame day: {story, mg, ...data} ---- */
+/* ---- 31 days, 5 chương. Lab day: {story, chems, tools, dur, orders, s1}. Minigame day: {story, mg, ...data}.
+   Ngày đi thực tế: {story, trip} — trip là khoá chuyến đi trong TRIPS (js/tham-quan.js). ---- */
 /* tên / mô tả từng ngày (day.t) nằm ở js/lich.js — sửa ở đó */
 /* tools: spoon, book, quy, gas, heat, filter, elec (sink + đũa thuỷ tinh luôn có sẵn) */
 const DAYS = [
@@ -344,23 +345,26 @@ const DAYS = [
 
  // ================= CHƯƠNG 2: HIĐRO – NƯỚC – AXIT BAZƠ (8–14) =================
  {
+  // HIĐRO: tự điều chế (kim loại + axit, hứng khí) và dùng H₂ khử oxit kim loại (lọ H₂ trên kệ)
   story:DAY_STORY[8],
-  chems:['H2O','CuO','Fe2O3','H2'], tools:['spoon','book','heat','filter'], dur:530, s1:3,
-  orders:[ o(8,'Cu',1,{pname:'đồng kim loại'}),
-           o(9,'Fe',2,{pname:'sắt kim loại'}),
-           o(7,'Cu',1,{pname:'đồng đỏ (H₂ khử CuO)'}),
-           o(4,'Cu',2,{pname:'đồng kim loại (0,2 mol)'}),
-           o(3,'Fe',2,{pname:'sắt (H₂ khử Fe₂O₃)'}) ]},
+  chems:['H2O','HCl','Zn','Fe','CuO','Fe2O3','H2'], tools:['spoon','book','heat','gas','filter'], dur:600, s1:4,
+  orders:[ o(6,'H2',1,{pname:'khí hiđro (Zn + axit)'}),
+           o(8,'Cu',1,{pname:'đồng đỏ (H₂ khử CuO)'}),
+           o(1,'ZnCl2',1,{pname:'kẽm clorua'}),
+           o(3,'Fe',2,{pname:'sắt (H₂ khử Fe₂O₃)'}),
+           o(7,'FeCl2',1,{pname:'sắt(II) clorua'}),
+           o(4,'H2',2,{pname:'khí hiđro (Fe + axit)'}) ]},
 
  {
+  // OXI: tự điều chế (nhiệt phân thuốc tím; KClO₃ có MnO₂ xúc tác) rồi đốt chất trong chính lọ oxi vừa thu — kệ không có O₂
   story:DAY_STORY[9],
-  chems:['H2O','HCl','Zn','Fe','Mg','Al'], tools:['spoon','book','quy','gas'], dur:410, s1:4,
-  orders:[ o(6,'H2',1,{pname:'khí hiđro'}),
-           o(1,'ZnCl2',1,{pname:'kẽm clorua'}),
-           o(3,'H2',2,{pname:'khí hiđro (0,2 mol)'}),
-           o(7,'FeCl2',1,{pname:'sắt(II) clorua'}),
-           o(5,'MgCl2',1,{pname:'magie clorua'}),
-           o(0,'AlCl3',1,{pname:'nhôm clorua'}) ]},
+  chems:['H2O','KMnO4','KClO3','MnO2','S','Fe','C'], tools:['spoon','book','heat','gas','burn','filter'], dur:660, s1:4,
+  orders:[ o(9,'O2',1,{pname:'khí oxi (nhiệt phân thuốc tím)'}),
+           o(5,'O2',3,{pname:'khí oxi (KClO₃ + MnO₂ xúc tác)'}),
+           o(2,'SO2',1,{pname:'khí sunfurơ (đốt S trong oxi vừa thu)'}),
+           o(6,'Fe3O4',1,{pname:'oxit sắt từ (đốt sắt trong oxi)'}),
+           o(0,'CO2',1,{pname:'khí cacbonic (đốt than trong oxi)'}),
+           o(7,'O2',2,{pname:'khí oxi (0,2 mol)'}) ]},
 
  {mg:'redox',
   story:DAY_STORY[10],
@@ -389,13 +393,8 @@ const DAYS = [
         ['HCl','NaCl','H2O'], ['NaOH','Ca(OH)2','NaCl'], ['H2SO4','NaOH','Na2SO4']]},
 
  {
-  story:DAY_STORY[13],
-  chems:['H2O','CaO','Na2O','P2O5'], tools:['spoon','book','quy','filter'], dur:500, s1:3,
-  orders:[ o(0,'Ca(OH)2',1,{pname:'nước vôi trong'}),
-           o(4,'NaOH',2,{pname:'natri hiđroxit'}),
-           o(9,'H3PO4',2,{pname:'axit photphoric'}),
-           o(1,'Ca(OH)2',2,{pname:'nước vôi trong (0,2 mol)'}),
-           o(8,'Na3PO4',2,{pname:'natri photphat (P₂O₅ gặp NaOH)'}) ]},
+  // ĐI THỰC TẾ 1 (js/tham-quan.js, chuyến 'giadung'): chất đã học trong đời sống gia đình — chấm sao theo câu trả lời
+  story:DAY_STORY[13], trip:'giadung'},
 
  {
   story:DAY_STORY[14],
@@ -554,14 +553,8 @@ DAYS.push(
            o(6,'NH3',2,{pname:'khí amoniac'}) ]},
 
  {
-  story:DAY_STORY[27],
-  chems:['H2O','C','O2','CuO','CaCO3','HCl'], tools:['spoon','book','heat','gas','burn','filter'], dur:540, s1:4,
-  orders:[ o(2,'CO2',1,{pname:'khí cacbonic (đốt than)'}),
-           o(5,'Cu',2,{pname:'đồng đỏ (C khử CuO — lò luyện kim!)'}),
-           o(3,'Ca(OH)2',1,{pname:'nước vôi (nung đá vôi rồi tôi vôi)'}),
-           o(7,'CaO',1,{pname:'vôi sống (nung đá vôi)'}),
-           o(9,'CO2',2,{pname:'khí cacbonic (đá vôi + axit)'}),
-           o(0,'CaCl2',1,{pname:'canxi clorua'}) ]},
+  // ĐI THỰC TẾ 2 (js/tham-quan.js, chuyến 'nhamay'): khu công nghiệp — lò vôi, lò cao, điện phân nhôm; không cần vé
+  story:DAY_STORY[27], trip:'nhamay'},
 
  {
   story:DAY_STORY[28],

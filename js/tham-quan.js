@@ -1,21 +1,87 @@
 /* =====================================================================
-   CHUYẾN THAM QUAN KHU CÔNG NGHIỆP — minigame kiểu visual novel: mua vé bằng đồng đỏ (ô ngày 2 tháng sau trên lịch),
-   giáo sư Hoffmann và kỹ sư Minh dẫn trò qua lò vôi, lò cao luyện gang, nhà máy điện phân nhôm.
+   ĐI THỰC TẾ — các ngày "đi thực tế" trên lịch (DAYS[i].trip) là minigame kiểu visual novel: giáo sư dẫn trò đi xem
+   hoá học ngoài đời, dọc đường hỏi bài. Trả lời đúng bao nhiêu câu thì chấm sao bấy nhiêu như minigame (showResult).
+     • 'giadung' — ngày 13: về nhà Bà Tư, chất đã học trong bếp, trong vườn (THUC_TE_NHA).
+     • 'nhamay'  — ngày 27: khu công nghiệp — lò vôi, lò cao luyện gang, điện phân nhôm; kỹ sư Minh dẫn (THAM_QUAN).
    Nạp sau giao-dien.js (dùng parseLesson, vnRun, vnWrite, vnBoardAt) và trước khoi-dong.js.
 
-   Sửa lời ở THAM_QUAN — cùng cách viết như bài giảng (js/bai-giang.js):
+   Sửa lời ở THUC_TE_NHA / THAM_QUAN — cùng cách viết như bài giảng (js/bai-giang.js):
      • *chữ* tô đậm; mở đầu bằng :) cười, :( nghiêm; ' || ...' ghi lên bảng, ; để xuống dòng trên bảng.
-     • Mở đầu bằng @minh  → kỹ sư Minh nói (có thể kèm :) ngay sau, vd. '@minh :) Chào em!'); không có → giáo sư nói.
+     • Mở đầu bằng @người (TQ_NGUOI: minh, ba) → người đó nói (có thể kèm :) ngay sau, vd. '@minh :) Chào em!');
+       không có → giáo sư nói.
      • Câu hỏi: {hoi:'…', chon:['đáp án đúng', 'sai', 'sai'], khen:'lời khi đúng', giai:'lời khi sai'} — đáp án đúng
        luôn viết ĐẦU TIÊN, game tự xáo thứ tự. Trò phải chọn mới đi tiếp; sai thì nghe giải thích rồi vẫn đi tiếp.
-     • nen: tên cảnh nền trong TQ_NEN (cuối file) — gate, kiln, blast, alu, home.
+     • nen: tên cảnh nền trong TQ_NEN (cuối file) — gate, kiln, blast, alu, home, nha, bep, vuon.
      • hinhcat: bảng hình cắt chuyển động phủ giữa màn (TQ_CAT) — hiện có 'blast' (lò cao). Trong cảnh có hình cắt, mở
        đầu câu bằng #vùng (TQ_VUNG: nap, chay, co, khu, gang, voi, xi) để khoanh vùng đó, vd. '#khu :) CO giành oxi…'.
    ===================================================================== */
 'use strict';
 
-const TQ_GIA = 4;   // giá vé, tính bằng đồng đỏ (mỗi thành tựu 1 đồng); mua một lần, đi lại bao nhiêu lần cũng được
+/* ---- ĐI THỰC TẾ 1: hoá học trong nhà (ngày 13) — chỉ dùng chất đã học ở ngày 1–12 ---- */
+const THUC_TE_NHA = [
+  {nen:'nha', ten:'Nhà Bà Tư', loi:[
+    ':) Hôm nay tiệm nghỉ một bữa! Ta với trò về nhà *Bà Tư* chơi — bà mời mãi rồi.',
+    '@ba :) Vào đây, vào đây! Bà nghe nói hai thầy trò pha hoá chất suốt ngày. Thế trong nhà bà có hoá chất không?',
+    ':) Nhiều lắm bà ạ! Muối, đường, vôi, giấm, cả không khí ta thở — đâu đâu cũng là *chất*. Hôm nay trò sẽ nhận ra những chất ta pha cả tuần nay.',
+  ]},
+  {nen:'bep', ten:'Gian bếp', loi:[
+    '@ba Đây là cái bếp của bà. Hũ này là *muối ăn*, hũ kia là *đường*.',
+    'Muối ăn là *NaCl*. Muối giữ cá, giữ thịt lâu hỏng; nước muối loãng súc miệng thì sát khuẩn nhẹ. || muối ăn = NaCl',
+    'Đường saccarozơ tan trong nước thành *dung dịch* nước đường — giống hệt ngày đầu tiên trò làm ở tiệm. || đường = C₁₂H₂₂O₁₁',
+    {hoi:'Bà pha nước đường nấu chè. Cách nào làm đường *tan nhanh nhất*?',
+     chon:['Đun nóng và khuấy đều', 'Để yên thật lâu', 'Cho thêm thật nhiều đường'],
+     khen:':) Chuẩn! Nóng lên và khuấy thì hạt đường tiếp xúc với nước nhiều hơn, tan nhanh hơn hẳn.',
+     giai:'Chưa đúng. Đun nóng và khuấy đều mới giúp đường tan nhanh: hạt đường được tiếp xúc với nước nhiều hơn.'},
+    '@ba Còn cái bếp gas này, ngọn lửa xanh lét nhé!',
+    'Khí gas *cháy* là kết hợp với *oxi* trong không khí. Lửa xanh là cháy đủ oxi; lửa vàng, có khói đen là đang *thiếu oxi*.',
+    ':( Vì cháy cần oxi, nên muốn dập lửa thì *cắt nguồn oxi* đi.',
+    {hoi:'Chảo dầu đang bốc cháy. Việc nên làm *trước tiên* là gì?',
+     chon:['Đậy kín vung để cắt nguồn oxi', 'Dội ngay một gáo nước', 'Quạt thật mạnh cho tắt'],
+     khen:':) Đúng rồi! Đậy vung là lửa hết oxi, tắt ngay. Tắt bếp luôn nhé.',
+     giai:'Không được đâu! Dội nước vào dầu đang cháy làm dầu bắn tung toé; quạt thì thêm oxi. Đậy kín vung để cắt oxi.'},
+    '@ba Cái dao sắt bà để ướt qua đêm, sáng ra lốm đốm gỉ nâu.',
+    'Sắt gặp *oxi* và *hơi nước* thì bị gỉ — gỉ là *oxit sắt*. Rửa xong lau khô, thỉnh thoảng bôi chút dầu là dao bền. || sắt + oxi + nước → gỉ sắt',
+  ]},
+  {nen:'nha', ten:'Góc giặt giũ', loi:[
+    '@ba Chai nước tẩy bồn cầu này bà phải đeo găng mới dám dùng.',
+    ':( Bà làm đúng đấy! Nhiều loại nước tẩy bồn cầu có *axit clohiđric* HCl — tẩy cặn rất sạch nhưng *ăn da*, *ăn mòn kim loại*. || HCl ; axit làm quỳ tím hoá đỏ',
+    {hoi:'Vì sao không nên để nước tẩy bồn cầu (có HCl) dính lên vòi nước bằng sắt?',
+     chon:['Axit ăn mòn sắt, sinh khí hiđro', 'Vì vòi sẽ sạch quá', 'Vì HCl làm sắt nặng thêm'],
+     khen:':) Giỏi! Giống ở tiệm: Fe + 2HCl → FeCl₂ + H₂↑ — vòi sắt bị ăn mòn dần.',
+     giai:'Chưa đúng. Sắt đứng trước H nên axit HCl ăn mòn sắt, sinh khí hiđro: Fe + 2HCl → FeCl₂ + H₂↑.'},
+    '@ba Còn gói muối *Epsom* này bà hoà nước ấm ngâm chân cho đỡ mỏi.',
+    'Muối Epsom là *magie sunfat* MgSO₄ — đúng cái lọ trò khuấy cho tan ở ngày đầu đấy. || muối Epsom = MgSO₄',
+  ]},
+  {nen:'vuon', ten:'Vườn sau nhà', loi:[
+    '@ba Ra vườn nào! Đất vườn bà chua, rau còi cọc, nên bà rắc *vôi bột*.',
+    'Đất chua là đất có *axit*. Vôi là *bazơ*: bazơ gặp axit thì *trung hoà* bớt, đất đỡ chua, cây khoẻ hơn. || đất chua (axit) + vôi (bazơ) → bớt chua',
+    {hoi:'Đất vườn chua, bà rắc vôi. Vôi giúp được gì?',
+     chon:['Vôi là bazơ, trung hoà bớt axit trong đất', 'Vôi là axit, làm đất chua thêm', 'Vôi chỉ làm đất trắng cho đẹp'],
+     khen:':) Chính xác! Bazơ trung hoà axit — đây là phản ứng trò sẽ còn gặp nhiều ở chương sau.',
+     giai:'Chưa đúng. Vôi là bazơ; nó trung hoà bớt axit làm đất chua.'},
+    ':( Nhớ nhé: vôi *sống* CaO gặp nước *toả rất nhiều nhiệt*, có thể gây bỏng. Tôi vôi phải đeo găng, đứng xa. || CaO + H₂O → Ca(OH)₂',
+    '@ba Quả chanh này chua quá, ăn là nhăn mặt!',
+    'Vị chua là dấu hiệu của *axit*. Nhỏ nước chanh lên giấy quỳ là thấy ngay.',
+    {hoi:'Nhỏ nước chanh lên giấy quỳ tím, giấy chuyển sang màu gì?',
+     chon:['Đỏ', 'Xanh', 'Vẫn tím'],
+     khen:':) Đúng! Nước chanh có axit nên quỳ hoá đỏ. Nước xà phòng là bazơ thì quỳ hoá xanh.',
+     giai:'Chưa đúng. Nước chanh có axit nên quỳ tím hoá ĐỎ (bazơ mới làm quỳ hoá xanh).'},
+    '@ba Hồi bà còn trẻ, hội chợ hay bán bóng bay bơm khí, buông tay là bay vút lên trời.',
+    'Bóng bay lên vì bơm khí *hiđro* — nhẹ nhất trong các khí. Nhưng hiđro trộn với không khí gặp lửa thì *nổ*, nên bây giờ người ta bơm khí *heli* an toàn hơn.',
+    {hoi:'Vì sao bóng bay bơm khí hiđro *nguy hiểm* khi ở gần lửa?',
+     chon:['Hiđro cháy được, trộn với không khí gặp lửa dễ nổ', 'Hiđro quá nặng làm bóng rơi', 'Hiđro làm bóng đổi màu'],
+     khen:':) Chuẩn! Như ở tiệm: 2H₂ + O₂ —t°→ 2H₂O, mà trộn sẵn với oxi thì cháy bùng thành tiếng nổ.',
+     giai:'Không phải đâu. Hiđro cháy được; trộn với oxi trong không khí rồi gặp lửa là nổ.'},
+  ]},
+  {nen:'nha', ten:'Chiều về', loi:[
+    ':) Trò thấy chưa: muối, đường, gas, gỉ sắt, axit, vôi, hiđro… đều là chuyện hằng ngày trong nhà.',
+    'Biết hoá học là biết *dùng cho đúng* và *giữ an toàn*: đậy vung khi chảo cháy, đeo găng khi dùng axit, cẩn thận với vôi sống.',
+    '@ba :) Hai thầy trò mang ít bánh mì về ăn nhé! Bữa nào lại ghé bà.',
+    ':) Cảm ơn bà! Về tiệm thôi, mai còn khách đang chờ.',
+  ]},
+];
 
+/* ---- ĐI THỰC TẾ 2: khu công nghiệp (ngày 27) ---- */
 const THAM_QUAN = [
   {nen:'gate', ten:'Cổng khu công nghiệp', loi:[
     ':) Tới nơi rồi! Chào mừng trò tới *khu công nghiệp*. Những phản ứng ta làm trong cốc, ở đây người ta làm với *hàng nghìn tấn* mỗi ngày.',
@@ -30,6 +96,10 @@ const THAM_QUAN = [
     '@minh Vôi sống CaO lấy ra ở đáy lò. Khí CO₂ bay theo ống khói, nên lò hiện đại phải *thu hồi* bớt CO₂ cho đỡ hại môi trường.',
     ':( Vôi sống gặp nước *toả rất nhiều nhiệt*, nóng tới mức nước sôi lên sùng sục. Đó là phản ứng *tôi vôi*. || CaO + H₂O → Ca(OH)₂',
     'Vôi tôi Ca(OH)₂ dùng để xây nhà, khử chua đất trồng, xử lý nước thải. Một cái lò mà nuôi cả công trường đấy!',
+    {hoi:'Vôi sống CaO gặp nước thì sao?',
+     chon:['Toả rất nhiều nhiệt, thành vôi tôi Ca(OH)₂', 'Lạnh buốt đi', 'Không có gì xảy ra'],
+     khen:':) Đúng! Tôi vôi toả nhiệt mạnh tới mức nước sôi lên, nên phải cẩn thận kẻo bỏng.',
+     giai:'Chưa đúng. CaO gặp nước toả rất nhiều nhiệt, thành vôi tôi Ca(OH)₂.'},
     {hoi:'Trong lò vôi, chất nào được lấy ra ở *đáy lò*?',
      chon:['CaO — vôi sống', 'CaCO₃ — đá vôi', 'CO₂ — khí cacbonic'],
      khen:':) Đúng! Nung xong, CaO rắn ở lại đáy lò, còn CO₂ là khí nên bay lên ống khói.',
@@ -63,6 +133,10 @@ const THAM_QUAN = [
     'Rồi cho dòng điện rất mạnh chạy qua chất nóng chảy. Đó là *điện phân nóng chảy*. || 2Al₂O₃ —đpnc, criolit→ 4Al + 3O₂',
     '@minh Nhôm lỏng tụ ở *cực âm* dưới đáy bể. Oxi sinh ra ở *cực dương* bằng than, đốt cháy dần cực này nên cứ ít tuần lại phải thay. || cực dương: C + O₂ —t°→ CO₂',
     ':) Vì tốn điện như thế nên *tái chế lon nhôm* tiết kiệm được tới khoảng *95%* năng lượng. Uống xong nhớ bỏ lon đúng thùng nhé!',
+    {hoi:'Vì sao *tái chế* lon nhôm lại tiết kiệm đến thế?',
+     chon:['Không phải điện phân lại Al₂O₃ — khâu tốn điện nhất', 'Vì lon nhôm tự biến thành nhôm mới', 'Vì nhôm tái chế nhẹ hơn'],
+     khen:':) Chuẩn! Lon nhôm đã là kim loại rồi, chỉ cần nấu chảy, khỏi phải tách oxi ra bằng dòng điện.',
+     giai:'Chưa đúng. Lon nhôm đã là kim loại, chỉ cần nấu chảy lại — không phải điện phân Al₂O₃, khâu tốn điện nhất.'},
     {hoi:'Vì sao người ta *không* luyện nhôm bằng khí CO như luyện sắt?',
      chon:['Nhôm hoạt động mạnh, CO không lấy được oxi của Al₂O₃', 'Vì nhôm quá nhẹ, bay mất theo khí', 'Vì khí CO đắt hơn điện'],
      khen:':) Giỏi lắm! Kim loại càng mạnh thì càng giữ chặt oxi, phải dùng điện mới tách ra được.',
@@ -77,9 +151,15 @@ const THAM_QUAN = [
   ]},
 ];
 
-/* ---- người nói: giáo sư (mặc định) và kỹ sư Minh (HD_CHARS[4] — Anh Minh trong assets/characters) ---- */
-// ben: đứng bên nào — mỗi người một bên, người đang nói to hơn, người kia nhỏ lại và mờ đi một chút (.tqchar trong style.css)
-const TQ_NGUOI = {prof:{ten:'Giáo sư Hoffmann', ben:'R', svg:() => profSVG('neutral')}, minh:{ten:'Kỹ sư Minh', ben:'L', svg:() => HD_CHARS[4]}};
+/* ---- người nói: giáo sư (mặc định), kỹ sư Minh (HD_CHARS[4] — Anh Minh), Bà Tư (khách 0, bộ đồ cổ điển) ---- */
+const TQ_NGUOI = {prof:{ten:'Giáo sư Hoffmann', ben:'R', svg:() => profSVG('neutral')},
+                  minh:{ten:'Kỹ sư Minh', ben:'L', svg:() => HD_CHARS[4]},
+                  ba:{ten:'Bà Tư', ben:'L', svg:() => custSVG(0, 'neutral', 0)}};
+/* ---- các chuyến đi: kịch bản + nhạc nền (SFX.music). Ngày trên lịch trỏ tới chuyến bằng DAYS[i].trip ---- */
+const TRIPS = {
+  giadung: {loi:THUC_TE_NHA, nhac:1},
+  nhamay:  {loi:THAM_QUAN, nhac:2}
+};
 // một dòng kịch bản → {e, t, b} như bài giảng, thêm ai (người nói), s (số cảnh), q (câu hỏi đã xáo: {opts, ans, khen, giai})
 function tqLine(x, s){
   if(typeof x !== 'string'){
@@ -92,35 +172,24 @@ function tqLine(x, s){
   return Object.assign(parseLesson(x), {ai, z, s});
 }
 
-/* ---- vé: ô ngày 2 tháng sau trên lịch (showMap). Chưa có vé thì mở thẻ mua vé, có rồi thì lên xe luôn ---- */
-const tripOwned = () => !!(save.items && save.items.trip);
-function tripTicket(){
-  if(tripOwned()) return go(showTrip);
-  const blurb = '<h2>' + ico('factory', 24) + ' Chuyến tham quan khu công nghiệp</h2>'
-    + '<p style="text-align:left;line-height:1.5">Giáo sư dẫn trò đi xem người ta làm ra <b>vôi sống</b>, <b>gang thép</b> và <b>nhôm</b> '
-    + 'với hàng nghìn tấn mỗi ngày. Vé mua một lần, đi lại bao nhiêu lần cũng được.</p>';
-  if(achCoins() < TQ_GIA)
-    return modal(blurb + '<p>Vé giá <b>' + TQ_GIA + '</b> ' + ico('coinred', 15) + ', trò đang có <b>' + coinStr() + '</b>. '
-      + 'Mở thêm thành tựu để có đồng đỏ nhé!</p>');
-  confirmModal(blurb + '<p>Mua vé với giá <b>' + TQ_GIA + '</b> ' + ico('coinred', 15) + '? (trò đang có ' + coinStr() + ')</p>', () => {
-    save.items = save.items || {};
-    save.items.trip = true; spendCoins(TQ_GIA); persist();
-    SFX.bell();
-    go(showTrip);
-  }, 'Mua vé & lên xe', 'Để sau');
-}
+// ngày đi thực tế (playDay → startTrip): không có bài giảng trước, không có màn "Bắt đầu"
+function startTrip(i){ showTrip(DAYS[i].trip, i); }
 
 /* ---- màn tham quan: nền đổi theo cảnh (mờ dần sang cảnh mới), bảng thông tin góc trái chỉ hiện khi có ghi bảng,
    người nói đổi giữa giáo sư và kỹ sư; câu hỏi hiện các lựa chọn giữa màn, chọn xong mới đi tiếp được ---- */
-function showTrip(){
-  SFX.music(2);
-  const lines = THAM_QUAN.flatMap((sc, s) => sc.loi.map(x => tqLine(x, s)));
+function showTrip(key, dayI){
+  const trip = TRIPS[key] || TRIPS.nhamay, SC = trip.loi;
+  SFX.music(trip.nhac);
+  const lines = SC.flatMap((sc, s) => sc.loi.map(x => tqLine(x, s)));
+  const who = [...new Set(lines.map(L => L.ai))].filter(k => TQ_NGUOI[k]);   // chỉ dựng người có nói trong chuyến này
+  const nQ = lines.filter(L => L.q).length;
+  let correct = 0;
   G.innerHTML = `<div class="scene vnscene tqscene">
     <div class="tqbg"></div>
     <div class="tqcut"></div>
     <div class="vnboard empty"><div class="vnbtitle"></div><div class="vnbody"></div></div>
     <div class="vnbox"><div class="vnname"><span></span></div><p class="vntext"></p><div class="tqopts"></div></div>
-    ${Object.keys(TQ_NGUOI).map(k => `<div class="vnprof tqchar tq${TQ_NGUOI[k].ben} off" data-ai="${k}"><div class="tqfig">${TQ_NGUOI[k].svg()}</div></div>`).join('')}
+    ${who.map(k => `<div class="vnprof tqchar tq${TQ_NGUOI[k].ben} off" data-ai="${k}"><div class="tqfig">${TQ_NGUOI[k].svg()}</div></div>`).join('')}
     <button class="btn vnskip">Về bản đồ ${ico('next')}</button></div>`;
   const root = G.querySelector('.tqscene'), bg = root.querySelector('.tqbg'), boardEl = root.querySelector('.vnboard'),
         title = root.querySelector('.vnbtitle'), body = root.querySelector('.vnbody'), name = root.querySelector('.vnname span'),
@@ -131,7 +200,7 @@ function showTrip(){
   const setScene = s => {
     if(s === scene) return;
     scene = s;
-    const sc = THAM_QUAN[s];
+    const sc = SC[s];
     title.textContent = sc.ten;
     if(sc.nen !== nen){   // cùng nền (vd. bước vào xem hình cắt lò cao) thì giữ nguyên, không mờ dần lại
       nen = sc.nen;
@@ -172,7 +241,9 @@ function showTrip(){
     gate: k => !lines[k] || !lines[k].q || answered[k],   // k vượt câu cuối (nhấn Space lúc đang lật trang về lịch): cho qua
     end: () => {
       save.trips = (save.trips || 0) + 1; persist();
-      go(showMap);
+      // ngày đi thực tế: chấm sao theo số câu đúng, như minigame (mở ngày kế, ghi kỷ lục, thẻ kết quả)
+      if(dayI != null) showResult(dayI, {total:nQ, correct, label:'Câu trả lời đúng'});
+      else go(showMap);
     }
   });
   // câu hỏi: các lựa chọn xếp ở góc dưới bên phải của thẻ thoại, câu hỏi dồn sang trái; chọn xong tô đúng / sai, nhân vật nói lời khen hoặc giải thích
@@ -189,6 +260,7 @@ function showTrip(){
         x.classList.add(ok ? 'right' : x === btn ? 'wrong' : 'off');
         x.disabled = true;
       });
+      if(o.ok) correct++;
       o.ok ? SFX.bell() : SFX.err();
       setFace(L.ai, R.e);
       vn.type(R.t);
@@ -254,6 +326,62 @@ const TQ_NEN = {
       ? tqBus(470, 400, true) + `<path d="M700,488 L700,330 Q700,316 714,316 L740,316" fill="none" ${tqS(3)}/><circle cx="742" cy="320" r="9" fill="#f6d27a" class="tqglow" ${tqS(2)}/>`
       : tqBus(540, 396) + `<path d="M490,420 L380,330" stroke="#d9634f" stroke-width="8" stroke-dasharray="22 14"/><circle cx="490" cy="420" r="7" fill="#e6dcc6" ${tqS(2)}/>`)),
   home: () => TQ_NEN.gate(true),
+  // nhà Bà Tư buổi sáng: nhà mái ngói một tầng, hiên, chậu cây, cổng tre, phơi đồ bên hông
+  nha: () => tqSvg(tqSky('tqsk-n', '#cfe6ea', '#f3ead6')
+    + `<circle cx="1090" cy="110" r="44" fill="#f6d27a" ${tqS(2.5)}/>`
+    + `<path d="M-700,430 Q200,400 600,420 T1980,410 L1980,470 L-700,470 Z" fill="#c9d3b0" ${tqS(2)}/>`
+    + `<rect x="-710" y="462" width="2700" height="800" fill="#d9c7a4" ${tqS(2.5)}/>`
+    // thân nhà, mái ngói đỏ, cửa gỗ, cửa sổ chấn song, bậc hiên
+    + `<rect x="330" y="330" width="400" height="135" fill="#f3e6c8" ${tqS(3)}/>`
+    + `<path d="M290,340 L530,262 L770,340 Z" fill="#c9634f" ${tqS(3)}/>`
+    + Array.from({length:4}, (_, k) => `<path d="M${336 + k*50},${326 - k*16} L${724 - k*50},${326 - k*16}" ${tqS(1.6)} opacity=".35"/>`).join('')
+    + `<rect x="492" y="368" width="76" height="97" rx="4" fill="#a97c4b" ${tqS(3)}/><circle cx="554" cy="420" r="5" fill="#f6d27a" ${tqS(1.5)}/>`
+    + [[368, 366], [620, 366]].map(([x, y]) => `<rect x="${x}" y="${y}" width="76" height="58" fill="#bfe0e4" ${tqS(2.5)}/>`
+        + [1, 2, 3].map(k => `<path d="M${x + k*19},${y} L${x + k*19},${y + 58}" ${tqS(2)}/>`).join('')).join('')
+    + `<rect x="310" y="462" width="440" height="14" fill="#c9b48a" ${tqS(2.5)}/>`
+    // chậu cây hai bên hiên
+    + [[318, 462], [742, 462]].map(([x, y]) => `<path d="M${x - 22},${y} L${x - 16},${y - 40} L${x + 16},${y - 40} L${x + 22},${y} Z" fill="#c9845a" ${tqS(2.5)}/>`
+        + `<path d="M${x},${y - 40} Q${x - 30},${y - 90} ${x - 6},${y - 110} M${x},${y - 40} Q${x + 26},${y - 84} ${x + 8},${y - 116} M${x},${y - 40} Q${x - 4},${y - 96} ${x},${y - 126}" fill="none" stroke="#6f9a5a" stroke-width="7" stroke-linecap="round"/>`).join('')
+    // dây phơi đồ bên trái
+    + `<path d="M40,300 L40,470 M250,290 L250,470" ${tqS(4)}/><path d="M40,312 Q145,336 250,302" fill="none" ${tqS(2)}/>`
+    + `<path d="M80,320 l30,0 l4,46 l-38,0 Z" fill="#7fc4c9" ${tqS(2)}/><path d="M150,326 l34,-2 l2,38 l-38,2 Z" fill="#f2a868" ${tqS(2)}/>`
+    + tqSign(810, 392, 'Nhà Bà Tư')),
+  // gian bếp: tường gạch men, kệ hũ muối / đường, bếp gas lửa xanh, nồi, thớt, cửa sổ
+  bep: () => tqSvg(`<rect x="-700" y="-500" width="2680" height="1720" fill="#efe3c6"/>`
+    + Array.from({length:7}, (_, k) => `<path d="M-700,${150 + k*44} L1980,${150 + k*44}" stroke="#d9c7a4" stroke-width="2"/>`).join('')
+    + `<rect x="80" y="70" width="200" height="140" fill="#bfe0e4" ${tqS(3)}/><path d="M180,70 L180,210 M80,140 L280,140" ${tqS(2.5)}/>`
+    // mặt bếp
+    + `<rect x="-710" y="380" width="2700" height="40" fill="#c9b48a" ${tqS(3)}/><rect x="-710" y="418" width="2700" height="800" fill="#b8956a" ${tqS(3)}/>`
+    + [0, 1, 2, 3].map(k => `<rect x="${40 + k*170}" y="440" width="150" height="120" rx="6" fill="#a97c4b" ${tqS(2.5)}/><circle cx="${100 + k*170}" cy="500" r="5" fill="#f6d27a" ${tqS(1.5)}/>`).join('')
+    // các hũ có nhãn đứng trên mặt bếp (phải bếp gas)
+    + [['Muối', 650, '#fffdf5'], ['Đường', 730, '#fff6de'], ['Dầu', 810, '#f6d27a']].map(([t, x, c]) =>
+        `<rect x="${x}" y="318" width="64" height="64" rx="10" fill="${c}" ${tqS(2.5)}/><rect x="${x - 4}" y="308" width="72" height="14" rx="4" fill="#c9845a" ${tqS(2)}/>`
+        + `<text x="${x + 32}" y="360" text-anchor="middle" font-family="Itim, Patrick Hand, sans-serif" font-size="16" fill="${TQ_INK}">${t}</text>`).join('')
+    // bếp gas hai họng, lửa xanh, nồi chè
+    + `<rect x="380" y="350" width="240" height="32" rx="8" fill="#4a4238" ${tqS(3)}/>`
+    + [440, 560].map(x => `<path d="M${x - 24},350 Q${x - 18},330 ${x - 10},342 Q${x - 4},322 ${x},342 Q${x + 6},322 ${x + 12},342 Q${x + 18},330 ${x + 24},350 Z" fill="#6f9ec9" class="tqglow" ${tqS(2)}/>`).join('')
+    + `<path d="M400,300 L480,300 L476,346 L404,346 Z" fill="#c9cdd2" ${tqS(3)}/><path d="M394,300 L486,300" ${tqS(4)}/>`
+    + tqSmoke(440, 270, 3, '#f7f4ec')
+    // con dao lốm đốm gỉ trên thớt, đặt dưới cửa sổ
+    + `<rect x="40" y="356" width="120" height="26" rx="6" fill="#e9c79a" ${tqS(2.5)}/>`
+    + `<path d="M52,352 L130,346 L134,356 L56,362 Z" fill="#c9cdd2" ${tqS(2)}/><circle cx="90" cy="352" r="3" fill="#a9653a"/><circle cx="108" cy="350" r="2.5" fill="#a9653a"/>`),
+  // vườn sau nhà: hàng rào tre, luống rau, bao vôi bột, cây chanh, chùm bóng bay xa xa
+  vuon: () => tqSvg(tqSky('tqsk-v', '#cfe6ea', '#eef3dc')
+    + `<path d="M-700,360 Q300,330 700,350 T1980,340 L1980,470 L-700,470 Z" fill="#b9cf9a" ${tqS(2)}/>`
+    + `<rect x="-710" y="440" width="2700" height="800" fill="#a98a62" ${tqS(2.5)}/>`
+    + Array.from({length:22}, (_, k) => `<rect x="${-20 + k*40}" y="300" width="16" height="${80 + (k%3)*6}" rx="4" fill="#d9c27a" ${tqS(2)}/>`).join('')
+    + `<path d="M-30,326 L900,326 M-30,356 L900,356" ${tqS(3)}/>`
+    // luống rau
+    + [[60, 470], [300, 480]].map(([x, y]) => `<path d="M${x},${y} Q${x + 110},${y - 30} ${x + 220},${y}" fill="#8a6238" ${tqS(2.5)}/>`
+        + Array.from({length:6}, (_, k) => `<path d="M${x + 22 + k*34},${y - 10} q-10,-26 0,-34 q10,8 0,34 M${x + 22 + k*34},${y - 10} q14,-20 22,-18" fill="#7aa95c" ${tqS(2)}/>`).join('')).join('')
+    // bao vôi bột, vôi rắc trắng trên luống
+    + `<path d="M560,470 L548,392 Q600,376 652,392 L640,470 Z" fill="#f7f4ec" ${tqS(3)}/><text x="600" y="440" text-anchor="middle" font-family="Itim, Patrick Hand, sans-serif" font-size="20" fill="${TQ_INK}">Vôi bột</text>`
+    + Array.from({length:14}, (_, k) => `<circle cx="${320 + k*15}" cy="${468 - (k%3)*4}" r="3" fill="#fffdf5"/>`).join('')
+    // cây chanh
+    + `<path d="M120,330 L130,230" ${tqS(8)}/><circle cx="125" cy="200" r="70" fill="#7aa95c" ${tqS(3)}/>`
+    + [[100, 190], [150, 172], [140, 228], [92, 236]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="11" ry="9" fill="#d9e05a" ${tqS(2)}/>`).join('')
+    // bóng bay xa xa
+    + [[980, 70, '#d9634f'], [1016, 52, '#7fc4c9'], [1048, 78, '#f6d27a']].map(([x, y, c]) => `<ellipse cx="${x}" cy="${y}" rx="18" ry="22" fill="${c}" ${tqS(2)}/><path d="M${x},${y + 22} q-6,40 ${10 - (x % 20)},90" fill="none" ${tqS(1.5)}/>`).join('')),
 
   // lò vôi đứng: băng chuyền đá vôi lên miệng lò, lửa ở đáy, đống vôi sống trắng bên cạnh
   kiln: () => tqSvg(tqSky('tqsk-k', '#e2d6bc', '#f3ead6')

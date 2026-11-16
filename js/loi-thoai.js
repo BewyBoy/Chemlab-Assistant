@@ -268,9 +268,9 @@ const DAY_STORY = {
  7:
    'Hết chương đầu rồi! Bài kiểm tra nhỏ: pha dung dịch đúng số mol, rồi đốt vài thứ trong oxi. Bình tĩnh làm từng đơn, ta đứng sau quầy cổ vũ trò đây.',
  8:
-   'Chương mới, nhân vật mới: KHÍ HIĐRO — nhẹ nhất vũ trụ! Dẫn H₂ qua CuO nung nóng, nó "cướp" oxi tạo Cu đỏ rực: CuO + H₂ —t°→ Cu + H₂O. Đó gọi là PHẢN ỨNG KHỬ. Cho oxit + H₂ vào cốc, BẬT ĐÈN, rồi lọc lấy kim loại.',
+   'Chương mới, nhân vật mới: KHÍ HIĐRO — nhẹ nhất vũ trụ! Hôm nay trò vừa TỰ LÀM RA nó vừa dùng nó. Kim loại + axit → muối + H₂↑ (Zn + 2HCl → ZnCl₂ + H₂) — nhớ đặt BÌNH THU KHÍ lên miệng cốc TRƯỚC, không thì khí bay mất. Còn H₂ trên kệ thì đem KHỬ oxit: CuO + H₂ —t°→ Cu + H₂O. Cho oxit + H₂ vào cốc, BẬT ĐÈN, rồi lọc lấy kim loại.',
  9:
-   'Hôm qua dùng H₂, hôm nay tự làm ra nó! Kim loại + axit → muối + H₂↑: Zn + 2HCl → ZnCl₂ + H₂. Khí sẽ bay mất nếu không hứng — bật BÌNH THU KHÍ lên TRƯỚC khi bỏ kim loại vào nhé.',
+   'Hôm nay đến lượt KHÍ OXI — và kệ KHÔNG có sẵn bình O₂ đâu: trò tự làm! Đun THUỐC TÍM là oxi thoát ra (2KMnO₄ —t°→ K₂MnO₄ + MnO₂ + O₂↑); KClO₃ thêm chút MnO₂ làm XÚC TÁC rồi đun cũng ra oxi. Hoà chất với chút nước, khuấy tan, đặt BÌNH THU KHÍ lên rồi mới đun; hứng được oxi rồi thì dùng chính lọ ấy để ĐỐT lưu huỳnh, sắt, than — xem chúng cháy sáng ra sao!',
  10:
    'Sự OXI HOÁ là chiếm lấy oxi; sự KHỬ là nhường oxi đi. CHẤT KHỬ là chất chiếm oxi của chất khác (nó bị oxi hoá). Nhìn từng phương trình và chỉ ra chất khử nhé!',
  11:
@@ -278,9 +278,9 @@ const DAY_STORY = {
  12:
    'AXIT có H đứng đầu, làm quỳ tím hoá ĐỎ. BAZƠ có nhóm OH, làm quỳ hoá XANH. Chất trung tính thì… vẫn TÍM. Hai lọ cùng đỏ thì sao? Gọi thêm trợ thủ: BaCl₂ cho kết tủa trắng với gốc =SO₄, AgNO₃ cho kết tủa trắng với gốc −Cl, Na₂CO₃ sủi bọt khi gặp axit. Ba lọ này bong hết nhãn rồi — nhỏ thử từng mẫu, ghi lại hiện tượng, rồi dán nhãn giúp ta!',
  13:
-   'Vài oxit phản ứng luôn với nước: CaO (vôi sống) + H₂O → Ca(OH)₂ là BAZƠ, còn P₂O₅ + 3H₂O → 2H₃PO₄ là AXIT. Quy luật: oxit kim loại + nước → bazơ, oxit phi kim + nước → axit. Thử quỳ để kiểm tra sản phẩm nhé!',
+   'Hôm nay đóng cửa tiệm một bữa, ta đi THỰC TẾ! Bà Tư mời cả hai về nhà chơi. Trò sẽ thấy muối, đường, vôi, axit, oxi… những chất ta pha cả tuần nay nằm ngay trong bếp, trong vườn mỗi nhà. Ta hỏi mấy câu dọc đường — trả lời đúng là có sao!',
  14:
-   'Kiểm tra tay nghề chương 2: điều chế H₂, dùng H₂ khử oxit, và cho oxit gặp nước. Nhiều bước một tí nhưng trò làm được — trò đã là thợ phụ cứng tay rồi!',
+   'Kiểm tra tay nghề chương 2: điều chế H₂, dùng H₂ khử oxit, cho oxit gặp nước (oxit kim loại + nước → bazơ, oxit phi kim + nước → axit — thử quỳ là biết). Nhiều bước một tí nhưng trò làm được — trò đã là thợ phụ cứng tay rồi!',
  15:
    'AXIT = hiđro + GỐC AXIT: −Cl (clorua), =SO₄ (sunfat), −NO₃ (nitrat). Axit tác dụng kim loại → muối + H₂↑, tác dụng oxit bazơ → muối + nước. Tên muối đi theo gốc axit — nhìn đơn hàng là biết cần axit nào! Và nhớ QUY TẮC VÀNG khi pha axit: rót AXIT vào NƯỚC, đừng bao giờ rót nước vào axit.',
  16:
@@ -310,7 +310,7 @@ const DAY_STORY = {
  26:
    'NITƠ chiếm 78% không khí mà lười phản ứng số một — trơ như đá! Nhưng ép nó với H₂ ở nhiệt độ cao: N₂ + 3H₂ ⇌ 2NH₃ — amoniac, nguyên liệu phân đạm nuôi cả thế giới. NH₃ gặp HCl là "khói trắng" NH₄Cl bay mù mịt!',
  27:
-   'CACBON đa tài: than đốt trong lọ oxi cho CO₂, than nóng còn KHỬ được oxit kim loại — 2CuO + C —t°→ 2Cu + CO₂ (bí quyết lò luyện kim từ nghìn năm!). Còn đá vôi CaCO₃ nung già lửa thành vôi sống, gặp axit thì sủi bọt "đá sôi".',
+   'Đi THỰC TẾ lần hai: khu công nghiệp! Kỹ sư Minh dẫn ta qua lò vôi, lò cao luyện gang và nhà máy điện phân nhôm — những phản ứng ta làm trong cốc, ở đây người ta làm cả nghìn tấn mỗi ngày. Lần này ta khao, trò không phải mua vé đâu. Nhớ để ý, dọc đường ta hỏi bài đấy!',
  28:
    'Ngày tốt nghiệp khoá chính! Cả thị trấn đến chúc mừng trò. Mọi kệ hoá chất đều mở, mọi dụng cụ sẵn sàng. Hãy cho ta thấy tất cả những gì trò đã học — và nhận danh hiệu NHÀ HOÁ HỌC NHÍ! (Nghe đồn sau lễ hội còn ba ngày bí mật trong phòng thí nghiệm nâng cao…)',
  29:

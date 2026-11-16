@@ -10,7 +10,7 @@ const shuffle = a => { a = a.slice(); for(let k=a.length-1; k>0; k--){ const j =
 function mgFrame(i, day, inner){
   G.innerHTML = `<div class="scene mgscene" style="padding:0;${mgBgCSS(day.mg)}">
     <div class="hudboard">${sym('sym-benchtex',1240,52,'position:absolute;left:20px;top:6px;width:calc(100% - 40px);opacity:.4;pointer-events:none')}
-      <span class="hud-title">Ngày ${i+1} ${ico('dice',17)} ${day.t}</span>
+      <span class="hud-title">Ngày ${i+1}${/Khám phá$/.test(day.t) ? ' · Khám phá' : ''}</span>
       <div style="flex:1"></div><span class="hudstat" id="mgscore"></span>
       <span class="hudstat" id="mgtime" style="display:none"></span>
       <button class="btn icobtn" id="bpause">${ico('pause')}</button></div>
@@ -27,6 +27,7 @@ function mgPause(i){
   ov.className = 'overlay pauseov';
   const hasLesson = BAI_GIANG[i];
   ov.innerHTML = `<div class="pausecard"><h2>Tạm nghỉ</h2>
+    <div class="pausetitle">Ngày ${i+1} · ${DAYS[i].t}</div>
     <div class="pauserow">${pauseBtn('presume', 'play', 'Tiếp tục', ' main')}${pauseBtn('prestart', 'retry', 'Chơi lại')}${mgEndEarly ? pauseBtn('pmap', 'check', 'Dừng thử thách') : pauseBtn('pmap', 'map', 'Về bản đồ')}</div>
     ${hasLesson ? `<button class="btn" id="plesson">${ico('book')} Xem lại bài giảng</button>` : ''}
     <div class="pausevol">${volSliders()}</div></div>`;
@@ -801,7 +802,7 @@ const MG = {
   if(!explore && day.hard && hardOn()) return MG.lewis(i, day);       // chế độ khó: sơ đồ Lewis
   const known = vlKnown(day).concat(explore ? vlElems() : []), EGGS = Object.keys(VL_EGG), qs = [];   // qs: 8 câu, bốc theo từng nhóm, không lặp chất; đơn chất chỉ nhận ở khám phá
   if(!explore) day.pools.forEach(([n, list]) => shuffle(list).map(vlQuestion).filter(q => !qs.some(o => o.f === q.f)).slice(0, n).forEach(q => qs.push(q)));
-  const TOTAL_T = 120, PTS = 10, EGG_BONUS = 20;   // 120 s cho 8 công thức: ngày đầu tiên có đồng hồ chung, đừng làm bức tường
+  const TOTAL_T = explore ? 120 : Math.round(120*EASY_TIME), PTS = 10, EGG_BONUS = 20;   // 120 s gốc cho 8 công thức, chế độ thường ×EASY_TIME (diem.js)
   const ZW = 840, ZH = 430, SC = 2.2, PSC = 1.9, MAX = VL_MAX;         // SC: cỡ bóng trên bàn, PSC: ở cột trái
   // bóng trôi DRIFT px/s, hướng lắc ngẫu nhiên (NOISE·√dt — đổi hướng sau vài giây, không phụ thuộc số khung hình);
   // mỗi giây bị kéo về giữa sân PULL phần khoảng cách → cả cụm trôi chừng 4–5 px/s quanh giữa sân

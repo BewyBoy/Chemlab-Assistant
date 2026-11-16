@@ -363,7 +363,7 @@ function dropAction(type, zone, data){
    Luật an toàn chỉ áp ở CHẾ ĐỘ KHÓ: chế độ thường coi như đã đeo đồ bảo hộ, không có tủ hút, không trừ sao;
    rót nước vào axit thì giáo sư vẫn giảng (kiến thức), chỉ không tính lỗi. */
 function newLab(i, day){
-  const hard = hardOn(), dur = hard ? Math.round(day.dur * 1.5) : day.dur;
+  const hard = hardOn(), dur = hard ? Math.round(day.dur * 1.5) : day.free ? day.dur : Math.round(day.dur * EASY_TIME);   // EASY_TIME: diem.js
   return {i, day, hard, dur, mix:{}, undissolved:{}, dissolveTotal:0, gas:{}, solid:{}, ladle:{}, ladleLit:false,
           heaterOn:false, elecOn:false, catcher:false, lampUnder:false, spoonOn:false, bkPark:null, bkAuto:false, sel:'beaker',
           time:dur, oi:0, served:0, wrong:0, waste:0, timer:null, lastColor:'', magicDose:1,
@@ -386,7 +386,7 @@ function startLab(i){
 /* ---- free-play (post day 28): full shelf, endless random campaign orders ---- */
 function startFree(){
   SFX.music(3);
-  const labDays = DAYS.filter(d => !d.mg);
+  const labDays = DAYS.filter(d => !d.mg && !d.trip);
   // K không nằm trên kệ ngày nào, nên trước đây các phản ứng của K / K₂O không bao giờ làm được (sổ tay không thể đủ)
   // lọ axit đặc chỉ có ở ca tự do (kệ chiến dịch là axit loãng); KClO₃ để điều chế oxi với xúc tác MnO₂
   const chems = [...new Set(labDays.flatMap(d => d.chems).concat(['K', 'KClO3', ...Object.keys(CONC_SHELF)]))];
@@ -750,6 +750,7 @@ function pauseLab(){
   const hasEqs = !free && dayEqs(lab.day).length;
   const hasLesson = !free && BAI_GIANG[lab.i];
   ov.innerHTML = `<div class="pausecard"><h2>Tạm nghỉ</h2>
+    <div class="pausetitle">${free ? LICH.tuDo : 'Ngày ' + (lab.i + 1) + ' · ' + lab.day.t}</div>
     <div class="pauserow">${pauseBtn('presume', 'play', 'Tiếp tục', ' main')}${pauseBtn('prestart', 'retry', 'Chơi lại')}${pauseBtn('pmap', 'map', free ? 'Kết thúc ca' : 'Về bản đồ')}</div>
     ${hasLesson ? `<button class="btn" id="plesson">${ico('book')} Xem lại bài giảng</button>` : ''}
     ${hasEqs ? `<button class="btn" id="pnote">${ico('note')} Giấy cân bằng</button>` : ''}
@@ -1947,7 +1948,9 @@ function coachText(){
     return 'Muôi đang cháy — kéo muôi vào <b>bình thu khí</b> (lọ ' + sub(g) + ')!';
   }
   // thứ tự nhắc đúng thứ tự thao tác: chất tan → nước → khuấy → dụng cụ → giao
-  if(day.chems.includes(t) && !((lab.mix[t]||0) > 0 || (box[t]||0) > 0 || (lab.undissolved[t]||0) > 0))
+  // đơn khí có ghi cách điều chế ("khí hiđro (Zn + axit)"): đừng gợi ý rót thẳng lọ khí trên kệ vào cốc
+  const made = want === 'gas' && /\(.*\+/.test(od.pname || '');
+  if(!made && day.chems.includes(t) && !((lab.mix[t]||0) > 0 || (box[t]||0) > 0 || (lab.undissolved[t]||0) > 0))
     return 'Bắt đầu bằng cách kéo lọ <b>' + sub(t) + '</b> từ tủ bên phải vào cốc.';
   if(od.water && !(lab.mix.H2O > 0) && day.chems.includes('H2O'))
     return 'Khách hỏi <b>dung dịch</b> chứ không phải chất khô — kéo thêm lọ <b>Nước</b> vào cốc.';

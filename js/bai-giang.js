@@ -84,22 +84,25 @@ const BAI_GIANG = [
     'Kim loại hay phi kim cháy trong oxi đều tạo oxit. || 2Mg + O₂ → 2MgO ; C + O₂ → CO₂',
     ':) Thế là đủ hành trang rồi. Cố lên!',
   ],
-  // 8 · Hiđro — chất khử cừ khôi
+  // 8 · Hiđro — điều chế và tính khử
   [
     '*Hiđro* là chất khí nhẹ nhất trong mọi chất khí: không màu, không mùi, rất ít tan trong nước.',
-    'Hiđro cháy trong oxi cho nước và toả rất nhiều nhiệt. || 2H₂ + O₂ —t°→ 2H₂O',
+    'Trong phòng thí nghiệm, ta điều chế hiđro bằng cách cho *kim loại* tác dụng với *axit* như HCl. Sản phẩm là *muối* và khí hiđro. || kim loại + axit → muối + H₂↑ ; Zn + 2HCl → ZnCl₂ + H₂↑',
+    'Chỉ kim loại đứng trước H trong *dãy hoạt động hoá học* mới đẩy được hiđro ra khỏi axit: Zn, Fe thì được, Cu thì không. Sắt chỉ cho muối sắt(II). || Fe + 2HCl → FeCl₂ + H₂↑',
+    'Hiđro rất ít tan trong nước nên thu được bằng cách *đẩy nước*; nó nhẹ hơn không khí nên cũng thu được bằng bình *úp ngược*.',
+    'Khi nung nóng, hiđro lấy oxi của một số oxit kim loại để giải phóng kim loại: CuO đen hoá thành đồng đỏ. Ta nói hiđro có *tính khử*. || CuO + H₂ —t°→ Cu + H₂O ; Fe₂O₃ + 3H₂ —t°→ 2Fe + 3H₂O',
     ':( Hỗn hợp hiđro và oxi gặp lửa sẽ *nổ* mạnh. Vì vậy phải thử độ tinh khiết của hiđro trước khi đốt.',
-    'Khi nung nóng, hiđro lấy oxi của một số oxit kim loại để giải phóng kim loại. Bột CuO màu đen hoá thành đồng màu đỏ. || CuO + H₂ —t°→ Cu + H₂O',
-    'Sắt(III) oxit cũng bị hiđro lấy mất oxi như vậy. Ta nói hiđro có *tính khử*. || Fe₂O₃ + 3H₂ —t°→ 2Fe + 3H₂O',
+    ':) Khí mà không hứng là bay mất, nên nhớ đặt bình thu lên miệng cốc trước nhé!',
   ],
-  // 9 · Điều chế hiđro
+  // 9 · Oxi — điều chế và sự cháy
   [
-    'Trong phòng thí nghiệm, ta điều chế hiđro bằng cách cho *kim loại* tác dụng với *axit* như HCl hoặc H₂SO₄ loãng.',
-    'Sản phẩm là *muối* và khí hiđro. || kim loại + axit → muối + H₂↑ ; Zn + 2HCl → ZnCl₂ + H₂↑',
-    'Chỉ kim loại đứng trước H trong *dãy hoạt động hoá học* mới đẩy được hiđro ra khỏi axit: Mg, Al, Zn, Fe thì được, Cu thì không. || Mg Al Zn Fe … H … Cu Ag',
-    'Sắt tác dụng với axit HCl chỉ cho muối sắt(II). || Fe + 2HCl → FeCl₂ + H₂↑',
-    'Hiđro rất ít tan trong nước nên thu được bằng cách *đẩy nước*. Nó nhẹ hơn không khí nên cũng thu được bằng bình *úp ngược*.',
-    ':) Khí mà không hứng là bay mất, nên nhớ chuẩn bị bình thu trước nhé!',
+    '*Oxi* là chất khí không màu, không mùi, hơi nặng hơn không khí, ít tan trong nước. Nó *duy trì sự cháy*: que đóm còn tàn đỏ gặp oxi là bùng cháy.',
+    'Trong phòng thí nghiệm, ta điều chế oxi bằng cách *đun nóng* những chất giàu oxi mà dễ bị phân huỷ, như thuốc tím. || 2KMnO₄ —t°→ K₂MnO₄ + MnO₂ + O₂↑',
+    'Kali clorat KClO₃ cũng cho oxi khi đun, nhanh hơn hẳn nếu trộn thêm một ít MnO₂. MnO₂ không mất đi: nó là *chất xúc tác*. || 2KClO₃ —t°, MnO₂→ 2KCl + 3O₂↑',
+    'Phản ứng một chất sinh ra hai hay nhiều chất mới gọi là *phản ứng phân huỷ*.',
+    'Oxi ít tan trong nước nên thu bằng cách *đẩy nước*; nặng hơn không khí nên cũng thu được bằng bình *để ngửa*.',
+    'Nhiều chất cháy trong oxi mạnh hơn hẳn trong không khí: lưu huỳnh cho ngọn lửa xanh, sắt cháy sáng bắn tia lửa. || S + O₂ —t°→ SO₂ ; 3Fe + 2O₂ —t°→ Fe₃O₄',
+    ':) Hôm nay kệ không có bình O₂: muốn đốt thì trò phải tự làm ra oxi trước đã!',
   ],
   // 10 · Ai là chất khử?
   [
@@ -128,21 +131,14 @@ const BAI_GIANG = [
     'Na₂CO₃ gặp axit thì sủi bọt khí CO₂. || Na₂CO₃ + 2HCl → 2NaCl + H₂O + CO₂↑',
     ':) Nhớ ghi lại hiện tượng của từng mẫu. Thám tử giỏi là thám tử ghi chép cẩn thận!',
   ],
-  // 13 · Oxit gặp nước
-  [
-    'Oxit chia làm hai loại chính: *oxit bazơ* và *oxit axit*.',
-    '*Oxit bazơ* thường là oxit của kim loại và ứng với một bazơ: CaO ứng với Ca(OH)₂, Na₂O ứng với NaOH.',
-    'Vài oxit bazơ như Na₂O, K₂O, CaO, BaO tác dụng với nước tạo dung dịch bazơ. || Na₂O + H₂O → 2NaOH',
-    '*Oxit axit* thường là oxit của phi kim và ứng với một axit: SO₃ ứng với H₂SO₄, P₂O₅ ứng với H₃PO₄.',
-    'Nhiều oxit axit tác dụng với nước tạo axit. || P₂O₅ + 3H₂O → 2H₃PO₄',
-    ':) Muốn biết sản phẩm là axit hay bazơ? Nhúng quỳ tím vào là rõ ngay!',
-  ],
+  // 13 · Đi thực tế 1 — chuyến đi tự giảng (js/tham-quan.js), không có bài giảng trước
+  null,
   // 14 · Luyện tập chương 2
   [
     ':) Ôn chương 2 nào: hiđro, nước, axit và bazơ.',
     'Điều chế hiđro: kim loại đứng trước H tác dụng với axit, cho muối và khí H₂. || Zn + 2HCl → ZnCl₂ + H₂↑',
     'Hiđro khử được oxit kim loại khi nung nóng: CuO đen hoá thành Cu đỏ. || CuO + H₂ —t°→ Cu + H₂O',
-    'Oxit bazơ gặp nước ra bazơ, oxit axit gặp nước ra axit. || CaO + H₂O → Ca(OH)₂',
+    'Oxit bazơ gặp nước ra bazơ, oxit axit gặp nước ra axit. || CaO + H₂O → Ca(OH)₂ ; P₂O₅ + 3H₂O → 2H₃PO₄',
     'Oxit bazơ còn tan trong axit, cho muối và nước. CuO tan trong HCl cho dung dịch màu xanh. || CuO + 2HCl → CuCl₂ + H₂O',
     'Quỳ tím: axit hoá đỏ, bazơ hoá xanh. Thử quỳ để kiểm tra sản phẩm là một thói quen tốt.',
   ],
@@ -251,15 +247,8 @@ const BAI_GIANG = [
     'Amoniac là khí mùi khai, tan rất nhiều trong nước. Dung dịch của nó có tính bazơ yếu, làm quỳ tím hoá xanh.',
     ':) NH₃ gặp khí HCl tạo khói trắng amoni clorua, một loại phân đạm. || NH₃ + HCl → NH₄Cl',
   ],
-  // 27 · Cacbon — từ than đến đá vôi
-  [
-    '*Cacbon* có nhiều dạng: kim cương cứng nhất, than chì mềm làm ruột bút chì, than gỗ xốp hút được chất màu, chất khí.',
-    'Cacbon cháy trong oxi tạo khí CO₂ và toả nhiều nhiệt, vì thế than được dùng làm nhiên liệu. || C + O₂ —t°→ CO₂',
-    'Ở nhiệt độ cao, cacbon *khử* được oxit của nhiều kim loại. Đó là bí quyết luyện kim từ nghìn năm trước. || 2CuO + C —t°→ 2Cu + CO₂↑',
-    'Đá vôi CaCO₃ bị nung nóng thì phân huỷ thành vôi sống và khí CO₂. || CaCO₃ —t°→ CaO + CO₂↑',
-    'Muối cacbonat gặp axit thì giải phóng khí CO₂: nhỏ axit lên đá vôi là thấy sủi bọt. || CaCO₃ + 2HCl → CaCl₂ + H₂O + CO₂↑',
-    ':) Muốn nhận biết CO₂ thì sục vào nước vôi trong, thấy vẩn đục là đúng nó. || CO₂ + Ca(OH)₂ → CaCO₃↓ + H₂O',
-  ],
+  // 27 · Đi thực tế 2 — chuyến đi tự giảng (js/tham-quan.js), không có bài giảng trước
+  null,
   // 28 · Luyện tập lớn — Lễ hội hoá học
   [
     ':) Hôm nay là ngày lớn! Ta ôn thật nhanh cả chặng đường nhé.',
@@ -342,8 +331,8 @@ const BAI_GIANG_KHO = {
     'Tóm lại ba bước: đổi lượng khách cần ra mol, nhìn hệ số suy ra mol từng chất phải lấy, rồi đổi ra gam (chất rắn) hay lít (chất khí). || ra mol → nhìn hệ số → ra gam / lít',
     ':( Lấy dư một chất thì phần dư nằm lại, lẫn vào hàng. Tính cho *vừa đủ* nhé!',
   ],
-  // 9 · Dung dịch axit và nồng độ mol
-  9: [
+  // 8 · Dung dịch axit và nồng độ mol (điều chế H₂ bằng axit)
+  8: [
     'Chế độ khó: axit HCl trên kệ là *dung dịch*, không cân được. Trò phải đong bằng *ống đong*, tính bằng ml.',
     'Nhãn lọ ghi *nồng độ mol* Cₘ: số mol chất tan trong 1 lít dung dịch, đơn vị mol/l, viết tắt là M. || Cₘ = n : V',
     'Lọ HCl hôm nay ghi *2M*: mỗi lít dung dịch có 2 mol HCl. Muốn lấy n mol thì đong V = n : Cₘ lít. || V = n : Cₘ',

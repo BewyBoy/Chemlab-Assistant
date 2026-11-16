@@ -20,11 +20,13 @@ Bạn, học trò của giáo sư Hoffmann, đã được thầy giao cho một 
 
 Đọc đơn hàng → kéo lọ hoá chất vào cốc (mỗi lần = 0,1 mol) → đun, khuấy, lọc hoặc hứng khí → kéo cốc cho khách. Dụng cụ cất ở hai bên thảm làm việc giữa bàn; kéo một thứ lên thảm là lắp vào bộ: nó to lên, kiềng hay giá sắt tự dựng nếu bộ ấy cần. Phản ứng cháy làm như thật: nạp O₂ / Cl₂ vào lọ khí, cho chất rắn lên muôi đốt (muôi tự treo lên giá giữa thảm), kéo đèn cồn vào thảm — đèn đổi chỗ với cốc, lửa hơ chén muôi — rồi đưa muôi đang cháy vào lọ. Sai thì đổ vào bồn rửa, làm lại — cốc không phản ứng thì giáo sư nói lý do. Mỗi ngày chấm tối đa 3 sao theo điểm; 1 sao là mở khoá ngày kế tiếp. Mỗi đơn / câu đúng 100 điểm, làm nhanh thêm tới 50, đúng liền thêm tới 50; 3 sao chỉ dành cho lượt không sai lần nào (thưởng hoàn hảo), nhanh mấy cũng không bù được một lỗi — riêng lần giao sai đầu tiên mỗi ca (chế độ thường) không tính: khách nói rõ sai chỗ nào để sửa. Kẹt thì bấm **Gợi ý** cho giáo sư nhắc bước kế tiếp; rót lố thì **Rút lại** lần rót vừa rồi (khi chất chưa phản ứng). Ngày 1 giáo sư tự hướng dẫn từng bước. Chơi lại một ngày đã qua thì khách đến theo thứ tự khác.
 
-**Chế độ khó** (bật ở lịch chọn ngày hoặc Cài đặt): phiếu hàng ghi khối lượng / thể tích khí, mỗi lần lấy hoá chất phải tự cân, đong; sai số cho phép 5%, giao sai thì mở dần gợi ý. Ngày 3 khó thành bài **tạo ion**: mỗi câu một nguyên tử vẽ đủ các lớp electron (lớp ngoài cùng xếp theo sơ đồ Lewis), tự cho nguyên tử nhường electron lớp ngoài hoặc nhận các electron tự do trôi quanh cho thành ion bền như khí hiếm. Ngày 4 khó thành bài **sơ đồ Lewis**: nối hai chấm electron thành liên kết cộng hoá trị, kéo electron của kim loại sang phi kim thành liên kết ion.
+**Chế độ khó** (tạm thời chỉ có ở chế độ dev — mở game với `#dev`; bật ở lịch chọn ngày hoặc Cài đặt): phiếu hàng ghi khối lượng / thể tích khí, mỗi lần lấy hoá chất phải tự cân, đong; sai số cho phép 5%, giao sai thì mở dần gợi ý. Ngày 3 khó thành bài **tạo ion**: mỗi câu một nguyên tử vẽ đủ các lớp electron (lớp ngoài cùng xếp theo sơ đồ Lewis), tự cho nguyên tử nhường electron lớp ngoài hoặc nhận các electron tự do trôi quanh cho thành ion bền như khí hiếm. Ngày 4 khó thành bài **sơ đồ Lewis**: nối hai chấm electron thành liên kết cộng hoá trị, kéo electron của kim loại sang phi kim thành liên kết ion.
 
 **An toàn phòng thí nghiệm** là luật của chế độ khó: đeo kính & găng trước khi lấy hoá chất, bật tủ hút khi làm với khí độc (Cl₂, SO₂, NH₃), pha axit thì rót axit vào nước. Phạm lỗi thì mất sao thứ ba. Chế độ thường không có luật này; rót nước vào axit thì giáo sư vẫn giảng nhưng không tính lỗi.
 
-**Tham quan khu công nghiệp:** mua vé bằng đồng đỏ (ô ngày 2 tháng sau trên lịch, mở sau khi qua ngày 31) rồi theo giáo sư và kỹ sư Minh qua lò vôi, lò cao luyện gang, nhà máy điện phân nhôm — phần visual novel có tranh nền từng cảnh và câu hỏi nhanh ở mỗi xưởng.
+**Đi thực tế:** hai ngày trên lịch là chuyến đi kiểu visual novel, dọc đường giáo sư hỏi bài; trả lời đúng bao nhiêu câu thì được bấy nhiêu sao. Ngày 13 về nhà Bà Tư xem muối, đường, gas, gỉ sắt, axit, vôi, hiđro trong đời sống hằng ngày; ngày 27 theo kỹ sư Minh qua lò vôi, lò cao luyện gang, nhà máy điện phân nhôm.
+
+**Lịch và thời gian:** mỗi ô lịch dán một sticker hoá học (mô hình bi–que); tên ngày hiện ở thẻ Tạm nghỉ khi đang chơi. Ở chế độ thường, mỗi ca thí nghiệm và đồng hồ chung của minigame chỉ có 65% thời lượng gốc (`EASY_TIME` trong `js/diem.js`).
 
 ### Chạy trên máy
 
@@ -40,7 +42,7 @@ npx --yes http-server -p 8642 -c-1 .
 | `style.css` | Toàn bộ giao diện |
 | `js/phan-ung.js` | Bảng phản ứng — sửa hoá học ở đây |
 | `js/du-lieu.js` | Hoá chất, 31 ngày, thành tựu, "Bạn có biết?" |
-| `js/lich.js` | Tên tháng trên tờ lịch và mô tả từng ngày — sửa chữ ở đây |
+| `js/lich.js` | Tên tháng trên tờ lịch, tên và sticker hoá học từng ngày — sửa chữ ở đây |
 | `js/bai-giang.js` | Lời giáo sư giảng lý thuyết từng ngày (màn kiểu visual novel, hiện lần đầu mở ngày); `BAI_GIANG_KHO` là bài riêng cho chế độ khó ở những ngày có kiến thức mới — sửa chữ ở đây |
 | `js/do-hoa-3d.js` | **Sinh tự động** từ Blender (`ban_lam_viec.py`): hình dụng cụ vẽ từ mô hình 3D (dáng dùng + dáng cất) và bố cục bàn — thảm làm việc, chỗ cất từng dụng cụ. Đừng sửa tay |
 | `js/do-hoa.js` | Kho SVG dụng cụ / lọ / biểu tượng, nhân vật; nét cốc thủy tinh vẽ tay (`BEAKER_ART`, chuyển từ `Blender/sym-beaker3.svg`) |
@@ -48,7 +50,7 @@ npx --yes http-server -p 8642 -c-1 .
 | `js/giao-dien.js` | Âm thanh & nhạc nền, lưu tiến trình, menu, lịch, cài đặt, kết quả |
 | `js/phong-thi-nghiem.js` | Bàn thí nghiệm, kéo–thả, phản ứng, đốt, an toàn, khách hàng |
 | `js/che-do.js` | Minigame, chế độ khó, thẻ phản ứng |
-| `js/tham-quan.js` | Chuyến tham quan khu công nghiệp: kịch bản, câu hỏi, tranh nền từng cảnh — sửa lời ở đây |
+| `js/tham-quan.js` | Hai chuyến đi thực tế (ngày 13 nhà Bà Tư, ngày 27 khu công nghiệp): kịch bản, câu hỏi, tranh nền — sửa lời ở đây |
 | `js/khoi-dong.js` | Tự kiểm tra (mở bằng `#dev`) và vào game — nạp cuối |
 | `js/loi-thoai.js`, `js/nhan-vat.js` | Thoại khách, đa dạng hoá dàn khách |
 
