@@ -27,6 +27,7 @@ const BAI_GIANG = [
     'Nước là dung môi quen thuộc nhất. Muối ăn, đường là chất tan: tan hết rồi thì trò không còn thấy hạt nào nữa.',
     'Mỗi chất tan được nhiều hay ít khác nhau, gọi là *độ tan*. Chất tan chậm mà không khuấy thì sẽ lắng dưới đáy cốc.',
     '*Khuấy*, *đun nóng* hay *nghiền nhỏ* chất rắn đều giúp nó tan nhanh hơn, vì các hạt chất tan được tiếp xúc với nước nhiều hơn. || khuấy ; đun nóng ; nghiền nhỏ',
+    'Ở tiệm ta, mỗi lần nghiêng lọ là đúng *một thìa* chất. Khách hỏi bao nhiêu thìa thì trò nghiêng bấy nhiêu lần. || 1 lần nghiêng = 1 thìa',
     ':) Thế thôi! Giờ xem khách đặt gì nào.',
   ],
   // 2 · Khái niệm mol
@@ -36,7 +37,7 @@ const BAI_GIANG = [
     'Giống như "1 tá" là 12 cái: 1 mol đường có 6,022 × 10²³ phân tử đường, 1 mol nước cũng có ngần ấy phân tử nước.',
     'Khối lượng của 1 mol chất là *khối lượng mol* M, tính bằng gam/mol. Ví dụ M của NaCl = 23 + 35,5 = 58,5 g/mol. || M(NaCl) = 58,5 g/mol',
     'Muốn đổi khối lượng ra số mol thì chia cho M: 5,85 g muối ăn chính là 0,1 mol. || n = m : M',
-    ':) Ở tiệm ta, mỗi lần nghiêng lọ là đúng 0,1 mol, trò chỉ cần đếm thôi!',
+    ':) Thìa hôm qua chính là 0,1 mol: từ nay mỗi lần nghiêng lọ là đúng 0,1 mol, trò chỉ cần đếm thôi!',
   ],
   // 3 · Nguyên tử hay phân tử?
   [

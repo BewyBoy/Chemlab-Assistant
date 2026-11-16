@@ -155,7 +155,10 @@ const SLOW_DISSOLVE = Object.keys(CHEMS).filter(f => CHEMS[f].s === 'r' && CHEMS
 /* ---- formatting helpers ---- */
 const SUBS = '₀₁₂₃₄₅₆₇₈₉';
 const sub = f => f.replace(/([A-Za-z)])(\d+)/g, (m,ch,d) => ch + [...d].map(x=>SUBS[+x]).join(''));
-const amt = n => (+(n/10).toFixed(3)).toString().replace('.',',') + ' mol'; // doses can be fractional (0,05 mol...)
+// Ngày 1 (chưa học mol): đếm bằng THÌA — mỗi lần nghiêng lọ là 1 thìa (= 0,1 mol, ngày 2 mới giảng). Các ngày khác ghi mol.
+const spoonDay = () => typeof lab !== 'undefined' && !!lab && lab.i === 0 && !lab.hard && !(lab.day && lab.day.free);
+const amt = n => spoonDay() ? (+(+n).toFixed(2)).toString().replace('.',',') + ' thìa'
+                            : (+(n/10).toFixed(3)).toString().replace('.',',') + ' mol'; // doses can be fractional (0,05 mol...)
 // dấu ở sản phẩm f theo quy ước SGK: ↓ chỉ cho kết tủa sinh ra trong dung dịch — không ghi khi đốt, đun, điện phân, có
 // chất xúc tác / chất rút nước, hay khi không chất tham gia nào tan (CaO + CO₂); ↑ không ghi khi chất tham gia đã có khí
 function rxMark(r, f){

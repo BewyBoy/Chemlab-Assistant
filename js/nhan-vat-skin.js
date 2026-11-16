@@ -6,7 +6,7 @@
    MẮT — theo bản vẽ tay: hai chấm mực đặc, không tròng trắng. Mỗi người khác nhau ở cỡ chấm (r), độ dẹt (k = ry/rx),
    lông mi (lash: 0/1/2 nét), nếp nhăn đuôi mắt (crease), và kiểu "mắt cười" (smiley: lúc bình thường đã là hai vòng
    cung, như Cô Mai). Biểu cảm: bình thường = chấm; vui = hai vòng cung ◠ ◠; bực = chấm (miệng và dấu bực nằm ở hình
-   gốc). Mí chớp (.blinklid) giữ nguyên cơ chế cũ, cỡ vừa chấm.
+   gốc). Chớp mắt: chấm mắt dẹt thành nét ngang rồi mở lại (CSS trong style.css); .blinklid còn trong hình nhưng ẩn.
 
    SKIN — skin 0 là "Cổ điển" (đúng hình gốc). Skin 1, 2 khai báo trong js/trang-phuc.js (xem định dạng ở đầu file đó).
    ===================================================================== */

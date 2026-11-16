@@ -286,7 +286,35 @@ document.addEventListener('visibilitychange', () => {
 document.body.insertAdjacentHTML('afterbegin',
   '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + SVG_DEFS + SVG_DEFS_3D + '</defs></svg>');
 fit();
-showMenu();
+/* Màn mở đầu: nền đen + logo (tạm, chờ logo thật) hiện dần, rồi mới hiện "Nhấn để bắt đầu"; chạm / bấm phím thì màn
+   đen mờ đi, lộ menu đã dựng sẵn bên dưới. Cú chạm này cũng là cú chạm đầu tiên mà trình duyệt đòi để phát tiếng
+   (SFX.unlock). Chế độ dev (#dev) bỏ qua màn này. Thay logo: sửa SPLASH_LOGO (chuỗi HTML / SVG, hoặc một <img>). */
+const SPLASH_LOGO = '<svg class="splash-mark" viewBox="0 0 200 200" aria-hidden="true">'
+  + '<rect x="6" y="6" width="188" height="188" rx="34" fill="none" stroke="#f4ecd8" stroke-width="4" stroke-dasharray="14 10" opacity=".55"/>'
+  + '<path d="M80,46 h40 M86,46 v42 l-34,62 q-6,14 10,14 h76 q16,0 10,-14 l-34,-62 v-42" fill="none" stroke="#f4ecd8" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>'
+  + '<path d="M62,132 q38,-14 76,0 l8,14 q4,8 -6,8 h-80 q-10,0 -6,-8z" fill="#7fc4c9"/>'
+  + '<circle cx="92" cy="116" r="6" fill="#7fc4c9"/><circle cx="108" cy="100" r="4" fill="#7fc4c9"/></svg>'
+  + '<div class="splash-name">LOGO</div>';
+function showSplash(){
+  if(DEBUG) return;
+  const sp = document.createElement('div');
+  sp.className = 'splash'; sp.setAttribute('role', 'button'); sp.setAttribute('aria-label', 'Nhấn để bắt đầu');
+  sp.innerHTML = '<div class="splash-logo">' + SPLASH_LOGO + '</div><div class="splash-tap">Nhấn để bắt đầu</div>';
+  document.body.appendChild(sp);
+  let ready = false;
+  const tReady = setTimeout(() => { ready = true; sp.classList.add('ready'); }, 1400);   // logo hiện trước, rồi mới mời chạm
+  const start = e => {
+    if(!ready){ ready = true; clearTimeout(tReady); sp.classList.add('ready'); return; }   // chạm sớm: hiện ngay lời mời
+    if(e && e.type === 'keydown' && /^(Shift|Control|Alt|Meta|Tab)$/.test(e.key)) return;
+    sp.removeEventListener('pointerdown', start); removeEventListener('keydown', start);
+    SFX.unlock(); SFX.page();
+    sp.classList.add('out');
+    setTimeout(() => sp.remove(), 650);
+  };
+  sp.addEventListener('pointerdown', start); addEventListener('keydown', start);
+}
+showMenu();       // menu dựng sẵn dưới màn mở đầu
+showSplash();
 // lưu sẵn game để lần sau mất mạng vẫn chơi được (sw.js). Mở thẳng file trên máy (file://) hay trong iframe không cho
 // phép thì thôi, game vẫn chạy bình thường.
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol))

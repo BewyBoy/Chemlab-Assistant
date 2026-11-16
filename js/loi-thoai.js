@@ -250,9 +250,9 @@ const PROF_MG = {
    Đừng xoá ngày nào — thiếu là ô giới thiệu ngày đó trống. */
 const DAY_STORY = {
  1:
-   'Chào mừng trò đến với tiệm hoá chất của ta! Ta là giáo sư Hoffmann. Hôm nay trò học pha DUNG DỊCH: cho chất tan vào cốc rồi thêm nước. Chất nào ÍT TAN sẽ lắng dưới đáy — lấy ĐŨA THUỶ TINH bên cạnh cốc, kéo vào rồi khuấy tròn cho tan hết nhé!',
+   'Chào mừng trò đến với tiệm hoá chất của ta! Ta là giáo sư Hoffmann. Hôm nay trò học pha DUNG DỊCH: cho chất tan vào cốc rồi thêm nước. Mỗi lần nghiêng lọ là đúng MỘT THÌA — khách hỏi 2 thìa thì nghiêng 2 lần. Chất nào ÍT TAN sẽ lắng dưới đáy — lấy ĐŨA THUỶ TINH bên cạnh cốc, kéo vào rồi khuấy tròn cho tan hết nhé!',
  2:
-   'MOL là "tá" của nhà hoá học: 1 mol = 6,022×10²³ hạt! Mỗi lần trò nghiêng lọ là thêm đúng 0,1 mol. Khách hỏi 0,3 mol thì nghiêng 3 lần. Ta tặng trò cái THÌA KHUẤY — bấm để đảo đều cốc. Hôm nay có mấy vị khách "cuồng số" ghé đấy…',
+   'MOL là "tá" của nhà hoá học: 1 mol = 6,022×10²³ hạt! Một thìa hôm qua chính là 0,1 mol — từ nay ta đếm bằng mol: mỗi lần nghiêng lọ là thêm đúng 0,1 mol. Khách hỏi 0,3 mol thì nghiêng 3 lần. Ta tặng trò cái THÌA KHUẤY — bấm để đảo đều cốc. Hôm nay có mấy vị khách "cuồng số" ghé đấy…',
  3:
    'NGUYÊN TỬ là hạt nhỏ nhất của nguyên tố (Fe, Cu…). Nhiều nguyên tử gắn lại thành PHÂN TỬ. Phân tử của một nguyên tố là ĐƠN CHẤT (O₂, N₂…), của nhiều nguyên tố là HỢP CHẤT (H₂O, CO₂…). Phân loại các thẻ này nào!',
  '3-kho':

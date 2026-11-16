@@ -1004,7 +1004,7 @@ function undoPour(){
   const b = lab.undo.before;
   lab.mix = b.mix; lab.undissolved = b.und; lab.dissolveTotal = b.dt; lab.firstPour = b.fp; lab.waterIn = b.wi; lab.dac = b.dac;
   lab.undo = null; lab.lastWhy = '';
-  SFX.pour(); wiggleBeaker(); toast(PROF_LAB.hoanTac);
+  SFX.pour(); toast(PROF_LAB.hoanTac);
   updateBeaker();
 }
 /* ---- axit đặc trong cốc ----
@@ -1028,7 +1028,7 @@ function concCheck(){
 function acidSplash(acid, water){
   if(!lab || lab.ending) return;
   lab.ending = true; clearInterval(lab.timer); lab.timer = null;   // đồng hồ đứng: kéo–thả cũng bị chặn
-  SFX.bang(); wiggleBeaker();
+  SFX.bang();
   const b = G.querySelector('#beakerItem'); if(b){ b.classList.remove('glowing'); void b.offsetWidth; b.classList.add('glowing'); }
   const bx = beakerBox(), col = CHEMS[acid].c;
   for(let k = 0; k < 14; k++){   // giọt axit văng ra hai bên miệng cốc
@@ -1626,6 +1626,7 @@ function spawnFall(color){
     G.appendChild(f); setTimeout(()=>f.remove(), 1400);
   }
 }
+// cốc chỉ lắc khi KHUẤY (bấm đũa / rê đũa trong lòng cốc) — rót, rút lại, axit bắn đều không lắc
 function wiggleBeaker(){
   const b = G.querySelector('#beakerItem'); if(!b) return;
   b.classList.remove('shaken'); void b.offsetWidth; b.classList.add('shaken');
