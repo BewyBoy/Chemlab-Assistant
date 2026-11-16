@@ -1278,6 +1278,8 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .pausetitle{font-family:var(--fh);font-size:20px;margin:-6px 0 14px;opacity:.85}
 /* ô lịch: sticker hoá học (molBox của che-do.js) thay cho tên ngày */
 .day-card .dstk{display:flex;align-items:center;justify-content:center;max-height:none;overflow:visible}
-.day-card .molbox{position:relative;flex:none}
+.day-card .molbox,.day-card .stkbox{position:relative;flex:none}
+.day-card .stkbox{display:flex;align-items:center;justify-content:center}
+.day-card .stkbox svg{overflow:visible}
 .day-card .mol{position:absolute;inset:0}
 .day-card .atom{transition:none}

@@ -48,14 +48,41 @@ const LICH = {
     'Chuỗi phản ứng — Nối mắt xích',         // 31
   ],
 
-  /* Sticker hoá học dán trên ô lịch thay cho tên ngày (tên ngày hiện ở thẻ Tạm nghỉ khi đang chơi).
-     Mỗi ngày một công thức, vẽ bằng mô hình bi–que như minigame ngày 3. Cùng thứ tự với `ngay`. */
+  /* Sticker dán trên ô lịch thay cho tên ngày (tên ngày hiện ở thẻ Tạm nghỉ khi đang chơi). Cùng thứ tự với `ngay`.
+     Mỗi mục là khoá một sticker dụng cụ / đồ vật trong js/sticker.js (cốc khuấy, thìa, cân, muôi đốt, pipet, lọ
+     axit…), hoặc một công thức hoá học — khi đó vẽ mô hình bi–que như minigame ngày 3. Chọn thứ gợi đúng bài hôm đó. */
   sticker: [
-    'NaCl', 'MgSO4', 'CH4', 'NH3', 'CO2', 'SO2', 'MgO',                           // 1–7
-    'H2', 'O2', 'CuO', 'H2O', 'HCl', 'Ca(OH)2', 'H3PO4',                          // 8–14
-    'H2SO4', 'NaOH', 'CuSO4', 'HNO3', 'KCl', 'BaSO4', 'AgCl',                     // 15–21
-    'AlCl3', 'FeCl3', 'N2', 'Cl2', 'NH4Cl', 'CaCO3', 'Na2CO3',                    // 22–28
-    'CuCl2', 'KMnO4', 'Cu(OH)2'                                                   // 29–31
+    'coc-khuay',      // 1  pha dung dịch: cốc + đũa khuấy
+    'thia',           // 2  mol: mỗi lần một thìa = 0,1 mol
+    'nguyentu',       // 3  nguyên tử hay phân tử
+    'CH4',            // 4  hoá trị: C có bốn "tay"
+    'can',            // 5  cân bằng phương trình
+    'muoi-dot',       // 6  đốt chất trong oxi
+    'kiemtra',        // 7  luyện tập chương 1
+    'khi-h2',         // 8  hiđro: bình thu khí
+    'que-dom',        // 9  oxi: đun thuốc tím, que đóm bùng cháy
+    'kinh-lup',       // 10 đi tìm chất khử: CuO đen hoá đồng đỏ
+    'H2O',            // 11 nước
+    'giay-quy',       // 12 quỳ tím
+    'nha',            // 13 đi thực tế: hoá học trong nhà
+    'so-tay',         // 14 luyện tập chương 2
+    'gia-ong-nghiem', // 15 tính chất của axit
+    'pipet-hong',     // 16 tính chất của bazơ: nhỏ phenolphtalein hoá hồng
+    'gio-phan-loai',  // 17 phân loại chất
+    'lo-axit',        // 18 axit mạnh
+    'NaCl',           // 19 muối: con của axit và bazơ
+    'pheu-loc',       // 20 kết tủa: lọc
+    'huy-chuong',     // 21 luyện tập chương 3
+    'lon-nhom',       // 22 nhôm
+    'dinh-sat',       // 23 sắt
+    'bang-tuan-hoan', // 24 bảng tuần hoàn
+    'binh-clo',       // 25 halogen: khí clo vàng lục
+    'NH3',            // 26 nitơ → amoniac
+    'nha-may',        // 27 đi thực tế: khu công nghiệp
+    'cup',            // 28 luyện tập lớn
+    'dien-phan',      // 29 điện phân
+    'lo-thuoc-tim',   // 30 thuốc tím
+    'xich'            // 31 chuỗi phản ứng
   ],
 
   tuDo: 'Ca tự do — tháng sau'      // ô ngay sau ngày 31 (ngày 1 tháng sau)

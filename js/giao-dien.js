@@ -354,10 +354,10 @@ function showMap(){
     const day = DAYS[d], num = d+1;
     const open = DEBUG || num <= save.unlocked;
     const st = save.stars[num] || 0, sth = save.starsHard[num] || 0;
-    // ô lịch dán sticker hoá học của ngày (LICH.sticker, vẽ như minigame ngày 3); tên ngày hiện ở thẻ Tạm nghỉ khi chơi
+    // ô lịch dán sticker của ngày (LICH.sticker: dụng cụ trong js/sticker.js hoặc công thức); tên ngày hiện ở thẻ Tạm nghỉ
     const stk = LICH.sticker && LICH.sticker[d];
     cells += `<div class="day-card${open?'':' locked'}${d%7===6?' sun':''}${day.trip?' tripday':''}" data-d="${d}" title="${day.t}">
-      <div class="dt dstk">${stk ? molBox(stk, 78, 58, 1.15) : day.t}</div>
+      <div class="dt dstk">${stk ? stickerBox(stk, 78, 58, d) : day.t}</div>
       <div class="dn"><span class="dnw">${num}${open && !st && !sth ? circ : ''}</span>${open?'':' '+ico('lock',14)}</div>
       <div class="st">${open||st?dayStars(st, sth):''}</div></div>`;
   }

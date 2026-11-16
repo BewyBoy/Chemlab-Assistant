@@ -26,7 +26,7 @@ Bạn, học trò của giáo sư Hoffmann, đã được thầy giao cho một 
 
 **Đi thực tế:** hai ngày trên lịch là chuyến đi kiểu visual novel, dọc đường giáo sư hỏi bài; trả lời đúng bao nhiêu câu thì được bấy nhiêu sao. Ngày 13 về nhà Bà Tư xem muối, đường, gas, gỉ sắt, axit, vôi, hiđro trong đời sống hằng ngày; ngày 27 theo kỹ sư Minh qua lò vôi, lò cao luyện gang, nhà máy điện phân nhôm.
 
-**Lịch và thời gian:** mỗi ô lịch dán một sticker hoá học (mô hình bi–que); tên ngày hiện ở thẻ Tạm nghỉ khi đang chơi. Ở chế độ thường, mỗi ca thí nghiệm và đồng hồ chung của minigame chỉ có 65% thời lượng gốc (`EASY_TIME` trong `js/diem.js`).
+**Lịch và thời gian:** mỗi ô lịch dán một sticker gợi đúng bài hôm đó — dụng cụ (cốc khuấy, cân, muôi đốt, pipet, lọ axit, phễu lọc…) hoặc mô hình bi–que của một chất; tên ngày hiện ở thẻ Tạm nghỉ khi đang chơi. Ở chế độ thường, mỗi ca thí nghiệm và đồng hồ chung của minigame chỉ có 65% thời lượng gốc (`EASY_TIME` trong `js/diem.js`).
 
 ### Chạy trên máy
 
@@ -43,6 +43,7 @@ npx --yes http-server -p 8642 -c-1 .
 | `js/phan-ung.js` | Bảng phản ứng — sửa hoá học ở đây |
 | `js/du-lieu.js` | Hoá chất, 31 ngày, thành tựu, "Bạn có biết?" |
 | `js/lich.js` | Tên tháng trên tờ lịch, tên và sticker hoá học từng ngày — sửa chữ ở đây |
+| `js/sticker.js` | Hình sticker dụng cụ dán trên ô lịch (thêm sticker mới ở đây, chọn sticker cho từng ngày ở `js/lich.js`) |
 | `js/bai-giang.js` | Lời giáo sư giảng lý thuyết từng ngày (màn kiểu visual novel, hiện lần đầu mở ngày); `BAI_GIANG_KHO` là bài riêng cho chế độ khó ở những ngày có kiến thức mới — sửa chữ ở đây |
 | `js/do-hoa-3d.js` | **Sinh tự động** từ Blender (`ban_lam_viec.py`): hình dụng cụ vẽ từ mô hình 3D (dáng dùng + dáng cất) và bố cục bàn — thảm làm việc, chỗ cất từng dụng cụ. Đừng sửa tay |
 | `js/do-hoa.js` | Kho SVG dụng cụ / lọ / biểu tượng, nhân vật; nét cốc thủy tinh vẽ tay (`BEAKER_ART`, chuyển từ `Blender/sym-beaker3.svg`) |

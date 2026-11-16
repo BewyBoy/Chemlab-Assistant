@@ -11,7 +11,7 @@ if(DEBUG){
   console.assert(LICH.ngay.length === DAYS.length && DAYS.every(d => d.t), 'js/lich.js: cần đúng một mô tả cho mỗi ngày');
   console.assert(BAI_GIANG.length === DAYS.length && BAI_GIANG.every((d, k) => DAYS[k].trip ? d === null : d && d.length),
     'js/bai-giang.js: cần đúng một bài giảng (ít nhất một câu) cho mỗi ngày; ngày đi thực tế ghi null');
-  console.assert(LICH.sticker.length === DAYS.length && LICH.sticker.every(f => { try { return molHTML(f, 60, 50, 1).length > 50; } catch(e){ return false; } }),
+  console.assert(LICH.sticker.length === DAYS.length && LICH.sticker.every(f => STICKERS[f] || (() => { try { return molHTML(f, 60, 50, 1).length > 50; } catch(e){ return false; } })()),
     'js/lich.js: cần đúng một sticker vẽ được cho mỗi ngày');
   DAYS.filter(d => d.trip).forEach(d => console.assert(TRIPS[d.trip], 'ngày đi thực tế trỏ tới chuyến không có: ' + d.trip));
   // bài giảng chế độ khó: ngày có thật, có câu; ngày minigame phải có bài khó riêng (day.hard) thì mới có gì mới để giảng
