@@ -258,7 +258,7 @@ const TRANG_PHUC = (() => {
         over:
           '<defs><pattern id="tp6s2_soc" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#f3efdc"/><rect width="10" height="4.5" fill="#7f8f42"/></pattern></defs>'
           // áo thun sọc xanh ô liu
-          + g('<path d="M104,176 q-32,9 -46,30 q-14,20 -16,84 l156,0 q-2,-64 -16,-84 q-14,-21 -46,-30 q-14,8 -32,0z" fill="url(#tp6s2_soc)"/>', 3.2)
+          + g('<path d="M98,176 q-26,9 -40,30 q-14,20 -16,84 l156,0 q-2,-64 -16,-84 q-14,-21 -40,-30 q-22,9 -44,0z" fill="url(#tp6s2_soc)"/>', 3.2)
           // quai (viền mực) + yếm cao su rêu sẫm kéo cao lên ngực
           + '<path d="M86,198 l-4,-14 M154,198 l4,-14" fill="none" stroke="' + INK + '" stroke-width="12" stroke-linecap="round"/>'
           + '<path d="M86,198 l-4,-14 M154,198 l4,-14" fill="none" stroke="#56663c" stroke-width="7" stroke-linecap="round"/>'

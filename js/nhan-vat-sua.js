@@ -11,8 +11,8 @@
 
    Những gì đã vá:
      4  Anh Minh : bỏ chỏm tóc nhọn chọc xuyên đỉnh mũ bảo hộ (giữ tóc mai dưới vành mũ).
-     6  Ông Sáu  : bỏ nét cung lơ lửng trên đầu hói; áo gi-lê nâu → xanh ô-liu (màu nhận diện của ông).
-     8  Chị Hoa  : bỏ ngôi sao đỏ trên trán + cục đỏ trên đỉnh tóc; cài một bông hoa 5 cánh trên tai trái.
+     6  Ông Sáu  : bỏ nét cung lơ lửng trên đầu hói; áo gi-lê nâu → xanh ô-liu (màu nhận diện của ông); nới khoét cổ áo.
+     8  Chị Hoa  : bỏ ngôi sao đỏ trên trán + cục đỏ trên đỉnh tóc; cài một bông hoa 5 cánh trên tai trái; cổ thon lại.
      10 Cô Mai   : làm lại tóc nữ (mái lệch + tóc phồng ôm mặt + đuôi ngựa thấp vắt qua vai phải, dây buộc đỏ
                    san hô, kẹp tóc xanh lá dứa), lông mày mảnh, bông tai vàng có hạt san hô, áo cánh trắng → hồng đào.
      3  Bé Na    : bỏ cà vạt raster (lộ ra khi khăn quàng đã thu nhỏ).
@@ -107,11 +107,18 @@ const SUA = {
     // (d) bỏ vành tóc bạc ôm sau tai (trông như cái chụp tai); thu thành chỏm thì lại thành tai nhọn — để hói hẳn
     svg = suaBo(svg, 'd="M60,132 q-10,-18 4,-32');
     svg = suaBo(svg, 'd="M180,132 q10,-18 -4,-32');
+    // (e) cổ (x 102..138 ở chân) rộng hơn khoét cổ áo (x 104..136) nên hai mép cổ đè lên vai áo: nới khoét cổ ra x 98..142
+    svg = svg.replace('d="M104,176 q-32,9 -46,30', 'd="M98,176 q-26,9 -40,30').replace('q-14,-21 -46,-30 q-14,8 -32,0z', 'q-14,-21 -40,-30 q-22,9 -44,0z');
+    svg = svg.replace('d="M104,176 q-14,4 -26,14 l0,110 l40,0 l0,-118 q-7,-4 -14,-6z', 'd="M98,176 q-10,4 -20,14 l0,110 l40,0 l0,-118 q-10,-5 -20,-6z');
+    svg = svg.replace('d="M136,176 q14,4 26,14 l0,110 l-40,0 l0,-118 q7,-4 14,-6z', 'd="M142,176 q10,4 20,14 l0,110 l-40,0 l0,-118 q10,-5 20,-6z');
     return svg;
   },
 
   /* ---------- 8 · Chị Hoa: hoa cài tóc thay cho "lá phong" đỏ ---------- */
   8(svg){
+    // cổ thon lại (x 106..134) để nằm gọn trong khoét cổ áo (x 108..132) thay vì tràn ra hai mép vai
+    svg = svg.replace('d="M100,150 q20,10 40,0 l-2,34 q-18,9 -36,0 z"', 'd="M106,150 q14,8 28,0 l-1,32 q-13,7 -26,0 z"');
+    svg = svg.replace('d="M102,152 q18,8 36,0 l-1,11 q-17,7 -34,0 z"', 'd="M107,152 q13,6 26,0 l-1,10 q-12,6 -24,0 z"');
     svg = suaBo(svg, 'd="M126,38 q-6,-8 4,-12');                 // cục đỏ hình tim trên đỉnh tóc
     svg = suaBo(svg, 'd="M96,66 l14,-4 l0,6 l14,2');             // ngôi sao đỏ trên trán (diversify đã nudge lên)
     svg = suaBo(svg, '<circle cx="102" cy="64" r="3" fill="#d9634f"');   // nhuỵ của ngôi sao

@@ -420,7 +420,7 @@ const SD_CHARS = {
   },
 
   /* 8 · Chị Hoa — tiệm vàng bạc: mặt trái tim (cằm nhọn), mũi thon, mi cong, hoa đỏ cài tóc, bông tai vàng */
-  8: {cx:120, ey:104, nb:182, ox:5, D:86, bust:4, skin:['#f9e6d1', '#f0d0ac', '#e2b184'], hc:SD_DARK, ear:[12, 2],
+  8: {cx:120, ey:104, nb:182, ox:5, D:86, bust:4, skin:['#f9e6d1', '#f0d0ac', '#e2b184'], hc:SD_DARK, ear:[12, 2], neckF:33,
     h:{top:-76, back:52, nape:26, fx:-44, fs:5, n:{tx:-63, ty:22, bx:-50, by:26, r:3, hump:1}, lu:-49, ll:-46, my:41, ch:[-40, 64], jaw:[10, 44]},
     look(k){
       return [{body:['#98c479', '#7aa95c'], sleeve:['#7aa95c', '#5e8944']},
