@@ -116,6 +116,10 @@ const SUA = {
 
   /* ---------- 8 · Chị Hoa: hoa cài tóc thay cho "lá phong" đỏ ---------- */
   8(svg){
+    // miếng lót cổ chữ V (đồ của diversify, nằm SAU nhóm mắt nên đè lên mọi lớp trang phục) dời xuống dưới lớp 'over'
+    // của skin: ve vest và dây chuyền kẹp trong vest phải nằm trên nó
+    const v = suaTimPhanTu(svg, 'd="M98,178 L120,212 L142,178');
+    if(v){ const el = svg.slice(v[0], v[1]); svg = suaChenTruocMat(svg.slice(0, v[0]) + svg.slice(v[1]), el); }
     // cổ thon lại (x 106..134) để nằm gọn trong khoét cổ áo (x 108..132) thay vì tràn ra hai mép vai
     svg = svg.replace('d="M100,150 q20,10 40,0 l-2,34 q-18,9 -36,0 z"', 'd="M106,150 q14,8 28,0 l-1,32 q-13,7 -26,0 z"');
     svg = svg.replace('d="M102,152 q18,8 36,0 l-1,11 q-17,7 -34,0 z"', 'd="M107,152 q13,6 26,0 l-1,10 q-12,6 -24,0 z"');

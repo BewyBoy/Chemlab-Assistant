@@ -39,6 +39,16 @@ const TRANG_PHUC = (() => {
       + '<g transform="translate(5,-13)"><path d="M194,280 q-3,8 1,14 M185,281 q-3,7 0,13 M177,279 q-2,7 1,12" fill="none" stroke-width="2"/></g></g>';
   };
   // đạo cụ cổ điển của khách (CUST_PROPS trong do-hoa.js, khoá = khoá ở đây − 1), để skin giữ nó và vẽ thêm
+  // n hạt cách đều theo độ dài cung Bezier bậc hai a–c–b (bán kính r)
+  const tpHat = (a, c, b, n, r) => {
+    const P = t => [(1 - t) * (1 - t) * a[0] + 2 * t * (1 - t) * c[0] + t * t * b[0], (1 - t) * (1 - t) * a[1] + 2 * t * (1 - t) * c[1] + t * t * b[1]];
+    const pts = [], L = [0];
+    for(let j = 0; j <= 200; j++){ pts.push(P(j / 200)); if(j) L.push(L[j - 1] + Math.hypot(pts[j][0] - pts[j - 1][0], pts[j][1] - pts[j - 1][1])); }
+    let out = '';
+    for(let q = 0; q < n; q++){ const want = L[200] * q / (n - 1); let j = 0; while(j < 200 && L[j] < want) j++;
+      out += `<circle cx="${pts[j][0].toFixed(1)}" cy="${pts[j][1].toFixed(1)}" r="${r}"/>`; }
+    return out;
+  };
   const classic = n => (typeof CUST_PROPS !== 'undefined' && CUST_PROPS[n - 1]) || '';
 
   return {
@@ -251,9 +261,10 @@ const TRANG_PHUC = (() => {
           '<defs><linearGradient id="tp6s1_sl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#c9dcec"/><stop offset="1" stop-color="#a6c1da"/></linearGradient></defs>'
           + tpArms(6, 'url(#tp6s1_sl)', 'url(#tp6s1_sl)')
           // mũ tai bèo
-          + g('<path d="M86,64 q2,-34 34,-34 q32,0 34,34z" fill="#b9c48c"/>'
-            + '<path d="M66,70 q54,-16 108,0 q4,6 -2,9 q-52,-12 -104,0 q-6,-3 -2,-9z" fill="#a3b075"/>'
-            + '<path d="M87,58 q33,-8 66,0" fill="none" stroke="#6c7b45" stroke-width="4"/>', 2.8) },
+          // (thân mũ phủ trọn đỉnh đầu x 72..168, vành rộng hơn đầu một chút mỗi bên)
+          + g('<path d="M73,70 q-1,-46 47,-46 q48,0 47,46z" fill="#b9c48c"/>'
+            + '<path d="M50,71 q70,-18 140,0 q5,7 -2,10 q-68,-14 -136,0 q-7,-3 -2,-10z" fill="#a3b075"/>'
+            + '<path d="M75,59 q45,-11 90,0" fill="none" stroke="#6c7b45" stroke-width="5"/>', 2.8) },
       { ten: 'Yếm lội ao',
         over:
           '<defs><pattern id="tp6s2_soc" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#f3efdc"/><rect width="10" height="4.5" fill="#7f8f42"/></pattern></defs>'
@@ -309,9 +320,11 @@ const TRANG_PHUC = (() => {
         over:
           // áo lụa kem bên trong, ve vest bản to
           g('<path d="M106,178 L120,240 L134,178z" fill="#f6eedc"/>', 2.4)
+          // dây chuyền nằm trên lót lụa, DƯỚI ve vest (ve áo che hai bên dây)
+          + HOA_DAY
           + g('<path d="M108,176 q-10,4 -16,10 l6,10 l-6,5 l20,40 l8,-1z" fill="#3f9b7f"/>'
             + '<path d="M132,176 q10,4 16,10 l-6,10 l6,5 l-20,40 l-8,-1z" fill="#2f8068"/>', 2.6),
-        prop: classic(8) },
+        prop: HOA_HOATAI },
       { ten: 'Áo lụa ngọc lục bảo',
         grad: { c7cloth: ['#23946a', '#1a7a56'], c7clothL: ['#1a7a56', '#115e41'] },
         swap: [['fill="#efe3d2"', 'fill="#e9d29a"'], ['#d9634f" d="M108,182', '#e8b84b" d="M108,182']],
@@ -324,7 +337,8 @@ const TRANG_PHUC = (() => {
         // viền vàng cổ áo + chuỗi hạt vàng + mặt dây hình thoi + khuyên tròn
         prop: '<path d="M101,181 L120,209 L139,181" fill="none" stroke="#e8b84b" stroke-width="2.6" stroke-linejoin="round"/>'
           + '<g fill="#f0c419" stroke="#8a6238" stroke-width="1.2">'
-          + [0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => { const t = i / 8, x = 97 + 46 * t, y = 190 + 56 * t * (1 - t) + 2; return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.8"/>`; }).join('')
+          // chuỗi hạt vòng ra từ hai bên chân cổ, nằm trong viền chữ V; hạt rải đều theo độ dài dây
+          + tpHat([106, 181], [120, 229], [134, 181], 9, 2.6)
           + '</g>'
           + g('<path d="M120,206 l8,8 l-8,10 l-8,-10z" fill="#f0c419" stroke="#8a6238" stroke-width="2"/>', 2)
           + '<g fill="none" stroke="#c8a227" stroke-width="2.8"><circle cx="78" cy="148" r="6.5"/><circle cx="162" cy="148" r="6.5"/></g>'

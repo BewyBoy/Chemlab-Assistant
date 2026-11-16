@@ -1834,6 +1834,9 @@ if(typeof SPECS !== 'undefined' && typeof diversify === 'function'){
    khách 0–2 dùng khung 280x280 (mặt ở y≈100, cổ áo y≈190, ngực y 200–260, thân x 85–215),
    khách 3–9 dùng khung 200x280 (mặt ở y≈105, cổ áo y≈185, ngực y 195–255, thân x 35–185).
    Không có đạo cụ cho Chú Ba (đã có nón lá) và Thầy Nam (đã có áo blouse). */
+const HOA_DAY = '<path d="M106,180 Q120,236 134,180" fill="none" stroke="#c8a227" stroke-width="3" stroke-linecap="round"/>'
+  + '<circle cx="120" cy="214" r="5.5" fill="#f0c419" stroke="#8a6238" stroke-width="2"/>';
+const HOA_HOATAI = '<g stroke="#8a6238" stroke-width="2"><circle cx="78" cy="141" r="4.2" fill="#f0c419"/><circle cx="162" cy="141" r="4.2" fill="#f0c419"/></g>';
 const CUST_PROPS = {
   // 0 · Bà Tư — lò bánh mì: túi giấy đựng bánh mì đeo chéo (quai qua vai phải, túi bên hông trái, hai ổ bánh thò lên)
   0: '<g stroke="#3b3025" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">'
@@ -1873,10 +1876,9 @@ const CUST_PROPS = {
    + '<path d="M101,184 q19,9 38,0 l-1,5 q-18,9 -36,0z" fill="#d9364a"/>'
    + '<path d="M116,192 l-11,26 l8,-1.5 l8,-22z" fill="#d9364a"/><path d="M124,192 l10,25 l-8,-1 l-6,-22z" fill="#c22d40"/>'
    + '<path d="M113,186 q7,-4.5 14,0 q1,8 -7,10 q-8,-2 -7,-10z" fill="#e8515f"/></g>',
-  // 7 · Chị Hoa — tiệm vàng bạc: dây chuyền và hoa tai vàng
-  7: '<g fill="none" stroke="#c8a227" stroke-width="3.2" stroke-linecap="round"><path d="M97,190 q23,28 46,0"/></g>'
-   + '<g stroke="#8a6238" stroke-width="2"><circle cx="120" cy="214" r="5.5" fill="#f0c419"/>'
-   + '<circle cx="78" cy="141" r="4.2" fill="#f0c419"/><circle cx="162" cy="141" r="4.2" fill="#f0c419"/></g>',
+  // 7 · Chị Hoa — tiệm vàng bạc: dây chuyền và hoa tai vàng. Dây vòng ra từ hai bên chân cổ (sau gáy) và nằm gọn
+  // trong khoét cổ chữ V, không vắt ra ngoài vải áo (skin vest dùng lại HOA_DAY, kẹp giữa lót lụa và ve áo)
+  7: HOA_DAY + HOA_HOATAI,
   // 9 · Cô Mai — quán chè: tạp dề đã nằm trong nhan-vat.js (GARMENT.apron)
 };
 const custArtMemo = [];   // ghép hình khách + đồ cầm tay một lần, lần sau dùng lại chuỗi (mỗi hình 5–24 KB)
