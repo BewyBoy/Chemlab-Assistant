@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><title>Mẫu thẻ kết quả — phiếu báo cáo</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../style.css">
+<!-- Bản mẫu màn kết thúc ngày kiểu PHIẾU BÁO CÁO kẹp trên bìa kẹp giấy nâu: các dòng điểm hiện dần như đang viết tay, tổng điểm
+     đếm lên, ba sao xếp loại rót đầy theo điểm, giáo sư ghi nhận xét và ký; phá kỷ lục thì một dải giấy đánh dấu "Kỷ lục mới!"
+     dán chìa ra mép phải. Bản mẫu đầu tiên, giữ để xem nhanh các tình huống; thẻ thật trong game là resultCard (js/giao-dien.js) và lớp .rp… (style.css).
+     Mở qua http-server: /tools/mau-ket-qua.html -->
+<style>
+html,body{height:100%;overflow:hidden;background:#2e2720}
+#stage{position:absolute;left:50%;top:50%;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;
+  background:url(../assets/man-hinh-chinh.webp) center/cover}
+#stage::before{content:'';position:absolute;inset:0;background:#3b302599}
+
+/* ---------- bìa kẹp giấy ---------- */
+.board{position:absolute;left:405px;top:22px;width:470px;height:680px;background:#a97c4b;border:1.6px solid var(--ink);border-radius:16px;
+  box-shadow:0 18px 40px #0007,inset 0 0 0 6px #b98d5b;transform:translateY(780px) rotate(-3deg)}
+.board.in{animation:boardin .75s cubic-bezier(.25,1.25,.5,1) forwards}
+@keyframes boardin{to{transform:translateY(0) rotate(-1deg)}}
+.paper{position:absolute;left:22px;right:22px;top:44px;bottom:22px;background:#fffdf5;border:1.2px solid var(--ink);border-radius:2px;
+  box-shadow:3px 3px 0 #3b302522;padding:26px 28px 18px;
+  background-image:linear-gradient(#fffdf5,#fffdf5),repeating-linear-gradient(transparent 0 31px,#a97c4b1c 31px 32px)}
+/* kẹp kim loại */
+.clip{position:absolute;left:50%;top:-6px;width:190px;height:62px;margin-left:-95px;z-index:3}
+.clip .plate{position:absolute;left:0;right:0;top:14px;height:30px;background:linear-gradient(#e9e6df,#bdb8ad);border:1.6px solid var(--ink);border-radius:6px 6px 10px 10px}
+.clip .bar{position:absolute;left:18px;right:18px;top:4px;height:16px;background:#6b4a2c;border:1.6px solid var(--ink);border-radius:9px}
+.clip .ring{position:absolute;left:50%;top:36px;width:44px;height:24px;margin-left:-22px;border:1.6px solid var(--ink);border-top:none;border-radius:0 0 22px 22px;background:#d3cfc6}
+
+/* ---------- chữ in sẵn trên phiếu ---------- */
+.ph{text-align:center;margin:0}
+.ph h1{margin:0;font-size:25px;letter-spacing:1px}
+.hr{border-top:1.6px solid var(--ink);margin:10px 0 8px}
+.sec{font-family:var(--fh);font-size:13.5px;letter-spacing:.6px;opacity:.7;margin:10px 0 2px}
+.field{display:flex;align-items:baseline;gap:6px;font-size:14px;height:30px}
+.field .fill b{font-family:var(--fh);font-weight:400;font-size:16px;padding-left:4px}
+.field .fill{flex:1;border-bottom:1.2px dotted #3b302588;height:22px;display:flex;align-items:flex-end}
+.row{display:flex;align-items:flex-end;gap:8px;height:31px;font-size:14.5px}
+.row .lab{white-space:nowrap}
+.row .dots{flex:1;border-bottom:1.6px dotted #3b302566;margin-bottom:6px}
+.row .val{min-width:60px;text-align:right}
+.row.zero .lab{opacity:.45}
+.total{display:flex;align-items:flex-end;justify-content:space-between;margin-top:6px;height:46px}
+.total .lab{font-family:var(--fh);font-size:18px}
+.total .val{position:relative;font-size:38px;line-height:1;min-width:120px;text-align:right}
+.total .ul{position:absolute;right:-4px;bottom:-9px;width:0;height:7px;border-top:2px solid #2f5fa8;border-bottom:2px solid #7a4f2a;transition:width .45s ease-out}
+.total .ul.on{width:calc(100% + 8px)}
+.rate{display:flex;justify-content:center;align-items:flex-end;gap:18px;height:74px}
+.rate .lstar:nth-child(2){margin-bottom:8px}
+.lines{position:relative;height:62px;background:repeating-linear-gradient(transparent 0 30px,#3b302533 30px 31px)}
+.lines .hw{position:absolute;left:4px;top:4px;font-size:21px}
+.sign{position:absolute;right:30px;bottom:18px;text-align:center;font-size:12px;opacity:1}
+.sign .hw{font-family:'Segoe Script','Patrick Hand',cursive;font-size:24px;display:block;transform:rotate(-6deg);margin-bottom:-2px}
+.sign i{display:block;border-top:1.2px solid #3b302588;padding-top:2px;font-style:normal;opacity:.6}
+
+/* ---------- chữ viết tay: hiện dần từ trái qua phải như đang viết ---------- */
+.hw{font-family:'Patrick Hand',var(--fh);color:#7a4f2a;display:inline-block;white-space:nowrap;clip-path:inset(-20% 100% -20% 0)}
+.hw.red{color:#d9634f}
+.note{position:absolute;left:28px;right:28px;font-size:17px}
+
+/* ---------- giấy đánh dấu "Kỷ lục mới!": dải giấy nhớ mảnh 19×76 mm (1:4), màu phấn nhạt, dán chìa ra mép phải ---------- */
+.flag{position:absolute;left:396px;top:438px;width:172px;height:43px;z-index:15;display:flex;align-items:center;justify-content:center;
+  background:#cfe3ad;border:1.2px solid #3b302544;border-radius:1px 3px 3px 1px;box-shadow:2px 4px 6px -2px #0005;
+  font-family:var(--fh);font-size:21px;color:#4f6b2f;opacity:0;transform-origin:0 50%}
+.flag::before{content:'';position:absolute;left:0;top:0;bottom:0;width:44px;background:#ffffff40}   /* phần keo dính trên giấy */
+.flag.on{animation:flagin .45s cubic-bezier(.3,1.4,.6,1) forwards}
+.flag.on span{display:inline-block;animation:recpulse2 1s .5s ease-in-out infinite}
+@keyframes flagin{0%{opacity:0;transform:translateX(90px) rotate(10deg)}100%{opacity:1;transform:rotate(-3deg)}}
+@keyframes recpulse2{50%{transform:scale(1.12)}}
+
+/* ---------- nút ---------- */
+.btns{position:absolute;left:1000px;bottom:40px;display:flex;flex-direction:column;gap:12px;opacity:0;transition:opacity .4s}
+.btns.on{opacity:1}
+.btns button{width:62px;height:62px;padding:0;display:flex;align-items:center;justify-content:center}
+.btns .main{background:var(--accent)}
+.btns svg{width:30px;height:30px;fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* bảng chọn tình huống của trang xem thử (không thuộc game) */
+#ctl{position:fixed;left:10px;top:10px;z-index:99;display:flex;gap:6px;flex-wrap:wrap;font:13px system-ui}
+#ctl button{font:13px system-ui;padding:5px 10px;border-radius:6px;border:1px solid #fff6;background:#fffdf5e6;cursor:pointer}
+#ctl button.sel{background:#e8b84b}
+</style></head><body>
+<div id="ctl"></div>
+<div id="stage"></div>
+<script>
+'use strict';
+const STAR_PTS = '12,2 15.1,8.3 22,9.3 17,14.1 18.2,21 12,17.8 5.8,21 7,14.1 2,9.3 8.9,8.3';
+const wavePath = y => 'M-24 '+y+'q3 -2.2 6 0'+' t6 0'.repeat(11)+'V26H-24Z';
+let seq = 0;
+const liqStar = s => `<svg class="lstar" width="${s}" height="${s}" viewBox="0 0 24 24" style="overflow:visible">
+  <clipPath id="c${++seq}"><polygon points="${STAR_PTS}"/></clipPath>
+  <polygon points="${STAR_PTS}" fill="#efe5cc"/>
+  <g clip-path="url(#c${seq})"><g class="lsliq" style="transform:translateY(23px)">
+    <path class="lsw2" d="${wavePath(-.8)}"/><path class="lsw1" d="${wavePath(0)}"/></g></g>
+  <polygon points="${STAR_PTS}" fill="none" stroke="#3b3025" stroke-width="1.5" stroke-linejoin="round"/>
+  <g class="lsray">${[0,45,90,135,180,225,270,315].map(a => `<path d="M12 -1.5V-4.5" transform="rotate(${a} 12 12)"/>`).join('')}</g></svg>`;
+
+const ICON = {
+  retry:'<svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>',
+  map:'<svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>',
+  next:'<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>'};
+
+// các tình huống xem thử, tính theo luật điểm mới (js/diem.js): chuỗi +50 mỗi lần đúng liền trước đó, tối đa +100;
+// mốc sao [100·k1, 100·k2, 170·N]
+const CASES = {
+  'Ba sao + kỷ lục': {day:23, name:'Kim loại kiềm thổ', count:['Đơn hoàn thành','6/6'], ok:600, fast:256, streak:450, perfect:600,
+    lim:[400,600,1020], rec:1420, cheer:'Xuất sắc! Không chê vào đâu được!'},
+  'Ba sao, sai 1 lần': {day:26, name:'Sắt', count:['Đơn hoàn thành','6/6'], ok:600, fast:220, streak:300, perfect:0,
+    lim:[400,600,1020], rec:1980, cheer:'Xuất sắc! Chỉ vấp một chút thôi.'},
+  'Hai sao': {day:18, name:'Muối (1)', count:['Đơn hoàn thành','7/7'], ok:700, fast:150, streak:250, perfect:0,
+    lim:[500,700,1190], rec:1388, why:'Giao sai 2 lần — xem lại hệ số trước khi giao.', cheer:'Làm tốt lắm, gần hoàn hảo rồi!'},
+  'Một sao': {day:9, name:'Oxi — điều chế và sự cháy', count:['Đơn hoàn thành','3/6'], ok:300, fast:50, streak:100, perfect:0,
+    lim:[400,600,1020], why:'Còn 3 đơn chưa giao — nung chất rắn trong cốc khô nhé.', cheer:'Ổn đấy! Luyện thêm chút nữa nhé.'},
+  'Minigame': {day:10, name:'Lọ khí nào? — Thám tử que đóm', count:['Trả lời đúng','8/8'], ok:800, fast:212, streak:650, perfect:800,
+    lim:[400,600,1360], rec:1650, cheer:'Xuất sắc! Không chê vào đâu được!'}};
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const S = document.getElementById('stage');
+function fitStage(){
+  const k = Math.min(innerWidth/1280, innerHeight/720);
+  S.style.transform = `translate(${-640*k}px,${-360*k}px) scale(${k})`;
+}
+addEventListener('resize', fitStage); fitStage();
+
+let run = 0;   // đổi tình huống giữa chừng thì chuỗi cũ tự dừng
+async function play(key){
+  const my = ++run, c = CASES[key], live = () => my === run;
+  const pts = c.ok + c.fast + c.streak + c.perfect, rec = c.rec != null && pts > c.rec;
+  // dòng đầu gộp số phần làm được với điểm đúng
+  const rows = [[c.count[0] + ' (' + c.count[1] + ')', c.ok, 1], ['Tốc độ', c.fast], ['Chuỗi', c.streak], ['Hoàn hảo', c.perfect]];
+  S.innerHTML = `<div class="board"><div class="clip"><div class="plate"></div><div class="bar"></div><div class="ring"></div></div>
+    <div class="paper">
+      <div class="ph"><h1>BÁO CÁO CA</h1></div>
+      <div class="hr"></div>
+      <div class="field">Ngày: <span class="fill" style="flex:0 0 46px"><b>${c.day}</b></span>
+        Bài: <span class="fill"><b>${c.name}</b></span></div>
+      <div class="sec">I. KẾT QUẢ</div>
+      ${rows.map(([l, v, plain], k) => `<div class="row${!plain && !v ? ' zero' : ''}">
+        <span class="lab">${l}</span><span class="dots"></span><span class="val"><span class="hw" id="v${k}" style="font-size:21px">${
+          plain ? v : v ? '+' + v : '—'}</span></span></div>`).join('')}
+      <div class="total"><span class="lab">TỔNG ĐIỂM</span><span class="val"><span class="hw" id="tot" style="clip-path:none">0</span><span class="ul" id="ul"></span></span></div>
+      <div class="sec">II. XẾP LOẠI</div>
+      <div class="rate">${[50, 62, 50].map(liqStar).join('')}</div>
+      <div class="sec">III. NHẬN XÉT CỦA GIÁO SƯ</div>
+      <div class="lines"><span class="hw" id="cheer">${c.cheer}</span>${c.why ? `<span class="hw red" id="why" style="position:absolute;left:4px;top:35px;font-size:17px">${c.why}</span>` : ''}</div>
+      <div class="sign"><span class="hw" id="sig">Hoffmann</span><i>Giáo sư ký tên</i></div>
+    </div>
+    ${rec ? '<div class="flag" id="flag"><span>Kỷ lục mới!</span></div>' : ''}
+  </div>
+  <div class="btns" id="btns"><button class="btn" title="Chơi lại">${ICON.retry}</button><button class="btn" title="Bản đồ">${ICON.map}</button>
+    ${c.ok ? `<button class="btn main" title="Ngày tiếp theo">${ICON.next}</button>` : ''}</div>`;
+  const board = S.querySelector('.board'), stars = [...S.querySelectorAll('.lstar')];
+  // chữ viết tay hiện dần từ trái qua phải (đặt bằng JS: transition CSS đứng yên khi tab bị ẩn)
+  async function write(id, speed = 9){
+    const el = S.querySelector('#' + id); if(!el || !live()) return;
+    const d = Math.max(220, el.offsetWidth*speed), steps = Math.max(3, Math.round(d/40));
+    for(let i = 1; i <= steps && live(); i++){
+      el.style.clipPath = 'inset(-20% ' + (100 - 100*i/steps).toFixed(1) + '% -20% 0)';
+      await sleep(d/steps);
+    }
+    el.style.clipPath = 'inset(-20% -5% -20% 0)';
+  }
+  // tổng điểm đếm lên, sao rót theo (sao 1: 0 → mốc 1, sao 2: mốc 1 → mốc 2, sao 3: mốc 2 → mốc 3)
+  const frac = (v, i) => { const lo = i ? c.lim[i - 1] : 0; return Math.max(0, Math.min(1, (v - lo)/(c.lim[i] - lo))); };
+  const show = v => { S.querySelector('#tot').textContent = Math.round(v);
+    stars.forEach((s, i) => { const f = frac(v, i); s.querySelector('.lsliq').style.transform = 'translateY(' + (f ? 21.5 - f*21.2 : 23) + 'px)';
+      if(f >= 1 && !s.classList.contains('full')) s.classList.add('full'); }); };
+  let cur = 0;
+  async function add(n){
+    const from = cur, to = cur += n, t0 = performance.now(), D = 300 + Math.min(700, n*1.1);
+    for(let t = 0; t < 1 && live(); ){ t = Math.min(1, (performance.now() - t0)/D); show(from + (to - from)*(1 - (1 - t)*(1 - t))); await sleep(16); }
+  }
+
+  await sleep(60); if(!live()) return;
+  board.classList.add('in'); await sleep(850);
+  for(let n = 0; n < rows.length && live(); n++){
+    const v = rows[n][1];
+    await write('v' + n);
+    if(v) add(v);                          // tổng đếm lên ngay khi số của dòng được viết xong
+    await sleep(v ? 380 : 120);
+  }
+  await sleep(500); if(!live()) return;
+  S.querySelector('#ul').classList.add('on'); await sleep(450);
+  stars.forEach((s, i) => { if(!frac(pts, i)) s.classList.add('off'); });
+  await write('cheer', 7); await write('why', 6); await write('sig', 5);
+  if(!live()) return;
+  const fl = S.querySelector('#flag');
+  if(fl){ await sleep(200); fl.classList.add('on'); await sleep(450); }
+  S.querySelector('#btns').classList.add('on');
+}
+
+const ctl = document.getElementById('ctl');
+Object.keys(CASES).forEach((key, i) => {
+  const b = document.createElement('button'); b.textContent = key;
+  b.onclick = () => { ctl.querySelectorAll('button').forEach(x => x.classList.toggle('sel', x === b)); play(key); };
+  ctl.appendChild(b); if(!i) b.click();
+});
+</script>
+</body></html>

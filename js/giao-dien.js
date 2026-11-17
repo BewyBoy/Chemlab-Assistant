@@ -140,6 +140,10 @@ const SFX = (() => {
     page(){ noise(.26,.06,900,.6); },
     talk(){ tone(480+Math.random()*160,.035,'triangle',.02); },              // giáo sư đang nói (chữ hiện dần)
     fill(){ for(let n=0;n<7;n++) setTimeout(()=>tone(260+n*70,.08,'sine',.05,330+n*80), n*130); setTimeout(()=>tone(1568,.2,'triangle',.04), 1000); }, // rót đầy sao: ọc ọc cao dần rồi "ting"
+    glug(f){ tone(260+f*420,.08,'sine',.05,330+f*480); },                   // một tiếng ọc khi rót sao, f: mức đã đầy 0…1
+    ding(){ tone(1568,.2,'triangle',.05); setTimeout(()=>tone(2093,.25,'triangle',.035),70); }, // sao vừa đầy
+    scribble(ms){ for(let t=0;t<ms;t+=110) setTimeout(()=>noise(.07,.025,3600+Math.random()*1500,2.5), t+Math.random()*40); }, // viết tay trên phiếu
+    stamp(){ noise(.18,.16,260,.5); setTimeout(()=>{ tone(1319,.18,'triangle',.05); setTimeout(()=>tone(1760,.3,'triangle',.05),110); },120); }, // con dấu "Kỷ lục mới!"
     err(){ tone(320,.18,'sawtooth',.05,180); },
     splash(){ noise(.3,.1,500,.7); setTimeout(()=>noise(.15,.05,900,.8),100); }
   };
@@ -1014,17 +1018,18 @@ function settingsModal(){
     + '<h2>'+ico('gear',22)+' Cài đặt</h2>'
     + '<div class="hgrid"><div>'
     + volSliders()
-    + '<div class="settingrow"><div><b style="'+lbl+'">'+ico('screen',15)+' Tỷ lệ màn hình</b><span class="sethint" id="resHint"></span></div>'
+    + '<div class="settingrow"><div><b style="'+lbl+'">'+ico('screen',15)+' Tỷ lệ màn hình</b></div>'
     + '<div class="resstep"><button class="btn" id="resPrev" aria-label="Tỷ lệ trước">'+ico('back',16)+'</button>'
     + '<b id="resVal"></b><button class="btn" id="resNext" aria-label="Tỷ lệ sau">'+ico('next',16)+'</button></div></div>'
     + '<div class="settingrow"><div><b style="'+lbl+'">'+ico('trash',15)+' Xoá dữ liệu trò chơi</b></div>'
     + '<button class="btn danger" id="breset">Xoá</button></div>'
-    + '</div><div>'
+    + '</div><div class="hcol">'
     + tgl('tglFull','expand','Toàn màn hình',fsOn(),!fsOK())
     + tgl('tglCards','star','Thẻ phản ứng',cardsOn())
     + tgl('tglBalance','note','Giấy cân bằng sẵn',!balanceOn(),!nobalOwned())
     + (hardUnlocked() ? tgl('tglHard','flask','Chế độ khó',hardOn()) : '')
     + tgl('tglCurtain','play','Màn "Bắt đầu"',curtainOn())
+    + '<button class="btn about" id="babout">'+ico('info',15)+' Giới thiệu</button>'
     + '</div></div></div>';
   const flip = (id, key, get, after) => ov.querySelector(id).onclick = e => {
     save.settings[key] = key === 'balance' ? get() : !get(); persist();   // 'balance' lưu ngược: công tắc = tắt cân bằng
@@ -1045,7 +1050,6 @@ function settingsModal(){
   const showRes = () => {
     const i = Math.max(0, SCREEN_RES.findIndex(r => r[0] === (save.settings.res || 'auto')));
     ov.querySelector('#resVal').textContent = SCREEN_RES[i][1];
-    ov.querySelector('#resHint').textContent = SCREEN_RES[i][2];
     return i;
   };
   const stepRes = d => {
@@ -1058,6 +1062,7 @@ function settingsModal(){
   showRes();
   bindVolSliders(ov);
   ov.querySelector('#mclose').onclick = () => closeOv(ov);
+  ov.querySelector('#babout').onclick = aboutModal;
   ov.querySelector('#breset').onclick = () => confirmModal(
     '<h2>'+ico('trash',22)+' Xoá dữ liệu?</h2><p style="margin:8px 0">Toàn bộ tiến trình, sao và thành tựu sẽ bị xoá và không thể khôi phục.</p>',
     () => { save = {unlocked:1, stars:{}, starsHard:{}, best:{}, bestHard:{}, ach:[], served:0, spent:0, rx:[], hist:[], settings:{balance:true}, lich:3}; persist(); closeOv(ov); notify('Đã xoá dữ liệu.'); showMenu(); },
@@ -1065,9 +1070,26 @@ function settingsModal(){
   G.appendChild(ov);
 }
 
+// Giới thiệu (góc dưới phải Cài đặt): tên game, game là gì, số liệu nội dung, tác giả — sửa chữ ở đây
+function aboutModal(){
+  const n = (v, t) => '<b>' + v + '</b> ' + t;
+  modal('<h2>'+ico('info',22)+' Giới thiệu</h2>'
+    + '<p style="margin:6px 0 2px;font-family:var(--fh);font-size:20px">Trợ Lý Hóa Học Nhí</p>'
+    + '<p style="margin:0 0 12px;opacity:.7"><i>Trợ lý phòng thí nghiệm của giáo sư Hoffmann</i></p>'
+    + '<p style="margin:0 0 10px">Game pha chế bám sát chương trình Khoa học tự nhiên lớp 8–9: mỗi ngày người trong xóm đến đặt một chất, '
+    + 'và bạn tự cân, đong, đun, lọc, hứng khí để tạo ra nó.</p>'
+    + '<p style="margin:0 0 10px">' + [n(DAYS.length, 'ngày'), n(Object.keys(CHEMS).length, 'hoá chất'),
+        n(REACTIONS.length, 'phản ứng'), n(Object.keys(ACH).length, 'thành tựu')].join(' · ') + '</p>'
+    + '<p style="margin:0">Làm bởi <b>BewyBoy</b> · <a href="https://github.com/BewyBoy/Chemlab-Assistant" target="_blank" rel="noopener">Mã nguồn trên GitHub</a></p>',
+    null, 'about');
+}
+
 /* =====================  RESULT & GRADING  ===================== */
-/* Thẻ kết quả: cảnh vừa chơi đứng hình, tối lại phía sau; thẻ nảy vào giữa, rồi từng sao được
-   rót đầy như chất lỏng (mặt sóng dâng trong viền sao). Dùng chung cho mọi ngày. */
+/* Thẻ kết quả = PHIẾU BÁO CÁO CA kẹp trên bìa kẹp giấy nâu. Cảnh vừa chơi đứng hình, tối lại phía sau; bìa trượt lên
+   giữa màn. Các dòng điểm hiện dần như đang viết tay; viết xong số nào thì TỔNG ĐIỂM đếm lên thêm chừng ấy, và ba sao
+   XẾP LOẠI rót theo tổng đang đếm — ba sao là ba khúc của thanh điểm (sao 1 từ 0 tới mốc 1, sao 2 từ mốc 1 tới mốc 2…),
+   đầy sao thì sao nảy và loé tia. Giáo sư viết nhận xét, ký tên; phá kỷ lục thì một dải giấy đánh dấu "Kỷ lục mới!"
+   dán chìa ra mép phải. Bấm vào phiếu là tua nhanh tới cuối. Dùng chung cho mọi ngày và ca tự do. */
 const STAR_PTS = '12,2 15.1,8.3 22,9.3 17,14.1 18.2,21 12,17.8 5.8,21 7,14.1 2,9.3 8.9,8.3';   // = ico-star
 // mặt sóng chu kỳ 12, trải từ x=-24 tới 48 để trượt ngang đúng một chu kỳ mà không hở mép
 const wavePath = y => 'M-24 '+y+'q3 -2.2 6 0'+' t6 0'.repeat(11)+'V26H-24Z';
@@ -1080,14 +1102,19 @@ const liqStar = s => `<svg class="lstar" width="${s}" height="${s}" viewBox="0 0
     <path class="lsw2" d="${wavePath(-.8)}"/><path class="lsw1" d="${wavePath(0)}"/>
     <circle class="lsbub" cx="9" cy="15" r=".9"/><circle class="lsbub" cx="14.5" cy="18" r=".6"/>
   </g></g>
-  <polygon points="${STAR_PTS}" fill="none" stroke="#3b3025" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+  <polygon points="${STAR_PTS}" fill="none" stroke="#3b3025" stroke-width="1.5" stroke-linejoin="round"/>
+  <g class="lsray">${[0, 45, 90, 135, 180, 225, 270, 315].map(a =>
+    `<path d="M12 -1.5V-4.5" transform="rotate(${a} 12 12)"/>`).join('')}</g></svg>`;
 // nút trên thẻ kết quả: chỉ có hình, cùng một cỡ vuông; chữ nằm ở title / aria-label
 const resBtn = (id, icon, label, cls = '') =>
   `<button class="btn icobtn resbtn${cls}" id="${id}" aria-label="${label}" title="${label}">${ico(icon, 30)}</button>`;
 // nút vuông trên thẻ Tạm nghỉ: chỉ có hình, chữ nằm ở title / aria-label (như resBtn)
 const pauseBtn = (id, icon, label, cls = '') =>
   `<button class="btn pbtn${cls}" id="${id}" aria-label="${label}" title="${label}">${ico(icon, 32)}</button>`;
-function resultCard(title, stars, body){
+/* r: {day: số ngày hay chữ, name: tên bài, hard, rows: [{l: nhãn, v: số, plus: ghi dấu +, add: cộng vào tổng}…],
+       total: {l: nhãn, best: kỷ lục cũ (null khi vừa phá)}, lim: ba mốc sao, rec: phá kỷ lục,
+       cheer: nhận xét, why: dòng nhắc lỗi (đỏ), btns: các nút (resBtn)} */
+function resultCard(r){
   // chụp lại cảnh đang có làm nền (canvas không tự chép hình khi clone nên vẽ lại từ bản gốc)
   const bg = document.createElement('div');
   bg.className = 'resbg'; bg.inert = true;
@@ -1096,34 +1123,97 @@ function resultCard(title, stars, body){
     const cp = bg.appendChild(c.cloneNode(true)), dst = cp.querySelectorAll('canvas');
     c.querySelectorAll('canvas').forEach((cv, n) => { if(cv.width && cv.height) dst[n].getContext('2d').drawImage(cv, 0, 0); });
   });
-  G.innerHTML = `<div class="scene resscene"><div class="rescard"><h2>${title}</h2>
-    <div class="lstars">${[74, 92, 74].map(liqStar).join('')}</div>${body}</div></div>`;
-  const card = G.querySelector('.rescard');
-  card.after(bg);   // nằm sau thẻ: querySelector('#id') luôn trúng nút của thẻ trước
+  G.innerHTML = `<div class="scene resscene"><div class="rpboard">
+    <div class="rpclip"><i class="rpplate"></i><i class="rpbar"></i><i class="rpring"></i></div>
+    <div class="rppaper">
+      <h2 class="rph">BÁO CÁO CA${r.hard ? ' <span>· chế độ khó</span>' : ''}</h2>
+      <div class="rpfield">Ngày: <span class="rpfill rpday">${r.day}</span> Bài: <span class="rpfill">${r.name}</span></div>
+      <div class="rpsec">I. KẾT QUẢ</div>
+      ${r.rows.map((w, k) => `<div class="rprow${!w.v && w.plus ? ' zero' : ''}"><span>${w.l}</span><i></i>
+        <b class="rphw" id="rv${k}">${w.plus ? (w.v ? '+' + w.v : '—') : w.v}</b></div>`).join('')}
+      <div class="rptotal"><span>${r.total.l}${r.total.best != null ? ' <small>kỷ lục: ' + r.total.best + '</small>' : ''}</span>
+        <b class="rphw" id="rtot">0<i></i></b></div>
+      <div class="rpsec">II. XẾP LOẠI</div>
+      <div class="rprate">${[50, 62, 50].map(liqStar).join('')}</div>
+      <div class="rpsec">III. NHẬN XÉT CỦA GIÁO SƯ</div>
+      <div class="rplines"><b class="rphw" id="rcheer">${r.cheer}</b>${r.why ? `<b class="rphw red" id="rwhy">${r.why}</b>` : ''}</div>
+      <div class="rpsign"><b class="rphw" id="rsig">Hoffmann</b><i>Giáo sư ký tên</i></div>
+    </div>
+    ${r.rec ? '<div class="rpflag" id="rflag"><span>Kỷ lục mới!</span></div>' : ''}
+  </div><div class="rpbtns">${r.btns}</div></div>`;
+  G.querySelector('.resscene').after(bg);   // nằm sau thẻ: querySelector('#id') luôn trúng nút của thẻ trước
   SFX.page();
-  card.querySelectorAll('.lstar').forEach((el, k) => {
-    if(k < stars) setTimeout(() => { el.classList.add('fill'); SFX.fill(); }, 650 + k*620);
-    else setTimeout(() => el.classList.add('off'), 650 + stars*620);
-  });
+  resFill(G.querySelector('.rpboard'), r);
+}
+async function resFill(board, {rows, lim, rec}){
+  const $ = s => board.querySelector(s), stars = [...board.querySelectorAll('.lstar')], tot = $('#rtot');
+  let skip = false;
+  board.onclick = () => { skip = true; };   // bấm vào phiếu: tua nhanh tới cuối
+  const live = () => board.isConnected;
+  const sleep = ms => skip ? Promise.resolve() : new Promise(res => setTimeout(res, ms));   // setTimeout: tab ẩn vẫn chạy xong
+  const frac = (x, k) => { const lo = k ? lim[k - 1] : 0; return Math.max(0, Math.min(1, (x - lo)/(lim[k] - lo))); };
+  let cur = 0, glug = 0;
+  const show = x => {
+    tot.firstChild.nodeValue = Math.round(x);
+    stars.forEach((s, k) => {
+      const f = frac(x, k);
+      // mặt sóng: 23 = dưới đáy sao (rỗng), .3 = tràn đỉnh
+      s.querySelector('.lsliq').style.transform = 'translateY(' + (f ? 21.5 - f*21.2 : 23) + 'px)';
+      if(f > 0) s.classList.add('fill');
+      if(f >= 1 && !s.classList.contains('full')){ s.classList.add('full'); if(!skip) SFX.ding(); }
+    });
+    const k = stars.findIndex((s, k) => frac(x, k) < 1), f = k < 0 ? 0 : frac(x, k), now = performance.now();
+    if(f > 0 && !skip && now - glug > 140){ glug = now; SFX.glug(f); }   // ọc ọc cao dần theo mức sao đang dâng
+  };
+  const add = async n => {
+    const from = cur, to = cur += n, t0 = performance.now(), D = 300 + Math.min(700, n*1.1);
+    for(let t = 0; t < 1 && live() && !skip; ){ t = Math.min(1, (performance.now() - t0)/D); show(from + (to - from)*(1 - (1 - t)*(1 - t))); await sleep(16); }
+    show(to);
+  };
+  // chữ viết tay hiện dần từ trái qua phải
+  const write = async (el, speed = 9) => {
+    if(!el || !live()) return;
+    const d = Math.max(220, el.offsetWidth*speed), steps = Math.max(3, Math.round(d/40));
+    if(!skip) SFX.scribble(d);
+    for(let i = 1; i <= steps && live() && !skip; i++){
+      el.style.clipPath = 'inset(-30% ' + (100 - 100*i/steps).toFixed(1) + '% -30% -2%)';
+      await sleep(d/steps);
+    }
+    el.style.clipPath = 'none';
+  };
+  show(0);
+  await sleep(850);   // đợi bìa trượt lên
+  for(let k = 0; k < rows.length && live(); k++){
+    await write($('#rv' + k));
+    if(rows[k].add && rows[k].v) add(rows[k].v);   // tổng đếm lên ngay khi số của dòng được viết xong
+    await sleep(rows[k].v ? 380 : 120);
+  }
+  await sleep(500);
+  if(!live()) return;
+  show(cur);   // khi tua nhanh: chốt tổng và mức sao
+  tot.classList.add('on'); await sleep(450);
+  stars.forEach((s, k) => { if(!frac(cur, k)) s.classList.add('off'); });
+  await write($('#rcheer'), 7); await write($('#rwhy'), 6); await write($('#rsig'), 5);
+  if(live() && rec){ await sleep(200); $('#rflag').classList.add('on'); SFX.stamp(); }
 }
 function showResult(i, st){
   const day = DAYS[i], num = i+1;
-  let sc, detail = '';
-  // sao theo điểm (js/diem.js); mốc 1 / 2 sao = số phần cần theo luật cũ, 3 sao chỉ lượt hoàn hảo mới đủ điểm
+  let sc, count, why = '';
+  // sao theo điểm (js/diem.js); mốc 1 / 2 sao = số phần cần theo luật cũ, 3 sao là 170 điểm mỗi phần
   if(day.mg || day.trip){   // minigame và ngày đi thực tế: chấm theo số câu đúng
     const n = st.total;
     sc = runScore(n, st.correct, Math.ceil(n*.5), Math.ceil(n*.75), n > 0 && st.correct === n);
-    detail = `<p style="font-size:18px">${st.label || 'Trả lời đúng'}: <b>${st.correct}/${st.total}</b></p>`;
+    count = (st.label || 'Trả lời đúng') + ' (' + st.correct + '/' + n + ')';
   } else {
     const all = day.orders.length;
     sc = runScore(all, st.served, day.s1, all, st.served === all && st.wrong === 0 && !st.safety);
-    // 3 sao trượt vì đâu: nói thẳng trên thẻ, để lượt sau biết phải sửa gì
-    const why = [];
-    if(st.served < all) why.push('còn ' + (all - st.served) + ' đơn chưa giao');
-    if(st.wrong) why.push('giao sai ' + st.wrong + ' lần' + (st.hard ? '' : ' (lần sai đầu tiên đã được bỏ qua)'));
-    if(st.safety) why.push(st.safety + ' lỗi an toàn');
-    detail = `<p style="font-size:16px">Đơn hoàn thành: <b>${st.served}/${all}</b> · Giao sai: <b>${st.wrong}</b>${st.hard ? ` · Lỗi an toàn: <b>${st.safety||0}</b>` : ''}</p>`;
-    if(why.length) detail += `<p class="rswhy">Chưa đủ 3 sao vì ${why.join(', ')}.</p>`;
+    count = 'Đơn hoàn thành (' + st.served + '/' + all + ')';
+    // chưa đủ 3 sao vì đâu: giáo sư ghi đỏ trên phiếu, để lượt sau biết phải sửa gì
+    const w = [];
+    if(st.served < all) w.push('còn ' + (all - st.served) + ' đơn chưa giao');
+    if(st.wrong) w.push('giao sai ' + st.wrong + ' lần' + (st.hard ? '' : ' (lần sai đầu tiên đã được bỏ qua)'));
+    if(st.safety) w.push(st.safety + ' lỗi an toàn');
+    if(w.length && sc.stars < 3) why = 'Chưa đủ 3 sao vì ' + w.join(', ') + '.';
     save.served += st.served;
     if(st.served === all && !st.wrong) unlockAch('clean');
   }
@@ -1156,10 +1246,12 @@ function showResult(i, st){
   persist();
   let nx = i + 1; while(DAYS[nx] && DAYS[nx].rest) nx++;   // "Ngày tiếp theo" bỏ qua ngày để trống
   const cheer = stars===3?'Xuất sắc! Không chê vào đâu được!':stars===2?'Làm tốt lắm, gần hoàn hảo rồi!':stars===1?'Ổn đấy! Luyện thêm chút nữa nhé.':'Đừng nản — thử lại nào, ta tin trò!';
-  resultCard(`Ngày ${num} kết thúc${st.hard ? ' <span style="color:#d9634f">· chế độ khó</span>' : ''}`, stars,
-    `<div class="resbody">${detail}${scoreHTML(sc, rec, bests[num])}<p class="hand">“${cheer}”</p></div>
-    <div class="row resbtns">${resBtn('bretry', 'retry', 'Chơi lại')}${resBtn('bmap', 'map', 'Bản đồ')}${exploreBtn(day, i, true)}
-      ${(stars>=1 && nx<DAYS.length) ? resBtn('bnext', 'next', 'Ngày tiếp theo', ' main') : ''}</div>`);
+  const p = sc.parts;
+  resultCard({day:num, name:day.t, hard:st.hard, lim:sc.lim, rec, cheer, why,
+    rows:[{l:count, v:p.ok, add:1}, {l:'Tốc độ', v:p.fast, plus:1, add:1}, {l:'Chuỗi', v:p.streak, plus:1, add:1}, {l:'Hoàn hảo', v:p.perfect, plus:1, add:1}],
+    total:{l:'TỔNG ĐIỂM', best:rec ? null : bests[num]},
+    btns:resBtn('bretry', 'retry', 'Chơi lại') + resBtn('bmap', 'map', 'Bản đồ') + exploreBtn(day, i, true)
+      + ((stars>=1 && nx<DAYS.length) ? resBtn('bnext', 'next', 'Ngày tiếp theo', ' main') : '')});
   G.querySelector('#bretry').onclick = () => go(()=>playDay(i));
   G.querySelector('#bmap').onclick = () => go(showMap);
   bindExplore(i);

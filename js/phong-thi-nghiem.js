@@ -437,12 +437,11 @@ function endFree(title){   // title: ca dừng giữa chừng (axit bắn ra) th
   lab = null;
   const rec = n > (save.freeBest || 0);
   if(rec){ save.freeBest = n; persist(); }
-  const stars = FREE_STARS.filter(k => n >= k).length;
-  resultCard(title || 'Ca tự do kết thúc', stars, `<div class="resbody">
-    <p style="font-size:18px">Đơn hoàn thành: <b>${n}</b> · ${rec && n ? '<b class="rsrec">Kỷ lục mới!</b>' : 'Kỷ lục: <b>' + (save.freeBest || 0) + '</b>'}</p>
-    ${nr ? `<p>Phản ứng mới vào sổ tay: <b>${nr}</b></p>` : ''}
-    <p class="hand">“${FREE_STARS.join(' / ')} đơn trong một ca là 1 / 2 / 3 sao — thử phá kỷ lục nhé!”</p></div>
-    <div class="row resbtns">${resBtn('bmap', 'map', 'Bản đồ')}${resBtn('bretry', 'retry', 'Ca mới', ' main')}</div>`);
+  resultCard({day:'Tự do', name:title || 'Ca tự do', lim:FREE_STARS, rec:rec && n > 0,
+    rows:[{l:'Đơn hoàn thành', v:n, add:1}, {l:'Phản ứng mới vào sổ tay', v:nr, plus:1}],
+    total:{l:'SỐ ĐƠN', best:rec && n ? null : save.freeBest || 0},
+    cheer:FREE_STARS.join(' / ') + ' đơn là 1 / 2 / 3 sao — phá kỷ lục nhé!',
+    btns:resBtn('bmap', 'map', 'Bản đồ') + resBtn('bretry', 'retry', 'Ca mới', ' main')});
   G.querySelector('#bretry').onclick = () => go(startFree);
   G.querySelector('#bmap').onclick = () => go(showMap);
 }

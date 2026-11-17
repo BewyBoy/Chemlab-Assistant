@@ -1631,6 +1631,13 @@ const SVG_DEFS = `
   <path d="M12,16.5 L12,20 M7.5,20.5 L16.5,20.5" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
 </symbol>
 
+<!-- ico-info (giới thiệu) -->
+<symbol id="ico-info" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="9.2" fill="#f2d27a" stroke="#3b3025" stroke-width="2"/>
+  <circle cx="12" cy="7.6" r="1.4" fill="#3b3025"/>
+  <path d="M10.4,10.8 L12.6,10.8 L12.6,17 M10.2,17.2 L14.8,17.2" fill="none" stroke="#3b3025" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</symbol>
+
 <!-- ico-expand (toàn màn hình) -->
 <symbol id="ico-expand" viewBox="0 0 24 24">
   <path d="M3.5,9 L3.5,3.5 L9,3.5 M15,3.5 L20.5,3.5 L20.5,9 M20.5,15 L20.5,20.5 L15,20.5 M9,20.5 L3.5,20.5 L3.5,15" fill="none" stroke="#3b3025" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>

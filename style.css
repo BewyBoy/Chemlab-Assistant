@@ -900,30 +900,63 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .resbg::after{content:'';position:absolute;inset:calc(-1*var(--by)) calc(-1*var(--bx));z-index:999;background:#3b302588;animation:ovfade .3s ease-out}
 /* nền là bản chụp: mọi chuyển động dừng ở trạng thái cuối thay vì chạy lại từ đầu */
 .resbg *{animation-delay:-60s!important;animation-play-state:paused!important;transition:none!important}
-.rescard{position:relative;z-index:1;width:640px;text-align:center;background:var(--card);border:1.2px solid var(--ink);border-radius:9.6px;padding:16px 30px 22px;box-shadow:0 14px 34px #3b302566;animation:resbounce .8s ease-out both}
-@keyframes resbounce{0%{opacity:0;transform:translateY(-70px) scale(.5)}45%{opacity:1;transform:translateY(0) scale(1.06)}65%{transform:translateY(0) scale(.96)}82%{transform:translateY(0) scale(1.02)}100%{transform:translateY(0) scale(1)}}
-.rescard h2{margin:0}
-.resbody{border-top:1.2px dashed var(--ink);margin-top:6px}
-/* khối điểm: tổng + kỷ lục, các phần cộng, thanh điểm có ba mốc sao (mốc đã qua thì sáng) */
-.rscore{margin:4px 0 2px}
-.rscore p{margin:2px 0}
-.rspts{font-family:var(--fh);font-size:26px}
-.rsrec{color:#5d8c3f}
-.rsparts{font-size:14px;color:#6b5d4a}
-.rsbar{position:relative;height:10px;margin:21px 20px 6px;background:#efe5cc;border:1.2px solid var(--ink);border-radius:5px}
-.rsbar>i{position:absolute;left:0;top:0;bottom:0;background:var(--accent);border-radius:4px;animation:rsgrow 1.2s .5s ease-out both}
-@keyframes rsgrow{from{width:0}}
-.rstick{position:absolute;top:-17px;transform:translateX(-50%);line-height:0;opacity:.35}
-.rstick.on{opacity:1}
-.resbtns{justify-content:center;gap:14px;margin-top:6px}
-.resbtn{width:58px;height:58px;padding:0}
+/* thẻ kết quả = phiếu báo cáo ca kẹp trên bìa kẹp giấy nâu (resultCard): bìa trượt lên, nút xếp dọc bên phải */
+.rpboard{position:absolute;left:405px;top:22px;width:470px;height:680px;z-index:1;background:#a97c4b;border:1.6px solid var(--ink);border-radius:16px;
+  box-shadow:0 18px 40px #0007,inset 0 0 0 6px #b98d5b;animation:rpin .75s cubic-bezier(.25,1.25,.5,1) both;cursor:pointer}
+@keyframes rpin{from{transform:translateY(780px) rotate(-3deg)}to{transform:rotate(-1deg)}}
+.rppaper{position:absolute;left:22px;right:22px;top:44px;bottom:22px;display:flex;flex-direction:column;padding:24px 28px 16px;text-align:left;
+  border:1.2px solid var(--ink);border-radius:2px;box-shadow:3px 3px 0 #3b302522;
+  background:repeating-linear-gradient(transparent 0 31px,#a97c4b1c 31px 32px),#fffdf5}
+.rpclip{position:absolute;left:50%;top:-6px;width:190px;height:62px;margin-left:-95px;z-index:3}
+.rpclip i{position:absolute;border:1.6px solid var(--ink)}
+.rpplate{left:0;right:0;top:14px;height:30px;background:linear-gradient(#e9e6df,#bdb8ad);border-radius:6px 6px 10px 10px}
+.rpbar{left:18px;right:18px;top:4px;height:16px;background:#6b4a2c;border-radius:9px}
+.rpring{left:50%;top:36px;width:44px;height:24px;margin-left:-22px;border-top:none!important;border-radius:0 0 22px 22px;background:#d3cfc6}
+.rph{margin:0 0 6px;padding-bottom:8px;border-bottom:1.6px solid var(--ink);text-align:center;font-size:25px;letter-spacing:1px}
+.rph span{color:var(--red);font-size:17px;letter-spacing:0}
+.rpfield{display:flex;align-items:baseline;gap:6px;font-size:14px;height:30px;white-space:nowrap}
+.rpfill{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;border-bottom:1.2px dotted #3b302588;font-family:var(--fh);font-size:16px;padding-left:4px}
+.rpfill.rpday{flex:0 0 auto;min-width:40px;padding-right:6px}
+.rpsec{font-family:var(--fh);font-size:13.5px;letter-spacing:.6px;opacity:.7;margin:10px 0 2px}
+.rprow{display:flex;align-items:flex-end;gap:8px;height:31px;font-size:14.5px}
+.rprow span{white-space:nowrap}
+.rprow i{flex:1;border-bottom:1.6px dotted #3b302566;margin-bottom:6px}
+.rprow.zero span{opacity:.45}
+.rprow .rphw{font-size:21px;min-width:50px;text-align:right}
+.rptotal{display:flex;align-items:flex-end;justify-content:space-between;margin-top:6px;height:46px}
+.rptotal span{font-family:var(--fh);font-size:18px}
+.rptotal small{font-family:var(--fb);font-size:12.5px;opacity:.6;margin-left:6px}
+.rptotal .rphw{position:relative;font-size:38px;line-height:1;clip-path:none;font-variant-numeric:tabular-nums}
+.rptotal .rphw i{position:absolute;right:-4px;bottom:-9px;width:0;height:7px;border-top:2px solid #7a4f2a;border-bottom:2px solid #7a4f2a;transition:width .45s ease-out}
+.rptotal .rphw.on i{width:calc(100% + 8px)}
+.rprate{display:flex;justify-content:center;align-items:flex-end;gap:18px;height:74px}
+.rprate .lstar:nth-child(2){margin-bottom:8px}
+.rplines{min-height:62px;line-height:31px;background:repeating-linear-gradient(transparent 0 30px,#3b302533 30px 31px)}
+.rplines .rphw{display:block;white-space:normal;font-size:21px;padding-left:4px}
+.rplines .rphw.red{font-size:17px}
+.rpsign{margin:auto 0 0 auto;text-align:center;font-size:12px}
+.rpsign .rphw{font-family:'Segoe Script','Patrick Hand',cursive;font-size:24px;display:block;transform:rotate(-6deg);margin-bottom:-2px}
+.rpsign i{display:block;border-top:1.2px solid #3b302588;padding-top:2px;font-style:normal;opacity:.6}
+/* chữ viết tay: hiện dần từ trái qua phải (resFill đặt clip-path) */
+.rphw{font-family:'Patrick Hand',var(--fh);font-weight:400;color:#7a4f2a;display:inline-block;white-space:nowrap;clip-path:inset(-30% 100% -30% 0)}
+.rphw.red{color:var(--red)}
+/* dải giấy đánh dấu "Kỷ lục mới!": giấy nhớ mảnh 1:4 màu phấn, dán chìa ra mép phải */
+.rpflag{position:absolute;left:396px;top:438px;width:172px;height:43px;z-index:4;display:flex;align-items:center;justify-content:center;
+  background:#cfe3ad;border:1.2px solid #3b302544;border-radius:1px 3px 3px 1px;box-shadow:2px 4px 6px -2px #0005;
+  font-family:var(--fh);font-size:21px;color:#4f6b2f;opacity:0;transform-origin:0 50%}
+.rpflag::before{content:'';position:absolute;left:0;top:0;bottom:0;width:44px;background:#ffffff40}   /* phần keo dính trên giấy */
+.rpflag.on{animation:rpflag .45s cubic-bezier(.3,1.4,.6,1) forwards}
+.rpflag.on span{display:inline-block;animation:rppulse 1s .5s ease-in-out infinite}
+@keyframes rpflag{0%{opacity:0;transform:translateX(90px) rotate(10deg)}100%{opacity:1;transform:rotate(-3deg)}}
+@keyframes rppulse{50%{transform:scale(1.12)}}
+.rpbtns{position:absolute;left:1000px;bottom:40px;z-index:1;display:flex;flex-direction:column;gap:12px;animation:rpfade .4s .7s both}
+@keyframes rpfade{from{opacity:0}}
+.resbtn{width:62px;height:62px;padding:0}
 .resbtn.main{background:var(--accent)}
-/* sao chất lỏng: mặt sóng (2 lớp trượt ngược chiều) dâng từ đáy tới đỉnh trong viền sao */
-.lstars{display:flex;justify-content:center;align-items:flex-end;gap:14px;height:104px}
-.lstar:nth-child(2){margin-bottom:12px}
+/* sao chất lỏng: mặt sóng (2 lớp trượt ngược chiều) dâng trong viền sao theo điểm đang đếm (resFill đặt mức).
+   Ba sao đè lên mép trên thẻ, sao giữa cao hơn */
+.lstar{overflow:visible}
 .lsliq{transform:translateY(23px)}
-.lstar.fill .lsliq{animation:lsrise 1.1s cubic-bezier(.45,.05,.4,1) forwards}
-@keyframes lsrise{to{transform:translateY(.3px)}}
 .lsw1{fill:#e8b84b;animation:lswave 1.5s linear infinite}
 .lsw2{fill:#c9912e;opacity:.6;animation:lswave 2.2s linear infinite reverse}
 @keyframes lswave{to{transform:translateX(-12px)}}
@@ -931,8 +964,13 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .lstar.fill .lsbub{animation:lsbub 1s ease-in 2}
 .lstar.fill .lsbub+.lsbub{animation-delay:.35s}
 @keyframes lsbub{20%{opacity:.9}100%{opacity:0;transform:translateY(-12px)}}
-.lstar.fill{animation:lspop .45s 1s ease-out}
+/* sao vừa đầy: nảy, loé tám tia, rồi giữ ánh vàng */
+.lstar.full{animation:lspop .45s ease-out;filter:drop-shadow(0 0 5px #ffd76a)}
 @keyframes lspop{40%{transform:scale(1.18) rotate(-5deg)}}
+.lsray{stroke:#e8b84b;stroke-width:1.4;stroke-linecap:round;opacity:0}
+.lstar.full .lsray{animation:lsray .6s ease-out}
+@keyframes lsray{0%{opacity:1;transform:scale(.7)}100%{opacity:0;transform:scale(1.25)}}
+.lsray{transform-origin:12px 12px}
 .lstar.off{opacity:.5;transition:opacity .4s}
 /* bài giảng kiểu visual novel: bảng đen bên trái, thẻ thoại dưới đáy, giáo sư đứng bên phải sau thẻ */
 /* màn cao hơn 16:9: cảnh giãn theo chiều dọc (thẻ thoại sát đáy, bảng sát đỉnh); màn rộng hơn: giữ bố cục ở giữa,
@@ -1095,7 +1133,12 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .bhint b{font-family:var(--fh)}
 .settingrow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px dotted #3b302533;text-align:left}
 .settingrow:last-child{border-bottom:none}
-.sethint{display:block;font-size:12px;opacity:.65;margin-top:2px}
+/* cột phải Cài đặt cao bằng cột trái, mục Giới thiệu dồn xuống góc dưới phải */
+.hgrid>.hcol{align-self:stretch;display:flex;flex-direction:column}
+.hcol .btn.about{margin-top:auto;align-self:flex-end}
+.hcol .settingrow:has(+ .btn.about){border-bottom:none}
+.modal.about{width:520px;text-align:left}
+.modal.about a{color:inherit}
 .resstep{display:flex;align-items:center;gap:6px;flex:none}
 .resstep .btn{width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .resstep b{min-width:68px;text-align:center;font-family:var(--fh);font-size:17px}
@@ -1260,7 +1303,6 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .eqpop{position:absolute;z-index:58;translate:-50% -100%;pointer-events:none;background:var(--card);border:1.5px solid var(--ink);border-radius:8px;
   padding:5px 12px;font-family:var(--fh);font-size:17px;line-height:1.35;text-align:center;white-space:nowrap;box-shadow:2px 2px 0 #3b302533;animation:eqrise 3.2s ease-out forwards}
 @keyframes eqrise{0%{opacity:0;transform:translateY(10px) scale(.9)}10%{opacity:1;transform:none}80%{opacity:1;transform:translateY(-14px)}100%{opacity:0;transform:translateY(-22px)}}
-.rswhy{font-size:14.5px;margin:2px 0 6px;color:#8a3b2c}
 
 /* ngày 1: khay sáng xanh khi hàng trong cốc đã đúng — bước cuối là kéo sang giao */
 #custtray.ready .tray-dz{display:inline;stroke:color-mix(in srgb,var(--green) 70%,transparent)}

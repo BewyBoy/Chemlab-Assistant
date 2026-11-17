@@ -6,23 +6,21 @@
      ĐÚNG      100 mỗi phần làm được                                                            → 100·k
      NHANH     mỗi lần làm đúng +0…50 theo phần thời gian còn lại của lần đó: ở bàn thí nghiệm là vòng đồng hồ chờ
                trên phiếu khách; ở minigame là PAT giây cho mỗi câu (đồng hồ đứng khi tạm nghỉ / có thẻ phủ lên màn)
-     CHUỖI     mỗi lần làm đúng +10 cho mỗi lần đúng liền ngay trước nó, tối đa +50. Sai một lần — giao sai, lỗi an
+     CHUỖI     mỗi lần làm đúng +50 cho mỗi lần đúng liền ngay trước nó, tối đa +100 — chuỗi trọn ngang HOÀN HẢO. Sai một lần — giao sai, lỗi an
                toàn, khách bỏ đi, trả lời sai — là chuỗi về 0. Ở bàn thí nghiệm chế độ thường, lần giao sai ĐẦU TIÊN
                trong ca không tính (không đứt chuỗi, không mất HOÀN HẢO) — xem serve() trong phong-thi-nghiem.js
-     HOÀN HẢO  đạt điều kiện 3 sao cũ (giao đủ, không giao sai, không lỗi an toàn / đúng tất cả): +100 mỗi phần,
-               bằng đúng NHANH + CHUỖI tối đa của một lần đúng
+     HOÀN HẢO  giao đủ, không giao sai, không lỗi an toàn / đúng tất cả: +100 mỗi phần
    Mốc sao — k1, k2: số phần cần cho 1, 2 sao theo luật cũ (s1 đơn và đủ đơn; một nửa và 3/4 số câu):
-     ★ 100·k1        ★★ 100·k2        ★★★ 200·N
+     ★ 100·k1        ★★ 100·k2        ★★★ 170·N
    · Mỗi phần làm được ≥ 100 điểm, nên đạt luật cũ mấy sao thì điểm cũng đủ mấy sao: không ngày nào khó hơn trước.
-   · Làm nhanh, đúng liền thì lên 1–2 sao với ít phần hơn — thời gian và chuỗi đúng là thứ được cộng thêm.
-   · Lượt hoàn hảo có sẵn 200·N nên chậm mấy cũng 3 sao. Lượt có lỗi mất HOÀN HẢO, mà NHANH + CHUỖI cả lượt luôn
-     dưới 100·N (tối đa N lần đúng, mỗi lần dưới 100 vì lần đầu chưa có chuỗi): nhanh tới đâu cũng không bù được
-     một lỗi. khoi-dong.js (#dev) kiểm lại điều này nếu các hằng số bị chỉnh.
+   · Làm nhanh, đúng liền thì lên sao với ít phần hơn — thời gian và chuỗi đúng là thứ được cộng thêm.
+   · 3 sao không còn đòi hoàn hảo: lượt sai một lần mà nhanh và giữ được chuỗi vẫn với tới 170·N. Lượt hoàn hảo có
+     sẵn 200·N nên chậm mấy cũng 3 sao — khoi-dong.js (#dev) kiểm lại điều này nếu các hằng số bị chỉnh.
    ===================================================================== */
 'use strict';
 
-const PTS_OK = 100, PTS_FAST = 50, PTS_STREAK = 10, STREAK_CAP = 5;
-const PTS_PERFECT = PTS_FAST + PTS_STREAK*STREAK_CAP;   // = thưởng tối đa của một lần đúng
+const PTS_OK = 100, PTS_FAST = 50, PTS_STREAK = 50, STREAK_CAP = 2, PTS_PERFECT = 100;
+const PTS_STAR3 = 170;   // mốc 3 sao: 170 điểm mỗi phần
 // PAT: số giây cho một câu ở minigame không có đồng hồ chung (identify: cho mỗi lọ) — xong ngay thì +50, hết PAT
 // giây thì +0. Minigame có đồng hồ chung (lập công thức, sơ đồ Lewis, tạo ion) tính như đồng hồ chờ của khách: gấp
 // đôi phần chia đều. Số đoán trước khi playtest — chỉnh ở đây.
@@ -30,7 +28,7 @@ const PTS_PERFECT = PTS_FAST + PTS_STREAK*STREAK_CAP;   // = thưởng tối đa
 const EASY_TIME = 0.65;
 const PAT = {bins:8, identify:60, sort:6, ptable:15, chain:45, balance:60};
 
-const starLimits = (n, k1, k2) => [PTS_OK*k1, PTS_OK*k2, (PTS_OK + PTS_PERFECT)*n];
+const starLimits = (n, k1, k2) => [PTS_OK*k1, PTS_OK*k2, PTS_STAR3*n];
 // NHANH + CHUỖI lớn nhất có thể của n lần đúng liền, xong ngay tức thì
 const maxBonus = n => Array.from({length:n}, (_, c) => PTS_FAST + PTS_STREAK*Math.min(c, STREAK_CAP)).reduce((a, b) => a + b, 0);
 
@@ -75,14 +73,3 @@ function hudPop(hud, html, cls){
   m.onanimationend = () => m.remove();
 }
 const runPop = (hud, gain) => { if(gain) hudPop(hud, '+' + gain + (runStreak() >= 2 ? '<small>chuỗi ×' + runStreak() + '</small>' : ''), 'run-plus'); };
-
-// khối điểm trên thẻ kết quả: tổng + kỷ lục, các phần cộng, thanh điểm có ba mốc sao
-function scoreHTML(sc, rec, best){
-  const p = sc.parts, pct = v => (Math.min(1, v/sc.top)*100).toFixed(1) + '%';
-  const bits = [['Đúng', p.ok], ['Nhanh', p.fast], ['Chuỗi', p.streak], ['Hoàn hảo', p.perfect]].filter(([, v], k) => !k || v)
-    .map(([t, v], k) => t + ' <b>' + (k ? '+' : '') + v + '</b>').join(' · ');
-  return `<div class="rscore"><p><b class="rspts">${sc.pts}</b> điểm · ${rec ? '<b class="rsrec">Kỷ lục mới!</b>' : 'Kỷ lục: <b>' + best + '</b>'}</p>
-    <p class="rsparts">${bits}</p>
-    <div class="rsbar"><i style="width:${pct(sc.pts)}"></i>${sc.lim.map((t, k) =>
-      `<span class="rstick${sc.pts >= t ? ' on' : ''}" style="left:${pct(t)}" title="${k + 1} sao: ${t} điểm">${ico('star', 15)}</span>`).join('')}</div></div>`;
-}
