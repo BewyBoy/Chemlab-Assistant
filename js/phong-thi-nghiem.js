@@ -364,7 +364,7 @@ function dropAction(type, zone, data){
    Luật an toàn chỉ áp ở CHẾ ĐỘ KHÓ: chế độ thường coi như đã đeo đồ bảo hộ, không có tủ hút, không trừ sao;
    rót nước vào axit thì giáo sư vẫn giảng (kiến thức), chỉ không tính lỗi. */
 function newLab(i, day){
-  const hard = hardOn(), dur = hard ? Math.round(day.dur * 1.5) : day.dur;
+  const hard = hardOn(), dur = hard ? Math.round(day.dur * 1.5) : day.free ? day.dur : Math.round(day.dur * EASY_TIME);   // EASY_TIME: diem.js
   return {i, day, hard, dur, mix:{}, undissolved:{}, dissolveTotal:0, gas:{}, solid:{}, ladle:{}, ladleLit:false,
           heaterOn:false, elecOn:false, catcher:false, lampUnder:false, spoonOn:false, bkPark:null, bkAuto:false, sel:'beaker',
           time:dur, oi:0, served:0, wrong:0, waste:0, timer:null, lastColor:'', magicDose:1,
@@ -412,7 +412,7 @@ function freeShelfOrder(chems){
 /* ---- free-play (post day 28): full shelf, endless random campaign orders ---- */
 function startFree(){
   SFX.music(3);
-  const labDays = DAYS.filter(d => !d.mg && !d.rest);
+  const labDays = DAYS.filter(d => !d.mg && !d.trip && !d.rest);
   // K không nằm trên kệ ngày nào, nên trước đây các phản ứng của K / K₂O không bao giờ làm được (sổ tay không thể đủ)
   // lọ axit đặc chỉ có ở ca tự do (kệ chiến dịch là axit loãng); KClO₃ để điều chế oxi với xúc tác MnO₂;
   // HNO₃ loãng: từ khi bỏ bài "Axit mạnh: H₂SO₄ & HNO₃" không ngày nào bày nó trên kệ nữa
@@ -777,6 +777,7 @@ function pauseLab(){
   const hasEqs = !free && dayEqs(lab.day).length;
   const hasLesson = !free && BAI_GIANG[lab.i];
   ov.innerHTML = `<div class="pausecard"><h2>Tạm nghỉ</h2>
+    <div class="pausetitle">${free ? LICH.tuDo : 'Ngày ' + (lab.i + 1) + ' · ' + lab.day.t}</div>
     <div class="pauserow">${pauseBtn('presume', 'play', 'Tiếp tục', ' main')}${pauseBtn('prestart', 'retry', 'Chơi lại')}${pauseBtn('pmap', 'map', free ? 'Kết thúc ca' : 'Về bản đồ')}</div>
     ${hasLesson ? `<button class="btn" id="plesson">${ico('book')} Xem lại bài giảng</button>` : ''}
     ${hasEqs ? `<button class="btn" id="pnote">${ico('note')} Giấy cân bằng</button>` : ''}
@@ -1044,7 +1045,7 @@ function undoPour(){
   const b = lab.undo.before;
   lab.mix = b.mix; lab.undissolved = b.und; lab.dissolveTotal = b.dt; lab.firstPour = b.fp; lab.waterIn = b.wi; lab.dac = b.dac;
   lab.undo = null; lab.lastWhy = '';
-  SFX.pour(); wiggleBeaker(); toast(PROF_LAB.hoanTac);
+  SFX.pour(); toast(PROF_LAB.hoanTac);
   updateBeaker();
 }
 /* ---- axit đặc trong cốc ----
@@ -1068,7 +1069,7 @@ function concCheck(){
 function acidSplash(acid, water){
   if(!lab || lab.ending) return;
   lab.ending = true; clearInterval(lab.timer); lab.timer = null;   // đồng hồ đứng: kéo–thả cũng bị chặn
-  SFX.bang(); wiggleBeaker();
+  SFX.bang();
   const b = G.querySelector('#beakerItem'); if(b){ b.classList.remove('glowing'); void b.offsetWidth; b.classList.add('glowing'); }
   const bx = beakerBox(), col = CHEMS[acid].c;
   for(let k = 0; k < 14; k++){   // giọt axit văng ra hai bên miệng cốc
@@ -1680,6 +1681,7 @@ function spawnFall(color){
     G.appendChild(f); setTimeout(()=>f.remove(), 1400);
   }
 }
+// cốc chỉ lắc khi KHUẤY (bấm đũa / rê đũa trong lòng cốc) — rót, rút lại, axit bắn đều không lắc
 function wiggleBeaker(){
   const b = G.querySelector('#beakerItem'); if(!b) return;
   b.classList.remove('shaken'); void b.offsetWidth; b.classList.add('shaken');
@@ -2022,7 +2024,9 @@ function coachText(){
     return 'Muôi đang cháy — kéo muôi vào <b>bình thu khí</b> (lọ ' + sub(g) + ')!';
   }
   // thứ tự nhắc đúng thứ tự thao tác: chất tan → nước → khuấy → dụng cụ → giao
-  if(day.chems.includes(t) && !((lab.mix[t]||0) > 0 || (box[t]||0) > 0 || (lab.undissolved[t]||0) > 0))
+  // đơn khí có ghi cách điều chế ("khí hiđro (Zn + axit)"): đừng gợi ý rót thẳng lọ khí trên kệ vào cốc
+  const made = want === 'gas' && /\(.*\+/.test(od.pname || '');
+  if(!made && day.chems.includes(t) && !((lab.mix[t]||0) > 0 || (box[t]||0) > 0 || (lab.undissolved[t]||0) > 0))
     return 'Bắt đầu bằng cách kéo lọ <b>' + sub(t) + '</b> từ tủ bên phải vào cốc.';
   if(od.water && !(lab.mix.H2O > 0) && day.chems.includes('H2O'))
     return 'Khách hỏi <b>dung dịch</b> chứ không phải chất khô — kéo thêm lọ <b>Nước</b> vào cốc.';

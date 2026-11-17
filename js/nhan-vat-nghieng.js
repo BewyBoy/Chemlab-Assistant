@@ -72,8 +72,9 @@ function sdEye(hd, x, y, lid){
     + `<path d="M${f(xo)},${f(yo)} L${f(xi)},${f(yi)}" fill="none" stroke="${ink}" stroke-width="2.6" stroke-linecap="round"/>`;
   const laugh = `<path d="M${f(x - s*(r + 1))},${f(y - 4.5)} L${f(x + s*r)},${f(y)} L${f(x - s*(r + 1))},${f(y + 4.5)}" fill="none" stroke="${ink}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`;
   const lash = [];
-  if(st.lash) lash.push(`<path d="M${f(x - s*(rx + 0.5))},${f(y - ry*0.5)} l${f(-s*4.5)},-4" fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>`);
-  if(st.lash > 1) lash.push(`<path d="M${f(x - s*rx*0.4)},${f(y - ry - 0.5)} l${f(-s*3)},-4.5" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`);
+  const lm = (dx, dy) => ` class="eo-lash" style="--lx:${f(dx)}px;--ly:${f(dy)}px"`;   // lông mi bám mí khi chớp (style.css)
+  if(st.lash) lash.push(`<path${lm(-s*0.55*rx, 0.74*ry)} d="M${f(x - s*(rx + 0.5))},${f(y - ry*0.5)} l${f(-s*4.5)},-4" fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>`);
+  if(st.lash > 1) lash.push(`<path${lm(-s*0.22*rx, 1.24*ry + 0.5)} d="M${f(x - s*rx*0.4)},${f(y - ry - 0.5)} l${f(-s*3)},-4.5" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`);
   if(st.crease) lash.push(`<path d="M${f(x - s*(rx + 3))},${f(y + 1)} l${f(-s*4)},2 M${f(x - s*(rx + 3))},${f(y + 3.5)} l${f(-s*3.5)},3" fill="none" stroke="${SD_INK}" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>`);
   const open = `<ellipse cx="${f(x)}" cy="${f(y)}" rx="${rx}" ry="${ry}" fill="${ink}"/>` + lash.join('')
     + `<rect class="blinklid" x="${f(x - rx - 1.5)}" y="${f(y - ry - 1.5)}" width="${f(2*rx + 3)}" height="${f(2*ry + 3)}" rx="${f(rx)}" fill="${lid}"/>`;
@@ -345,7 +346,7 @@ const SD_CHARS = {
     }
   },
 
-  /* 6 · Ông Sáu — chủ ao cá: mập, mũi củ tỏi, hói, vành tóc bạc, râu quai nón + ria mép */
+  /* 6 · Ông Sáu — chủ ao cá: mập, mũi củ tỏi, hói hẳn, không râu (khớp hình thẳng) */
   6: {cx:120, ey:102, nb:180, ox:6, D:106, bust:4, hunch:3, skin:['#f6e2ca', '#ecc99f', '#cf9f6d'], hc:SD_GREY, ear:[16, 2],
     h:{top:-52, back:58, nape:32, fx:-48, fs:10, n:{tx:-68, ty:22, bx:-52, by:31, r:9, hump:-3}, lu:-52, ll:-50, my:46, ch:[-47, 62], jaw:[22, 56]},
     look(k){
@@ -353,24 +354,19 @@ const SD_CHARS = {
         {body:['#c3cd96', '#a9b67a'], sleeve:['#c9dcec', '#a6c1da']},
         {body:'stripe', sleeve:'stripe'}][k];
     },
-    hair(x){   // vành tóc bạc quanh gáy + nếp trán trên đầu hói
-      return (x.k === 1 ? '' : sdLn('M-36,-40 q14,-8 30,-6 M-38,-32 q14,-7 28,-5', SD_INK, 1.5, '.4'))
-        + sdG(`<path d="M22,-10 C32,-17 48,-18 60,-10 C65,4 63,22 56,34 C48,34 40,28 34,20 C29,13 24,6 22,0 C20,-4 20,-7 22,-10 Z" fill="${x.H}"/>`, 2.8)
-        + sdLn('M28,-12 C42,-6 50,8 50,26 M18,-6 C30,-2 38,8 40,20', SD_INK, 1.4, '.35');
+    hair(x){   // hói hẳn như hình thẳng (bỏ vành tóc bạc sau tai): chỉ còn nếp nhăn trán
+      return x.k === 1 ? '' : sdLn('M-36,-40 q14,-8 30,-6 M-38,-32 q14,-7 28,-5', SD_INK, 1.5, '.4');
     },
     hat(x){
       if(x.k !== 1) return '';
-      return sdG(`<path d="M-42,-36 C-44,-62 -16,-74 10,-74 C38,-74 60,-62 58,-36 Z" fill="#b9c48c"/>`, 3)
-        + sdLn('M-42,-44 C-10,-52 30,-52 58,-44', '#6c7b45', 6)
-        + sdG(`<path d="M-60,-30 C-30,-42 40,-44 76,-30 C79,-24 74,-21 68,-23 C40,-32 -30,-32 -54,-21 C-62,-20 -64,-26 -60,-30 Z" fill="#a3b075"/>`, 2.8);
+      return sdG(`<path d="M-50,-34 C-52,-66 -20,-80 8,-80 C40,-80 66,-66 64,-34 Z" fill="#b9c48c"/>`, 3)
+        + sdLn('M-50,-44 C-14,-53 30,-53 64,-44', '#6c7b45', 7)
+        + sdG(`<path d="M-70,-28 C-36,-42 46,-44 86,-28 C89,-22 84,-19 78,-21 C46,-31 -34,-31 -64,-19 C-72,-18 -74,-24 -70,-28 Z" fill="#a3b075"/>`, 2.8);
     },
     face(x){
       const {h} = x, n = h.n, ex = h.fx + 16, H = x.H;
-      // râu quai nón (từ tóc mai trước tai, ôm hàm, phủ cằm) + ria mép rậm che môi trên
+      // không râu (đã bỏ theo hình thẳng): chỉ lông mày rậm và nếp mũi
       return sdBrow(ex - 12, -14, 24, 5.4, 1)
-        + sdG(`<path d="M8,0 C10,20 16,40 24,56 C22,70 8,80 -12,82 C-30,84 -48,78 -55,64 C-58,58 -56,52 -51,50 C-44,55 -34,55 -26,50 C-12,42 -2,22 2,2 Z" fill="${H}"/>`, 2.8)
-        + sdLn('M-44,64 q6,6 14,4 M-24,70 q8,4 16,-2 M0,60 q6,2 10,-4 M8,24 q4,10 4,20', SD_INK, 1.4, '.35')
-        + sdG(`<path d="M${n.bx - 2},${n.by - 1} C-60,${n.by + 2} -64,40 -59,45 C-54,46 -50,42 -44,43 C-38,44 -32,44 -30,40 C-30,34 -40,30 ${n.bx - 2},${n.by - 1} Z" fill="${H}"/>`, 2.6)
         + sdLn(`M${n.tx + 6},${n.ty - 2} c4,-4 9,-2 10,3`, SD_INK, 1.6, '.5');
     },
     mouth: [-48, 48],
@@ -424,7 +420,7 @@ const SD_CHARS = {
   },
 
   /* 8 · Chị Hoa — tiệm vàng bạc: mặt trái tim (cằm nhọn), mũi thon, mi cong, hoa đỏ cài tóc, bông tai vàng */
-  8: {cx:120, ey:104, nb:182, ox:5, D:86, bust:4, skin:['#f9e6d1', '#f0d0ac', '#e2b184'], hc:SD_DARK, ear:[12, 2],
+  8: {cx:120, ey:104, nb:182, ox:5, D:86, bust:4, skin:['#f9e6d1', '#f0d0ac', '#e2b184'], hc:SD_DARK, ear:[12, 2], neckF:33,
     h:{top:-76, back:52, nape:26, fx:-44, fs:5, n:{tx:-63, ty:22, bx:-50, by:26, r:3, hump:1}, lu:-49, ll:-46, my:41, ch:[-40, 64], jaw:[10, 44]},
     look(k){
       return [{body:['#98c479', '#7aa95c'], sleeve:['#7aa95c', '#5e8944']},

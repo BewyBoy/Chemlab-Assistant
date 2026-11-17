@@ -26,6 +26,8 @@ const PTS_PERFECT = PTS_FAST + PTS_STREAK*STREAK_CAP;   // = thưởng tối đa
 // PAT: số giây cho một câu ở minigame không có đồng hồ chung (identify: cho mỗi lọ) — xong ngay thì +50, hết PAT
 // giây thì +0. Minigame có đồng hồ chung (lập công thức, sơ đồ Lewis, tạo ion) tính như đồng hồ chờ của khách: gấp
 // đôi phần chia đều. Số đoán trước khi playtest — chỉnh ở đây.
+// chế độ thường: thời gian mỗi màn (ca thí nghiệm, đồng hồ chung của minigame) chỉ còn 65% thời lượng gốc ghi trong DAYS
+const EASY_TIME = 0.65;
 const PAT = {bins:8, identify:60, sort:6, ptable:15, chain:45, balance:60};
 
 const starLimits = (n, k1, k2) => [PTS_OK*k1, PTS_OK*k2, (PTS_OK + PTS_PERFECT)*n];

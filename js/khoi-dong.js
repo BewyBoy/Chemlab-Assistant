@@ -9,14 +9,18 @@
 if(DEBUG){
   console.assert(DAYS.length === 31, 'DAYS phải đủ 31 ngày');
   console.assert(LICH.ngay.length === DAYS.length && DAYS.every(d => d.t), 'js/lich.js: cần đúng một mô tả cho mỗi ngày');
-  // ngày để trống (rest) thì không có bài giảng
-  console.assert(BAI_GIANG.length === DAYS.length && BAI_GIANG.every((d, i) => d.length || DAYS[i].rest), 'js/bai-giang.js: cần đúng một bài giảng (ít nhất một câu) cho mỗi ngày');
+  // ngày đi thực tế ghi null; ngày để trống (rest) không có bài giảng
+  console.assert(BAI_GIANG.length === DAYS.length && BAI_GIANG.every((d, k) => DAYS[k].trip ? d === null : DAYS[k].rest || (d && d.length)),
+    'js/bai-giang.js: cần đúng một bài giảng (ít nhất một câu) cho mỗi ngày; ngày đi thực tế ghi null');
+  console.assert(LICH.sticker.length === DAYS.length && LICH.sticker.every(f => STICKERS[f] || (() => { try { return molHTML(f, 60, 50, 1).length > 50; } catch(e){ return false; } })()),
+    'js/lich.js: cần đúng một sticker vẽ được cho mỗi ngày');
+  DAYS.filter(d => d.trip).forEach(d => console.assert(TRIPS[d.trip], 'ngày đi thực tế trỏ tới chuyến không có: ' + d.trip));
   // bài giảng chế độ khó: ngày có thật, có câu; ngày minigame phải có bài khó riêng (day.hard) thì mới có gì mới để giảng
   Object.keys(BAI_GIANG_KHO).forEach(k => { const d = DAYS[k - 1];
-    console.assert(d && !d.rest && BAI_GIANG_KHO[k].length && (!d.mg || d.hard), 'js/bai-giang.js: BAI_GIANG_KHO ngày ' + k + ' không dùng được'); });
+    console.assert(d && !d.trip && !d.rest && BAI_GIANG_KHO[k].length && (!d.mg || d.hard), 'js/bai-giang.js: BAI_GIANG_KHO ngày ' + k + ' không dùng được'); });
   // ngày có phần thêm của chế độ khó (day.kho) thì kiểm cả bản khó (withHard, du-lieu.js) như một ngày riêng
   DAYS.flatMap((d, i) => d.kho ? [[d, i], [withHard(d), i]] : [[d, i]]).forEach(([day, i]) => {
-    if(day.mg || day.rest) return;
+    if(day.mg || day.trip || day.rest) return;
     const have = new Set(day.chems);          // bao đóng: pha ra được gì từ kệ của ngày đó
     for(let grew = true; grew;){ grew = false;
       for(const r of REACTIONS)
@@ -246,8 +250,9 @@ if(DEBUG){
       console.assert(q.why && q.show.every(s => PT_BY[s]), tag + 'thiếu lời giải / ô tô sai');
     });
   });
-  // chuyến tham quan (js/tham-quan.js): cảnh nền có thật, câu hỏi đủ lời khen / giải thích, người nói có trong TQ_NGUOI
-  THAM_QUAN.forEach(sc => {
+  // các chuyến đi thực tế (js/tham-quan.js): cảnh nền có thật, câu hỏi đủ lời khen / giải thích, người nói có trong TQ_NGUOI
+  Object.values(TRIPS).forEach(t => console.assert(t.loi.some(sc => sc.loi.some(x => typeof x !== 'string')), 'đi thực tế: chuyến không có câu hỏi nào để chấm sao'));
+  Object.values(TRIPS).flatMap(t => t.loi).forEach(sc => {
     console.assert(TQ_NEN[sc.nen] && sc.ten && sc.loi.length && (!sc.hinhcat || TQ_CAT[sc.hinhcat]), 'tham quan: cảnh "' + sc.ten + '" thiếu nền / lời / hình cắt');
     sc.loi.forEach(x => {
       if(typeof x === 'string'){ const L = tqLine(x, 0);
@@ -291,7 +296,53 @@ document.addEventListener('visibilitychange', () => {
 document.body.insertAdjacentHTML('afterbegin',
   '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + SVG_DEFS + SVG_DEFS_3D + '</defs></svg>');
 fit();
+/* Mở game: (1) màn đen + logo (tạm, chờ logo thật) hiện dần rồi TỰ TẮT; chạm sớm thì tắt luôn. (2) Màn tiêu đề:
+   ảnh menu nhưng chưa có nút, chỉ một dòng "Nhấn START để bắt đầu" ở dưới; chạm / bấm phím thì các nút hiện ra.
+   Cú chạm ấy cũng là cú chạm đầu tiên mà trình duyệt đòi để phát tiếng (SFX.unlock). Chế độ dev (#dev) bỏ qua cả hai.
+   Thay logo: sửa SPLASH_LOGO (chuỗi HTML / SVG, hoặc một <img>). */
+const SPLASH_LOGO = '<svg class="splash-mark" viewBox="0 0 200 200" aria-hidden="true">'
+  + '<rect x="6" y="6" width="188" height="188" rx="34" fill="none" stroke="#f4ecd8" stroke-width="4" stroke-dasharray="14 10" opacity=".55"/>'
+  + '<path d="M80,46 h40 M86,46 v42 l-34,62 q-6,14 10,14 h76 q16,0 10,-14 l-34,-62 v-42" fill="none" stroke="#f4ecd8" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>'
+  + '<path d="M62,132 q38,-14 76,0 l8,14 q4,8 -6,8 h-80 q-10,0 -6,-8z" fill="#7fc4c9"/>'
+  + '<circle cx="92" cy="116" r="6" fill="#7fc4c9"/><circle cx="108" cy="100" r="4" fill="#7fc4c9"/></svg>'
+  + '<div class="splash-name">LOGO</div>';
+const SPLASH_MS = 2600;   // logo hiện dần (~1,3 s) rồi đứng một nhịp, sau đó màn đen tự mờ đi
+function hideSplash(){
+  const sp = document.querySelector('.splash:not(.out)');
+  if(!sp) return;
+  clearTimeout(sp._t);
+  sp.classList.add('out');
+  setTimeout(() => sp.remove(), 650);
+}
+function showSplash(){
+  const sp = document.createElement('div');
+  sp.className = 'splash'; sp.setAttribute('aria-hidden', 'true');
+  sp.innerHTML = '<div class="splash-logo">' + SPLASH_LOGO + '</div>';
+  document.body.appendChild(sp);
+  sp._t = setTimeout(hideSplash, SPLASH_MS);
+}
+function titleScreen(){
+  const sc = G.querySelector('.menu-main') && G.querySelector('.menu-main').closest('.scene');
+  if(!sc) return;
+  sc.classList.add('titlemode');
+  sc.insertAdjacentHTML('beforeend', '<div class="menu-press">Nhấn START để bắt đầu</div>');
+  const start = e => {
+    if(e.type === 'keydown' && /^(Shift|Control|Alt|Meta|Tab|Escape)$/.test(e.key)) return;
+    if(e.type === 'keydown' && /^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+    e.preventDefault(); e.stopPropagation();
+    if(document.querySelector('.splash:not(.out)')){ hideSplash(); return; }   // còn màn đen: chạm sớm chỉ để tắt nó
+    removeEventListener('pointerdown', start, true); removeEventListener('keydown', start, true);
+    // cú bấm này không được rơi xuống nút vừa hiện ra dưới ngón tay
+    const eat = ev => { ev.stopPropagation(); ev.preventDefault(); };
+    addEventListener('click', eat, true); setTimeout(() => removeEventListener('click', eat, true), 450);
+    SFX.unlock(); SFX.page();
+    sc.classList.remove('titlemode');
+    const pr = sc.querySelector('.menu-press'); if(pr) pr.remove();
+  };
+  addEventListener('pointerdown', start, true); addEventListener('keydown', start, true);
+}
 showMenu();
+if(!DEBUG){ titleScreen(); showSplash(); }
 // lưu sẵn game để lần sau mất mạng vẫn chơi được (sw.js). Mở thẳng file trên máy (file://) hay trong iframe không cho
 // phép thì thôi, game vẫn chạy bình thường.
 if('serviceWorker' in navigator && /^https?:$/.test(location.protocol))

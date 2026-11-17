@@ -253,9 +253,9 @@ const PROF_MG = {
    Đừng xoá ngày nào — thiếu là ô giới thiệu ngày đó trống. */
 const DAY_STORY = {
  1:
-   'Chào mừng trò đến với tiệm hoá chất của ta! Ta là giáo sư Hoffmann. Hôm nay trò học pha DUNG DỊCH: cho chất tan vào cốc rồi thêm nước. Chất nào ÍT TAN sẽ lắng dưới đáy — lấy ĐŨA THUỶ TINH bên cạnh cốc, kéo vào rồi khuấy tròn cho tan hết nhé!',
+   'Chào mừng trò đến với tiệm hoá chất của ta! Ta là giáo sư Hoffmann. Hôm nay trò học pha DUNG DỊCH: cho chất tan vào cốc rồi thêm nước. Mỗi lần nghiêng lọ là đúng MỘT THÌA — khách hỏi 2 thìa thì nghiêng 2 lần. Chất nào ÍT TAN sẽ lắng dưới đáy — lấy ĐŨA THUỶ TINH bên cạnh cốc, kéo vào rồi khuấy tròn cho tan hết nhé!',
  2:
-   'MOL là "tá" của nhà hoá học: 1 mol = 6,022×10²³ hạt! Mỗi lần trò nghiêng lọ là thêm đúng 0,1 mol. Khách hỏi 0,3 mol thì nghiêng 3 lần. Ta tặng trò cái THÌA KHUẤY — bấm để đảo đều cốc. Hôm nay có mấy vị khách "cuồng số" ghé đấy…',
+   'MOL là "tá" của nhà hoá học: 1 mol = 6,022×10²³ hạt! Một thìa hôm qua chính là 0,1 mol — từ nay ta đếm bằng mol: mỗi lần nghiêng lọ là thêm đúng 0,1 mol. Khách hỏi 0,3 mol thì nghiêng 3 lần. Ta tặng trò cái THÌA KHUẤY — bấm để đảo đều cốc. Hôm nay có mấy vị khách "cuồng số" ghé đấy…',
  3:
    'NGUYÊN TỬ là hạt nhỏ nhất của nguyên tố (Fe, Cu…). Nhiều nguyên tử gắn lại thành PHÂN TỬ. Phân tử của một nguyên tố là ĐƠN CHẤT (O₂, N₂…), của nhiều nguyên tố là HỢP CHẤT (H₂O, CO₂…). Phân loại các thẻ này nào!',
  '3-kho':
@@ -271,9 +271,9 @@ const DAY_STORY = {
  7:
    'Hết chương đầu rồi! Bài kiểm tra nhỏ: pha dung dịch đúng số mol, rồi đốt vài thứ trong oxi. Bình tĩnh làm từng đơn, ta đứng sau quầy cổ vũ trò đây.',
  8:
-   'Chương mới, nhân vật mới: KHÍ HIĐRO — nhẹ nhất vũ trụ! Dẫn H₂ qua CuO nung nóng, nó "cướp" oxi tạo Cu đỏ rực: CuO + H₂ —t°→ Cu + H₂O. Đó gọi là PHẢN ỨNG KHỬ. Cho oxit + H₂ vào cốc KHÔ rồi BẬT ĐÈN — nước sinh ra bay thành hơi, trong cốc chỉ còn lại kim loại.',
+   'Chương mới, nhân vật mới: KHÍ HIĐRO — nhẹ nhất vũ trụ! Hôm nay trò vừa TỰ LÀM RA nó vừa dùng nó. Kim loại + axit → muối + H₂↑ (Zn + 2HCl → ZnCl₂ + H₂) — nhớ đặt BÌNH THU KHÍ lên miệng cốc TRƯỚC, không thì khí bay mất. Còn H₂ trên kệ thì đem KHỬ oxit: CuO + H₂ —t°→ Cu + H₂O. Cho oxit + H₂ vào một cốc KHÔ rồi BẬT ĐÈN — nước sinh ra bay thành hơi, trong cốc chỉ còn lại kim loại.',
  9:
-   'Hôm qua dùng H₂, hôm nay tự làm ra nó! Kim loại + axit → muối + H₂↑: Zn + 2HCl → ZnCl₂ + H₂. Khí sẽ bay mất nếu không hứng — bật BÌNH THU KHÍ lên TRƯỚC khi bỏ kim loại vào nhé.',
+   'Hôm nay đến lượt KHÍ OXI — và kệ KHÔNG có sẵn bình O₂ đâu: trò tự làm! Đun THUỐC TÍM là oxi thoát ra (2KMnO₄ —t°→ K₂MnO₄ + MnO₂ + O₂↑); KClO₃ thêm chút MnO₂ làm XÚC TÁC rồi đun cũng ra oxi. Cho chất rắn vào cốc KHÔ — đừng thêm nước, hoà tan rồi thì đun mãi cũng không ra oxi — đặt BÌNH THU KHÍ lên rồi mới đun; hứng được oxi rồi thì dùng chính lọ ấy để ĐỐT lưu huỳnh, sắt, than — xem chúng cháy sáng ra sao!',
  10:
    'Ba lọ khí trong suốt, nhãn bong hết cả — lọ nào HIĐRO, lọ nào OXI, lọ nào là khí dập lửa? Mắt không phân biệt được, phải nhờ QUE ĐÓM! Que đóm còn tàn đỏ gặp OXI thì BÙNG CHÁY. Que đóm đang cháy đưa lại gần HIĐRO thì khí cháy lửa xanh mờ, nổ "bụp" nhỏ. Còn CO₂ (hay SO₂) thì dập tắt que đóm và làm NƯỚC VÔI TRONG vẩn đục. Thử từng lọ, nhớ kỹ hiện tượng, rồi dán nhãn giúp ta!',
  11:
@@ -281,9 +281,9 @@ const DAY_STORY = {
  12:
    'Gặp gỡ họ HALOGEN — nghĩa là "sinh ra muối"! Đại diện: khí clo Cl₂ vàng lục, độc, phản ứng mãnh liệt: natri đốt trên muôi rồi đưa vào lọ clo là 2Na + Cl₂ → 2NaCl (muối ăn từ khí độc, kỳ diệu chưa!). Còn H₂ + Cl₂ là hai khí: trộn trong cốc rồi châm lửa → 2HCl. Cẩn thận khi thao tác nhé!',
  13:
-   'Vài oxit phản ứng luôn với nước: CaO (vôi sống) + H₂O → Ca(OH)₂ là BAZƠ, còn P₂O₅ + 3H₂O → 2H₃PO₄ là AXIT. Quy luật: oxit kim loại + nước → bazơ, oxit phi kim + nước → axit. Thử quỳ để kiểm tra sản phẩm nhé!',
+   'Hôm nay đóng cửa tiệm một bữa, ta đi THỰC TẾ! Bà Tư mời cả hai về nhà chơi. Trò sẽ thấy muối, đường, vôi, axit, oxi… những chất ta pha cả tuần nay nằm ngay trong bếp, trong vườn mỗi nhà. Ta hỏi mấy câu dọc đường — trả lời đúng là có sao!',
  14:
-   'Kiểm tra tay nghề chương 2: điều chế H₂, dùng H₂ khử oxit, và cho oxit gặp nước. Nhiều bước một tí nhưng trò làm được — trò đã là thợ phụ cứng tay rồi!',
+   'Kiểm tra tay nghề chương 2: điều chế H₂, dùng H₂ khử oxit, cho oxit gặp nước (oxit kim loại + nước → bazơ, oxit phi kim + nước → axit — thử quỳ là biết). Nhiều bước một tí nhưng trò làm được — trò đã là thợ phụ cứng tay rồi!',
  15:
    'AXIT = hiđro + GỐC AXIT: −Cl (clorua), =SO₄ (sunfat), −NO₃ (nitrat). Axit tác dụng kim loại → muối + H₂↑, tác dụng oxit bazơ → muối + nước. Tên muối đi theo gốc axit — nhìn đơn hàng là biết cần axit nào! Và nhớ QUY TẮC VÀNG khi pha axit: rót AXIT vào NƯỚC, đừng bao giờ rót nước vào axit.',
  16:
@@ -313,7 +313,7 @@ const DAY_STORY = {
  26:
    'SẮT có tính "hai mặt": gặp axit HCl chỉ chịu hoá trị II (FeCl₂), nhưng cháy trong lọ khí clo thì lên hẳn hoá trị III (FeCl₃, khói nâu đỏ)! Đốt trong lọ oxi lại ra Fe₃O₄. Cùng một kim loại, ba bộ mặt — đó là sắt.',
  27:
-   'CACBON đa tài: than đốt trong lọ oxi cho CO₂, than nóng còn KHỬ được oxit kim loại — 2CuO + C —t°→ 2Cu + CO₂ (bí quyết lò luyện kim từ nghìn năm!). Còn đá vôi CaCO₃ nung già lửa thành vôi sống, gặp axit thì sủi bọt "đá sôi".',
+   'Đi THỰC TẾ lần hai: khu công nghiệp! Kỹ sư Minh dẫn ta qua lò vôi, lò cao luyện gang và nhà máy điện phân nhôm — những phản ứng ta làm trong cốc, ở đây người ta làm cả nghìn tấn mỗi ngày. Lần này ta khao, trò không phải mua vé đâu. Nhớ để ý, dọc đường ta hỏi bài đấy!',
  28:
    'Ngày tốt nghiệp khoá chính! Cả thị trấn đến chúc mừng trò. Mọi kệ hoá chất đều mở, mọi dụng cụ sẵn sàng. Hãy cho ta thấy tất cả những gì trò đã học — và nhận danh hiệu NHÀ HOÁ HỌC NHÍ! (Nghe đồn sau lễ hội còn ba ngày bí mật trong phòng thí nghiệm nâng cao…)',
  29:

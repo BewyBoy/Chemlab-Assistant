@@ -11,8 +11,8 @@
 
    Những gì đã vá:
      4  Anh Minh : bỏ chỏm tóc nhọn chọc xuyên đỉnh mũ bảo hộ (giữ tóc mai dưới vành mũ).
-     6  Ông Sáu  : bỏ nét cung lơ lửng trên đầu hói; áo gi-lê nâu → xanh ô-liu (màu nhận diện của ông).
-     8  Chị Hoa  : bỏ ngôi sao đỏ trên trán + cục đỏ trên đỉnh tóc; cài một bông hoa 5 cánh trên tai trái.
+     6  Ông Sáu  : bỏ nét cung lơ lửng trên đầu hói; áo gi-lê nâu → xanh ô-liu (màu nhận diện của ông); nới khoét cổ áo.
+     8  Chị Hoa  : bỏ ngôi sao đỏ trên trán + cục đỏ trên đỉnh tóc; cài một bông hoa 5 cánh trên tai trái; cổ thon lại.
      10 Cô Mai   : làm lại tóc nữ (mái lệch + tóc phồng ôm mặt + đuôi ngựa thấp vắt qua vai phải, dây buộc đỏ
                    san hô, kẹp tóc xanh lá dứa), lông mày mảnh, bông tai vàng có hạt san hô, áo cánh trắng → hồng đào.
      3  Bé Na    : bỏ cà vạt raster (lộ ra khi khăn quàng đã thu nhỏ).
@@ -61,9 +61,11 @@ function suaDoiMau(svg, hd, duoi, mau){
 const SUA = {
   /* ---------- 3 · Bé Na: bỏ cà vạt (ảnh raster #hd3__Image15) ----------
      Trước đây khăn quàng to che luôn cà vạt; nay khăn quàng thu nhỏ (CUST_PROPS[2]) nên cà vạt lộ ra,
-     trông như dân văn phòng — bỏ hẳn. Cổ áo (#hd3__Image14) giữ nguyên. */
+     trông như dân văn phòng — bỏ hẳn. Cổ áo (#hd3__Image14) cũng bỏ: đó là một mảng bóng raster mờ, không có
+     cà vạt thì nó thành vệt xám nhoè hai bên nút khăn quàng. */
   3(svg){
-    return suaBo(svg, 'xlink:href="#hd3__Image15"');
+    svg = suaBo(svg, 'xlink:href="#hd3__Image15"');
+    return suaBo(svg, 'xlink:href="#hd3__Image14"');
   },
 
   /* ---------- 4 · Anh Minh: tóc chỉ còn phần dưới mũ ----------
@@ -77,17 +79,50 @@ const SUA = {
   },
 
   /* ---------- 6 · Ông Sáu ---------- */
+  /* ---------- 1 · Bà Tư: bỏ hàng khuy vàng nhỏ trên áo (một khuy lòi ra ngay dưới quai túi bánh mì) ---------- */
+  1(svg){
+    return svg.split('fill:rgb(232,184,75);stroke:rgb(59,48,37);stroke-width:1.6px').join('fill:none;stroke:none;stroke-width:1.6px');
+  },
+
+  /* ---------- 7 · Bạn Tí: mặt đã hạ thấp (FACE_META.small) nên mũi bắt đầu thấp hơn, nhưng nét cánh mũi vẫn ở y 130 —
+     cắt ngang giữa mũi thành dấu chéo. Dời nét cánh mũi xuống sát chân mũi mới. ---------- */
+  7(svg){
+    return svg.replace('<path d="M113,130 q7,4 14,0" stroke-width="1.8"', '<path d="M115,139 q5,3 10,0" stroke-width="1.8"');
+  },
+
+  /* ---------- 5 · Cô Lan: lòng chữ V của cổ áo — nửa trái tô gradient tay áo (xanh tối), nửa phải màu kem → trông như
+     hai mảnh vải khác nhau. Cả hai nửa là áo lót kem (bộ scrubs đổi cả hai sang xanh, xem trang-phuc.js). ---------- */
+  5(svg){
+    return svg.replace('<path fill="url(#hd5_c4clothL)" d="M120,176 q-14,2 -26,13 q19,-3 26,7z"', '<path fill="#f3eddc" d="M120,176 q-14,2 -26,13 q19,-3 26,7z"');
+  },
+
   6(svg){
     // (a) nét cung mờ lơ lửng phía trên đỉnh đầu hói
     svg = suaBo(svg, 'd="M108,48 q10,-6 18,0"');
     // (b) gi-lê + hai ống tay: nâu → xanh ô-liu
     svg = suaDoiMau(svg, 'hd6', 'c5cloth',  ['#8d9a55', '#74803f']);
     svg = suaDoiMau(svg, 'hd6', 'c5clothL', ['#74803f', '#5a6430']);
+    // (c) bỏ râu quai nón
+    svg = suaBo(svg, 'd="M84,138 q-6,26 6,44');
+    // (d) bỏ vành tóc bạc ôm sau tai (trông như cái chụp tai); thu thành chỏm thì lại thành tai nhọn — để hói hẳn
+    svg = suaBo(svg, 'd="M60,132 q-10,-18 4,-32');
+    svg = suaBo(svg, 'd="M180,132 q10,-18 -4,-32');
+    // (e) cổ (x 102..138 ở chân) rộng hơn khoét cổ áo (x 104..136) nên hai mép cổ đè lên vai áo: nới khoét cổ ra x 98..142
+    svg = svg.replace('d="M104,176 q-32,9 -46,30', 'd="M98,176 q-26,9 -40,30').replace('q-14,-21 -46,-30 q-14,8 -32,0z', 'q-14,-21 -40,-30 q-22,9 -44,0z');
+    svg = svg.replace('d="M104,176 q-14,4 -26,14 l0,110 l40,0 l0,-118 q-7,-4 -14,-6z', 'd="M98,176 q-10,4 -20,14 l0,110 l40,0 l0,-118 q-10,-5 -20,-6z');
+    svg = svg.replace('d="M136,176 q14,4 26,14 l0,110 l-40,0 l0,-118 q7,-4 14,-6z', 'd="M142,176 q10,4 20,14 l0,110 l-40,0 l0,-118 q10,-5 20,-6z');
     return svg;
   },
 
   /* ---------- 8 · Chị Hoa: hoa cài tóc thay cho "lá phong" đỏ ---------- */
   8(svg){
+    // miếng lót cổ chữ V (đồ của diversify, nằm SAU nhóm mắt nên đè lên mọi lớp trang phục) dời xuống dưới lớp 'over'
+    // của skin: ve vest và dây chuyền kẹp trong vest phải nằm trên nó
+    const v = suaTimPhanTu(svg, 'd="M98,178 L120,212 L142,178');
+    if(v){ const el = svg.slice(v[0], v[1]); svg = suaChenTruocMat(svg.slice(0, v[0]) + svg.slice(v[1]), el); }
+    // cổ thon lại (x 106..134) để nằm gọn trong khoét cổ áo (x 108..132) thay vì tràn ra hai mép vai
+    svg = svg.replace('d="M100,150 q20,10 40,0 l-2,34 q-18,9 -36,0 z"', 'd="M106,150 q14,8 28,0 l-1,32 q-13,7 -26,0 z"');
+    svg = svg.replace('d="M102,152 q18,8 36,0 l-1,11 q-17,7 -34,0 z"', 'd="M107,152 q13,6 26,0 l-1,10 q-12,6 -24,0 z"');
     svg = suaBo(svg, 'd="M126,38 q-6,-8 4,-12');                 // cục đỏ hình tim trên đỉnh tóc
     svg = suaBo(svg, 'd="M96,66 l14,-4 l0,6 l14,2');             // ngôi sao đỏ trên trán (diversify đã nudge lên)
     svg = suaBo(svg, '<circle cx="102" cy="64" r="3" fill="#d9634f"');   // nhuỵ của ngôi sao
@@ -146,6 +181,32 @@ const SUA = {
   }
 };
 
+/* Vá chung cho mọi hình (chạy trước SUA[i]):
+   • mảng bóng má trái 'M80,122 …' (mực mờ 7%) không theo khuôn mặt khi mặt bị thu hẹp / đổi khung, nên lòi ra ngoài
+     hàm thành một vệt xám (Bạn Tí, Chị Hoa, Thầy Nam, Chú Ba, Bé Na…) — bỏ đi;
+   • quai nón lá của Chú Ba (nét đỏ 'M71.8,76C66.726,96.067…') nằm SAU khuôn mặt, chỉ thò ra mép má và dưới cằm như
+     một viền đỏ lạc chỗ — bỏ đi. */
+const SUA_CHUNG = [
+  /<path d="M80,122 q-6,20 8,34[^"]*"[^>]*\/>/g,
+  /<path d="M80,122C76,135\.333[^"]*"[^>]*\/>/g,      // cùng mảng bóng ấy, cú pháp của hình vẽ tay khung 280x280
+  /<path d="M71\.8,76C66\.726,96\.067[^"]*"[^>]*\/>/g,
+  // nếp nhăn mờ ở hai góc hàm: không theo khuôn mặt khi mặt bị đổi / xoay, thành vết lạc ngoài hàm (Ông Sáu, Bà Tư)
+  /<path d="M(?:80|160),150[ Cq][^"]*"[^>]*\/>/g
+];
+/* Cổ áo sơ mi của hai hình vẽ tay khung 280 (Bà Tư, Chú Ba): mép dưới lõm, hai đầu nhọn vểnh — trông như con dơi.
+   Đổi thành hai vạt cổ tròn, mép dưới lồi (giữ nguyên chỗ nối cổ và màu). */
+const SUA_CO_AO = [
+  ['M120,180C112,181.333 104.667,185.333 98,192C109.333,190.667 116.667,193 120,199L120,180Z', 'M120,180C112,181.3 104.7,185.3 99,191C104,198 113,201 120,199L120,180Z'],
+  ['M120,180C128,181.333 135.333,185.333 142,192C130.667,190.667 123.333,193 120,199L120,180Z', 'M120,180C128,181.3 135.3,185.3 141,191C136,198 127,201 120,199L120,180Z'],
+  ['M120,182C111.333,183.333 103.333,187.667 96,195C108,193 116,195.333 120,202L120,182Z', 'M120,182C111.3,183.3 103.3,187.7 97,194C102,201 112,204 120,202L120,182Z'],
+  ['M120,182C128.667,183.333 136.667,187.667 144,195C132,193 124,195.333 120,202L120,182Z', 'M120,182C128.7,183.3 136.7,187.7 143,194C138,201 128,204 120,202L120,182Z']
+];
+/* Chấm / cúc thừa: Chị Hoa có một cúc trắng cũ ngay dưới mặt dây chuyền; Thầy Nam có hai hàng cúc chồng nhau
+   (cúc xám #d9d3c0 của hình gốc xen giữa cúc của cổ áo) — bỏ cúc thừa. */
+const SUA_CHAM = {8:['<circle cx="120" cy="226" r="3" fill="#fff"'], 9:['<circle cx="120" cy="240" r="3" fill="#d9d3c0"', '<circle cx="120" cy="266" r="3" fill="#d9d3c0"']};
 function suaHinhGoc(svg, i){
+  SUA_CHUNG.forEach(re => { svg = svg.replace(re, ''); });
+  SUA_CO_AO.forEach(([a, b]) => { svg = svg.split(a).join(b); });
+  (SUA_CHAM[i] || []).forEach(k => { svg = suaBo(svg, k); });
   return SUA[i] ? SUA[i](svg) : svg;
 }

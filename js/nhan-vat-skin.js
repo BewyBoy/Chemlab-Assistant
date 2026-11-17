@@ -6,7 +6,7 @@
    MẮT — theo bản vẽ tay: hai chấm mực đặc, không tròng trắng. Mỗi người khác nhau ở cỡ chấm (r), độ dẹt (k = ry/rx),
    lông mi (lash: 0/1/2 nét), nếp nhăn đuôi mắt (crease), và kiểu "mắt cười" (smiley: lúc bình thường đã là hai vòng
    cung, như Cô Mai). Biểu cảm: bình thường = chấm; vui = hai vòng cung ◠ ◠; bực = chấm (miệng và dấu bực nằm ở hình
-   gốc). Mí chớp (.blinklid) giữ nguyên cơ chế cũ, cỡ vừa chấm.
+   gốc). Chớp mắt: chấm mắt dẹt thành nét ngang rồi mở lại (CSS trong style.css); .blinklid còn trong hình nhưng ẩn.
 
    SKIN — skin 0 là "Cổ điển" (đúng hình gốc). Skin 1, 2 khai báo trong js/trang-phuc.js (xem định dạng ở đầu file đó).
    ===================================================================== */
@@ -59,8 +59,10 @@ function dotEyes(i, eyes, lid){
     open.push(`<ellipse cx="${f(x)}" cy="${f(y)}" rx="${rx}" ry="${ry}" fill="${EYE_INK}"/>`);
     arc.push(`<path d="M${f(x - r - 2)},${f(y + 1)} q${f(r + 2)},${f(-(r + 4))} ${f(2*r + 4)},0" fill="none" stroke="${EYE_INK}" stroke-width="2.6" stroke-linecap="round"/>`);
     const lash = [];
-    if(st.lash) lash.push(`<path d="M${f(x - s*(rx + 0.5))},${f(y - ry*0.5)} l${f(-s*4.5)},-4" fill="none" stroke="${EYE_INK}" stroke-width="2" stroke-linecap="round"/>`);
-    if(st.lash > 1) lash.push(`<path d="M${f(x - s*rx*0.4)},${f(y - ry - 0.5)} l${f(-s*3)},-4.5" fill="none" stroke="${EYE_INK}" stroke-width="1.8" stroke-linecap="round"/>`);
+    // lông mi bám mí: lúc chớp dời theo (--lx, --ly) tới hai đầu nét mắt nhắm (chấm dẹt ở 62% chiều cao, rộng ×1,55)
+    const lm = (dx, dy) => ` class="eo-lash" style="--lx:${f(dx)}px;--ly:${f(dy)}px"`;
+    if(st.lash) lash.push(`<path${lm(-s*0.55*rx, 0.74*ry)} d="M${f(x - s*(rx + 0.5))},${f(y - ry*0.5)} l${f(-s*4.5)},-4" fill="none" stroke="${EYE_INK}" stroke-width="2" stroke-linecap="round"/>`);
+    if(st.lash > 1) lash.push(`<path${lm(-s*0.22*rx, 1.24*ry + 0.5)} d="M${f(x - s*rx*0.4)},${f(y - ry - 0.5)} l${f(-s*3)},-4.5" fill="none" stroke="${EYE_INK}" stroke-width="1.8" stroke-linecap="round"/>`);
     if(st.crease) lash.push(`<path d="M${f(x - s*(rx + 3))},${f(y + 1)} l${f(-s*4)},2 M${f(x - s*(rx + 3))},${f(y + 3.5)} l${f(-s*3.5)},3" fill="none" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>`);
     open.push(...lash); arc.push(...lash);
     open.push(`<rect class="blinklid" x="${f(x - rx - 1.5)}" y="${f(y - ry - 1.5)}" width="${f(2*rx + 3)}" height="${f(2*ry + 3)}" rx="${f(rx)}" fill="${lid}"/>`);
@@ -134,6 +136,13 @@ function applySkin(svg, i, k){
   return svg.replace(/(id="|url\(#|href="#)(hd\d+)/g, '$1$2k' + k);
 }
 // ghép hình khách: thân (đã đổi mắt) + trang phục skin k + đạo cụ (skin có thể thay đạo cụ cổ điển: prop:'' là bỏ)
+// nhóm <g data-ontop="1"> (đánh dấu ở nhan-vat-sua.js, vd. râu Ông Sáu) dời ra cuối hình, giữ thứ tự: nằm trên mọi lớp
+// quần áo và đạo cụ ghép sau
+function lenTren(svg){
+  const moved = [];
+  for(let at; (at = svg.indexOf('<g data-ontop="1"')) >= 0;){ const end = gEnd(svg, at); if(end < 0) break; moved.push(svg.slice(at, end)); svg = svg.slice(0, at) + svg.slice(end); }
+  return moved.length ? svg.replace(/<\/svg>\s*$/, moved.join('') + '</svg>') : svg;
+}
 const custArtMemo2 = {};
 function custArt(i, k){
   k = k || 0;
@@ -141,7 +150,7 @@ function custArt(i, k){
   if(custArtMemo2[key]) return custArtMemo2[key];
   const sk = skinsOf(i + 1)[k] || {};
   const prop = sk.prop !== undefined ? sk.prop : (CUST_PROPS[i] || '');
-  return (custArtMemo2[key] = applySkin(HD_CHARS[i + 1].replace('</svg>', prop + '</svg>'), i + 1, k));
+  return (custArtMemo2[key] = lenTren(applySkin(HD_CHARS[i + 1].replace('</svg>', prop + '</svg>'), i + 1, k)));
 }
 /* DÁNG NGƯỜI — mỗi khách một vóc: [rộng, cao] nhân lên cả hình, neo ở giữa đáy (chân đứng yên). Trẻ con nhỏ hẳn,
    Anh Minh to ngang, Ông Sáu thấp đậm, Thầy Nam cao, Chị Hoa mảnh… Dùng chung cho hình thẳng (custSVG) và hình

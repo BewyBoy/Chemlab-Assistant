@@ -43,7 +43,7 @@ var FACE_META = {
   square : {x0:71, x1:169, top:54, chin:167},
   oval   : {x0:73, x1:167, top:54, chin:166},
   chubby : {x0:70, x1:170, top:54, chin:168},
-  small  : {x0:75, x1:165, top:59, chin:162},
+  small  : {x0:75, x1:165, top:66, chin:169},   // Bạn Tí: hạ cả đầu xuống, trước cổ dài quá so với thân
   heart  : {x0:72, x1:168, top:52, chin:166},
   long   : {x0:75, x1:165, top:51, chin:170},
   wide   : {x0:71, x1:169, top:55, chin:167}
@@ -148,7 +148,8 @@ var GARMENT = {
   },
   apron: function(c){                                 // tap de: bo goc tron, day thap, quai vat qua vai
     return '<g stroke="#3b3025" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">'
-         + '<path d="M100,196 l-14,-14 M140,196 l14,-14" fill="none"/>'
+         + '<path d="M101,200 Q103,186 108,177 M139,200 Q137,186 132,177" fill="none" stroke="'+(c||'#e0a458')+'" stroke-width="7"/>'
+         + '<path d="M101,200 Q103,186 108,177 M139,200 Q137,186 132,177" fill="none" stroke-width="1.6" opacity=".6"/>'
          + '<path d="M98,200 q22,-7 44,0 q6,30 2,52 q-24,9 -48,0 q-4,-22 2,-52z" fill="'+(c||'#e0a458')+'"/>'
          + '<path d="M104,232 h32" fill="none" stroke-width="2.2" opacity=".45"/></g>';
   }
@@ -288,7 +289,8 @@ function diversify(svg, spec, hdIndex){
   if(spec.prop)    extra += spec.prop;
   if(extra) svg = svg.replace('</svg>', extra+'</svg>');
   return svg;
-}
+}
+
 
 /* Dac ta 7 khach dung chung rig 200x280 (khach 3..9 -> HD_CHARS[4..10])
    Moi nguoi doi: khuon mat / mat / mui / long may / quan ao / mau + tinh cach + thoai cho */
@@ -357,5 +359,6 @@ var SPECS = {
       wait:['Xong việc ghé quán cô, cô đãi chén chè đậu xanh!',
             'Cô đứng đây tám chuyện tí cũng vui mà.',
             'Làm từ từ thôi con, cô không giục đâu.'] }
-};
+};
+
 

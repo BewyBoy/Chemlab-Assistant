@@ -24,6 +24,7 @@ $canShip = @(
   'js\bai-giang.js',        # lời giáo sư giảng từng ngày — thiếu là vào ngày nào cũng lỗi
   'js\do-hoa-3d.js',       # hình dụng cụ nướng từ mô hình 3D + bố cục bàn (sinh từ Blender, nạp trước do-hoa.js)
   'js\do-hoa.js',          # kho SVG + nhân vật
+  'js\sticker.js',         # sticker dụng cụ dán trên ô lịch
   'js\trang-phuc.js',       # trang phục (skin) của nhân vật
   'js\nhan-vat-sua.js',     # vá hình gốc nhân vật
   'js\nhan-vat-skin.js',    # mắt chấm + ghép trang phục
