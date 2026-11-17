@@ -48,15 +48,51 @@ const LICH = {
     'Chuỗi phản ứng — Nối mắt xích',         // 31
   ],
 
-  /* Sticker dán trên ô lịch thay cho tên ngày (tên ngày hiện ở thẻ Tạm nghỉ khi đang chơi). Cùng thứ tự với `ngay`.
+  /* Tên ngắn 2–3 tiếng in trên ô lịch (tên đầy đủ ở `ngay` hiện khi rê chuột, ở thẻ Tạm nghỉ, phiếu báo cáo).
+     Cùng thứ tự với `ngay`. */
+  ngan: [
+    'Ngày đầu tiên',       // 1
+    'Khái niệm mol',       // 2
+    'Nguyên tử',           // 3
+    'Hoá trị',             // 4
+    'Cân bằng',            // 5
+    'Tính chất oxi',       // 6
+    'Luyện tập 1',         // 7
+    'Hiđro',               // 8
+    'Điều chế oxi',        // 9
+    'Lọ khí nào?',         // 10
+    'Nitơ',                // 11
+    'Halogen',             // 12
+    'Hoá trong nhà',       // 13
+    'Luyện tập 2',         // 14
+    'Axit',                // 15
+    'Bazơ',                // 16
+    'Phân loại chất',      // 17
+    'Muối (1)',            // 18
+    'Muối (2)',            // 19
+    'Quỳ tím',             // 20
+    'Luyện tập 3',         // 21
+    'Kim loại kiềm',       // 22
+    'Kiềm thổ',            // 23
+    'Bảng tuần hoàn',      // 24
+    'Kim loại nhôm',       // 25
+    'Kim loại sắt',        // 26
+    'Khu công nghiệp',     // 27
+    'Luyện tập lớn',       // 28
+    'Điện phân',           // 29
+    'Thuốc tím',           // 30
+    'Chuỗi phản ứng',      // 31
+  ],
+
+  /* Sticker dán trên ô lịch, đặt lệch vào một góc ô cho khỏi đè tên ngày (góc chọn cố định theo từng ngày). Cùng thứ tự với `ngay`.
      Mỗi mục là khoá một sticker dụng cụ / đồ vật trong js/sticker.js (cốc khuấy, thìa, cân, muôi đốt, pipet, lọ
      axit…), hoặc một công thức hoá học — khi đó vẽ mô hình bi–que như minigame ngày 3. Chọn thứ gợi đúng bài hôm đó. */
   sticker: [
-    'coc-khuay',      // 1  pha dung dịch: cốc + đũa khuấy
-    'thia',           // 2  mol: mỗi lần một thìa = 0,1 mol
+    'thia',           // 1  pha dung dịch: thìa xúc hoá chất
+    'avogadro',       // 2  mol: số Avogadro 6,023 × 10²³
     'nguyentu',       // 3  nguyên tử hay phân tử
     'CH4',            // 4  hoá trị: C có bốn "tay"
-    'can',            // 5  cân bằng phương trình
+    'mui-ten',        // 5  cân bằng phương trình: mũi tên phản ứng
     'muoi-dot',       // 6  đốt chất trong oxi
     'kiemtra',        // 7  luyện tập chương 1
     'khi-h2',         // 8  hiđro: bình thu khí
@@ -85,7 +121,11 @@ const LICH = {
     'xich'            // 31 chuỗi phản ứng
   ],
 
-  tuDo: 'Ca tự do — tháng sau'      // ô ngay sau ngày 31 (ngày 1 tháng sau)
+  // ngày (số thứ tự) luôn dán sticker; các ngày khác dán rải rác (showMap, js/giao-dien.js)
+  luonDan: [1, 2, 5],
+
+  tuDo: 'Ca tự do — tháng sau',     // ô ngay sau ngày 31 (ngày 1 tháng sau): thẻ Tạm nghỉ
+  tuDoNgan: 'Ca tự do'                // … và trên ô lịch
 };
 
-LICH.ngay.forEach((t, i) => { if(DAYS[i]) DAYS[i].t = t; });
+LICH.ngay.forEach((t, i) => { if(DAYS[i]){ DAYS[i].t = t; DAYS[i].tn = LICH.ngan[i]; } });

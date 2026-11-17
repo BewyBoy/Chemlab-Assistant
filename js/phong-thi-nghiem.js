@@ -77,40 +77,128 @@ const TOOL_ORDER = ['heat','burn','elec','gas','filter'];
    mép trái màn (−BX) — ngay dưới vai trái khách — nên góc trước rơi ra ngoài mép màn một chút, cạnh trái vẫn thấy.
    BX đổi khi đổi cỡ cửa sổ: fit() vẽ lại bàn. */
 const BENCH_FAR_L = 100;
+/* Bàn thí nghiệm có chiều sâu.
+   Ánh sáng: đèn trần phía trước–trên–trái (cùng hướng bóng của dụng cụ).
+   · Mặt bàn giữ kiểu đơn giản như cũ (gỗ chuyển màu + vân hội tụ); mép trước bo tròn có đường sáng.
+   · Gầm bàn chia khoang, mỗi khoang một kiểu: tủ cánh bên trái, một cột ngăn kéo, HỐC BÀN ngay dưới thảm làm việc
+     (chỗ để chân, tối sâu, thấy hai vách trong), và một ngăn tủ để ngỏ bên phải có kệ, sách, hộp, lọ. */
 function benchSVG(){
-  const f = (NEAR_Y - FAR_Y) / (NEAR_Y - VP_Y);              // cạnh đi từ mép gần tới mép xa thì nhích về CX chừng này
+  const f = (NEAR_Y - FAR_Y) / (NEAR_Y - VP_Y);
   const xl0 = BENCH_FAR_L - BX, xr0 = xOf(1,0), xl1 = (xl0 - CX*f) / (1 - f), xr1 = xOf(1,1);
   const top = xl0+','+FAR_Y+' '+xr0+','+FAR_Y+' '+xr1+','+NEAR_Y+' '+xl1+','+NEAR_Y;
+  // mặt bàn: vân gỗ hội tụ + hai đường chia độ sâu, như bàn cũ
   let grain = '';
   for(let k = -35; k <= 7; k++){
     const u = k/7;
-    grain += '<line x1="'+xOf(u,0)+'" y1="'+FAR_Y+'" x2="'+xOf(u,1)+'" y2="'+NEAR_Y
-          +  '" stroke="#6e5232" stroke-width="'+(1 + Math.abs(u)*0.5).toFixed(1)+'" opacity=".16"/>';
+    grain += '<line x1="'+xOf(u,0)+'" y1="'+FAR_Y+'" x2="'+xOf(u,1)+'" y2="'+NEAR_Y+'" stroke="#6e5232" stroke-width="'+(1 + Math.abs(u)*0.5).toFixed(1)+'" opacity=".16"/>';
   }
-  let depth = '';
   [0.34, 0.68].forEach(t => {
-    depth += '<line x1="'+(xl0 + (xl1 - xl0)*t)+'" y1="'+yOf(t)+'" x2="'+xOf(1,t)+'" y2="'+yOf(t)
-          +  '" stroke="#6e5232" stroke-width="1.3" opacity=".12"/>';
+    grain += '<line x1="'+(xl0 + (xl1 - xl0)*t)+'" y1="'+yOf(t)+'" x2="'+xOf(1,t)+'" y2="'+yOf(t)+'" stroke="#6e5232" stroke-width="1.3" opacity=".12"/>';
   });
-  return '<svg id="benchsvg" viewBox="0 0 1280 720">'
-    + '<defs><linearGradient id="btop" x1="0" y1="0" x2="0" y2="1">'
-    +   '<stop offset="0%" stop-color="#d8ac77"/><stop offset="100%" stop-color="#b8874f"/></linearGradient>'
-    +   '<clipPath id="btopclip"><polygon points="'+top+'"/></clipPath></defs>'
-    // mặt trước bàn vẽ dài quá đáy 720: màn cao hơn 16:9 thì nó kéo tới tận mép dưới (#screen cắt phần thừa)
-    + '<path d="M'+xl1+','+NEAR_Y+' L'+xr1+','+NEAR_Y+' L'+xr1+',1200 L'+xl1+',1200 Z" fill="#a97c4b"/>'
-    + '<path d="M'+xl1+','+NEAR_Y+' L'+xr1+','+NEAR_Y+' L'+xr1+','+(NEAR_Y+16)+' L'+xl1+','+(NEAR_Y+16)+' Z" fill="#8a6238"/>'
-    + '<use href="#sym-benchtex" x="'+xl1+'" y="'+(NEAR_Y+30)+'" width="'+(xr1-xl1)+'" height="70" opacity=".45"/>'
+
+  // ---- gầm bàn ----
+  const LIP = NEAR_Y + 15, RAIL = LIP + 8, BOT = 1600, G2 = 9;     // mép bàn, nẹp ngang dưới mép, đáy: kéo sâu xuống cho màn cao hơn 16:9 (#screen cắt phần thừa)
+  const mat = L3.mat.filter(p => p[1] > (FAR_Y + NEAR_Y)/2).map(p => p[0]);
+  const hx0 = Math.min(...mat) + 4, hx1 = Math.max(...mat) - 4;   // hốc bàn: đúng bề ngang thảm làm việc
+  // panel gỗ có gờ: sáng ở cạnh trên–trái, tối ở cạnh dưới–phải
+  const panel = (x, y, w, h, fill = 'url(#bdrawer)') => '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3" fill="'+fill+'" stroke="#3b3025" stroke-width="2"/>'
+    + '<path d="M'+(x+2.5)+','+(y+h-2)+' L'+(x+2.5)+','+(y+2.5)+' L'+(x+w-2)+','+(y+2.5)+'" fill="none" stroke="#e3bd88" stroke-width="2" opacity=".7"/>'
+    + '<path d="M'+(x+w-2.5)+','+(y+3)+' L'+(x+w-2.5)+','+(y+h-2.5)+' L'+(x+3)+','+(y+h-2.5)+'" fill="none" stroke="#5e4126" stroke-width="2" opacity=".55"/>';
+  const pull = (cx, y, w = 34) => '<rect x="'+(cx - w/2 + 2)+'" y="'+(y + 3)+'" width="'+w+'" height="7" rx="3.5" fill="#00000040"/>'
+    + '<rect x="'+(cx - w/2)+'" y="'+y+'" width="'+w+'" height="7" rx="3.5" fill="url(#bbrass)" stroke="#3b3025" stroke-width="1.4"/>';
+  const knob = (cx, cy) => '<circle cx="'+(cx + 2)+'" cy="'+(cy + 3)+'" r="5" fill="#00000040"/>'
+    + '<circle cx="'+cx+'" cy="'+cy+'" r="5" fill="url(#bbrass)" stroke="#3b3025" stroke-width="1.4"/><circle cx="'+(cx - 1.5)+'" cy="'+(cy - 1.5)+'" r="1.5" fill="#fff6d0"/>';
+  let under = '';
+  // cột ngăn kéo sát bên trái hốc bàn
+  const dw = 132, dx = hx0 - G2 - dw;
+  for(let y = RAIL + 2; y < BOT - 64; y += 68){ under += panel(dx, y, dw, 64) + pull(dx + dw/2, y + 16); }   // ngăn cao 64: hai ngăn cũ gộp một
+  // tủ cánh: phần còn lại bên trái, chia cánh rộng chừng 190 px, núm ở mép cánh
+  const lx0 = xl1 + G2, lx1 = dx - G2, nd = Math.max(1, Math.round((lx1 - lx0) / 190)), dWd = (lx1 - lx0 - G2*(nd - 1)) / nd;
+  for(let i = 0; i < nd; i++){
+    const x = lx0 + i*(dWd + G2);
+    under += panel(x, RAIL + 2, dWd, BOT) + panel(x + 12, RAIL + 14, dWd - 24, BOT, 'url(#bdoorin)') + knob(i % 2 ? x + 16 : x + dWd - 16, RAIL + 40);
+  }
+  // hốc bàn: tối sâu, thấy hai vách trong chụm vào giữa và vách sau sáng hơn chút
+  const hd = 16;   // độ sâu nhìn thấy của vách trong
+  under += '<rect x="'+hx0+'" y="'+RAIL+'" width="'+(hx1 - hx0)+'" height="'+(BOT - RAIL)+'" fill="url(#bhole)"/>'
+    + '<polygon points="'+hx0+','+RAIL+' '+(hx0 + hd)+','+(RAIL + 8)+' '+(hx0 + hd)+','+BOT+' '+hx0+','+BOT+'" fill="#6e4c2b" opacity=".85"/>'
+    + '<polygon points="'+hx1+','+RAIL+' '+(hx1 - hd)+','+(RAIL + 8)+' '+(hx1 - hd)+','+BOT+' '+hx1+','+BOT+'" fill="#4a3420" opacity=".85"/>'
+    + '<rect x="'+(hx0 + hd)+'" y="'+(RAIL + 8)+'" width="'+(hx1 - hx0 - 2*hd)+'" height="'+(BOT - RAIL)+'" fill="url(#bholeback)"/>'
+    + '<path d="M'+hx0+','+BOT+' L'+hx0+','+RAIL+' L'+hx1+','+RAIL+' L'+hx1+','+BOT+'" fill="none" stroke="#3b3025" stroke-width="2.5"/>';
+  // ngăn tủ để ngỏ bên phải: khung, lòng tủ có bóng, một tầng kệ với sách, hộp, lọ
+  const ox0 = hx1 + G2, ox1 = xr1 - G2, ow = ox1 - ox0, SH = RAIL + 44;
+  const books = [['#c4553f', 10, 30], ['#5f8fbf', 8, 27], ['#7aa95c', 12, 32], ['#e8b84b', 9, 25]];
+  let shelfItems = '', bx = ox0 + 14;
+  books.forEach(([c, w, h], k) => {
+    const lean = k === 3 ? ' transform="rotate(14 '+(bx + w)+' '+SH+')"' : '';
+    shelfItems += '<rect x="'+bx+'" y="'+(SH - h)+'" width="'+w+'" height="'+h+'" rx="1.5" fill="'+c+'" stroke="#3b3025" stroke-width="1.4"'+lean+'/>'
+      + '<line x1="'+(bx + 2)+'" y1="'+(SH - h + 6)+'" x2="'+(bx + w - 2)+'" y2="'+(SH - h + 6)+'" stroke="#fff6d8" stroke-width="1.2" opacity=".7"'+lean+'/>';
+    bx += w + 1;
+  });
+  const boxX = ox0 + ow*0.48;
+  shelfItems += '<rect x="'+boxX+'" y="'+(SH - 20)+'" width="40" height="20" rx="2" fill="#d8c29a" stroke="#3b3025" stroke-width="1.4"/>'
+    + '<rect x="'+(boxX + 12)+'" y="'+(SH - 15)+'" width="16" height="8" fill="#fffdf5" stroke="#3b3025" stroke-width="1"/>'
+    + '<path d="M'+(ox1 - 30)+','+SH+' L'+(ox1 - 30)+','+(SH - 18)+' Q'+(ox1 - 30)+','+(SH - 24)+' '+(ox1 - 25)+','+(SH - 26)+' L'+(ox1 - 25)+','+(SH - 32)+' L'+(ox1 - 17)+','+(SH - 32)+' L'+(ox1 - 17)+','+(SH - 26)+' Q'+(ox1 - 12)+','+(SH - 24)+' '+(ox1 - 12)+','+(SH - 18)+' L'+(ox1 - 12)+','+SH+' Z" fill="#e6f2f4" stroke="#3b3025" stroke-width="1.4"/>'
+    + '<rect x="'+(ox1 - 29)+'" y="'+(SH - 12)+'" width="16" height="11" fill="#9fd3e6" opacity=".8"/>';
+  under += '<rect x="'+ox0+'" y="'+RAIL+'" width="'+ow+'" height="'+(BOT - RAIL)+'" fill="url(#bopen)" stroke="#3b3025" stroke-width="2.5"/>'
+    + '<rect x="'+ox0+'" y="'+RAIL+'" width="'+ow+'" height="12" fill="url(#bunder)"/>'
+    + shelfItems
+    + '<rect x="'+ox0+'" y="'+SH+'" width="'+ow+'" height="7" fill="url(#blip)" stroke="#3b3025" stroke-width="1.6"/>'
+    + '<rect x="'+ox0+'" y="'+(SH + 7)+'" width="'+ow+'" height="10" fill="url(#bunder)"/>'
+    // các tầng kệ trống bên dưới, cách đều, tới tận đáy
+    + Array.from({length: Math.floor((BOT - SH) / 74)}, (_, k) => SH + 74*(k + 1)).map(y =>
+        '<rect x="'+ox0+'" y="'+y+'" width="'+ow+'" height="7" fill="url(#blip)" stroke="#3b3025" stroke-width="1.6"/>'
+      + '<rect x="'+ox0+'" y="'+(y + 7)+'" width="'+ow+'" height="10" fill="url(#bunder)"/>').join('');
+
+  return '<svg id="benchsvg" viewBox="0 0 1280 720" overflow="visible">'
+    + '<defs>'
+    +   '<linearGradient id="btop" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#d8ac77"/><stop offset="100%" stop-color="#b8874f"/></linearGradient>'
+    +   '<linearGradient id="blip" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#e9c08a"/><stop offset="35%" stop-color="#b98d5b"/><stop offset="100%" stop-color="#7a5430"/></linearGradient>'
+    +   '<linearGradient id="bfront" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#8a6238"/><stop offset="100%" stop-color="#5e4126"/></linearGradient>'
+    +   '<linearGradient id="bunder" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#1e140a" stop-opacity=".55"/><stop offset="100%" stop-color="#1e140a" stop-opacity="0"/></linearGradient>'
+    +   '<linearGradient id="bdrawer" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#b48655"/><stop offset="60%" stop-color="#a0754a"/><stop offset="100%" stop-color="#8a6238"/></linearGradient>'
+    +   '<linearGradient id="bdoorin" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#a77b4c"/><stop offset="100%" stop-color="#93693f"/></linearGradient>'
+    +   '<linearGradient id="bhole" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#1e140a"/><stop offset="100%" stop-color="#3a2817"/></linearGradient>'
+    +   '<linearGradient id="bholeback" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#2a1c0f"/><stop offset="100%" stop-color="#4a3420"/></linearGradient>'
+    +   '<linearGradient id="bopen" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#6e4c2b"/><stop offset="100%" stop-color="#8a6238"/></linearGradient>'
+    +   '<linearGradient id="bbrass" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#f3d98b"/><stop offset="55%" stop-color="#d4a94a"/><stop offset="100%" stop-color="#9c7426"/></linearGradient>'
+    +   '<clipPath id="btopclip"><polygon points="'+top+'"/></clipPath>'
+    + '</defs>'
+    // gầm bàn: nền khung, các khoang, nẹp ngang ngay dưới mép bàn
+    + '<path d="M'+xl1+','+NEAR_Y+' L'+xr1+','+NEAR_Y+' L'+xr1+','+BOT+' L'+xl1+','+BOT+' Z" fill="url(#bfront)"/>'
+    + under
+    + '<rect x="'+xl1+'" y="'+LIP+'" width="'+(xr1 - xl1)+'" height="'+(RAIL - LIP)+'" fill="#8a6238" stroke="#3b3025" stroke-width="2"/>'
+    + '<rect x="'+xl1+'" y="'+RAIL+'" width="'+(xr1 - xl1)+'" height="7" fill="url(#bunder)" opacity=".7"/>'
+    // mặt bàn: đơn giản như cũ
     + '<polygon points="'+top+'" fill="url(#btop)"/>'
-    + '<g clip-path="url(#btopclip)">' + grain + depth + '</g>'
-    + '<line x1="'+xl0+'" y1="'+FAR_Y+'" x2="'+xr0+'" y2="'+FAR_Y+'" stroke="#3b3025" stroke-width="4"/>'
-    + '<line x1="'+xl0+'" y1="'+FAR_Y+'" x2="'+xl1+'" y2="'+NEAR_Y+'" stroke="#3b3025" stroke-width="4"/>'
-    + '<line x1="'+xr0+'" y1="'+FAR_Y+'" x2="'+xr1+'" y2="'+NEAR_Y+'" stroke="#3b3025" stroke-width="4"/>'
-    + '<line x1="'+xl1+'" y1="'+NEAR_Y+'" x2="'+xr1+'" y2="'+NEAR_Y+'" stroke="#3b3025" stroke-width="4"/>'
+    + '<g clip-path="url(#btopclip)">' + grain + '</g>'
+    // mép trước bo tròn: dải cạnh dày + đường sáng ngay mép
+    + '<path d="M'+xl1+','+NEAR_Y+' L'+xr1+','+NEAR_Y+' L'+xr1+','+LIP+' L'+xl1+','+LIP+' Z" fill="url(#blip)"/>'
+    + '<line x1="'+(xl1+2)+'" y1="'+(NEAR_Y+2.5)+'" x2="'+(xr1-2)+'" y2="'+(NEAR_Y+2.5)+'" stroke="#fbe2b8" stroke-width="2" opacity=".85"/>'
+    // cạnh phải bàn: thấy chút bề dày
+    + '<polygon points="'+xr0+','+FAR_Y+' '+(xr0+3)+','+(FAR_Y+8)+' '+(xr1+4)+','+LIP+' '+xr1+','+LIP+' '+xr1+','+NEAR_Y+'" fill="#7a5430"/>'
+    // viền mực như cũ
+    + '<g stroke="#3b3025" stroke-width="4" stroke-linecap="round">'
+    +   '<line x1="'+xl0+'" y1="'+FAR_Y+'" x2="'+xr0+'" y2="'+FAR_Y+'"/>'
+    +   '<line x1="'+xl0+'" y1="'+FAR_Y+'" x2="'+xl1+'" y2="'+NEAR_Y+'"/>'
+    +   '<line x1="'+xr0+'" y1="'+FAR_Y+'" x2="'+xr1+'" y2="'+NEAR_Y+'"/>'
+    +   '<line x1="'+xl1+'" y1="'+NEAR_Y+'" x2="'+xr1+'" y2="'+NEAR_Y+'"/>'
+    +   '<line x1="'+xl1+'" y1="'+LIP+'" x2="'+(xr1+4)+'" y2="'+LIP+'" stroke-width="3"/>'
+    + '</g>'
     + matSVG()
     + '</svg>';
 }
-/* Thảm làm việc giữa bàn: tấm cao su xanh viền đậm, lòng nhạt — như thảm trong cảnh 3D, khác hẳn màu gỗ,
-   để nhìn là biết chỗ nào là chỗ làm. Bốn góc lấy đúng từ bố cục 3D (L3.mat). */
+
 function matSVG(){
   const q = L3.mat, c = q.reduce((a, p) => [a[0] + p[0]/4, a[1] + p[1]/4], [0, 0]);
   const pts = k => q.map(p => (p[0] + (c[0] - p[0])*k).toFixed(1) + ',' + (p[1] + (c[1] - p[1])*k*1.6).toFixed(1)).join(' ');
@@ -581,7 +669,9 @@ function benchTools(day){
   TOOLPOS = {};
   return list.map(key => {
     const tl = TOOLBOX[key], sl = L3.slots[key];
-    const q = TOOLPOS[key] = {x:sl.x, y:sl.y, k:sl.ppm/1000*SIDE, z:zAt(sl.y) + 20};   // đồ cất ngoài thảm nhỏ đi 20%
+    // đồ cất ngoài thảm nhỏ đi 20%; riêng bình khí ngày có muôi đốt (kiêm LỌ KHÍ để đốt) to hơn 20% cho dễ thả muôi vào
+    const big = key === 'gas' && day.tools.includes('burn') ? 1.2 : 1;
+    const q = TOOLPOS[key] = {x:sl.x, y:sl.y, k:sl.ppm/1000*SIDE*big, z:zAt(sl.y) + 20};
     // có muôi đốt thì bình khí kiêm lọ khí (thả bình O₂/Cl₂ vào để nạp, thả muôi đang cháy vào để đốt)
     const dz = key === 'gas' ? (day.tools.includes('burn') ? 'jar' : undefined)
              : key === 'heat' ? (day.tools.includes('burn') ? tl.dz : undefined) : tl.dz;
@@ -590,6 +680,17 @@ function benchTools(day){
   }).join('');
 }
 
+/* Ván tủ hoá chất: mỗi hàng lọ một tấm ván dài suốt lòng tủ, đặt ngay dưới chân lọ (hàng cao thấp khác nhau vì nhãn
+   dài ngắn, nên đo vị trí thật chứ không chia đều); rồi thêm tầng trống cách đều tới đáy tủ, tủ ít chất vẫn đầy đặn. */
+function shelfBoards(){
+  const g = G.querySelector('.shgrid'); if(!g) return;
+  g.querySelectorAll('.shboard').forEach(b => b.remove());
+  const rows = [...new Set([...g.querySelectorAll('.chem')].map(c => c.offsetTop + c.offsetHeight))].sort((a, b) => a - b);
+  if(!rows.length) return;
+  const pitch = rows.length > 1 ? (rows[rows.length - 1] - rows[0]) / (rows.length - 1) : 150;
+  for(let y = rows[rows.length - 1] + pitch; y < g.clientHeight - 10; y += pitch) rows.push(y);
+  g.insertAdjacentHTML('beforeend', rows.map(y => '<i class="shboard" style="top:' + (y - 13) + 'px"></i>').join(''));
+}
 function renderLab(){
   const day = lab.day;
   const has = t => day.tools.includes(t);
@@ -667,7 +768,7 @@ function renderLab(){
     ${benchTools(day)}
     <div id="dishHost"></div>
     ${has('elec') ? '<div class="elecpanel" id="elecpanel"></div>' : ''}
-    <div class="shelf"><h3>Tủ hoá chất</h3>${doseSelectorHtml}<div class="shgrid">${shelfHtml}</div></div>
+    <div class="shelf" aria-label="Tủ hoá chất"><div class="shtop"></div>${doseSelectorHtml}<div class="shgrid">${shelfHtml}</div></div>
   </div>`;
   // buttons
   G.querySelector('#bpause').onclick = pauseLab;
@@ -691,9 +792,13 @@ function renderLab(){
     dragify(c, 'chem', {
       data: c.dataset.f, w:gt.w, h:gt.h, touchAction:'pan-y',
       ghostHTML: () => gt.html,
-      onClick: () => pourChem(c.dataset.f, 'beaker') // bấm cũng rót — đường tắt
+      // bấm cũng rót — đường tắt: cho vào vật đang ở giữa thảm (muôi đốt đang treo trên giá, không thì cốc).
+      // Chất không hợp muôi (lỏng, khí) thì pourChem nói rõ phải cho vào đâu
+      onClick: () => pourChem(c.dataset.f, spoonUp() ? 'ladle' : 'beaker')
     });
     factHover(c, c.dataset.f); });
+  shelfBoards();   // ván tủ theo đúng vị trí các hàng lọ vừa dựng; phông chữ nạp xong làm nhãn cao thấp khác đi thì đặt lại
+  if(document.fonts) document.fonts.ready.then(() => { if(lab) shelfBoards(); });
   const bgw = BK.w*KB*0.8, bgh = BK.h*KB*0.8;
   dragify(G.querySelector('#beakerItem'), 'beaker', {w:bgw, h:bgh,
     ghostHTML: () => G.querySelector('#beakersvg').outerHTML.replace('width="100%" height="100%"', 'width="'+bgw+'" height="'+bgh+'"'),
@@ -1137,7 +1242,7 @@ function fillJar(f, dose){
    đỡ đĩa chặn, chén muôi thòng xuống); các bộ khác đang chiếm miệng cốc tháo ra. Kéo đèn cồn vào thảm thì đèn ĐỔI
    CHỖ với cốc: đèn vào giữa, ngay dưới muôi, cốc sang chỗ cất của đèn; ngọn lửa liếm chén muôi, muôi có chất thì một
    nhịp sau bén lửa. Kéo đèn ra khỏi thảm là trả chỗ; kéo muôi TRỐNG ra khỏi thảm là tháo muôi xuống;
-   muôi hết chất (đốt xong / đổ bồn) thì muôi, đèn, cốc tự về chỗ cũ. */
+   đổ chất trên muôi vào bồn thì muôi, đèn, cốc tự về chỗ cũ; đốt xong thì mọi thứ đứng yên (muôi trống kéo ra là tháo). */
 const spoonUp = () => !!TOOLPOS.burn && !!lab.spoonOn;
 const SPOON_BUSY = 'Muôi đang treo trên giá giữa thảm — đốt xong, hoặc kéo muôi sang <b>bồn rửa</b> đổ chất đi, rồi hãy lắp bộ khác.';
 function mountSpoon(on){
@@ -1237,7 +1342,7 @@ function burnInJar(){
   burnFX(fuel[0]);
   SFX.roar(); if(fuel[0] === 'Fe') SFX.crackle();
   const left = ladleFuel();
-  if(!left.length) releaseSpoon();   // cháy hết chất trên muôi: muôi (sau nhịp thò vào lọ) về chỗ cất, cốc về giữa
+  // đốt xong muôi vẫn treo trên giá, cốc vẫn đứng ngoài: không tự đổi chỗ — người chơi tự kéo muôi trống ra khỏi thảm
   lab.ladleLit = false;   // hết chất cháy, hoặc hết khí trong lọ → lửa tắt (còn chất thì muôi về giá, hơ lại)
   eqPop(fired);
   const seen = [obs.length ? '<i>' + obs.join(' ') + '</i>' : '', solids ? 'Chất rắn được gạt từ muôi ra <b>đĩa</b>.' : '',

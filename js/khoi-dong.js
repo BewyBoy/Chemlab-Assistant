@@ -9,6 +9,7 @@
 if(DEBUG){
   console.assert(DAYS.length === 31, 'DAYS phải đủ 31 ngày');
   console.assert(LICH.ngay.length === DAYS.length && DAYS.every(d => d.t), 'js/lich.js: cần đúng một mô tả cho mỗi ngày');
+  console.assert(LICH.ngan.length === DAYS.length && DAYS.every(d => d.tn && d.tn.split(' ').length <= 3), 'js/lich.js: cần một tên ngắn (tối đa 3 tiếng) cho mỗi ngày');
   // ngày đi thực tế ghi null; ngày để trống (rest) không có bài giảng
   console.assert(BAI_GIANG.length === DAYS.length && BAI_GIANG.every((d, k) => DAYS[k].trip ? d === null : DAYS[k].rest || (d && d.length)),
     'js/bai-giang.js: cần đúng một bài giảng (ít nhất một câu) cho mỗi ngày; ngày đi thực tế ghi null');

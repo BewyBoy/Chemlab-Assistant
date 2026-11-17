@@ -13,22 +13,29 @@ const stkT = (x, y, t, sz = 15, c = STK_INK) => `<text x="${x}" y="${y}" text-an
 const GLASS = '#e6f2f4';
 
 const STICKERS = {
-  // 1 · cốc thuỷ tinh có dung dịch, đũa khuấy cắm chéo
+  // (chưa dùng) cốc thuỷ tinh có dung dịch, đũa khuấy cắm chéo
   'coc-khuay': `<path d="M56,6 L42,78" stroke="${STK_INK}" stroke-width="9" stroke-linecap="round"/><path d="M56,6 L42,78" stroke="#dff1f7" stroke-width="4" stroke-linecap="round"/>`
     + `<path d="M24,28 L30,32 L30,82 Q30,92 40,92 L64,92 Q74,92 74,82 L74,30" fill="${GLASS}" ${stk()}/>`
     + `<path d="M31,56 Q52,50 73,56 L73,82 Q73,90 64,90 L40,90 Q31,90 31,82 Z" fill="#9fd3e6"/>`
     + `<path d="M24,28 L30,32 L30,82 Q30,92 40,92 L64,92 Q74,92 74,82 L74,30" fill="none" ${stk()}/>`
     + `<path d="M62,42 h8 M64,54 h6 M62,66 h8" ${stk(2.2)}/><path d="M38,66 q4,-3 8,0 M44,76 q4,-3 8,0" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>`,
-  // 2 · thìa xúc chất rắn trắng
+  // 1 · thìa xúc chất rắn trắng
   'thia': `<path d="M50,58 L88,14" stroke="${STK_INK}" stroke-width="10" stroke-linecap="round"/><path d="M50,58 L88,14" stroke="#c9cdd2" stroke-width="5" stroke-linecap="round"/>`
     + `<ellipse cx="34" cy="70" rx="24" ry="16" transform="rotate(-38 34 70)" fill="#c9cdd2" ${stk()}/>`
     + `<path d="M18,74 Q22,58 34,60 Q44,54 50,64 Q46,80 30,84 Z" fill="#fffdf5" ${stk(2.5)}/>`
     + `<circle cx="58" cy="82" r="3" fill="#fffdf5" ${stk(2)}/><circle cx="66" cy="74" r="2.4" fill="#fffdf5" ${stk(1.8)}/>`,
+  // 2 · số Avogadro viết trên mẩu giấy vàng: 6,023 × 10²³ hạt trong một mol
+  'avogadro': `<rect x="2" y="12" width="96" height="76" rx="8" fill="#f6d27a" ${stk()} transform="rotate(-3 50 50)"/>`
+    + stkT(50, 46, '6,023', 34)
+    + `<text x="45" y="78" text-anchor="middle" font-family="Itim, Patrick Hand, sans-serif" font-size="28" font-weight="bold" fill="${STK_INK}">× 10<tspan font-size="17" dy="-12">23</tspan></text>`,
+  // 5 · mũi tên phản ứng: chất tham gia → sản phẩm
+  'mui-ten': `<path d="M8,41 L60,41 L60,22 L94,50 L60,78 L60,59 L8,59 Z" fill="#f2a868" ${stk()}/>`
+    + `<path d="M16,48 L56,48" stroke="#fff6d8" stroke-width="3" stroke-linecap="round" opacity=".8"/>`,
   // 3 · mô hình nguyên tử: hạt nhân và ba quỹ đạo electron
   'nguyentu': [0, 60, 120].map(a => `<ellipse cx="50" cy="50" rx="42" ry="15" transform="rotate(${a} 50 50)" fill="none" ${stk(3)}/>`).join('')
     + `<circle cx="50" cy="50" r="11" fill="#d9634f" ${stk()}/>`
     + [[92, 50], [29, 13.6], [29, 86.4]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="5.5" fill="#6f9ec9" ${stk(2.5)}/>`).join(''),
-  // 5 · cân hai đĩa thăng bằng — vế trái, vế phải
+  // (chưa dùng) cân hai đĩa thăng bằng — vế trái, vế phải
   'can': `<path d="M30,92 L70,92 L62,82 L38,82 Z" fill="#a97c4b" ${stk()}/><path d="M50,82 L50,24" ${stk(5)}/>`
     + `<path d="M14,28 L86,28" ${stk(5)}/><circle cx="50" cy="22" r="6" fill="#f6d27a" ${stk(2.5)}/>`
     + [14, 86].map(x => `<path d="M${x},28 L${x - 12},60 M${x},28 L${x + 12},60" ${stk(2)}/><path d="M${x - 16},60 Q${x},72 ${x + 16},60 Z" fill="#f6d27a" ${stk(3)}/>`).join('')

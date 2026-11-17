@@ -364,11 +364,12 @@ function showMap(){
   // hand-drawn red pen loop, revealed by stroke-dashoffset when an unplayed day is picked
   const circ = '<svg class="dnc" viewBox="0 0 48 40"><path d="M9,21 C6,9 20,4 30,6 C42,8 46,15 42,25 C37,36 15,39 8,31 C3,25 7,15 15,11" pathLength="100"/></svg>';
   let cells = '';
+  const hasStk = [];   // ô nào đã dán sticker
   const fo = DEBUG || (save.stars[DAYS.length]||0) >= 1;   // tháng sau (ca tự do) mở khi qua ngày 31
   for(let d=0; d < Math.ceil(DAYS.length/7)*7; d++){
     if(d === DAYS.length){   // hết 31 ngày thì sang tháng mới: ngày 1 là ca tự do, chơi mãi
       cells += `<div class="day-card freecard${fo?'':' locked'}" data-free="1">
-        <div class="dt">${LICH.tuDo}</div>
+        <div class="dt">${LICH.tuDoNgan}</div>
         <div class="dn"><span class="dnw">1</span>${fo?'':' '+ico('lock',14)}</div>
         <div class="st">${fo?ico('dice',18):''}</div></div>`;
       continue;
@@ -376,16 +377,22 @@ function showMap(){
     if(d > DAYS.length){ cells += '<div class="day-card blank"></div>'; continue; } // trailing blanks, like a real month page
     const day = DAYS[d], num = d+1;
     if(day.rest){   // ngày đang để trống: ô lịch gạch chéo, ghi "Tạm nghỉ", bấm thì chỉ nhắc đi tiếp
-      cells += `<div class="day-card rest${d%7===6?' sun':''}" data-rest="1"><div class="dt">${day.t}</div>
+      cells += `<div class="day-card rest${d%7===6?' sun':''}" data-rest="1" title="${day.t}"><div class="dt">${day.tn}</div>
         <div class="dn"><span class="dnw">${num}</span></div><div class="st"></div></div>`;
       continue;
     }
     const open = DEBUG || num <= save.unlocked;
     const st = save.stars[num] || 0, sth = save.starsHard[num] || 0;
-    // ô lịch dán sticker của ngày (LICH.sticker: dụng cụ trong js/sticker.js hoặc công thức); tên ngày hiện ở thẻ Tạm nghỉ
-    const stk = LICH.sticker && LICH.sticker[d];
+    // ô lịch: số ngày trên, tên ngắn giữa, sao dưới; sticker của ngày (LICH.sticker: dụng cụ trong js/sticker.js hoặc
+    // công thức) dán lệch vào một góc — góc và độ lệch "ngẫu nhiên" nhưng cố định theo ngày, mở lại lịch không nhảy chỗ
+    // cho thoáng: ngoài các ngày LICH.luonDan, chỉ chừng một nửa số ngày có sticker, và hai ô cạnh nhau cùng hàng không cùng có
+    let hh = Math.imul(d + 11, 0x9E3779B1); hh ^= hh >>> 15; hh = Math.imul(hh, 0x85EBCA6B); hh = ((hh ^ hh >>> 13) >>> 0) % 997;
+    const stk = LICH.sticker && (LICH.luonDan.includes(num) || hh % 10 < 5 && !(d % 7 && hasStk[d - 1])) && LICH.sticker[d];
+    hasStk[d] = !!stk;
+    const sx = 2 + hh % 9, sy = 2 + (hh >> 3) % 7, corner = (hh + d) % 4;
+    const spos = (corner & 1 ? 'right:' : 'left:') + sx + 'px;' + (corner & 2 ? 'bottom:' : 'top:') + sy + 'px';
     cells += `<div class="day-card${open?'':' locked'}${d%7===6?' sun':''}${day.trip?' tripday':''}" data-d="${d}" title="${day.t}">
-      <div class="dt dstk">${stk ? stickerBox(stk, 78, 58, d) : day.t}</div>
+      ${stk ? `<div class="dsk" style="${spos}">${stickerBox(stk, 46, 42, d)}</div>` : ''}<div class="dt">${day.tn}</div>
       <div class="dn"><span class="dnw">${num}${open && !st && !sth ? circ : ''}</span>${open?'':' '+ico('lock',14)}</div>
       <div class="st">${open||st?dayStars(st, sth):''}</div></div>`;
   }
