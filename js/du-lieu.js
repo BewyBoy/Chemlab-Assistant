@@ -135,7 +135,13 @@ const CHEMS = {
  'Zn3(PO4)2': {n:'Kẽm photphat (trắng)', s:'r', c:'#f2f2ec'},
  'Cu3(PO4)2': {n:'Đồng(II) photphat (xanh lam)', s:'r', c:'#7fc4c9'},
  'Fe3(PO4)2': {n:'Sắt(II) photphat', s:'r', c:'#d7e0d0'},
- 'Mn3(PO4)2': {n:'Mangan(II) photphat', s:'r', c:'#f0dcd8'}
+ 'Mn3(PO4)2': {n:'Mangan(II) photphat', s:'r', c:'#f0dcd8'},
+ // brom và bari hiđroxit: ngày 12 chế độ khó (điều chế dung dịch HBr tinh khiết), ngày 23 (bazơ của bari).
+ // Nước brom và dung dịch Ba(OH)₂ đều ít tan, lọ trên kệ chỉ 0,2M (SOL_CM, che-do.js)
+ 'Br2':       {n:'Nước brom (vàng nâu)', s:'d', c:'#d9a04a', sol:1},
+ 'HBr':       {n:'Axit bromhiđric', s:'d', c:'#f0e6d2', sol:1, a:1},
+ 'Ba(OH)2':   {n:'Bari hiđroxit', s:'d', c:'#e4eef0', sol:1, b:1},
+ 'BaBr2':     {n:'Bari bromua', s:'r', c:'#f4f2ec', sol:1, slb:98}
 };
 const isPrecip = f => { const c = CHEMS[f]; return c.s === 'r' && !c.sol; };
 /* Axit ĐẶC: lọ trên kệ chiến dịch là axit loãng (1–2 M, xem SOL_CM). Ca tự do có thêm lọ axit đặc, mang khoá riêng
@@ -178,8 +184,9 @@ function eqStr(r){ // auto-build balanced equation string with ↑/↓ markers
 const rxOver = r => [(r.heat||r.burn)?'t°':'', r.elec?'đp':'', r.cat?r.cat.map(f => sub(f) + (r.tag && r.tag[f] ? ' ' + r.tag[f] : '')).join(','):'', r.cond||''].filter(Boolean).join(', ');
 function fxOf(r){ // visual effect summary for a reaction
   const fx = [];
-  if(Object.keys(r.pr).some(f=>CHEMS[f].s==='k')) fx.push('sủi bọt khí');
-  if(Object.keys(r.pr).some(isPrecip)) fx.push('kết tủa');
+  // nung chất rắn khô (dry): không có dung dịch nên khí chỉ thoát ra chứ không sủi bọt, chất rắn sinh ra không phải kết tủa
+  if(Object.keys(r.pr).some(f=>CHEMS[f].s==='k')) fx.push(r.dry ? 'khí thoát ra' : 'sủi bọt khí');
+  if(!r.dry && Object.keys(r.pr).some(isPrecip)) fx.push('kết tủa');
   if(r.exo) fx.push('toả nhiệt');
   return fx.join(', ');
 }
@@ -202,6 +209,12 @@ const pickLine = list => list[Math.floor(Math.random()*list.length)];
 function o(who, chem, n, opts){
   return Object.assign({who, chem, n}, opts||{});
 }
+/* ---- phần thêm của chế độ khó cho một ngày bàn thí nghiệm: day.kho = {chems, tools, orders} nối vào kệ, dụng cụ,
+   đơn hàng của ngày đó (startLab dùng khi đang bật chế độ khó; khoi-dong.js kiểm tra như một ngày riêng) ---- */
+const withHard = day => !day.kho ? day : Object.assign({}, day, {
+  chems:[...new Set(day.chems.concat(day.kho.chems || []))],
+  tools:[...new Set(day.tools.concat(day.kho.tools || []))],
+  orders:day.orders.concat(day.kho.orders || [])});
 
 /* ---- 31 days, 5 chương. Lab day: {story, chems, tools, dur, orders, s1}. Minigame day: {story, mg, ...data} ---- */
 /* tên / mô tả từng ngày (day.t) nằm ở js/lich.js — sửa ở đó */
@@ -359,31 +372,35 @@ const DAYS = [
            o(5,'MgCl2',1,{pname:'magie clorua'}),
            o(0,'AlCl3',1,{pname:'nhôm clorua'}) ]},
 
- {mg:'redox',
+ {mg:'identify', gas:1,
   story:DAY_STORY[10],
-  quiz:[
-   {q:'CuO + H₂ —t°→ Cu + H₂O', opts:['CuO','H₂'], ans:1, why:'H₂ chiếm oxi của CuO nên H₂ là chất khử'},
-   {q:'Fe₂O₃ + 3H₂ —t°→ 2Fe + 3H₂O', opts:['H₂','Fe₂O₃'], ans:0, why:'H₂ chiếm oxi → chất khử'},
-   {q:'C + O₂ —t°→ CO₂', opts:['C','O₂'], ans:0, why:'C chiếm oxi của O₂ → C là chất khử'},
-   {q:'2Mg + O₂ —t°→ 2MgO', opts:['O₂','Mg'], ans:1, why:'Mg kết hợp với oxi → chất khử'},
-   {q:'Zn + CuSO₄ → ZnSO₄ + Cu', opts:['Zn','CuSO₄'], ans:0, why:'Zn nhường electron, đẩy Cu ra → chất khử'},
-   {q:'2Cu + O₂ —t°→ 2CuO', opts:['Cu','O₂'], ans:0, why:'Cu kết hợp với oxi → chất khử'}]},
+  // lọ KHÍ mất nhãn: thử bằng que đóm còn tàn đỏ, que đóm đang cháy, nước vôi trong (bảng TESTS, phan-ung.js).
+  // Lọ thứ ba lúc là CO₂, lúc là SO₂: cả hai cùng dập tắt que đóm và làm đục nước vôi, nên không bao giờ chung một bộ
+  reagents:['domTan','domChay','Ca(OH)2'],
+  sets:[['H2','O2','CO2'], ['H2','O2','SO2']]},
 
  {
   story:DAY_STORY[11],
-  chems:['H2O','Na','CaO'], tools:['spoon','book','quy','gas','filter'], dur:530, s1:3,
-  orders:[ o(8,'H2',1,{pname:'khí hiđro (hứng từ Na + nước!)'}),
-           o(4,'NaOH',2,{pname:'natri hiđroxit'}),
-           o(0,'Ca(OH)2',1,{pname:'nước vôi trong'}),
-           o(1,'NaOH',1,{pname:'natri hiđroxit (0,1 mol)'}),
-           o(5,'Ca(OH)2',2,{pname:'nước vôi trong (0,2 mol)'}) ]},
+  chems:['N2','H2','NH3','HCl'], tools:['spoon','book','quy','gas','heat'], dur:570, s1:3,
+  orders:[ o(8,'NH3',2,{pname:'khí amoniac (tổng hợp N₂ + H₂)'}),
+           o(4,'NH4Cl',1,{pname:'amoni clorua (khói trắng)'}),
+           o(1,'NH4Cl',3,{pname:'amoni clorua — phân đạm (0,3 mol)'}),
+           o(2,'NH4Cl',2,{pname:'amoni clorua (0,2 mol)'}),
+           o(6,'NH3',2,{pname:'khí amoniac'}) ]},
 
- {mg:'identify',
+ {
   story:DAY_STORY[12],
-  // mỗi lượt bốc ngẫu nhiên MỘT bộ 3 lọ; bộ nào cũng phải phân biệt được bằng quỳ + reagents (khoi-dong.js kiểm tra)
-  reagents:['BaCl2','AgNO3','Na2CO3'],
-  sets:[['HCl','H2SO4','NaOH'], ['HCl','NaCl','NaOH'], ['H2SO4','Na2SO4','NaCl'],
-        ['HCl','NaCl','H2O'], ['NaOH','Ca(OH)2','NaCl'], ['H2SO4','NaOH','Na2SO4']]},
+  chems:['H2O','Na','Fe','Cu','H2','Cl2'], tools:['spoon','book','quy','heat','gas','burn'], dur:510, s1:4,
+  orders:[ o(0,'NaCl',2,{pname:'muối ăn (từ Na + Cl₂!)'}),
+           o(1,'CuCl2',1,{pname:'đồng(II) clorua'}),
+           o(9,'FeCl3',2,{pname:'sắt(III) clorua'}),
+           o(3,'HCl',4,{pname:'axit clohiđric (0,4 mol) — tẩy gỉ'}),
+           o(5,'CuCl2',2,{pname:'đồng(II) clorua (0,2 mol)'}),
+           o(8,'HCl',2,{pname:'axit clohiđric (H₂ + Cl₂)'}) ],
+  // chế độ khó: thêm nước brom, khí SO₂, dung dịch Ba(OH)₂ — điều chế dung dịch chỉ có HBr:
+  // Br₂ + SO₂ + 2H₂O → 2HBr + H₂SO₄, rồi Ba(OH)₂ vừa đủ kéo gốc sunfat thành BaSO₄↓, lọc bỏ là còn HBr
+  kho:{chems:['Br2','SO2','Ba(OH)2'], tools:['filter'],
+       orders:[ o(8,'HBr',2,{pname:'axit bromhiđric tinh khiết (Br₂ + SO₂, lọc bỏ gốc sunfat)', strip:'Ba(OH)2'}) ]}},
 
  {
   story:DAY_STORY[13],
@@ -438,16 +455,6 @@ DAYS.push(
 
  {
   story:DAY_STORY[18],
-  chems:['H2O','H2SO4','HNO3','NaOH','KOH','BaCl2'], tools:['spoon','book','quy','filter'], dur:510, s1:4,
-  orders:[ o(4,'Na2SO4',1,{pname:'natri sunfat (tỉ lệ 1:2!)'}),
-           o(8,'NaNO3',1,{pname:'natri nitrat'}),
-           o(5,'KNO3',1,{pname:'kali nitrat bón vườn'}),
-           o(9,'K2SO4',1,{pname:'kali sunfat'}),
-           o(1,'BaSO4',1,{pname:'bari sunfat trắng (nhận biết gốc =SO₄)'}),
-           o(3,'HCl',2,{pname:'axit clohiđric (lọc bỏ BaSO₄)'}) ]},
-
- {
-  story:DAY_STORY[19],
   chems:['H2O','HCl','H2SO4','NaOH','KOH'], tools:['spoon','book','quy'], dur:450, s1:4,
   orders:[ o(0,'NaCl',1,{pname:'muối ăn'}),
            o(8,'KCl',1,{pname:'kali clorua'}),
@@ -457,7 +464,7 @@ DAYS.push(
            o(5,'NaCl',2,{pname:'muối ăn (0,2 mol)'}) ]},
 
  {
-  story:DAY_STORY[20],
+  story:DAY_STORY[19],
   chems:['H2O','AgNO3','NaCl','BaCl2','Na2SO4'], tools:['spoon','book','filter'], dur:480, s1:3,
   orders:[ o(0,'AgCl',1,{pname:'bạc clorua trắng'}),
            o(4,'BaSO4',1,{pname:'bari sunfat trắng'}),
@@ -465,6 +472,13 @@ DAYS.push(
            o(8,'NaNO3',1,{pname:'natri nitrat (nước lọc sau kết tủa)'}),
            o(2,'BaSO4',2,{pname:'bari sunfat trắng (0,2 mol)'}),
            o(1,'NaCl',2,{pname:'muối ăn (nước lọc sau kết tủa)'}) ]},
+
+ {mg:'identify',
+  story:DAY_STORY[20],
+  // mỗi lượt bốc ngẫu nhiên MỘT bộ 3 lọ; bộ nào cũng phải phân biệt được bằng quỳ + reagents (khoi-dong.js kiểm tra)
+  reagents:['BaCl2','AgNO3','Na2CO3'],
+  sets:[['HCl','H2SO4','NaOH'], ['HCl','NaCl','NaOH'], ['H2SO4','Na2SO4','NaCl'],
+        ['HCl','NaCl','H2O'], ['NaOH','Ca(OH)2','NaCl'], ['H2SO4','NaOH','Na2SO4']]},
 
  {
   story:DAY_STORY[21],
@@ -483,22 +497,23 @@ DAYS.push(
  // ================= CHƯƠNG 4: KIM LOẠI & PHI KIM (22–28) =================
  {
   story:DAY_STORY[22],
-  chems:['H2O','HCl','Al','Cl2'], tools:['spoon','book','quy','heat','gas','burn'], dur:570, s1:3,
-  orders:[ o(3,'AlCl3',2,{pname:'nhôm clorua (đường axit)'}),
-           o(6,'H2',3,{pname:'khí hiđro (0,3 mol — nhôm hào phóng!)'}),
-           o(9,'AlCl3',1,{pname:'nhôm clorua (0,1 mol)'}),
-           o(1,'AlCl3',2,{pname:'nhôm clorua (đốt trong clo)'}),
-           o(4,'H2',3,{pname:'khí hiđro (Al + axit)'}) ]},
+  chems:['H2O','Na','K','O2','Cl2'], tools:['spoon','book','quy','gas','heat','burn'], dur:560, s1:4,
+  orders:[ o(4,'NaOH',2,{pname:'natri hiđroxit (Na + nước)'}),
+           o(6,'H2',1,{pname:'khí hiđro (hứng từ Na + nước)'}),
+           o(1,'KOH',1,{pname:'kali hiđroxit (K + nước)'}),
+           o(8,'Na2O',1,{pname:'natri oxit (đốt Na trong lọ oxi)'}),
+           o(7,'KCl',2,{pname:'kali clorua (đốt K trong khí clo)'}),
+           o(0,'NaCl',1,{pname:'muối ăn (đốt Na trong khí clo)'}) ]},
 
  {
   story:DAY_STORY[23],
-  chems:['H2O','HCl','Cl2','Fe','O2','CuSO4'], tools:['spoon','book','heat','gas','burn','filter'], dur:540, s1:4,
-  orders:[ o(7,'FeCl2',1,{pname:'sắt(II) clorua — Fe + axit'}),
-           o(9,'FeCl3',2,{pname:'sắt(III) clorua — Fe + clo'}),
-           o(3,'H2',1,{pname:'khí hiđro (Fe + axit)'}),
-           o(8,'Fe3O4',1,{pname:'oxit sắt từ'}),
-           o(0,'Cu',1,{pname:'đồng (Fe đẩy khỏi muối)'}),
-           o(4,'FeSO4',1,{pname:'sắt(II) sunfat (nước lọc sau khi tách Cu)'}) ]},
+  chems:['H2O','Mg','O2','CaO','HCl','H2SO4','Ba(OH)2'], tools:['spoon','book','quy','gas','heat','burn','filter'], dur:580, s1:4,
+  orders:[ o(3,'MgO',2,{pname:'magie oxit (đốt Mg trong lọ oxi)'}),
+           o(0,'Ca(OH)2',1,{pname:'nước vôi trong (tôi vôi)'}),
+           o(8,'MgSO4',1,{pname:'magie sunfat (Mg + H₂SO₄ loãng)'}),
+           o(2,'BaSO4',2,{pname:'bari sunfat trắng (Ba(OH)₂ + H₂SO₄)'}),
+           o(1,'Mg(OH)2',1,{pname:'magie hiđroxit (lọc lấy kết tủa)'}),
+           o(6,'BaCl2',1,{pname:'bari clorua (Ba(OH)₂ + HCl)'}) ]},
 
  // Ngày 24 TẠM THỜI là minigame bảng tuần hoàn. Bản gốc (xếp dãy hoạt động kim loại) cất ở DAY24_SORT cuối danh
  // sách — muốn trả lại thì thay mục này bằng DAY24_SORT và đổi tên ngày 24 trong js/lich.js về 'May áo giáp sắt'.
@@ -533,22 +548,22 @@ DAYS.push(
 
  {
   story:DAY_STORY[25],
-  chems:['H2O','Na','Fe','Cu','H2','Cl2'], tools:['spoon','book','quy','heat','gas','burn'], dur:510, s1:4,
-  orders:[ o(0,'NaCl',2,{pname:'muối ăn (từ Na + Cl₂!)'}),
-           o(1,'CuCl2',1,{pname:'đồng(II) clorua'}),
-           o(9,'FeCl3',2,{pname:'sắt(III) clorua'}),
-           o(3,'HCl',4,{pname:'axit clohiđric (0,4 mol) — tẩy gỉ'}),
-           o(5,'CuCl2',2,{pname:'đồng(II) clorua (0,2 mol)'}),
-           o(8,'HCl',2,{pname:'axit clohiđric (H₂ + Cl₂)'}) ]},
+  chems:['H2O','HCl','Al','Cl2'], tools:['spoon','book','quy','heat','gas','burn'], dur:570, s1:3,
+  orders:[ o(3,'AlCl3',2,{pname:'nhôm clorua (đường axit)'}),
+           o(6,'H2',3,{pname:'khí hiđro (0,3 mol — nhôm hào phóng!)'}),
+           o(9,'AlCl3',1,{pname:'nhôm clorua (0,1 mol)'}),
+           o(1,'AlCl3',2,{pname:'nhôm clorua (đốt trong clo)'}),
+           o(4,'H2',3,{pname:'khí hiđro (Al + axit)'}) ]},
 
  {
   story:DAY_STORY[26],
-  chems:['N2','H2','NH3','HCl'], tools:['spoon','book','quy','gas','heat'], dur:570, s1:3,
-  orders:[ o(8,'NH3',2,{pname:'khí amoniac (tổng hợp N₂ + H₂)'}),
-           o(4,'NH4Cl',1,{pname:'amoni clorua (khói trắng)'}),
-           o(1,'NH4Cl',3,{pname:'amoni clorua — phân đạm (0,3 mol)'}),
-           o(2,'NH4Cl',2,{pname:'amoni clorua (0,2 mol)'}),
-           o(6,'NH3',2,{pname:'khí amoniac'}) ]},
+  chems:['H2O','HCl','Cl2','Fe','O2','CuSO4'], tools:['spoon','book','heat','gas','burn','filter'], dur:540, s1:4,
+  orders:[ o(7,'FeCl2',1,{pname:'sắt(II) clorua — Fe + axit'}),
+           o(9,'FeCl3',2,{pname:'sắt(III) clorua — Fe + clo'}),
+           o(3,'H2',1,{pname:'khí hiđro (Fe + axit)'}),
+           o(8,'Fe3O4',1,{pname:'oxit sắt từ'}),
+           o(0,'Cu',1,{pname:'đồng (Fe đẩy khỏi muối)'}),
+           o(4,'FeSO4',1,{pname:'sắt(II) sunfat (nước lọc sau khi tách Cu)'}) ]},
 
  {
   story:DAY_STORY[27],
@@ -708,4 +723,8 @@ const CHEM_FACTS = {
  'KMnO4': "Thuốc tím có màu tím đặc trưng, dùng để sát khuẩn vết thương và khử trùng nước.",
  'K2MnO4': "Kali manganat màu lục sẫm, sinh ra khi nhiệt phân thuốc tím và là bước trung gian điều chế khí oxi.",
  'MnO2': "Mangan đioxit đóng vai trò chất xúc tác giúp phản ứng phân hủy H2O2 tạo khí oxi diễn ra nhanh hơn.",
+ 'Br2': "Brom là phi kim duy nhất ở thể lỏng ở nhiệt độ phòng; hơi brom màu nâu đỏ rất độc nên phòng thí nghiệm dùng nước brom loãng.",
+ 'HBr': "Axit bromhiđric còn mạnh hơn cả axit clohiđric, dùng để điều chế các muối bromua làm thuốc và phim ảnh.",
+ 'Ba(OH)2': "Bari hiđroxit là bazơ tan của bari; dung dịch của nó hoá đục khi gặp khí CO2 giống hệt nước vôi trong.",
+ 'BaBr2': "Bari bromua tan tốt trong nước, ngày xưa dùng để tinh chế radi vì hai chất kết tinh cùng nhau.",
 };

@@ -200,7 +200,8 @@ const PROF_SAFETY = {
 
 /* ---- cốc không phản ứng: giáo sư giải thích lý do. Đừng đổi tên khoá bên trái.
    {fuel} = chất đem đốt, {gas} = khí trong lọ, {m} = kim loại, {acid} = axit,
-   {sm} = kim loại trong muối, {salt} = muối, {list} = danh sách chất trong cốc ---- */
+   {sm} = kim loại trong muối, {salt} = muối, {list} = danh sách chất trong cốc
+   (can-kho…: {list} = chất rắn phải nung khô mà cốc đang đun còn nước / dung dịch) ---- */
 const PROF_NO_RX = {
  'dot-sai-cho': 'Phản ứng CHÁY không làm trong cốc: thả <b>{fuel}</b> vào <b>muôi đốt</b> (muôi treo lên giá), kéo đèn cồn vào dưới muôi cho bén lửa, rồi đưa vào lọ khí đã nạp <b>{gas}</b>.',
  'khong-muoi':  '{fuel} chỉ cháy khi được đốt nóng trong khí {gas} — hôm nay không có muôi đốt.',
@@ -212,7 +213,9 @@ const PROF_NO_RX = {
  'trao-doi':    'Hai muối chỉ trao đổi với nhau khi sinh ra chất <b>kết tủa</b> (hoặc khí) — {list} trộn vào vẫn tan hết.',
  'can-dac':     'Phản ứng này cần <b>{acid} ĐẶC</b> — axit trong cốc đang loãng. Ở ca tự do có lọ {acid} đặc trên kệ.',
  'thieu-xt':    'Đủ chất, đủ nhiệt rồi nhưng phản ứng này cần <b>chất xúc tác {cat}</b> — thêm một ít {cat} vào cốc (xúc tác không bị tiêu hao).',
- 'thu-dong':    '<b>{m}</b> bị <b>thụ động</b> trong {acid} đặc nguội: một lớp oxit mỏng bọc ngoài nên không phản ứng. Phải <b>đun nóng</b> mới được.'
+ 'thu-dong':    '<b>{m}</b> bị <b>thụ động</b> trong {acid} đặc nguội: một lớp oxit mỏng bọc ngoài nên không phản ứng. Phải <b>đun nóng</b> mới được.',
+ 'can-kho-loc': '<b>{list}</b> phải nung <b>KHÔ</b> — lẫn trong nước thì đun mãi cũng chỉ nóng lên thôi. Kéo đèn ra, lọc {list} ra đĩa, giao hoặc đổ phần nước lọc, rồi kéo <b>đĩa lọc</b> vào cốc khô mà đun.',
+ 'can-kho':     '<b>{list}</b> phải nung <b>KHÔ</b> — lẫn trong nước thì đun mãi cũng không phản ứng. Đổ cốc ra bồn rửa, cho {list} vào cốc trống (không có nước) rồi đun.'
 };
 
 /* ---- nhắc trong ca ở bàn thí nghiệm (hiện ở góc dưới màn hình) ---- */
@@ -268,15 +271,15 @@ const DAY_STORY = {
  7:
    'Hết chương đầu rồi! Bài kiểm tra nhỏ: pha dung dịch đúng số mol, rồi đốt vài thứ trong oxi. Bình tĩnh làm từng đơn, ta đứng sau quầy cổ vũ trò đây.',
  8:
-   'Chương mới, nhân vật mới: KHÍ HIĐRO — nhẹ nhất vũ trụ! Dẫn H₂ qua CuO nung nóng, nó "cướp" oxi tạo Cu đỏ rực: CuO + H₂ —t°→ Cu + H₂O. Đó gọi là PHẢN ỨNG KHỬ. Cho oxit + H₂ vào cốc, BẬT ĐÈN, rồi lọc lấy kim loại.',
+   'Chương mới, nhân vật mới: KHÍ HIĐRO — nhẹ nhất vũ trụ! Dẫn H₂ qua CuO nung nóng, nó "cướp" oxi tạo Cu đỏ rực: CuO + H₂ —t°→ Cu + H₂O. Đó gọi là PHẢN ỨNG KHỬ. Cho oxit + H₂ vào cốc KHÔ rồi BẬT ĐÈN — nước sinh ra bay thành hơi, trong cốc chỉ còn lại kim loại.',
  9:
    'Hôm qua dùng H₂, hôm nay tự làm ra nó! Kim loại + axit → muối + H₂↑: Zn + 2HCl → ZnCl₂ + H₂. Khí sẽ bay mất nếu không hứng — bật BÌNH THU KHÍ lên TRƯỚC khi bỏ kim loại vào nhé.',
  10:
-   'Sự OXI HOÁ là chiếm lấy oxi; sự KHỬ là nhường oxi đi. CHẤT KHỬ là chất chiếm oxi của chất khác (nó bị oxi hoá). Nhìn từng phương trình và chỉ ra chất khử nhé!',
+   'Ba lọ khí trong suốt, nhãn bong hết cả — lọ nào HIĐRO, lọ nào OXI, lọ nào là khí dập lửa? Mắt không phân biệt được, phải nhờ QUE ĐÓM! Que đóm còn tàn đỏ gặp OXI thì BÙNG CHÁY. Que đóm đang cháy đưa lại gần HIĐRO thì khí cháy lửa xanh mờ, nổ "bụp" nhỏ. Còn CO₂ (hay SO₂) thì dập tắt que đóm và làm NƯỚC VÔI TRONG vẩn đục. Thử từng lọ, nhớ kỹ hiện tượng, rồi dán nhãn giúp ta!',
  11:
-   'NƯỚC là hợp chất của hiđro và oxi. Nó hiền mà không hiền: thả NATRI vào là chạy vòng vòng sủi bọt — 2Na + 2H₂O → 2NaOH + H₂↑! Vôi sống gặp nước cũng nóng rực: CaO + H₂O → Ca(OH)₂. (Còn muốn TÁCH nước ngược lại thành H₂ và O₂? Chờ đến ngày 29 nhé — bí mật!)',
+   'NITƠ chiếm 78% không khí mà lười phản ứng số một — trơ như đá! Nhưng ép nó với H₂ ở nhiệt độ cao: N₂ + 3H₂ ⇌ 2NH₃ — amoniac, nguyên liệu phân đạm nuôi cả thế giới. NH₃ gặp HCl là "khói trắng" NH₄Cl bay mù mịt!',
  12:
-   'AXIT có H đứng đầu, làm quỳ tím hoá ĐỎ. BAZƠ có nhóm OH, làm quỳ hoá XANH. Chất trung tính thì… vẫn TÍM. Hai lọ cùng đỏ thì sao? Gọi thêm trợ thủ: BaCl₂ cho kết tủa trắng với gốc =SO₄, AgNO₃ cho kết tủa trắng với gốc −Cl, Na₂CO₃ sủi bọt khi gặp axit. Ba lọ này bong hết nhãn rồi — nhỏ thử từng mẫu, ghi lại hiện tượng, rồi dán nhãn giúp ta!',
+   'Gặp gỡ họ HALOGEN — nghĩa là "sinh ra muối"! Đại diện: khí clo Cl₂ vàng lục, độc, phản ứng mãnh liệt: natri đốt trên muôi rồi đưa vào lọ clo là 2Na + Cl₂ → 2NaCl (muối ăn từ khí độc, kỳ diệu chưa!). Còn H₂ + Cl₂ là hai khí: trộn trong cốc rồi châm lửa → 2HCl. Cẩn thận khi thao tác nhé!',
  13:
    'Vài oxit phản ứng luôn với nước: CaO (vôi sống) + H₂O → Ca(OH)₂ là BAZƠ, còn P₂O₅ + 3H₂O → 2H₃PO₄ là AXIT. Quy luật: oxit kim loại + nước → bazơ, oxit phi kim + nước → axit. Thử quỳ để kiểm tra sản phẩm nhé!',
  14:
@@ -284,21 +287,21 @@ const DAY_STORY = {
  15:
    'AXIT = hiđro + GỐC AXIT: −Cl (clorua), =SO₄ (sunfat), −NO₃ (nitrat). Axit tác dụng kim loại → muối + H₂↑, tác dụng oxit bazơ → muối + nước. Tên muối đi theo gốc axit — nhìn đơn hàng là biết cần axit nào! Và nhớ QUY TẮC VÀNG khi pha axit: rót AXIT vào NƯỚC, đừng bao giờ rót nước vào axit.',
  16:
-   'BAZƠ tan (kiềm) làm quỳ hoá xanh; bazơ KHÔNG TAN thì sắc màu rực rỡ: Cu(OH)₂ XANH LAM, Fe(OH)₃ NÂU ĐỎ. Và đun Cu(OH)₂ trên đèn cồn thì nó phân huỷ thành CuO đen! Hoá học là một hộp màu vẽ đấy trò ạ.',
+   'BAZƠ tan (kiềm) làm quỳ hoá xanh; bazơ KHÔNG TAN thì sắc màu rực rỡ: Cu(OH)₂ XANH LAM, Fe(OH)₃ NÂU ĐỎ. Muốn có CuO đen thì lọc Cu(OH)₂ ra đĩa, trút vào cốc KHÔ rồi đun trên đèn cồn — nó phân huỷ ngay! Hoá học là một hộp màu vẽ đấy trò ạ.',
  17:
    'Bốn họ nhà hoá chất: OXIT (nguyên tố + oxi), AXIT (H + gốc axit), BAZƠ (kim loại + OH), MUỐI (kim loại + gốc axit). Phân loại chuẩn thì học gì cũng nhanh — kéo từng thẻ vào đúng giỏ nhé!',
  18:
-   'Hai "đại ca" nhà axit! H₂SO₄ HAI nấc: một phân tử "ăn" được HAI phân tử NaOH — muốn Na₂SO₄ phải trộn 1:2. HNO₃ tạo muối nitrat. Mẹo nhận biết gốc sunfat: nhỏ BaCl₂ vào là kết tủa trắng BaSO₄ ngay!',
- 19:
    'AXIT + BAZƠ → MUỐI + NƯỚC — phản ứng TRUNG HOÀ! HCl gặp NaOH cho ra muối ăn NaCl. Muối mang tên "họ bố mẹ": kim loại của bazơ + gốc của axit. Trộn đúng tỉ lệ nhé!',
- 20:
+ 19:
    'Hai dung dịch trong suốt đổ vào nhau — BỤP! — trắng xoá như tuyết: AgNO₃ + NaCl → AgCl↓ + NaNO₃. Đó là phản ứng TRAO ĐỔI: hai muối "đổi bạn nhảy" cho nhau. Lọc kết tủa xong, phần nước lọc còn lại cũng bán được — không bỏ phí thứ gì!',
+ 20:
+   'AXIT có H đứng đầu, làm quỳ tím hoá ĐỎ. BAZƠ có nhóm OH, làm quỳ hoá XANH. Chất trung tính thì… vẫn TÍM. Hai lọ cùng đỏ thì sao? Gọi thêm trợ thủ: BaCl₂ cho kết tủa trắng với gốc =SO₄, AgNO₃ cho kết tủa trắng với gốc −Cl, Na₂CO₃ sủi bọt khi gặp axit. Ba lọ này bong hết nhãn rồi — nhỏ thử từng mẫu, ghi lại hiện tượng, rồi dán nhãn giúp ta!',
  21:
    'Hôm nay khách đông và khó tính lắm — toàn đơn lắt léo về axit, bazơ, muối! Bình tĩnh, đọc kỹ đơn, nhớ tỉ lệ. Ta đứng sau quầy cổ vũ trò đây.',
  22:
-   'NHÔM nhẹ, bền, làm từ nồi niêu đến máy bay! Hoá trị III nên phương trình hơi "xoắn": 2Al + 6HCl → 2AlCl₃ + 3H₂. Nhôm cũng cháy trong khí clo: 2Al + 3Cl₂ —t°→ 2AlCl₃ — nạp Cl₂ vào lọ khí rồi đốt nhôm trên muôi. Hai con đường, một sản phẩm! (Lọ khí cũng là bình thu khí: dùng xong nhớ xả sạch trước khi hứng H₂.)',
+   'Hôm nay ta mở ngăn tủ đặc biệt: KIM LOẠI KIỀM — natri Na và kali K! Mềm đến mức cắt được bằng dao, nhẹ đến mức nổi trên nước, và hiếu động đến mức phải NGÂM TRONG DẦU HOẢ. Thả vào nước là chạy vòng vòng, sủi bọt: 2Na + 2H₂O → 2NaOH + H₂↑. Đốt trong lọ khí thì ra oxit hoặc muối: 4Na + O₂ —t°→ 2Na₂O, 2K + Cl₂ —t°→ 2KCl. Nhớ bật BÌNH THU KHÍ trước khi thả kim loại vào nước, và đặt kim loại lên MUÔI ĐỐT chứ đừng bao giờ chạm tay nhé!',
  23:
-   'SẮT có tính "hai mặt": gặp axit HCl chỉ chịu hoá trị II (FeCl₂), nhưng cháy trong lọ khí clo thì lên hẳn hoá trị III (FeCl₃, khói nâu đỏ)! Đốt trong lọ oxi lại ra Fe₃O₄. Cùng một kim loại, ba bộ mặt — đó là sắt.',
+   'Sau họ kiềm là họ KIM LOẠI KIỀM THỔ: magie Mg, canxi Ca, bari Ba — hoá trị II, cứng và bớt nóng nảy hơn. Magie cháy sáng chói như pháo hoa: 2Mg + O₂ —t°→ 2MgO. Vôi sống gặp nước thì "tôi vôi" toả nhiệt: CaO + H₂O → Ca(OH)₂. Còn BARI HIĐROXIT Ba(OH)₂ là kiềm của bari: gặp axit sunfuric cho kết tủa trắng BaSO₄ — Ba(OH)₂ + H₂SO₄ → BaSO₄↓ + 2H₂O. Kết tủa nào cũng phải LỌC ra ĐĨA cho sạch nhé!',
  24:
    'Hôm nay ta treo lên tường tấm BẢNG TUẦN HOÀN — bản đồ của mọi nguyên tố! Mỗi Ô ghi SỐ HIỆU NGUYÊN TỬ Z (= số proton = số electron), KÍ HIỆU và NGUYÊN TỬ KHỐI. Mỗi HÀNG là một CHU KÌ: số thứ tự chu kì = số LỚP electron. Mỗi CỘT là một NHÓM: nguyên tố nhóm A có số electron LỚP NGOÀI CÙNG = số thứ tự nhóm. Màu ô cho biết kim loại, phi kim hay khí hiếm. Còn KÍCH THƯỚC nguyên tử? Cùng chu kì, đi sang PHẢI nhỏ dần; cùng nhóm, đi XUỐNG to dần. Bấm vào ô nào thì KÍNH LÚP soi ô đó, có cả tên nguyên tố. 12 câu hỏi liền tay — đọc bảng mà trả lời nhé!',
  '24-kho':
@@ -306,9 +309,9 @@ const DAY_STORY = {
  '24-cu':
    'Thợ rèn của làng cần may áo giáp — nhưng kim loại nào bền, kim loại nào "yếu bóng vía"? "Khi Nào May Áo Záp Sắt Đồng Bạc" — dãy hoạt động đấy! Kim loại đứng TRƯỚC mạnh hơn, đẩy được kim loại đứng SAU ra khỏi muối. Xếp từ MẠNH NHẤT đến YẾU NHẤT.',
  25:
-   'Gặp gỡ họ HALOGEN — nghĩa là "sinh ra muối"! Đại diện: khí clo Cl₂ vàng lục, độc, phản ứng mãnh liệt: natri đốt trên muôi rồi đưa vào lọ clo là 2Na + Cl₂ → 2NaCl (muối ăn từ khí độc, kỳ diệu chưa!). Còn H₂ + Cl₂ là hai khí: trộn trong cốc rồi châm lửa → 2HCl. Cẩn thận khi thao tác nhé!',
+   'NHÔM nhẹ, bền, làm từ nồi niêu đến máy bay! Hoá trị III nên phương trình hơi "xoắn": 2Al + 6HCl → 2AlCl₃ + 3H₂. Nhôm cũng cháy trong khí clo: 2Al + 3Cl₂ —t°→ 2AlCl₃ — nạp Cl₂ vào lọ khí rồi đốt nhôm trên muôi. Hai con đường, một sản phẩm! (Lọ khí cũng là bình thu khí: dùng xong nhớ xả sạch trước khi hứng H₂.)',
  26:
-   'NITƠ chiếm 78% không khí mà lười phản ứng số một — trơ như đá! Nhưng ép nó với H₂ ở nhiệt độ cao: N₂ + 3H₂ ⇌ 2NH₃ — amoniac, nguyên liệu phân đạm nuôi cả thế giới. NH₃ gặp HCl là "khói trắng" NH₄Cl bay mù mịt!',
+   'SẮT có tính "hai mặt": gặp axit HCl chỉ chịu hoá trị II (FeCl₂), nhưng cháy trong lọ khí clo thì lên hẳn hoá trị III (FeCl₃, khói nâu đỏ)! Đốt trong lọ oxi lại ra Fe₃O₄. Cùng một kim loại, ba bộ mặt — đó là sắt.',
  27:
    'CACBON đa tài: than đốt trong lọ oxi cho CO₂, than nóng còn KHỬ được oxit kim loại — 2CuO + C —t°→ 2Cu + CO₂ (bí quyết lò luyện kim từ nghìn năm!). Còn đá vôi CaCO₃ nung già lửa thành vôi sống, gặp axit thì sủi bọt "đá sôi".',
  28:
@@ -316,7 +319,7 @@ const DAY_STORY = {
  29:
    'Chào mừng đến phòng thí nghiệm nâng cao! Đây là NGUỒN ĐIỆN PHÂN — kéo hai điện cực vào cốc. Nước bị dòng điện tách đôi: 2H₂O —đp→ 2H₂↑ (cực âm, hứng được) + O₂↑ (cực dương, thoát ra). Còn điện phân CuCl₂ thì đồng bám cực âm, khí clo sủi ở cực dương! Nguồn điện có bảng định lượng ở mép bàn: chọn chất, vặn số mol rồi bấm — nó tách đúng chừng ấy thôi, nên trò cân được chính xác từng đơn.',
  30:
-   'KMnO₄ — thuốc tím — là chất oxi hoá siêu siêu mạnh! Khuấy tan tinh thể tím (ít tan lắm đấy, dùng đũa!), rồi ĐUN GIÀ LỬA: 2KMnO₄ —t°→ K₂MnO₄ + MnO₂ + O₂↑. Trò vừa tự điều chế OXI! Hứng đầy lọ O₂ đó rồi đốt đồng trên muôi đốt mà xem.',
+   'KMnO₄ — thuốc tím — là chất oxi hoá siêu siêu mạnh! Pha dung dịch thì khuấy tan tinh thể tím (ít tan lắm đấy, dùng đũa!). Còn muốn lấy OXI thì phải NUNG tinh thể KHÔ — cho vào cốc không có nước rồi ĐUN GIÀ LỬA: 2KMnO₄ —t°→ K₂MnO₄ + MnO₂ + O₂↑. Trò vừa tự điều chế OXI! Hứng đầy lọ O₂ đó rồi đốt đồng trên muôi đốt mà xem.',
  31:
    'Thử thách cuối cùng! Trên bảng chỉ có chất ĐẦU và chất ĐÍCH — mấy chất ở giữa ta giấu đi rồi. Kéo bình hoá chất trong khay vào ô trên từng mũi tên. Điền đủ thì ta chấm: đúng cả chuỗi thì hiện ra hết các chất, sai thì mất điểm đấy! Toàn bộ 31 ngày dồn vào đây. Sẵn sàng chưa, NHÀ HOÁ HỌC NHÍ?'
 };

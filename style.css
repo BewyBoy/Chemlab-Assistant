@@ -78,7 +78,18 @@ h2{font-size:26px;margin:6px 0}
 /* nút chế độ khó trên lịch: đầu lâu + lửa, tắt thì mờ và xám, bật thì rõ màu */
 .hardbtn svg{opacity:.3;filter:grayscale(1);transition:opacity .18s,filter .18s,transform .18s}
 .hardbtn.on svg{opacity:1;filter:none;transform:scale(1.08)}
-.calsheet{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;width:100%;max-width:calc(1180px + 2*var(--bx));margin:16px auto 0;background:#fffdf5;border:1.2px solid var(--ink);border-radius:1.8px 1.8px 3.6px 3.6px;padding:20px 14px 10px}
+/* lịch treo tường thật: bìa các-tông xám đỡ phía sau (thò ra quanh mép, nhiều nhất ở đáy, có lỗ treo giữa mép trên),
+   ba tờ tháng sau nằm dưới tờ đang xem, đáy xoè lệch nhau chút ít như giấy thật. Bìa và các tờ dưới tràn ra phần lề
+   sẵn có của màn — tờ lịch giữ nguyên cỡ */
+.calbook{position:relative;isolation:isolate;flex:1;min-height:0;display:flex;width:100%;max-width:calc(1180px + 2*var(--bx));margin:16px auto 0}
+.calcover{position:absolute;inset:-9px -11px -27px;border:1.2px solid var(--ink);border-radius:3.6px;box-shadow:0 4px 0 #3b302518;
+  background:radial-gradient(#00000014 .7px,transparent 1.1px) 0 0/4px 4px,radial-gradient(#ffffff26 .7px,transparent 1.1px) 2px 1px/5px 5px,linear-gradient(#aba69c,#98938a)}
+.calcover::after{content:'';position:absolute;top:2.5px;left:50%;width:34px;height:4px;margin-left:-17px;border-radius:2px;background:var(--ink);opacity:.7}
+.calunder{position:absolute;inset:0;transform-origin:50% 0;background:#f6f0e1;border:1.2px solid var(--ink);border-radius:1.8px 1.8px 3.6px 3.6px}
+.calunder:nth-of-type(2){transform:translate(2px,12.5px) rotate(.3deg);background:#e8e0cc}
+.calunder:nth-of-type(3){transform:translate(-1.5px,8.5px) rotate(-.22deg);background:#efe8d7}
+.calunder:nth-of-type(4){transform:translate(.5px,4.5px) rotate(.12deg)}
+.calsheet{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;background:#fffdf5;border:1.2px solid var(--ink);border-radius:1.8px 1.8px 3.6px 3.6px;padding:20px 14px 10px}
 .calrings{position:absolute;top:-14px;left:30px;right:30px;display:flex;justify-content:space-evenly;pointer-events:none}
 .calrings span{width:11px;height:26px;border:1.2px solid var(--ink);border-radius:6px;background:linear-gradient(#ece4d2,#b8ac94)}
 .calhead{text-align:center;font-family:var(--fh);font-size:21px;font-weight:bold;letter-spacing:2px;padding:2px 0 6px;border-bottom:1.2px solid var(--ink)}
@@ -91,6 +102,9 @@ h2{font-size:26px;margin:6px 0}
 .day-card.locked{background:#e9e2d0;opacity:.5;cursor:default}
 .day-card.blank{background:repeating-linear-gradient(-45deg,#f2ecd9 0 8px,#ece4cc 8px 16px);cursor:default;opacity:.55}
 .day-card.blank:hover{background:repeating-linear-gradient(-45deg,#f2ecd9 0 8px,#ece4cc 8px 16px)}
+/* ngày đang để trống (DAYS[i].rest): gạch chéo như ô trống cuối tháng, nhưng vẫn ghi số và chữ "Tạm nghỉ" */
+.day-card.rest,.day-card.rest:hover{background:repeating-linear-gradient(-45deg,#f6f1e2 0 8px,#efe8d4 8px 16px);cursor:default}
+.day-card.rest .dt,.day-card.rest .dn{opacity:.55}
 .day-card .dn{grid-column:2;grid-row:1;justify-self:center;align-self:center;font-size:34px;font-weight:bold;line-height:1;white-space:nowrap}
 .day-card.sun .dn{color:#d9634f}
 .day-card .dt{grid-column:1;grid-row:1/3;align-self:center;font-size:14px;line-height:1.2;max-height:68px;overflow:hidden}
@@ -537,6 +551,40 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .idf-pour svg{display:block}
 .idf-drip{position:absolute;z-index:5;width:6px;height:8px;margin-left:-3px;box-sizing:border-box;border-radius:50%;background:#bcdcea;border:1.5px solid var(--ink);pointer-events:none;animation:idfdrip .32s ease-in forwards}
 @keyframes idfdrip{to{transform:translateY(var(--fall));opacity:.4}}
+/* màn nhận biết LỌ KHÍ (ngày 10, .idf.gas): mẫu là lọ khí nhỏ đứng trên giá; trạm que đóm vẽ bằng splintSVG (che-do.js) */
+.idf.gas .idf-drop{width:60px;height:85px;margin-top:15px}
+.idf.gas .idf-st{width:196px}
+.idf.gas .idf-sts{margin-top:70px}                         /* thấp hơn chút: lửa bùng to không chạm chân giá lọ */
+.idf.gas .idf-tag{white-space:nowrap}
+.idf.gas .idf-pip .idf-badge{left:17px;top:41px}
+.idf-gjar{position:absolute;z-index:6;pointer-events:none;animation:idfgjar .9s ease-in-out forwards}
+.idf-gjar svg{display:block}
+.idf-gjar.splint{left:100px;top:-14px;rotate:-135deg}      /* miệng lọ chúc xuống trái, sát đầu que đóm (96, 46) */
+.idf-gjar.cup{left:52px;top:-56px;rotate:180deg}           /* úp miệng lọ lên miệng cốc nước vôi */
+@keyframes idfgjar{0%{translate:16px -16px;opacity:0}25%,75%{translate:0 0;opacity:1}100%{translate:16px -16px;opacity:0}}
+.idf-spl{position:absolute;left:0;top:0;overflow:visible}
+.idf-spl .sp-flame{transform-box:view-box;transform-origin:96px 46px;transition:transform .35s,opacity .35s}
+.idf-spl .sp-flame path{transition:fill .25s}
+.idf-spl .sp-ember,.idf-spl .sp-glow{transition:fill .4s,opacity .4s}
+.idf-spl .sp-glow{animation:spglow 1.3s ease-in-out infinite alternate}
+@keyframes spglow{to{opacity:.12}}
+.idf-spl[data-lit="ember"] .sp-flame{opacity:0;transform:scale(.2)}
+.idf-spl[data-fx="flare"] .sp-flame,.idf-spl[data-fx="bright"] .sp-flame{opacity:1;transform:scale(1.7)}
+.idf-spl[data-fx="flare"] .f1,.idf-spl[data-fx="bright"] .f1{fill:#ffc23a}
+.idf-spl[data-fx="flare"] .f2,.idf-spl[data-fx="bright"] .f2{fill:#fffbe6}
+.idf-spl[data-fx="out"] .sp-flame{opacity:0;transform:scale(.2)}
+.idf-spl[data-fx="out"] .sp-ember{fill:#5a4636}
+.idf-spl[data-fx="out"] .sp-glow{opacity:0;animation:none}
+.idf-spl .sp-smoke circle{opacity:0;transform-box:fill-box;transform-origin:center}
+.idf-spl[data-fx="out"] .sp-smoke circle{animation:spsmoke 1.6s ease-out forwards}
+.idf-spl[data-fx="out"] .sp-smoke circle:nth-child(2){animation-delay:.15s}
+.idf-spl[data-fx="out"] .sp-smoke circle:nth-child(3){animation-delay:.3s}
+@keyframes spsmoke{0%{opacity:.75;transform:translate(0,0) scale(.6)}100%{opacity:0;transform:translate(7px,-36px) scale(1.9)}}
+.idf-spl .sp-pop{opacity:0;transform-box:fill-box;transform-origin:center}
+.idf-spl[data-fx="pop"] .sp-pop{animation:sppop .7s ease-out forwards}
+.idf-spl[data-fx="pop"] .f1{fill:#8fb8ff}
+.idf-spl[data-fx="pop"] .f2{fill:#e2eeff}
+@keyframes sppop{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(2.3)}}
 /* dung dịch trong cốc (liquidSim) — canvas phủ đúng lòng cốc, kẹp giữa thân kính và viền cốc; khớp LIQ_X / LIQ_Y */
 .idf-liq{position:absolute;left:36px;top:44px;width:78px;height:68px;border-radius:0 0 9px 9px;pointer-events:none}
 /* sổ ghi chép */

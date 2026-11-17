@@ -4,3 +4,6 @@ dist/
 
 # Thư mục nháp của các agent (ảnh chụp, báo cáo)
 .frugal-fable/
+
+# Electron + công cụ đóng gói bản ứng dụng (cd desktop && npm install là có lại)
+desktop/node_modules/

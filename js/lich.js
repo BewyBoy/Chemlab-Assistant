@@ -24,23 +24,23 @@ const LICH = {
     'Luyện tập chương 1',                    // 7
     'Hiđro — chất khử cừ khôi',              // 8
     'Điều chế hiđro',                        // 9
-    'Ai là chất khử?',                       // 10
-    'Nước — hợp chất kỳ diệu',               // 11
-    'Axit hay bazơ? — Thám tử quỳ tím',      // 12
+    'Lọ khí nào? — Thám tử que đóm',         // 10
+    'Nitơ — khí trơ mà quý',                 // 11
+    'Halogen — khí clo vàng lục',            // 12
     'Oxit gặp nước',                         // 13
     'Luyện tập chương 2',                    // 14
     'Tính chất của axit',                    // 15
     'Tính chất của bazơ',                    // 16
     'Phân loại chất',                        // 17
-    'Axit mạnh: H₂SO₄ & HNO₃',               // 18
-    'Muối (1) — con của axit và bazơ',       // 19
-    'Muối (2) — trao đổi và kết tủa',        // 20
+    'Muối (1) — con của axit và bazơ',       // 18
+    'Muối (2) — trao đổi và kết tủa',        // 19
+    'Axit hay bazơ? — Thám tử quỳ tím',      // 20
     'Luyện tập chương 3',                    // 21
-    'Nhôm — kim loại quốc dân',              // 22
-    'Sắt — hoá trị II và III',               // 23
+    'Kim loại kiềm — natri và kali',         // 22
+    'Kim loại kiềm thổ — magie, canxi, bari', // 23
     'Bảng tuần hoàn — bản đồ nguyên tố',     // 24 (tạm thời; tên cũ: 'May áo giáp sắt')
-    'Halogen — khí clo vàng lục',            // 25
-    'Nitơ — khí trơ mà quý',                 // 26
+    'Nhôm — kim loại quốc dân',              // 25
+    'Sắt — hoá trị II và III',               // 26
     'Cacbon — từ than đến đá vôi',           // 27
     'Luyện tập lớn — Lễ hội hoá học',        // 28
     'Điện phân — tách chất bằng điện',       // 29

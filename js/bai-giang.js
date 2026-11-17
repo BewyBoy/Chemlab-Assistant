@@ -100,32 +100,32 @@ const BAI_GIANG = [
     'Hiđro rất ít tan trong nước nên thu được bằng cách *đẩy nước*. Nó nhẹ hơn không khí nên cũng thu được bằng bình *úp ngược*.',
     ':) Khí mà không hứng là bay mất, nên nhớ chuẩn bị bình thu trước nhé!',
   ],
-  // 10 · Ai là chất khử?
+  // 10 · Lọ khí nào? — Thám tử que đóm
   [
-    'Hôm nay ta học hai khái niệm luôn đi liền nhau: *sự oxi hoá* và *sự khử*.',
-    '*Sự oxi hoá* là sự tác dụng của một chất với oxi: chất đó nhận thêm oxi. *Sự khử* là sự tách oxi ra khỏi hợp chất.',
-    'Trong phản ứng này, H₂ chiếm oxi nên H₂ bị oxi hoá; CuO mất oxi nên CuO bị khử. || CuO + H₂ → Cu + H₂O',
-    '*Chất khử* là chất chiếm oxi của chất khác, ở đây là H₂. *Chất oxi hoá* là chất nhường oxi, ở đây là CuO. || chất khử: H₂ ; chất oxi hoá: CuO',
-    'Sự oxi hoá và sự khử luôn xảy ra *cùng lúc* trong một phản ứng, gọi là *phản ứng oxi hoá – khử*.',
-    ':) Mẹo nhớ: chất khử đi "khử" oxi khỏi chất khác. Nó là kẻ cướp oxi!',
+    'Khí oxi, khí hiđro, khí cacbonic đều *không màu*. Nhìn bằng mắt thì chịu, phải *thử* bằng thí nghiệm mới biết lọ nào là khí nào.',
+    'Oxi *duy trì sự cháy*: que đóm còn tàn đỏ đưa vào lọ oxi thì *bùng cháy*; que đóm đang cháy thì cháy sáng chói hơn.',
+    'Hiđro *cháy được*: đưa que đóm đang cháy lại gần miệng lọ, khí cháy với ngọn lửa *xanh mờ* và nổ "bụp" nhỏ. || 2H₂ + O₂ —t°→ 2H₂O',
+    'Khí cacbonic CO₂ và khí sunfurơ SO₂ không cháy, cũng không duy trì sự cháy: que đóm đưa vào là *tắt*.',
+    'Dẫn CO₂ vào *nước vôi trong* thì nước vôi *vẩn đục*, vì sinh ra CaCO₃ không tan. SO₂ cũng làm đục nước vôi như vậy. || CO₂ + Ca(OH)₂ → CaCO₃↓ + H₂O',
+    ':) Mỗi cách thử chỉ "bắt" được vài khí. Thử đủ các cách rồi hãy dán nhãn — thám tử giỏi không đoán mò!',
   ],
-  // 11 · Nước — hợp chất kỳ diệu
+  // 11 · Nitơ — khí trơ mà quý
   [
-    '*Nước* là hợp chất tạo bởi hiđro và oxi. Chúng hoá hợp với nhau theo tỉ lệ thể tích khí 2 : 1. || H₂O ; V(H₂) : V(O₂) = 2 : 1',
-    'Nước là chất lỏng không màu, sôi ở 100 °C và hoà tan được rất nhiều chất. Nó là dung môi quan trọng nhất.',
-    'Nước tác dụng với kim loại mạnh như natri, kali ngay ở nhiệt độ thường, tạo bazơ và khí hiđro. || 2Na + 2H₂O → 2NaOH + H₂↑',
-    ':( Natri phản ứng rất mãnh liệt, chỉ được dùng mẩu nhỏ bằng hạt đỗ thôi!',
-    'Nước còn tác dụng với một số oxit bazơ như vôi sống, tạo bazơ và toả nhiều nhiệt. || CaO + H₂O → Ca(OH)₂',
-    'Dung dịch bazơ làm *quỳ tím hoá xanh*. Mai ta học kĩ hơn về quỳ tím.',
+    '*Nitơ* chiếm khoảng 78% thể tích không khí. Nó là khí không màu, không mùi và không duy trì sự cháy.',
+    'Hai nguyên tử N trong phân tử N₂ liên kết với nhau rất bền, nên ở nhiệt độ thường nitơ gần như trơ.',
+    'Ở nhiệt độ cao, áp suất cao và có chất xúc tác, nitơ kết hợp với hiđro tạo *amoniac*. || N₂ + 3H₂ ⇌ 2NH₃',
+    'Mũi tên hai chiều ⇌ nghĩa là phản ứng *thuận nghịch*: xảy ra theo cả hai chiều cùng lúc.',
+    'Amoniac là khí mùi khai, tan rất nhiều trong nước. Dung dịch của nó có tính bazơ yếu, làm quỳ tím hoá xanh.',
+    ':) NH₃ gặp khí HCl tạo khói trắng amoni clorua, một loại phân đạm. || NH₃ + HCl → NH₄Cl',
   ],
-  // 12 · Axit hay bazơ? — Thám tử quỳ tím
+  // 12 · Halogen — khí clo vàng lục
   [
-    '*Axit* là hợp chất có một hay nhiều nguyên tử H liên kết với *gốc axit*. Ví dụ: HCl, H₂SO₄, HNO₃.',
-    '*Bazơ* là hợp chất có nguyên tử kim loại liên kết với một hay nhiều nhóm *hiđroxit* (−OH). Ví dụ: NaOH, Ca(OH)₂.',
-    '*Quỳ tím* là chất chỉ thị màu: axit làm quỳ hoá *đỏ*, dung dịch bazơ làm quỳ hoá *xanh*, chất trung tính giữ nguyên màu tím. || axit → đỏ ; bazơ → xanh ; trung tính → tím',
-    'Phân biệt hai axit thì dùng thuốc thử tạo kết tủa: BaCl₂ cho kết tủa trắng với gốc =SO₄, AgNO₃ cho kết tủa trắng với gốc −Cl. || BaCl₂ + H₂SO₄ → BaSO₄↓ + 2HCl ; AgNO₃ + HCl → AgCl↓ + HNO₃',
-    'Na₂CO₃ gặp axit thì sủi bọt khí CO₂. || Na₂CO₃ + 2HCl → 2NaCl + H₂O + CO₂↑',
-    ':) Nhớ ghi lại hiện tượng của từng mẫu. Thám tử giỏi là thám tử ghi chép cẩn thận!',
+    '*Halogen* là nhóm VIIA gồm F, Cl, Br, I. Tên này có nghĩa là "sinh ra muối".',
+    '*Clo* là chất khí màu vàng lục, mùi hắc và *rất độc*. || Cl₂',
+    ':( Làm việc với clo thì phải bật *tủ hút* và tránh hít phải khí!',
+    'Clo tác dụng với hầu hết kim loại, tạo muối clorua. || 2Na + Cl₂ —t°→ 2NaCl ; Cu + Cl₂ —t°→ CuCl₂',
+    'Clo tác dụng với hiđro khi đốt nóng hoặc có ánh sáng, tạo khí hiđro clorua. Khí này tan vào nước thành axit clohiđric. || H₂ + Cl₂ —t°→ 2HCl',
+    ':) Clo còn tan một phần trong nước, tạo nước clo có tính tẩy màu. Người ta dùng nó để khử trùng nước máy.',
   ],
   // 13 · Oxit gặp nước
   [
@@ -151,7 +151,7 @@ const BAI_GIANG = [
     'Thứ nhất, axit làm quỳ tím hoá đỏ.',
     'Thứ hai, axit tác dụng với kim loại đứng trước H, cho muối và khí hiđro. || Fe + H₂SO₄ → FeSO₄ + H₂↑',
     'Thứ ba, axit tác dụng với oxit bazơ, cho muối và nước. || CuO + H₂SO₄ → CuSO₄ + H₂O',
-    'Thứ tư, axit tác dụng với bazơ, cho muối và nước. Đó là phản ứng trung hoà, ta học kĩ ở ngày 19.',
+    'Thứ tư, axit tác dụng với bazơ, cho muối và nước. Đó là phản ứng trung hoà, ta học kĩ ở ngày 18.',
     ':( Quy tắc vàng khi pha loãng axit sunfuric: rót *từ từ axit vào nước*, không bao giờ làm ngược lại, kẻo nước sôi bùng làm axit bắn ra ngoài!',
   ],
   // 16 · Tính chất của bazơ
@@ -160,7 +160,7 @@ const BAI_GIANG = [
     'Dung dịch kiềm làm quỳ tím hoá xanh, và làm *phenolphtalein* không màu hoá *hồng*.',
     'Dung dịch kiềm tác dụng với dung dịch muối có thể tạo bazơ không tan. Cu(OH)₂ kết tủa màu xanh lam: || CuSO₄ + 2NaOH → Cu(OH)₂↓ + Na₂SO₄',
     'Còn Fe(OH)₃ kết tủa màu *nâu đỏ*. || FeCl₃ + 3NaOH → Fe(OH)₃↓ + 3NaCl',
-    'Bazơ không tan bị nhiệt *phân huỷ* thành oxit và nước. || Cu(OH)₂ —t°→ CuO + H₂O',
+    'Bazơ không tan bị nhiệt *phân huỷ* thành oxit và nước: lọc lấy kết tủa ra rồi nung *khô*. || Cu(OH)₂ —t°→ CuO + H₂O',
     ':) Ngoài ra, bazơ tác dụng với axit, và kiềm tác dụng với oxit axit, đều cho muối và nước.',
   ],
   // 17 · Phân loại chất
@@ -172,15 +172,7 @@ const BAI_GIANG = [
     ':( Cẩn thận với chữ H! NaHCO₃ có H nhưng bắt đầu bằng kim loại Na, nên nó vẫn là *muối*, gọi là muối axit.',
     ':) Nhìn đầu và đuôi công thức là đoán được họ ngay!',
   ],
-  // 18 · Axit mạnh: H₂SO₄ & HNO₃
-  [
-    'H₂SO₄ và HNO₃ là hai *axit mạnh*, dùng rất nhiều trong công nghiệp: làm phân bón, chất tẩy rửa, phẩm nhuộm…',
-    'H₂SO₄ có *hai* nguyên tử H, nên một phân tử trung hoà được hai phân tử NaOH. || H₂SO₄ + 2NaOH → Na₂SO₄ + 2H₂O',
-    'HNO₃ chỉ có một nguyên tử H, nên trộn tỉ lệ 1 : 1. || HNO₃ + NaOH → NaNO₃ + H₂O',
-    ':( H₂SO₄ đặc rất *háo nước*: nó hút nước mạnh tới mức làm đường hoá thành than. Dính vào da là bỏng nặng!',
-    'Nhận biết gốc sunfat: nhỏ dung dịch BaCl₂ vào, thấy kết tủa trắng BaSO₄ không tan trong axit. || BaCl₂ + H₂SO₄ → BaSO₄↓ + 2HCl',
-  ],
-  // 19 · Muối (1) — con của axit và bazơ
+  // 18 · Muối (1) — con của axit và bazơ
   [
     'Khi axit gặp bazơ, H của axit kết hợp với OH của bazơ thành nước. Đó là *phản ứng trung hoà*. || axit + bazơ → muối + nước',
     'Phần còn lại, kim loại của bazơ ghép với gốc axit, chính là *muối*. || HCl + NaOH → NaCl + H₂O',
@@ -188,7 +180,7 @@ const BAI_GIANG = [
     'Trộn đúng tỉ lệ thì dung dịch thu được trung tính, quỳ tím không đổi màu. Dư axit thì quỳ hoá đỏ, dư bazơ thì quỳ hoá xanh.',
     ':) Muối ăn trong bếp nhà trò cũng có thể làm ra từ một axit và một bazơ đấy!',
   ],
-  // 20 · Muối (2) — trao đổi và kết tủa
+  // 19 · Muối (2) — trao đổi và kết tủa
   [
     '*Phản ứng trao đổi* là phản ứng trong đó hai hợp chất trao đổi với nhau thành phần cấu tạo, tạo ra hai hợp chất mới. || AB + CD → AD + CB',
     'Hai dung dịch muối có thể trao đổi với nhau: AgNO₃ gặp NaCl tạo kết tủa trắng AgCl. || AgNO₃ + NaCl → AgCl↓ + NaNO₃',
@@ -196,6 +188,15 @@ const BAI_GIANG = [
     'Một ví dụ nữa, cũng kết tủa trắng: || BaCl₂ + Na₂SO₄ → BaSO₄↓ + 2NaCl',
     'Muốn biết chất nào kết tủa thì tra *bảng tính tan*: AgCl, BaSO₄, CaCO₃… là những chất không tan.',
     ':) Lọc lấy kết tủa xong, nước lọc vẫn còn muối tan bên trong. Đừng bỏ phí!',
+  ],
+  // 20 · Axit hay bazơ? — Thám tử quỳ tím
+  [
+    '*Axit* là hợp chất có một hay nhiều nguyên tử H liên kết với *gốc axit*. Ví dụ: HCl, H₂SO₄, HNO₃.',
+    '*Bazơ* là hợp chất có nguyên tử kim loại liên kết với một hay nhiều nhóm *hiđroxit* (−OH). Ví dụ: NaOH, Ca(OH)₂.',
+    '*Quỳ tím* là chất chỉ thị màu: axit làm quỳ hoá *đỏ*, dung dịch bazơ làm quỳ hoá *xanh*, chất trung tính giữ nguyên màu tím. || axit → đỏ ; bazơ → xanh ; trung tính → tím',
+    'Phân biệt hai axit thì dùng thuốc thử tạo kết tủa: BaCl₂ cho kết tủa trắng với gốc =SO₄, AgNO₃ cho kết tủa trắng với gốc −Cl. || BaCl₂ + H₂SO₄ → BaSO₄↓ + 2HCl ; AgNO₃ + HCl → AgCl↓ + HNO₃',
+    'Na₂CO₃ gặp axit thì sủi bọt khí CO₂. || Na₂CO₃ + 2HCl → 2NaCl + H₂O + CO₂↑',
+    ':) Nhớ ghi lại hiện tượng của từng mẫu. Thám tử giỏi là thám tử ghi chép cẩn thận!',
   ],
   // 21 · Luyện tập chương 3
   [
@@ -206,22 +207,23 @@ const BAI_GIANG = [
     'Muối tác dụng với muối khi tạo được kết tủa: AgCl, BaSO₄ đều màu trắng.',
     ':) Đọc kĩ đơn, viết phương trình trong đầu, rồi mới rót nhé!',
   ],
-  // 22 · Nhôm — kim loại quốc dân
+  // 22 · Kim loại kiềm — natri và kali
   [
-    '*Nhôm* là kim loại nhẹ, màu trắng bạc, dẫn điện và dẫn nhiệt tốt. Người ta dùng nó làm dây điện, nồi niêu, thân máy bay.',
-    'Nhôm có hoá trị III nên phương trình hay có hệ số "lẻ". Nhôm tác dụng với axit: || 2Al + 6HCl → 2AlCl₃ + 3H₂↑',
-    'Nhôm cháy trong khí clo cũng tạo ra nhôm clorua. || 2Al + 3Cl₂ —t°→ 2AlCl₃',
-    'Để ngoài không khí, nhôm được phủ một lớp *nhôm oxit* Al₂O₃ mỏng mà bền, bảo vệ nhôm không bị ăn mòn tiếp. || 4Al + 3O₂ → 2Al₂O₃',
-    ':) Nhôm còn tan được trong dung dịch kiềm, một tính chất đặc biệt mà sắt không có.',
+    ':) Hôm nay ta gặp họ *kim loại kiềm*: natri Na và kali K. Nguyên tử của chúng chỉ có *1 electron* ở lớp ngoài cùng, rất dễ nhường đi, nên đều có *hoá trị I*. || Na, K: hoá trị I',
+    'Chúng mềm đến mức cắt được bằng dao, sáng bóng khi mới cắt, nhẹ nên nổi trên nước. Để ngoài không khí thì mờ đi rất nhanh, nên phải *ngâm trong dầu hoả*.',
+    ':( Tuyệt đối không cầm tay, không bỏ cả mẩu to vào nước. Chỉ lấy mẩu nhỏ bằng hạt đỗ, và nhớ đeo kính bảo hộ.',
+    'Gặp nước, kim loại kiềm phản ứng mạnh, toả nhiệt: tạo *bazơ tan* (làm quỳ tím hoá xanh) và khí *hiđro*. Kali còn dữ dội hơn natri. || 2Na + 2H₂O → 2NaOH + H₂↑ ; 2K + 2H₂O → 2KOH + H₂↑',
+    'Đốt trong lọ oxi, natri cháy lửa vàng, kali cháy lửa tím hồng, tạo *oxit*. Oxit kim loại kiềm gặp nước cũng cho bazơ. || 4Na + O₂ —t°→ 2Na₂O ; Na₂O + H₂O → 2NaOH',
+    ':) Đốt trong khí clo thì ra *muối*. Nạp Cl₂ vào lọ khí, đặt kim loại lên muôi đốt, hơ qua đèn cồn rồi đưa vào lọ. || 2Na + Cl₂ —t°→ 2NaCl ; 2K + Cl₂ —t°→ 2KCl',
   ],
-  // 23 · Sắt — hoá trị II và III
+  // 23 · Kim loại kiềm thổ — magie, canxi, bari
   [
-    '*Sắt* là kim loại màu trắng xám, có *tính nhiễm từ*: bị nam châm hút.',
-    'Sắt có hai hoá trị là *II* và *III*. Chất phản ứng với nó quyết định sắt lên hoá trị nào. || Fe(II) ; Fe(III)',
-    'Với axit HCl hay H₂SO₄ loãng, sắt chỉ lên hoá trị II. || Fe + 2HCl → FeCl₂ + H₂↑',
-    'Với khí clo, một chất oxi hoá mạnh, sắt lên hẳn hoá trị III. || 2Fe + 3Cl₂ —t°→ 2FeCl₃',
-    'Cháy trong oxi, sắt cho oxit sắt từ Fe₃O₄, trong đó có cả sắt(II) lẫn sắt(III).',
-    'Sắt hoạt động mạnh hơn đồng nên đẩy được đồng ra khỏi dung dịch muối. || Fe + CuSO₄ → FeSO₄ + Cu',
+    ':) Họ *kim loại kiềm thổ* gồm magie Mg, canxi Ca, bari Ba. Nguyên tử có *2 electron* lớp ngoài, nên *hoá trị II*. Chúng cứng hơn và bớt nóng nảy hơn họ kiềm. || Mg, Ca, Ba: hoá trị II',
+    'Magie cháy trong oxi với ánh sáng trắng chói loá, để lại bột trắng *magie oxit*. Magie cũng tan trong axit loãng, giải phóng khí hiđro. || 2Mg + O₂ —t°→ 2MgO ; Mg + H₂SO₄ → MgSO₄ + H₂↑',
+    ':( Đừng nhìn thẳng vào ánh lửa magie quá lâu, mắt sẽ nhức. Giữ lọ khí xa mặt và đeo kính bảo hộ.',
+    'Canxi có trong *vôi sống* CaO. Cho vôi sống vào nước thì toả nhiều nhiệt, gọi là *tôi vôi*, tạo nước vôi trong Ca(OH)₂. || CaO + H₂O → Ca(OH)₂',
+    '*Bari hiđroxit* Ba(OH)₂ là bazơ tan (kiềm) của bari. Gặp axit sunfuric thì kết tủa trắng BaSO₄, nước lọc chỉ còn là nước; gặp HCl thì trung hoà thành muối bari clorua. || Ba(OH)₂ + H₂SO₄ → BaSO₄↓ + 2H₂O ; Ba(OH)₂ + 2HCl → BaCl₂ + 2H₂O',
+    ':) Kiềm (nước vôi, Ba(OH)₂) còn kéo được magie ra khỏi muối thành kết tủa trắng Mg(OH)₂. Kết tủa nào cũng lọc ra đĩa là được hàng sạch. || MgCl₂ + Ca(OH)₂ → Mg(OH)₂↓ + CaCl₂',
   ],
   // 24 · Bảng tuần hoàn — bản đồ nguyên tố
   [
@@ -232,23 +234,22 @@ const BAI_GIANG = [
     'Trong một chu kì, đi từ trái sang phải: tính kim loại giảm, tính phi kim tăng, nguyên tử nhỏ dần.',
     'Trong một nhóm A, đi từ trên xuống dưới: tính kim loại tăng, nguyên tử to dần.',
   ],
-  // 25 · Halogen — khí clo vàng lục
+  // 25 · Nhôm — kim loại quốc dân
   [
-    '*Halogen* là nhóm VIIA gồm F, Cl, Br, I. Tên này có nghĩa là "sinh ra muối".',
-    '*Clo* là chất khí màu vàng lục, mùi hắc và *rất độc*. || Cl₂',
-    ':( Làm việc với clo thì phải bật *tủ hút* và tránh hít phải khí!',
-    'Clo tác dụng với hầu hết kim loại, tạo muối clorua. || 2Na + Cl₂ —t°→ 2NaCl ; Cu + Cl₂ —t°→ CuCl₂',
-    'Clo tác dụng với hiđro khi đốt nóng hoặc có ánh sáng, tạo khí hiđro clorua. Khí này tan vào nước thành axit clohiđric. || H₂ + Cl₂ —t°→ 2HCl',
-    ':) Clo còn tan một phần trong nước, tạo nước clo có tính tẩy màu. Người ta dùng nó để khử trùng nước máy.',
+    '*Nhôm* là kim loại nhẹ, màu trắng bạc, dẫn điện và dẫn nhiệt tốt. Người ta dùng nó làm dây điện, nồi niêu, thân máy bay.',
+    'Nhôm có hoá trị III nên phương trình hay có hệ số "lẻ". Nhôm tác dụng với axit: || 2Al + 6HCl → 2AlCl₃ + 3H₂↑',
+    'Nhôm cháy trong khí clo cũng tạo ra nhôm clorua. || 2Al + 3Cl₂ —t°→ 2AlCl₃',
+    'Để ngoài không khí, nhôm được phủ một lớp *nhôm oxit* Al₂O₃ mỏng mà bền, bảo vệ nhôm không bị ăn mòn tiếp. || 4Al + 3O₂ → 2Al₂O₃',
+    ':) Nhôm còn tan được trong dung dịch kiềm, một tính chất đặc biệt mà sắt không có.',
   ],
-  // 26 · Nitơ — khí trơ mà quý
+  // 26 · Sắt — hoá trị II và III
   [
-    '*Nitơ* chiếm khoảng 78% thể tích không khí. Nó là khí không màu, không mùi và không duy trì sự cháy.',
-    'Hai nguyên tử N trong phân tử N₂ liên kết với nhau rất bền, nên ở nhiệt độ thường nitơ gần như trơ.',
-    'Ở nhiệt độ cao, áp suất cao và có chất xúc tác, nitơ kết hợp với hiđro tạo *amoniac*. || N₂ + 3H₂ ⇌ 2NH₃',
-    'Mũi tên hai chiều ⇌ nghĩa là phản ứng *thuận nghịch*: xảy ra theo cả hai chiều cùng lúc.',
-    'Amoniac là khí mùi khai, tan rất nhiều trong nước. Dung dịch của nó có tính bazơ yếu, làm quỳ tím hoá xanh.',
-    ':) NH₃ gặp khí HCl tạo khói trắng amoni clorua, một loại phân đạm. || NH₃ + HCl → NH₄Cl',
+    '*Sắt* là kim loại màu trắng xám, có *tính nhiễm từ*: bị nam châm hút.',
+    'Sắt có hai hoá trị là *II* và *III*. Chất phản ứng với nó quyết định sắt lên hoá trị nào. || Fe(II) ; Fe(III)',
+    'Với axit HCl hay H₂SO₄ loãng, sắt chỉ lên hoá trị II. || Fe + 2HCl → FeCl₂ + H₂↑',
+    'Với khí clo, một chất oxi hoá mạnh, sắt lên hẳn hoá trị III. || 2Fe + 3Cl₂ —t°→ 2FeCl₃',
+    'Cháy trong oxi, sắt cho oxit sắt từ Fe₃O₄, trong đó có cả sắt(II) lẫn sắt(III).',
+    'Sắt hoạt động mạnh hơn đồng nên đẩy được đồng ra khỏi dung dịch muối. || Fe + CuSO₄ → FeSO₄ + Cu',
   ],
   // 27 · Cacbon — từ than đến đá vôi
   [
@@ -350,24 +351,24 @@ const BAI_GIANG_KHO = {
     'Ví dụ khách đặt 2,479 lít H₂, tức 0,1 mol: cần 0,1 mol Zn và 0,2 mol HCl. || Zn + 2HCl → ZnCl₂ + H₂↑ ; Zn: 0,1 · 65 = 6,5 g ; HCl: 0,2 mol = 100 ml',
     ':) Nút *Công thức* trên thanh trên cùng có ghi nồng độ của từng lọ dung dịch hôm nay.',
   ],
-  // 18 · Axit hai nấc
-  18: [
-    'Chế độ khó: H₂SO₄, HNO₃, NaOH, KOH trên kệ đều là dung dịch *1M*. Cùng nồng độ, nhưng lượng cần đong chưa chắc bằng nhau.',
-    'Một phân tử H₂SO₄ có *hai* H nên cần *hai* NaOH. Hai lọ cùng 1M, nên thể tích NaOH cũng phải gấp đôi. || H₂SO₄ + 2NaOH → Na₂SO₄ + 2H₂O ; 100 ml H₂SO₄ 1M + 200 ml NaOH 1M',
-    'HNO₃ chỉ có một H nên trộn 1 : 1, cả theo mol lẫn theo thể tích. || HNO₃ + KOH → KNO₃ + H₂O ; 100 ml + 100 ml',
-    'Khách đặt 14,2 g Na₂SO₄? M = 2·23 + 32 + 4·16 = 142, tức 0,1 mol. Cần 0,1 mol H₂SO₄ (100 ml) và 0,2 mol NaOH (200 ml). || M(Na₂SO₄) = 142 g/mol',
-    ':) Đếm số H của axit trước khi đong là không bao giờ lệch!',
+  // 12 · Brom gặp SO₂ — điều chế dung dịch HBr tinh khiết
+  12: [
+    'Chế độ khó có thêm ba lọ: *nước brom* Br₂ 0,2M (vàng nâu), bình khí *SO₂* và dung dịch *Ba(OH)₂* 0,2M. Nhớ bật *tủ hút*: SO₂ và clo đều độc.',
+    'Sục SO₂ vào nước brom thì màu vàng nâu nhạt dần rồi mất hẳn: SO₂ đã khử brom thành axit bromhiđric HBr. || Br₂ + SO₂ + 2H₂O → 2HBr + H₂SO₄',
+    'Nhưng trong cốc còn lẫn H₂SO₄! Thêm Ba(OH)₂ *vừa đủ* để kéo gốc sunfat thành kết tủa BaSO₄, lọc bỏ là chỉ còn HBr. || H₂SO₄ + Ba(OH)₂ → BaSO₄↓ + 2H₂O',
+    'Ví dụ cần 0,1 mol HBr (8,1 g): 0,05 mol Br₂ là 250 ml nước brom 0,2M; 0,05 mol SO₂ là 1,24 lít; sinh ra 0,05 mol H₂SO₄ nên cần đúng 0,05 mol Ba(OH)₂, tức 250 ml. || M(HBr) = 81 ; 0,05 · 24,79 ≈ 1,24 lít',
+    ':( Thừa Ba(OH)₂ thì nó trung hoà luôn cả HBr thành muối BaBr₂, hàng lẫn muối là khách trả lại. Đong cho đúng!',
   ],
-  // 19 · Trung hoà vừa đủ, chất dư
-  19: [
+  // 18 · Trung hoà vừa đủ, chất dư
+  18: [
     'Chế độ khó: HCl trên kệ là dung dịch *2M*, còn NaOH và KOH là *1M*. Nồng độ khác nhau thì cùng số mol mà thể tích khác nhau.',
     'HCl và NaOH phản ứng 1 : 1 *theo mol*. 0,1 mol HCl chỉ là 50 ml dung dịch 2M, còn 0,1 mol NaOH là 100 ml dung dịch 1M. || HCl + NaOH → NaCl + H₂O ; 50 ml HCl 2M + 100 ml NaOH 1M',
     '*Vừa đủ* là hai chất hết cùng lúc. Chất còn thừa gọi là *chất dư*. Chất hết trước quyết định có bao nhiêu sản phẩm. || chất hết trước → quyết định lượng sản phẩm',
     'Lỡ trộn 0,2 mol HCl với 0,1 mol NaOH: chỉ 0,1 mol HCl phản ứng, ra 0,1 mol NaCl, còn dư 0,1 mol HCl. Quỳ tím hoá đỏ là biết dư axit. || 0,2 HCl + 0,1 NaOH → 0,1 NaCl, dư 0,1 HCl',
     ':( Hàng lẫn chất dư thì khách trả lại. Tính trước, đong sau!',
   ],
-  // 22 · Nhôm: hệ số lẻ
-  22: [
+  // 25 · Nhôm: hệ số lẻ
+  25: [
     'Chế độ khó: nhôm hoá trị III nên phương trình có hệ số "lẻ". Tính theo phương trình phải thật cẩn thận.',
     'Đọc hệ số: 2 mol Al cần 6 mol HCl và cho 3 mol H₂. || 2Al + 6HCl → 2AlCl₃ + 3H₂↑ ; 2 : 6 : 2 : 3',
     'Khách đặt 7,437 lít H₂, tức 7,437 : 24,79 = 0,3 mol. Theo tỉ lệ 2 : 6 : 3, cần 0,2 mol Al và 0,6 mol HCl. || Al: 0,2 · 27 = 5,4 g ; HCl: 0,6 : 2 = 0,3 lít = 300 ml',
@@ -385,8 +386,8 @@ const BAI_GIANG_KHO = {
     'Ví dụ NaCl: 3,16 − 0,93 = 2,23, liên kết ion. HCl: 3,16 − 2,20 = 0,96, cộng hoá trị có cực. Cl₂: hai nguyên tử như nhau, Δχ = 0, không cực.',
     ':) Kim loại dễ nhường, phi kim dễ nhận electron để có lớp ngoài giống khí hiếm, như bài tạo ion. Soi kĩ từng ô rồi hẵng trả lời!',
   ],
-  // 26 · Tỉ lệ thể tích khí
-  26: [
+  // 11 · Tỉ lệ thể tích khí
+  11: [
     'Chế độ khó: hôm nay N₂, H₂, NH₃ đều là *khí*, nên trò đong phần lớn bằng lít.',
     'Cùng điều kiện, thể tích khí tỉ lệ với số mol. Vậy với chất khí, hệ số phương trình cũng là *tỉ lệ thể tích*! || N₂ + 3H₂ ⇌ 2NH₃ ; 1 lít : 3 lít : 2 lít',
     'Muốn 4,958 lít NH₃ thì lấy 2,479 lít N₂ và 7,437 lít H₂: chỉ cần nhân theo hệ số, chẳng phải đổi ra mol. || 2,479 lít N₂ + 7,437 lít H₂ → 4,958 lít NH₃',

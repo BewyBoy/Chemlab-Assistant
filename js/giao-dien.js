@@ -187,7 +187,7 @@ G.addEventListener('click', e => {
 });
 let save;
 try { save = JSON.parse(localStorage.getItem('chemlab_save')); } catch(e){}
-if(!save) save = {unlocked:1, stars:{}, ach:[], served:0, spent:0, rx:[]};
+if(!save) save = {unlocked:1, stars:{}, ach:[], served:0, spent:0, rx:[], lich:3};
 if(!save.rx) save.rx = [];   // save cũ: sổ tay bắt đầu trống, đầy dần khi chơi
 if(!save.settings) save.settings = {};                 // save cũ: bổ sung ô cài đặt
 if(save.settings.balance === undefined) save.settings.balance = true; // cân bằng phương trình: bật mặc định
@@ -211,6 +211,25 @@ const spendCoins = n => { if(!DEBUG) save.spent = (save.spent||0) + n; };
 // persist() được gọi rải khắp game (mở khoá, đổi liều lượng…) — không bọc thì storage bị
 // chặn giữa chừng (itch.io iframe, Safari riêng tư) sẽ ném lỗi ngay tại chỗ gọi và văng game.
 const persist = () => { try { localStorage.setItem('chemlab_save', JSON.stringify(save)); } catch(e){} };
+/* Lịch đổi bài — save.lich ghi save đã theo lịch nào. Save cũ thì dời sao, kỷ lục, nhật ký, bài đã nghe theo số ngày
+   mới, từng lần đổi một (save rất cũ thì qua cả hai lần), rồi ghi lại ngay. Đổi lịch lần nữa thì thêm một mục vào
+   LICH_MOVES (số ngày cũ → mới; null: bài đã bỏ) và tăng lich trong hai chỗ tạo save mới.
+     lần 1 → 2: ngày 18 cũ (axit mạnh) bỏ, 19 → 18, 20 → 19, 12 (thám tử quỳ tím) → 20, ngày 12 để trống
+     lần 2 → 3: ngày 11 cũ (nước) bỏ, 26 (nitơ) → 11, 25 (halogen) → 12, 22 (nhôm) → 25, 23 (sắt) → 26;
+                22, 23 là bài mới (kim loại kiềm, kiềm thổ) */
+const LICH_MOVES = [{12:20, 18:null, 19:18, 20:19}, {11:null, 22:25, 23:26, 25:12, 26:11}];
+for(let v = save.lich || 1; v <= LICH_MOVES.length; v++){
+  const M = LICH_MOVES[v - 1], to = d => d in M ? M[d] : +d;
+  ['stars', 'starsHard', 'best', 'bestHard'].forEach(k => { const n = {};
+    Object.keys(save[k]).forEach(d => { if(to(d)) n[to(d)] = save[k][d]; }); save[k] = n; });
+  save.hist = save.hist.filter(h => to(h.d)).map(h => Object.assign(h, {d:to(h.d)}));
+  ['lessons', 'lessonsHard'].forEach(k => { if(save[k]) save[k] = save[k].map(to).filter(Boolean); });
+  save.lich = v + 1;
+  persist();
+}
+// ngày đang để trống (rest) không chặn đường: mở luôn tới ngày thật kế tiếp
+const skipRest = () => { while(save.unlocked < DAYS.length && DAYS[save.unlocked - 1].rest) save.unlocked++; };
+skipRest();
 
 // Hai loại thông báo nhỏ ở góc dưới:
 //   toast(msg) — ghi chú kỹ thuật (đã rót gì, đã đổ gì…): chỉ hiện ở dev mode (#dev / mật khẩu)
@@ -359,6 +378,11 @@ function showMap(){
     }
     if(d > DAYS.length){ cells += '<div class="day-card blank"></div>'; continue; } // trailing blanks, like a real month page
     const day = DAYS[d], num = d+1;
+    if(day.rest){   // ngày đang để trống: ô lịch gạch chéo, ghi "Tạm nghỉ", bấm thì chỉ nhắc đi tiếp
+      cells += `<div class="day-card rest${d%7===6?' sun':''}" data-rest="1"><div class="dt">${day.t}</div>
+        <div class="dn"><span class="dnw">${num}</span></div><div class="st"></div></div>`;
+      continue;
+    }
     const open = DEBUG || num <= save.unlocked;
     const st = save.stars[num] || 0, sth = save.starsHard[num] || 0;
     cells += `<div class="day-card${open?'':' locked'}${d%7===6?' sun':''}" data-d="${d}">
@@ -373,11 +397,14 @@ function showMap(){
       <button class="btn icobtn" id="bshop" aria-label="Cửa hàng" title="Cửa hàng">${ico('shop',26)}</button>
       ${hardUnlocked() ? `<button class="btn icobtn hardbtn${hardOn()?' on':''}" id="bhard" aria-label="Chế độ khó" aria-pressed="${hardOn()}">${ico('hard',30)}</button>` : ''}
     </div>
-    <div class="calsheet">
-      <div class="calrings">${'<span></span>'.repeat(14)}</div>
-      <div class="calhead">THÁNG ${LICH.thang}</div>
-      <div class="calwd">${wd}</div>
-      <div class="map-grid">${cells}</div>
+    <div class="calbook">
+      <div class="calcover"></div>${'<div class="calunder"></div>'.repeat(3)}
+      <div class="calsheet">
+        <div class="calrings">${'<span></span>'.repeat(14)}</div>
+        <div class="calhead">THÁNG ${LICH.thang}</div>
+        <div class="calwd">${wd}</div>
+        <div class="map-grid">${cells}</div>
+      </div>
     </div>
     ${DEBUG?'<div class="devbadge">DEV: mọi ngày đều mở</div>':''}</div>`;
   G.querySelector('#bback').onclick = () => go(showMenu);
@@ -391,6 +418,7 @@ function showMap(){
     notify(ico('hard',18) + ' Chế độ khó: <b>' + (hardOn() ? 'BẬT' : 'TẮT') + '</b>'); }; }
   G.querySelectorAll('.freecard.locked').forEach(fc => fc.onclick = () => notify(ico('lock',16)+' Làm hết 31 ngày đã, rồi tháng sau tha hồ nghịch!'));
   G.querySelectorAll('.day-card').forEach(c => {
+    if(c.dataset.rest){ c.onclick = () => notify('Ngày này đang được soạn bài mới — trò cứ đi tiếp ngày sau nhé!'); return; }
     if(c.classList.contains('locked') || c.classList.contains('blank')) return;
     if(c.dataset.free){ c.onclick = () => go(startFree); return; }
     if(c.dataset.trip){ c.onclick = tripTicket; return; }   // js/tham-quan.js
@@ -1039,7 +1067,7 @@ function settingsModal(){
   ov.querySelector('#mclose').onclick = () => closeOv(ov);
   ov.querySelector('#breset').onclick = () => confirmModal(
     '<h2>'+ico('trash',22)+' Xoá dữ liệu?</h2><p style="margin:8px 0">Toàn bộ tiến trình, sao và thành tựu sẽ bị xoá và không thể khôi phục.</p>',
-    () => { save = {unlocked:1, stars:{}, starsHard:{}, best:{}, bestHard:{}, ach:[], served:0, spent:0, rx:[], hist:[], settings:{balance:true}}; persist(); closeOv(ov); notify('Đã xoá dữ liệu.'); showMenu(); },
+    () => { save = {unlocked:1, stars:{}, starsHard:{}, best:{}, bestHard:{}, ach:[], served:0, spent:0, rx:[], hist:[], settings:{balance:true}, lich:3}; persist(); closeOv(ov); notify('Đã xoá dữ liệu.'); showMenu(); },
     'Xoá hết', 'Giữ lại');
   G.appendChild(ov);
 }
@@ -1112,7 +1140,7 @@ function showResult(i, st){
   if(stars > (book[num] || 0)) book[num] = stars;
   const rec = sc.pts > (bests[num] || 0);
   if(rec) bests[num] = sc.pts;
-  if(stars >= 1 && num >= save.unlocked && num < DAYS.length) save.unlocked = num + 1;
+  if(stars >= 1 && num >= save.unlocked && num < DAYS.length){ save.unlocked = num + 1; skipRest(); }
   // nhật ký từng lượt chơi (giữ 400 lượt gần nhất)
   save.hist.push(day.mg ? {d:num, h:st.hard ? 1 : 0, s:stars, w:st.total - st.correct, t:Date.now()}
     : {d:num, h:st.hard ? 1 : 0, s:stars, sv:st.served, w:st.wrong, sf:st.safety||0, t:Date.now()});
@@ -1127,22 +1155,23 @@ function showResult(i, st){
   if(save.served >= 50) unlockAch('serve50');
   for(let w=0; w<4; w++){
     let ok = true;
-    for(let d=w*7+1; d<=w*7+7; d++) if((save.stars[d]||0) < 3) ok = false;
+    for(let d=w*7+1; d<=w*7+7; d++) if(!DAYS[d-1].rest && (save.stars[d]||0) < 3) ok = false;   // ngày để trống coi như đã qua
     if(ok) unlockAch('week'+(w+1));
   }
-  if(DAYS.every((d, k) => (save.stars[k + 1] || 0) >= 1)) unlockAch('all28');
+  if(DAYS.every((d, k) => d.rest || (save.stars[k + 1] || 0) >= 1)) unlockAch('all28');
   if(num === 28 && stars === 3) unlockAch('master');
   persist();
+  let nx = i + 1; while(DAYS[nx] && DAYS[nx].rest) nx++;   // "Ngày tiếp theo" bỏ qua ngày để trống
   const cheer = stars===3?'Xuất sắc! Không chê vào đâu được!':stars===2?'Làm tốt lắm, gần hoàn hảo rồi!':stars===1?'Ổn đấy! Luyện thêm chút nữa nhé.':'Đừng nản — thử lại nào, ta tin trò!';
   resultCard(`Ngày ${num} kết thúc${st.hard ? ' <span style="color:#d9634f">· chế độ khó</span>' : ''}`, stars,
     `<div class="resbody">${detail}${scoreHTML(sc, rec, bests[num])}<p class="hand">“${cheer}”</p></div>
     <div class="row resbtns">${resBtn('bretry', 'retry', 'Chơi lại')}${resBtn('bmap', 'map', 'Bản đồ')}${exploreBtn(day, i, true)}
-      ${(stars>=1 && num<DAYS.length) ? resBtn('bnext', 'next', 'Ngày tiếp theo', ' main') : ''}</div>`);
+      ${(stars>=1 && nx<DAYS.length) ? resBtn('bnext', 'next', 'Ngày tiếp theo', ' main') : ''}</div>`);
   G.querySelector('#bretry').onclick = () => go(()=>playDay(i));
   G.querySelector('#bmap').onclick = () => go(showMap);
   bindExplore(i);
   const bn = G.querySelector('#bnext');
-  if(bn) bn.onclick = () => go(()=>playDay(i+1));
+  if(bn) bn.onclick = () => go(()=>playDay(nx));
 }
 
 /* =====================  SCALE TO WINDOW  ===================== */

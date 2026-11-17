@@ -1,0 +1,18 @@
+{
+  "name": "tro-ly-hoa-hoc-nhi",
+  "productName": "Trợ Lý Hóa Học Nhí",
+  "version": "1.0.0",
+  "description": "Trợ Lý Hóa Học Nhí — bản ứng dụng chạy trong cửa sổ riêng, không cần trình duyệt",
+  "author": "BewyBoy",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "icon": "electron icon.js",
+    "dong-goi": "node dong-goi.js"
+  },
+  "devDependencies": {
+    "@electron/packager": "^20.3.0",
+    "electron": "^45.3.1"
+  }
+}

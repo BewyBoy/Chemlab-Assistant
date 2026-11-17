@@ -9,12 +9,14 @@
 if(DEBUG){
   console.assert(DAYS.length === 31, 'DAYS phải đủ 31 ngày');
   console.assert(LICH.ngay.length === DAYS.length && DAYS.every(d => d.t), 'js/lich.js: cần đúng một mô tả cho mỗi ngày');
-  console.assert(BAI_GIANG.length === DAYS.length && BAI_GIANG.every(d => d.length), 'js/bai-giang.js: cần đúng một bài giảng (ít nhất một câu) cho mỗi ngày');
+  // ngày để trống (rest) thì không có bài giảng
+  console.assert(BAI_GIANG.length === DAYS.length && BAI_GIANG.every((d, i) => d.length || DAYS[i].rest), 'js/bai-giang.js: cần đúng một bài giảng (ít nhất một câu) cho mỗi ngày');
   // bài giảng chế độ khó: ngày có thật, có câu; ngày minigame phải có bài khó riêng (day.hard) thì mới có gì mới để giảng
   Object.keys(BAI_GIANG_KHO).forEach(k => { const d = DAYS[k - 1];
-    console.assert(d && BAI_GIANG_KHO[k].length && (!d.mg || d.hard), 'js/bai-giang.js: BAI_GIANG_KHO ngày ' + k + ' không dùng được'); });
-  DAYS.forEach((day, i) => {
-    if(day.mg) return;
+    console.assert(d && !d.rest && BAI_GIANG_KHO[k].length && (!d.mg || d.hard), 'js/bai-giang.js: BAI_GIANG_KHO ngày ' + k + ' không dùng được'); });
+  // ngày có phần thêm của chế độ khó (day.kho) thì kiểm cả bản khó (withHard, du-lieu.js) như một ngày riêng
+  DAYS.flatMap((d, i) => d.kho ? [[d, i], [withHard(d), i]] : [[d, i]]).forEach(([day, i]) => {
+    if(day.mg || day.rest) return;
     const have = new Set(day.chems);          // bao đóng: pha ra được gì từ kệ của ngày đó
     for(let grew = true; grew;){ grew = false;
       for(const r of REACTIONS)
@@ -40,7 +42,7 @@ if(DEBUG){
   // luật điểm (js/diem.js): lượt có lỗi không có HOÀN HẢO — đúng hết, xong tức thì, chuỗi trọn vẫn phải dưới mốc 3 sao
   for(let n = 1; n <= 60; n++)
     console.assert(PTS_OK*n + maxBonus(n) < starLimits(n, n, n)[2], 'js/diem.js: lượt có lỗi vẫn chạm mốc 3 sao khi có '+n+' phần');
-  console.assert(REACTIONS.length === 508 && RX_GROUPS.length === RX_NOTES.length, 'sổ tay: số phản ứng / ghi chú nhóm lệch');
+  console.assert(REACTIONS.length === 516 && RX_GROUPS.length === RX_NOTES.length, 'sổ tay: số phản ứng / ghi chú nhóm lệch');
   REACTIONS.forEach((r,k) => {   // thẻ phản ứng ghép bi theo nguyên tố — phương trình nào lệch là lộ ngay
     const side = o => { const c = {}; Object.keys(o).forEach(f => { const a = atomCounts(f); Object.keys(a).forEach(e => c[e] = (c[e]||0) + a[e]*o[f]); }); return c; };
     const L = side(r.rg), R = side(r.pr);
@@ -52,6 +54,8 @@ if(DEBUG){
     // quy ước SGK: đốt / đun / điện phân không ghi ↓; tag chỉ ghi cho chất có mặt trong phản ứng
     console.assert(!(r.burn || r.heat || r.elec) || !eqStr(r).includes('↓'), 'Phản ứng #'+k+': ↓ chỉ dành cho kết tủa trong dung dịch — '+eqStr(r));
     Object.keys(r.tag || {}).forEach(f => console.assert(r.rg[f] || (r.cat || []).includes(f), 'Phản ứng #'+k+': tag cho chất lạ '+f));
+    // nung khô: phải đun, và không chất tham gia nào là nước / dung dịch (cốc có chất lỏng thì phản ứng không bao giờ chạy)
+    console.assert(!r.dry || (r.heat && Object.keys(r.rg).every(f => CHEMS[f].s === 'r' || CHEMS[f].s === 'k')), 'Phản ứng #'+k+': dry cần heat và chỉ chất rắn / khí — '+eqStr(r));
   });
   const eqOf = (rg, pr) => eqStr(REACTIONS.find(r => Object.keys(r.rg).join() === rg && Object.keys(r.pr).join() === pr));
   console.assert(eqOf('CO2,Ca(OH)2', 'CaCO3,H2O').includes('CaCO₃↓') && !eqOf('S,O2', 'SO2').includes('↑')
@@ -152,10 +156,11 @@ if(DEBUG){
   Object.keys(VL_GONE).forEach(f => console.assert(!vlAll.some(c => same(c, atomCounts(f))), 'chất không tồn tại '+f+' lại trùng một chất có thật'));
   // xác định chất: mỗi bộ 3 lọ phải phân biệt được — hai mẫu khác nhau thì khác ít nhất một ô trong sổ ghi chép
   DAYS.filter(d => d.mg === 'identify').forEach(d => {
-    const st = ['quy'].concat(d.reagents);
+    const st = idStations(d);
     d.reagents.forEach(r => console.assert(TESTS[r], 'xác định chất: chưa có thuốc thử '+r+' trong TESTS'));
     d.sets.forEach(set => {
-      set.forEach(f => console.assert(CHEMS[f] && TESTS.quy.on[f], 'xác định chất: '+f+' thiếu trong CHEMS hoặc chưa có dòng quỳ'));
+      set.forEach(f => console.assert(CHEMS[f] && (d.gas ? CHEMS[f].s === 'k' : TESTS.quy.on[f]),
+        'xác định chất: '+f+' thiếu trong CHEMS, ' + (d.gas ? 'không phải chất khí' : 'chưa có dòng quỳ')));
       const sig = set.map(f => st.map(r => TESTS[r] ? testOf(r, f).t : '').join('|'));
       console.assert(new Set(sig).size === set.length, 'xác định chất: bộ '+set.join(', ')+' không phân biệt được');
     });

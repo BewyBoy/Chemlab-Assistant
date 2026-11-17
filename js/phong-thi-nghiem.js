@@ -184,7 +184,7 @@ function stripeCol(f){
 }
 
 /* =====================  DRAG & DROP MANAGER  ===================== */
-// types: chem (cabinet bottle), beaker, gas (collection bottle), dish (filtered solids),
+// types: chem (cabinet bottle), beaker, gas (collection bottle), dish (filtered solids — thả vào cốc = cho chất rắn lại vào cốc),
 // lamp (heater), ladle (muôi đốt), funnel (filter), mgcard / mgdrop / mglabel / vlatom / vlmove (minigame, via opts.onDrop)
 // Ngày có muôi đốt: bình khí kiêm LỌ KHÍ (zone 'jar'), đèn cồn là chỗ hơ lửa (zone 'flame').
 const DZ_ACCEPT = {
@@ -193,7 +193,7 @@ const DZ_ACCEPT = {
   ladle: ['flame','jar','sink','mat'],   // thả vào thảm = treo muôi lên giá
   beaker:['cust','sink','mat','bench','funnel'],   // mặt bàn ngoài thảm = đặt cốc ra đó; thảm = đưa về giữa; phễu = lọc
   gas:   ['beaker','mat','cust','sink'],
-  dish:  ['cust','sink'],
+  dish:  ['cust','sink','beaker'],   // cốc = trút chất rắn trên đĩa lại vào cốc (nung khô, hoà vào axit…)
   lamp:  ['beaker','mat'],
   elec:  ['beaker','mat'],
   funnel:['beaker','mat'],
@@ -346,6 +346,7 @@ function dropAction(type, zone, data){
   }
   if(type === 'dish'){
     if(zone === 'cust'){ lab.sel = 'solid'; serve(); }
+    else if(zone === 'beaker') dishToBeaker();
     else { lab.solid = {}; SFX.splash(); toast('Đã đổ đĩa lọc vào bồn.'); updateBeaker(); }
     return;
   }
@@ -376,20 +377,46 @@ function startLab(i){
   // chơi lại ngày đã qua (đã có sao): cùng các đơn nhưng khách đến theo thứ tự khác — lượt sau phải nhớ CÁCH làm,
   // không phải nhớ thứ tự. Lần đầu (và ngày 1, ngày hướng dẫn) giữ đúng thứ tự đã soạn
   const won = (hardOn() ? save.starsHard : save.stars)[i + 1] >= 1;
-  const day = won && i > 0 ? Object.assign({}, DAYS[i], {orders:shuffle(DAYS[i].orders)}) : DAYS[i];
+  // chế độ khó: ngày nào có phần thêm (day.kho — kệ, dụng cụ, đơn riêng) thì nối vào (withHard, du-lieu.js)
+  const base = hardOn() ? withHard(DAYS[i]) : DAYS[i];
+  const day = won && i > 0 ? Object.assign({}, base, {orders:shuffle(base.orders)}) : base;
   lab = newLab(i, day);
   runStart();   // điểm nhanh lấy từ vòng đồng hồ chờ của từng khách (serve), không cần đồng hồ riêng
   renderLab();
   startCurtain();   // đồng hồ ca bật khi màn "Bắt đầu" sáng lại
 }
 
+/* Kệ ca tự do xếp theo nhóm: Nước → Kim loại → Phi kim → Oxit → Axit → Bazơ → Muối → chất khác (đường).
+   Nhóm suy ra từ công thức và cờ a / b trong CHEMS, nên thêm chất mới vào kệ ngày nào nó cũng tự vào đúng nhóm.
+   Trong nhóm: kim loại, oxit, bazơ, muối theo dãy hoạt động của kim loại (K Na Ca Ba Mg Al Zn Fe … Cu Ag);
+   axit loãng trước, axit đặc sau (cùng thứ tự HCl, H₂SO₄, HNO₃); còn lại giữ thứ tự xuất hiện trong chiến dịch. */
+// 0 nước · 1 kim loại · 2 phi kim · 3 oxit · 4 axit · 5 bazơ · 6 muối · 7 khác
+function shelfGroup(f){
+  const c = CHEMS[f], el = Object.keys(atomCounts(f));
+  if(f === 'H2O') return 0;
+  if(el.length === 1) return FREE_METALS.has(el[0]) ? 1 : 2;
+  if(c.a) return 4;
+  if(c.b) return 5;
+  if(el.length === 2 && el.includes('O')) return 3;
+  return metalOf(f) || f.startsWith('NH4') ? 6 : 7;
+}
+function freeShelfOrder(chems){
+  const ACT = [...FREE_METALS];   // FREE_METALS ghi đúng thứ tự dãy hoạt động
+  const act = f => { const i = ACT.indexOf(metalOf(f)); return i < 0 ? ACT.length : i; };
+  const key = f => { const b = baseChem(f), g = shelfGroup(b);
+    return [g, g === 4 ? +(f !== b) : act(b), chems.indexOf(b)]; };
+  const ks = new Map(chems.map(f => [f, key(f)]));
+  return chems.slice().sort((x, y) => { const a = ks.get(x), b = ks.get(y); return a[0] - b[0] || a[1] - b[1] || a[2] - b[2]; });
+}
+
 /* ---- free-play (post day 28): full shelf, endless random campaign orders ---- */
 function startFree(){
   SFX.music(3);
-  const labDays = DAYS.filter(d => !d.mg);
+  const labDays = DAYS.filter(d => !d.mg && !d.rest);
   // K không nằm trên kệ ngày nào, nên trước đây các phản ứng của K / K₂O không bao giờ làm được (sổ tay không thể đủ)
-  // lọ axit đặc chỉ có ở ca tự do (kệ chiến dịch là axit loãng); KClO₃ để điều chế oxi với xúc tác MnO₂
-  const chems = [...new Set(labDays.flatMap(d => d.chems).concat(['K', 'KClO3', ...Object.keys(CONC_SHELF)]))];
+  // lọ axit đặc chỉ có ở ca tự do (kệ chiến dịch là axit loãng); KClO₃ để điều chế oxi với xúc tác MnO₂;
+  // HNO₃ loãng: từ khi bỏ bài "Axit mạnh: H₂SO₄ & HNO₃" không ngày nào bày nó trên kệ nữa
+  const chems = freeShelfOrder([...new Set(labDays.flatMap(d => withHard(d).chems).concat(['K', 'KClO3', 'HNO3', ...Object.keys(CONC_SHELF)]))]);
   const pool = labDays.flatMap(d => d.orders);
   // ponytail: orders sampled from the 28-day campaign — always solvable with the union shelf
   const freeOrder = () => { const od = Object.assign({}, pick(pool)); delete od.line; return od; };
@@ -803,28 +830,37 @@ function runReactions(collect){
     const q = lab.undissolved.C12H22O11; delete lab.undissolved.C12H22O11;
     mix.C12H22O11 = RQ((mix.C12H22O11 || 0) + q); lab.dissolveTotal = Math.max(0, RQ(lab.dissolveTotal - q));
   }
+  // cốc KHÔ (không nước, không dung dịch): chất rắn tan như KMnO₄, NaHCO₃ nằm dưới đáy (lab.undissolved) không có gì
+  // để tan vào, nó chỉ là chất rắn — phản ứng cần đun lấy luôn phần đó để nung
+  const und = lab.undissolved;
+  const dryHave = (r, f) => r.heat && !hasLiquid() ? (und[f] || 0) : 0;
   const ran = new Set();
   for(let pass=0; pass<RX_PASSES; pass++){
     const cands = REACTIONS.filter(r => {
       if(r.elec || r.burn) return false;   // điện phân chỉ chạy khi người chơi bấm, xem electrolyse()
       if(ran.has(rxReverse(r))) return false;
       if(r.heat && !lab.heaterOn) return false;
+      if(r.dry && hasLiquid()) return false;   // nung chất rắn KHÔ: cốc còn nước / dung dịch thì đun mãi cũng không ra
       if(r.cat && !r.cat.every(f => (mix[f]||0) > 0)) return false;   // xúc tác phải có mặt
       if(!concOK(r)) return false;                                       // axit phải đặc / loãng đúng như phương trình ghi
       return Object.keys(r.rg).every(f => {
         if(f === 'H2O' && hasLiquid()) return true; // nước dung môi coi như dư
-        return (mix[f]||0) > 0;
+        return (mix[f]||0) + dryHave(r, f) > 0;
       });
     });
     if(!cands.length) break;
     cands.sort((a,b) => (a.last||0)-(b.last||0) || usesMetal(a) - usesMetal(b) || tot(b.rg) - tot(a.rg));   // thứ tự: xem trên
     const r = cands[0];
     ran.add(r);
+    // chất rắn khô dưới đáy: cho phản ứng mượn, phần dư trả lại đáy cốc
+    const lent = Object.keys(r.rg).filter(f => dryHave(r, f) > 0);
+    lent.forEach(f => { mix[f] = RQ((mix[f]||0) + und[f]); lab.dissolveTotal = Math.max(0, RQ(lab.dissolveTotal - und[f])); delete und[f]; });
     const n = Math.min(...Object.keys(r.rg).map(f => {
       if(f === 'H2O' && hasLiquid()) return Infinity;
       return rxAvail(r, f)/r.rg[f];
     })); // fractional extent — limiting reagent runs out
-    fired.push(applyReaction(r, n, f => f === 'H2O' && hasLiquid()));
+    fired.push(applyReaction(r, n, f => f === 'H2O' && hasLiquid(), r.dry));
+    lent.forEach(f => { if(mix[f] > 0){ und[f] = mix[f]; lab.dissolveTotal = RQ(lab.dissolveTotal + mix[f]); delete mix[f]; } });
     // phần đặc: phản ứng cần axit đặc thì trừ vào phần đặc; phản ứng khác lấy phần loãng trước
     Object.keys(r.rg).forEach(f => { if(lab.dac[f] === undefined) return;
       if(r.tag && r.tag[f] === 'đặc') lab.dac[f] = RQ(lab.dac[f] - r.rg[f]*n);
@@ -868,7 +904,7 @@ function showRxBook(){
     for(let i = g.i; i < to; i++){
       if(!done.has(i)){ left++; continue; }        // chưa gặp thì gộp thành một dòng cuối nhóm,
       items.push('<div class="eq" data-rx="' + i + '" title="Bấm để xem thẻ phản ứng">' + eqStr(REACTIONS[i])   // liệt kê từng dấu ? chỉ tổ dài sổ
-        + (REACTIONS[i].heat ? ' <small>(cần đun)</small>' : '')
+        + (REACTIONS[i].dry ? ' <small>(nung chất rắn khô)</small>' : REACTIONS[i].heat ? ' <small>(cần đun)</small>' : '')
         + (REACTIONS[i].burn ? ' <small>(đốt trong lọ khí)</small>' : '')
         + (REACTIONS[i].elec ? ' <small>(điện phân)</small>' : '')
         + (fxOf(REACTIONS[i]) ? ' <small style="opacity:.7">— ' + fxOf(REACTIONS[i]) + '</small>' : '') + '</div>');
@@ -885,8 +921,9 @@ function showRxBook(){
 }
 
 /* Áp dụng MỘT phản ứng với mức độ n. skip(f) = chất coi như có sẵn không tốn
-   (nước dung môi). Dùng chung cho phản ứng tự phát và điện phân. */
-function applyReaction(r, n, skip){
+   (nước dung môi). steam: nung khô — nước sinh ra bay thành hơi (đọng thành giọt trên thành cốc), không ở lại cốc.
+   Dùng chung cho phản ứng tự phát và điện phân. */
+function applyReaction(r, n, skip, steam){
   const mix = lab.mix;
   learnRx(r);
   Object.keys(r.rg).forEach(f => {
@@ -903,6 +940,9 @@ function applyReaction(r, n, skip){
       if(r.vent && r.vent.includes(f)) gasNote += ' — '+sub(f)+' sủi ở cực dương và thoát ra!';
       else if(lab.catcher){ lab.gas[f] = RQ((lab.gas[f]||0) + q); unlockAch('gas1'); gasNote = ' — đã thu '+sub(f)+' vào bình!'; }
       else gasNote = ' — khí '+sub(f)+' bay mất!';
+    } else if(steam && f === 'H2O'){
+      lab.steam = true;
+      gasNote += ' — nước bay thành hơi';
     } else {
       mix[f] = RQ((mix[f]||0) + q);
       if(isPrecip(f)) spawnFall(CHEMS[f].c);
@@ -1058,7 +1098,10 @@ function addChem(f, dose, conc){
   if(SLOW_DISSOLVE.includes(f)){ // settles at the bottom: no reactions, no serving until stirred in
     lab.undissolved[f] = RQ((lab.undissolved[f]||0) + dose);
     lab.dissolveTotal = RQ(lab.dissolveTotal + dose);
-    (lab.toldSlow ? toast : notify)(doseStr(f, dose) + ' ' + sub(f) + ' — ít tan! Kéo <b>đũa khuấy</b> vào cốc rồi khuấy tròn cho tan.');
+    // cốc khô thì chưa có gì để tan vào — đừng bảo khuấy (ngày 30: thuốc tím để khô mà nung ra oxi)
+    const wet = Object.keys(lab.mix).some(g => CHEMS[g].s === 'l' || CHEMS[g].s === 'd');
+    (lab.toldSlow ? toast : notify)(doseStr(f, dose) + ' ' + sub(f) + (wet ? ' — ít tan! Kéo <b>đũa khuấy</b> vào cốc rồi khuấy tròn cho tan.'
+      : ' nằm khô dưới đáy cốc. Muốn hoà tan thì thêm <b>nước</b> rồi kéo <b>đũa khuấy</b> vào khuấy tròn.'));
     lab.toldSlow = true;
     lab.undo = {before, reacted:false, after:beakerSig()};
     updateBeaker();
@@ -1261,7 +1304,9 @@ function whyNoReaction(focus){
   const has = f => (mix[f]||0) > 0.009;
   const here = Object.keys(mix).filter(has), rest = here.filter(f => f !== 'H2O');
   const liquid = here.some(f => CHEMS[f].s === 'l' || CHEMS[f].s === 'd');
-  const ready = r => Object.keys(r.rg).every(f => has(f) || (f === 'H2O' && liquid));
+  const lies = f => (lab.undissolved[f]||0) > 0.009;   // chất rắn tan còn nằm dưới đáy, chưa khuấy
+  // cốc khô: chất rắn chưa tan dưới đáy (KMnO₄…) vẫn nung được — như runReactions
+  const ready = r => Object.keys(r.rg).every(f => has(f) || (f === 'H2O' && liquid) || (r.heat && !liquid && lies(f)));
   const hit = inv => !focus || inv.includes(focus);
   // câu nói lấy từ PROF_NO_RX (loi-thoai.js)
   const say = (k, v) => fillLine(PROF_NO_RX[k], v || {});
@@ -1269,15 +1314,24 @@ function whyNoReaction(focus){
     const g = Object.keys(r.rg).find(f => CHEMS[f].s === 'k'), fu = Object.keys(r.rg).find(f => f !== g);
     if(hit([g, fu])) return say(tools.includes('burn') ? 'dot-sai-cho' : 'khong-muoi', {fuel:sub(fu), gas:sub(g)});
   }
+  // đang đun mà chất cần NUNG KHÔ (dry) còn lẫn trong nước / dung dịch: nói cách tách ra, đừng để trò đun suông
+  if(lab.heaterOn && liquid){
+    const wet = here.filter(f => CHEMS[f].s === 'l' || CHEMS[f].s === 'd');
+    const r = REACTIONS.find(r => r.dry && Object.keys(r.rg).every(f => has(f) || lies(f)) && (!r.cat || r.cat.every(has)));
+    if(r && hit(Object.keys(r.rg).concat(wet))){
+      const rs = Object.keys(r.rg).filter(f => CHEMS[f].s === 'r');
+      return say(tools.includes('filter') && rs.every(isPrecip) ? 'can-kho-loc' : 'can-kho', {list:rs.map(sub).join(', ')});
+    }
+  }
   // Al, Fe trong H₂SO₄ / HNO₃ đặc nguội: thụ động — nói rõ, đừng chỉ bảo "cần nhiệt"
   if(!lab.heaterOn) for(const a of ['H2SO4','HNO3']) if(concOf(a) > 0.009) for(const m of ['Al','Fe'])
     if(has(m) && hit([m, a])) return say('thu-dong', {m, acid:sub(a)});
   if(!lab.heaterOn && tools.includes('heat')){
-    const r = REACTIONS.find(r => r.heat && ready(r) && (!r.cat || r.cat.every(has)) && concOK(r));
+    const r = REACTIONS.find(r => r.heat && !(r.dry && liquid) && ready(r) && (!r.cat || r.cat.every(has)) && concOK(r));
     if(r && hit(Object.keys(r.rg))) return say('thieu-nhiet');
   }
   // đủ chất, đủ nhiệt, đúng nồng độ nhưng thiếu chất xúc tác (KClO₃ cần MnO₂)
-  for(const r of REACTIONS) if(r.cat && !r.elec && !r.burn && ready(r) && !r.cat.every(has) && concOK(r) && (!r.heat || lab.heaterOn)){
+  for(const r of REACTIONS) if(r.cat && !r.elec && !r.burn && !(r.dry && liquid) && ready(r) && !r.cat.every(has) && concOK(r) && (!r.heat || lab.heaterOn)){
     const c = r.cat.find(f => !has(f));
     if(hit(Object.keys(r.rg))) return say('thieu-xt', {cat:sub(c)});
   }
@@ -1442,7 +1496,7 @@ function pourFX(f){
 /* Giấy nhớ ca tự do: ghi đúng những hạt đang có. Chất điện li đã tan (axit, kiềm, muối tan) phân li thành ION TỰ DO,
    cộng dồn theo từng loại ion (NaCl + Na₂SO₄ → một dòng Na⁺); kết tủa, chất chưa tan, nước, đường, khí giữ nguyên
    công thức hợp chất. Thêm bình khí, đĩa lọc, muôi đốt nếu có. Chỉ ghi công thức và lượng — không tên, không nhãn. */
-const ION_Z = {Cl:-1, ClO:-1, ClO3:-1, AlO2:-1, NO3:-1, HCO3:-1, OH:-1, MnO4:null, SO4:-2, CO3:-2, SO3:-2, PO4:-3};
+const ION_Z = {Cl:-1, Br:-1, ClO:-1, ClO3:-1, AlO2:-1, NO3:-1, HCO3:-1, OH:-1, MnO4:null, SO4:-2, CO3:-2, SO3:-2, PO4:-3};
 const CAT_Z = {H:1, Na:1, K:1, NH4:1, Ag:1, Ca:2, Ba:2, Mg:2, Zn:2, Cu:2, Mn:2, Al:3, Fe:null};
 const ION_COL = {'Cu2+':'#4f9fd8', 'Fe2+':'#bcd6b4', 'Fe3+':'#d9a86a', 'Mn2+':'#f3dfe0', 'MnO4-':'#8a3d9e', 'MnO42-':'#3e7d4a'};
 // công thức → {cat, zc, nc, an, za, na} nếu là axit / bazơ / muối của các ion trên, không thì null
@@ -1528,7 +1582,7 @@ function updateBeaker(){
   tex.setAttribute('opacity', pre ? 1 : 0);
   tex.setAttribute('transform', 'translate(0,'+(-Math.max(0, PH-4))+')'); // hạt lấm tấm nằm trên mặt kết tủa
   const dr = G.querySelector('#bk-drops');
-  if(dr) dr.setAttribute('opacity', lab.heaterOn && liq ? 1 : 0);
+  if(dr) dr.setAttribute('opacity', lab.heaterOn && (liq || lab.steam) ? 1 : 0);   // nung khô: hơi nước đọng thành giọt trên thành cốc
   // đổi màu: vệt màu mới loang ra từ giữa khối chất lỏng, TRONG lòng cốc (nhóm bk-swirl nằm dưới bkclip)
   const swg = G.querySelector('#bk-swirl');
   if(swg && liq && liqColor !== lab.lastColor && lab.lastColor){
@@ -1752,6 +1806,7 @@ function setHeat(on){
   if(on) unpark();
   if(on && lab.filterOn) setFilter(false);   // không lọc trong lúc đun
   lab.heaterOn = on;
+  if(!on) lab.steam = false;                 // tắt lửa: hết hơi nước bốc lên thành cốc
   layoutRigs();
   const sv = G.querySelector('#sv_heat'); if(sv) setFx(sv, 'flame', on ? 1 : 0);
   SFX.clink(); if(on) SFX.ignite();
@@ -1812,6 +1867,24 @@ function useFilter(){
   toast('Đã lọc ' + moved.map(sub).join(', ') + ' sang đĩa.');
   updateBeaker();
 }
+/* Kéo ĐĨA LỌC vào cốc: trút chất rắn trên đĩa lại vào cốc. Đây là cách nung một kết tủa cho đúng — lọc Cu(OH)₂ ra
+   đĩa, giao hoặc đổ phần nước lọc, rồi trút Cu(OH)₂ vào cốc KHÔ mà đun (phản ứng dry, phan-ung.js). Cũng dùng để hoà
+   chất rắn đã lọc sạch vào axit mới. Chất rắn tan (nếu có) lắng xuống đáy như lúc rót từ tủ, phải khuấy mới tan. */
+function dishToBeaker(){
+  const ks = Object.keys(lab.solid).filter(f => lab.solid[f] > 0);
+  if(!ks.length) return;
+  ks.forEach(f => {
+    const q = RQ(lab.solid[f]);
+    if(SLOW_DISSOLVE.includes(f)){ lab.undissolved[f] = RQ((lab.undissolved[f]||0) + q); lab.dissolveTotal = RQ(lab.dissolveTotal + q); }
+    else lab.mix[f] = RQ((lab.mix[f]||0) + q);
+  });
+  lab.solid = {};
+  pourFX(ks[0]);
+  const wet = Object.keys(lab.mix).some(f => CHEMS[f].s === 'l' || CHEMS[f].s === 'd');
+  toast('Đã trút ' + ks.map(sub).join(', ') + ' từ đĩa lọc vào cốc' + (wet ? '.' : ' khô.'));
+  if(!runReactions()) explainNoRx(ks[0]);
+  updateBeaker();
+}
 /* ---- glass-rod stirring: move the rod around inside the beaker to dissolve slow solids ---- */
 function stirMove(p, dist){
   if(!lab || tot(lab.undissolved) <= 0) return;
@@ -1839,7 +1912,7 @@ function dissolveStep(take = 0.5, quiet = false){
 }
 
 function dumpBeaker(){
-  lab.mix = {}; lab.dac = {}; lab.undissolved = {}; lab.dissolveTotal = 0; lab.lastWhy = ''; lab.firstPour = null; lab.waterIn = false;
+  lab.mix = {}; lab.dac = {}; lab.undissolved = {}; lab.dissolveTotal = 0; lab.lastWhy = ''; lab.firstPour = null; lab.waterIn = false; lab.steam = false;
   const sk = G.querySelector('#sinksvg');
   if(sk){ sk.style.setProperty('--splash', 1); setTimeout(()=>sk.style.setProperty('--splash', 0), 800); }
   SFX.splash();
@@ -1928,9 +2001,12 @@ function coachText(){
   const box  = want === 'gas' ? lab.gas : want === 'solid' ? lab.solid : lab.mix;
   const keep = lab.sel; lab.sel = want;
   const res  = checkServe(box, od);
+  let ok = res === true ? want : null;
+  // chất rắn nung khô nằm một mình trong cốc (CuO, Cu…): giao thẳng cả cốc
+  if(!ok && want === 'solid'){ lab.sel = 'beaker'; if(checkServe(lab.mix, od) === true) ok = 'beaker'; }
   lab.sel = keep;
-  if(res === true)
-    return 'Đủ rồi! Kéo <b>' + (want === 'gas' ? 'bình khí' : want === 'solid' ? 'đĩa lọc' : 'cốc')
+  if(ok)
+    return 'Đủ rồi! Kéo <b>' + (ok === 'gas' ? 'bình khí' : ok === 'solid' ? 'đĩa lọc' : 'cốc')
          + '</b> sang chỗ khách để giao.';
   // an toàn trước, pha chế sau
   if(!lab.goggles) return 'Trước khi lấy hoá chất: bấm <b>Kính & găng</b> trên tường để đeo đồ bảo hộ.';
@@ -1950,6 +2026,23 @@ function coachText(){
     return 'Bắt đầu bằng cách kéo lọ <b>' + sub(t) + '</b> từ tủ bên phải vào cốc.';
   if(od.water && !(lab.mix.H2O > 0) && day.chems.includes('H2O'))
     return 'Khách hỏi <b>dung dịch</b> chứ không phải chất khô — kéo thêm lọ <b>Nước</b> vào cốc.';
+  // NUNG KHÔ (dry, phan-ung.js): Cu(OH)₂ → CuO, CaCO₃ → CaO, KMnO₄ → O₂… — chất rắn phải nằm trong cốc không có nước.
+  // Chỉ dẫn theo chỗ chất rắn đang nằm: lẫn trong dung dịch → lọc ra đĩa → dọn cốc → trút đĩa vào cốc khô → đun
+  const at = f => (lab.mix[f]||0) + (lab.undissolved[f]||0);
+  const dr = !((lab.mix[t]||0) > 0) && REACTIONS.find(r => r.dry && r.pr[t] && Object.keys(r.rg).every(f => dayHave(day).has(f))
+    && Object.keys(r.rg).some(f => CHEMS[f].s === 'r' && at(f) + (lab.solid[f]||0) > 0));
+  if(dr){
+    const rs = Object.keys(dr.rg).filter(f => CHEMS[f].s === 'r'), s = '<b>' + rs.map(sub).join(' + ') + '</b>';
+    const wet = Object.keys(lab.mix).some(f => lab.mix[f] > 0 && (CHEMS[f].s === 'l' || CHEMS[f].s === 'd'));
+    if(rs.some(f => (lab.solid[f]||0) > 0))
+      return wet ? s + ' đã nằm trên đĩa lọc. Cốc còn dung dịch — giao cho khách cần nó, hoặc đổ ra <b>bồn rửa</b> — rồi kéo <b>đĩa lọc</b> vào cốc khô.'
+                 : 'Kéo <b>đĩa lọc</b> vào cốc để trút ' + s + ' vào cốc khô, rồi nung.';
+    if(wet) return rs.every(isPrecip) && day.tools.includes('filter')
+      ? s + ' phải nung <b>khô</b>' + (lab.heaterOn ? ' — kéo đèn cồn ra, rồi' : ':') + ' kéo <b>phễu lọc</b> vào cốc để lọc nó ra đĩa trước.'
+      : s + ' phải nung <b>khô</b> — đổ cốc ra <b>bồn rửa</b>, cho ' + s + ' vào cốc trống (không có nước) rồi đun.';
+    if(want === 'gas' && !lab.catcher) return 'Khách cần <b>khí</b>: kéo <b>bình thu khí</b> lên miệng cốc trước đã, không thì khí bay mất.';
+    if(!lab.heaterOn && Object.keys(dr.rg).every(f => at(f) > 0)) return 'Cốc khô rồi — kéo <b>đèn cồn</b> vào cốc để nung ' + s + '.';
+  }
   if(tot(lab.undissolved) > 0) return 'Còn chất chưa tan dưới đáy — kéo <b>đũa khuấy</b> vào cốc rồi khuấy tròn.';
   if(want === 'gas' && !lab.catcher)  return 'Khách cần <b>khí</b>: kéo <b>bình thu khí</b> lên miệng cốc trước đã, không thì khí bay mất.';
   if(!tot(lab.mix) && !tot(lab.undissolved))
@@ -1958,7 +2051,13 @@ function coachText(){
     return 'Kéo <b>bộ điện phân</b> vào cốc, rồi chọn chất và <b>số mol</b> ở bảng dưới mép bàn.';
   if(lab.elecOn && elecList().length)
     return 'Ở bảng dưới mép bàn: chọn chất, vặn <b>số mol</b> rồi bấm <b>điện phân</b>.';
-  if(want === 'solid' && (lab.mix[t]||0) > 0) return 'Kết tủa đã có trong cốc — kéo <b>phễu lọc</b> vào cốc để lọc ra đĩa.';
+  if(want === 'solid' && (lab.mix[t]||0) > 0){
+    // bã rắn sau khi nung khô (MnO₂ lẫn K₂MnO₄): hoà phần tan vào nước trước rồi mới lọc
+    const sol = Object.keys(lab.mix).filter(f => f !== t && lab.mix[f] > 0 && CHEMS[f].sol);
+    if(sol.length && !Object.keys(lab.mix).some(f => CHEMS[f].s === 'l' || CHEMS[f].s === 'd'))
+      return '<b>' + sub(t) + '</b> còn lẫn ' + sol.map(sub).join(', ') + ' — rót <b>nước</b> cho phần tan hết, rồi kéo <b>phễu lọc</b> vào cốc để lọc lấy ' + sub(t) + '.';
+    return 'Kết tủa đã có trong cốc — kéo <b>phễu lọc</b> vào cốc để lọc ra đĩa.';
+  }
   // cốc im re: giáo sư nói lý do nếu đoán ra được (đốt nhầm chỗ, dãy hoạt động, chất không tan…)
   const why = whyNoReaction();
   if(why) return '<b>Giáo sư:</b> ' + why;
@@ -2179,7 +2278,7 @@ function serve(){
   const cont = lab.sel === 'beaker' ? lab.mix : lab.sel === 'gas' ? lab.gas : lab.solid;
   const res = checkServe(cont, od);
   if(res === true){
-    if(lab.sel === 'beaker'){ lab.mix = {}; lab.dac = {}; lab.firstPour = null; lab.waterIn = false; }
+    if(lab.sel === 'beaker'){ lab.mix = {}; lab.dac = {}; lab.firstPour = null; lab.waterIn = false; lab.steam = false; }
     else if(lab.sel === 'gas') lab.gas = {}; else lab.solid = {};
     const gain = runHit(lab.odur > 0 ? lab.otime/lab.odur : 0);   // nhanh: vòng chờ trên phiếu còn bao nhiêu
     lab.odur = 0; // tắt đồng hồ chờ trong lúc khách kế tiếp bước tới

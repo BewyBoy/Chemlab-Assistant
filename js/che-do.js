@@ -691,6 +691,23 @@ function lwPiece(el, sc){
     + atomBall({el, x:c, y:c, r}, '') + '</div>';
 }
 
+/* Trạm que đóm của màn nhận biết lọ khí (ngày 10), khung 150×120 như .idf-art: que gỗ gác chéo trên khúc gỗ kê,
+   đầu que ở (96, 46). lit = 'ember' còn tàn đỏ · 'flame' đang cháy. Hiện tượng đổi bằng data-fx (style.css .idf-spl):
+   flare / bright lửa bùng to, out tắt + khói, pop vòng lửa xanh nổ "bụp" ở miệng lọ. */
+function splintSVG(lit){
+  return `<svg class="idf-spl" data-lit="${lit}" viewBox="0 0 150 120" width="150" height="120">
+    <rect x="10" y="98" width="44" height="14" rx="3" fill="#c89a63" stroke="#3b3025" stroke-width="1.5"/>
+    <line x1="18" y1="106" x2="96" y2="46" stroke="#3b3025" stroke-width="9" stroke-linecap="round"/>
+    <line x1="18" y1="106" x2="96" y2="46" stroke="#dcb47c" stroke-width="5.6" stroke-linecap="round"/>
+    <circle class="sp-glow" cx="96" cy="46" r="11" fill="#ff8a3a" opacity=".35"/>
+    <circle class="sp-ember" cx="96" cy="46" r="4.6" fill="#ff5a24" stroke="#3b3025" stroke-width="1.2"/>
+    <g class="sp-flame"><path class="f1" d="M96 45 C84 36 88 21 98 6 C100 20 110 33 96 45 Z" fill="#f7a531" stroke="#c4561e" stroke-width="1.3"/>
+      <path class="f2" d="M96 43 C91 37 92 29 97 21 C99 30 103 36 96 43 Z" fill="#ffe58a"/></g>
+    <g class="sp-smoke" fill="#9b948a"><circle cx="96" cy="40" r="4"/><circle cx="92" cy="40" r="3"/><circle cx="99" cy="40" r="3.4"/></g>
+    <circle class="sp-pop" cx="104" cy="34" r="13" fill="#bcd6ff" fill-opacity=".45" stroke="#5f93e8" stroke-width="2.4"/>
+  </svg>`;
+}
+
 const MG = {
  /* --- phân loại (ngày 3: nguyên tử/phân tử; ngày 17: oxit/axit/bazơ/muối). Mỗi lúc chỉ MỘT chất: thẻ vẽ
         mô hình bi–que, công thức ở dưới; kéo thẻ vào giỏ hoặc bấm thẳng vào giỏ. Đúng giỏ: mô hình rơi vào giỏ
@@ -2101,42 +2118,49 @@ const MG = {
   })(last);
  },
 
- /* --- ngày 12: xác định chất. Ba lọ mất nhãn đánh số 1–3, nhãn nằm xáo trộn bên dưới.
+ /* --- xác định chất: ngày 20 lọ DUNG DỊCH, ngày 10 lọ KHÍ (day.gas). Ba lọ mất nhãn đánh số 1–3, nhãn xáo trộn bên dưới.
         Bước 1 — kệ: xem lọ và tên các chất có thể; "Bắt đầu thí nghiệm" thì cả bàn trượt sang trái.
-        Bước 2 — bàn: kéo ống nhỏ giọt mẫu 1–3 vào giấy quỳ / cốc thuốc thử (bảng TESTS, phan-ung.js);
-                 dung dịch trong cốc là mô phỏng vật lý (liquidSim); dòng chữ hiện tượng chỉ thoáng hiện trên
+        Bước 2 — bàn: kéo ống nhỏ giọt mẫu 1–3 vào giấy quỳ / cốc thuốc thử (bảng TESTS, phan-ung.js); lọ khí thì kéo
+                 cả lọ tới que đóm (còn tàn đỏ / đang cháy) hay cốc nước vôi trong (khí sục qua thành bọt).
+                 Dung dịch trong cốc là mô phỏng vật lý (liquidSim); dòng chữ hiện tượng chỉ thoáng hiện trên
                  trạm — trò phải tự nhớ, hoặc tự ghi ra giấy.
         Bước 3 — trượt về kệ, kéo nhãn dán vào lọ (dán đè thì hai nhãn đổi chỗ), "Kiểm tra" để chấm.
         Bấm thay kéo cũng được: bấm ống / nhãn để chọn, rồi bấm trạm / lọ.
         Sổ ghi chép (mua ở Cửa hàng, bật/tắt được — labbookOn): đứng yên bên phải, tự ghi từng lần nhỏ thử kèm mẹo
         nhận biết; không có sổ thì khung trượt chiếm cả bề ngang. --- */
  identify(i, day){
-  const book = labbookOn();
+  const book = labbookOn(), gas = !!day.gas;
   const samples = shuffle(pick(day.sets)), labels = shuffle(samples);   // samples[lọ], labels[ô trong khay nhãn]
-  const st = ['quy'].concat(day.reagents);                              // trạm 0 = giấy quỳ, còn lại = cốc thuốc thử
-  const stName = s => s ? sub(st[s]) : 'quỳ tím';
+  const st = idStations(day);                                           // các trạm thử: giấy quỳ, que đóm, cốc thuốc thử
+  const kind = s => TESTS[st[s]].kind || 'cup';
+  const stName = s => { const n = TESTS[st[s]].name; return n ? n[0].toLowerCase() + n.slice(1) : sub(st[s]); };
   const short = f => CHEMS[f].n.split(' (')[0];                         // "Muối ăn (natri clorua)" → "Muối ăn"
-  const LIQ = '--lc:#dcecf3';    // mẫu nào cũng trong suốt như nhau — nhìn màu không đoán được
+  // mẫu nào cũng trong suốt như nhau — nhìn màu không đoán được (lọ khí: gần như trống, khí nào cũng không màu)
+  const LIQ = gas ? '--lc:#ffffff00' : '--lc:#dcecf3';
   const LIQ_X = 36, LIQ_Y = 44;  // canvas dung dịch trong .idf-art (khớp .idf-liq): lòng cốc x 16–94, đáy y 112, mặt nước y 58
   // dòng chữ hiện tượng chỉ tả cái mắt thấy, không nói mẫu số mấy
-  const seenText = fx => fx.spot ? (fx.col === 'tím' ? 'quỳ không đổi màu' : 'quỳ hoá ' + fx.col)
-    : fx.ppt ? 'kết tủa ' + fx.col + (fx.faint ? ' rất ít' : '') : fx.gas ? 'sủi bọt khí' : 'không hiện tượng';
-  const pip = (k, w, h) => `<div class="idf-pip">${sym('sym-pipette', w, h, LIQ)}<span class="idf-badge">${k+1}</span></div>`;
+  const seenText = fx => fx.seen || (fx.spot ? (fx.col === 'tím' ? 'quỳ không đổi màu' : 'quỳ hoá ' + fx.col)
+    : fx.ppt ? 'kết tủa ' + fx.col + (fx.faint ? ' rất ít' : '') : fx.gas ? 'sủi bọt khí' : 'không hiện tượng');
+  const DW = gas ? 60 : 44, DH = gas ? 85 : 160;                        // mẫu trên giá: ống nhỏ giọt, hay lọ khí nhỏ
+  const pip = (k, w, h) => `<div class="idf-pip">${sym(gas ? 'sym-jar-blank' : 'sym-pipette', w, h, LIQ)}<span class="idf-badge">${k+1}</span></div>`;
   const jarHTML = samples.map((f, k) => `<div class="idf-jar" data-dz="jar${k}">${sym('sym-jar-blank', 170, 240, LIQ)}
       <span class="idf-badge idf-cap">${k+1}</span><span class="idf-num">${k+1}</span><div class="idf-slot"></div><div class="idf-ans"></div></div>`).join('');
   const lblHTML = labels.map(f => `<div class="idf-tslot"><div class="idf-lbl"><b>${sub(f)}</b><small>${short(f)}</small></div></div>`).join('');
-  const dropHTML = samples.map((f, k) => `<div class="idf-drop">${pip(k, 44, 160)}</div>`).join('');
-  const stHTML = st.map((r, s) => `<div class="idf-st" data-s="${s}" data-dz="${s ? 'rg'+(s-1) : 'quy'}"><div class="idf-art">${s
-      ? sym('sym-beaker-small', 110, 120, 'position:absolute;left:20px;top:0') + '<canvas class="idf-liq"></canvas>'
-        + sym('sym-beaker-line', 110, 120, 'position:absolute;left:20px;top:0') + '<span class="idf-badge idf-who"></span>'
-      : '<div class="idf-tile"><div class="idf-paper"></div></div>' + samples.map((f, k) => `<span class="idf-mark" style="left:${35+40*k}px">${k+1}</span>`).join('')}
-    </div><div class="idf-tag">${s ? sub(r) : 'Quỳ tím'}</div></div>`).join('');
-  const head = '<tr><th>Mẫu</th>' + st.map((r, s) => '<th>' + (s ? sub(r) : 'Quỳ') + '</th>').join('') + '</tr>';
+  const dropHTML = samples.map((f, k) => `<div class="idf-drop">${pip(k, DW, DH)}</div>`).join('');
+  const artOf = (r, s) => kind(s) === 'paper'
+      ? '<div class="idf-tile"><div class="idf-paper"></div></div>' + samples.map((f, k) => `<span class="idf-mark" style="left:${35+40*k}px">${k+1}</span>`).join('')
+    : kind(s) === 'splint' ? splintSVG(TESTS[r].lit)
+    : sym('sym-beaker-small', 110, 120, 'position:absolute;left:20px;top:0') + '<canvas class="idf-liq"></canvas>'
+      + sym('sym-beaker-line', 110, 120, 'position:absolute;left:20px;top:0') + '<span class="idf-badge idf-who"></span>';
+  const stHTML = st.map((r, s) => `<div class="idf-st" data-s="${s}" data-dz="${kind(s) === 'paper' ? 'quy' : 'rg' + s}"><div class="idf-art">${artOf(r, s)}
+    </div><div class="idf-tag">${TESTS[r].name || sub(r)}</div></div>`).join('');
+  const head = '<tr><th>Mẫu</th>' + st.map(r => '<th>' + (TESTS[r].th || sub(r)) + '</th>').join('') + '</tr>';
   const rows = samples.map((f, k) => '<tr><th>' + (k+1) + '</th>' + st.map((r, s) => `<td data-k="${k}" data-s="${s}">·</td>`).join('') + '</tr>').join('');
-  mgFrame(i, day, `<div class="idf${book ? '' : ' nobook'}" data-stage="1" data-shelf="look">
+  mgFrame(i, day, `<div class="idf${book ? '' : ' nobook'}${gas ? ' gas' : ''}" data-stage="1" data-shelf="look">
     <div class="idf-view"><div class="idf-track">
       <div class="idf-pane">
-        <p class="idf-say s1only">Ba lọ dung dịch bong hết nhãn! Mỗi nhãn dưới đây thuộc về một lọ — làm thí nghiệm để biết lọ nào là chất nào.</p>
+        <p class="idf-say s1only">${gas ? 'Ba lọ khí bong hết nhãn, khí nào cũng không màu! Mỗi nhãn dưới đây thuộc về một lọ — làm thí nghiệm để biết lọ nào là khí nào.'
+          : 'Ba lọ dung dịch bong hết nhãn! Mỗi nhãn dưới đây thuộc về một lọ — làm thí nghiệm để biết lọ nào là chất nào.'}</p>
         <p class="idf-say s3only">Kéo nhãn dán vào đúng lọ (hoặc bấm nhãn rồi bấm lọ). Dán đủ ba lọ thì bấm <b>Kiểm tra</b>.</p>
         <div class="idf-row idf-jars">${jarHTML}</div>
         <div class="idf-tray" data-dz="tray">${lblHTML}</div>
@@ -2155,7 +2179,7 @@ const MG = {
     <div class="idf-book">
       <h3>${ico('note', 22)} Sổ ghi chép</h3>
       <table class="idf-tab">${head}${rows}</table>
-      <div class="idf-obs">Chưa có thí nghiệm nào — nhỏ thử mẫu để xem hiện tượng.</div>
+      <div class="idf-obs">Chưa có thí nghiệm nào — ${gas ? 'đưa thử từng lọ khí tới que đóm, nước vôi trong' : 'nhỏ thử mẫu'} để xem hiện tượng.</div>
       <ul class="idf-tips">${st.map(r => '<li>' + TESTS[r].tip + '</li>').join('')}</ul>
     </div>` : ''}</div>`);
   const root = G.querySelector('.idf'), hud = G.querySelector('#mgscore'), obs = G.querySelector('.idf-obs');
@@ -2167,7 +2191,8 @@ const MG = {
   let stage = 1, moving = false, done = false, live = false, sel = null;
   lbls.forEach(tapeLabel);
   const sims = {};                          // sims[trạm]: dung dịch trong từng cốc thuốc thử (liquidSim)
-  G.querySelectorAll('.idf-liq').forEach((cv, n) => sims[n + 1] = liquidSim(cv, 78, 112 - LIQ_Y, 58 - LIQ_Y, 'rgba(220,236,243,.9)'));
+  G.querySelectorAll('.idf-st').forEach(el => { const cv = el.querySelector('.idf-liq');
+    if(cv) sims[+el.dataset.s] = liquidSim(cv, 78, 112 - LIQ_Y, 58 - LIQ_Y, 'rgba(220,236,243,.9)'); });
   hud.textContent = STEP[1];
 
   function unselect(){ if(sel) sel.el.classList.remove('idf-sel'); sel = null; }
@@ -2190,36 +2215,37 @@ const MG = {
   G.querySelector('#idlabel').onclick = () => goStage(3);
 
   /* ---- bước 2: nhỏ mẫu vào trạm ---- */
-  G.querySelectorAll('.idf-drop').forEach((d, k) => dragify(d, 'mgdrop', {w:44, h:160,
-    ghostHTML: () => pip(k, 44, 160),
-    onDrop: z => drip(k, z === 'quy' ? 0 : +z.slice(2) + 1),
+  G.querySelectorAll('.idf-drop').forEach((d, k) => dragify(d, 'mgdrop', {w:DW, h:DH,
+    ghostHTML: () => pip(k, DW, DH),
+    onDrop: z => drip(k, z === 'quy' ? st.indexOf('quy') : +z.slice(2)),
     onClick: () => choose(d, {k})}));
   G.querySelectorAll('.idf-st').forEach(el => el.onclick = () => { if(stage === 2 && sel) drip(sel.k, +el.dataset.s); });
-  // ống nhỏ giọt hạ xuống trên trạm, ba giọt rơi, rồi hiện tượng hiện ra (có sổ thì ghi luôn vào sổ)
+  // ống nhỏ giọt hạ xuống trên trạm, ba giọt rơi (lọ khí thì nghiêng miệng lọ vào que đóm / úp lên miệng cốc),
+  // rồi hiện tượng hiện ra (có sổ thì ghi luôn vào sổ)
   function drip(k, s){
     if(done || busy[s]) return;
-    if(!s) unlockAch('quy1');                    // trạm 0 là giấy quỳ: "Dùng giấy quỳ lần đầu"
+    if(st[s] === 'quy') unlockAch('quy1');       // giấy quỳ: "Dùng giấy quỳ lần đầu"
     busy[s] = 1; unselect();
-    const art = G.querySelector('.idf-st[data-s="'+s+'"] .idf-art'), res = testOf(st[s], samples[k]);
-    const x = s ? 75 : 35 + 40*k, tip = s ? 4 : 30, land = s ? 58 : 65;   // toạ độ trong .idf-art: đầu ống → chỗ giọt rơi
+    const K = kind(s), art = G.querySelector('.idf-st[data-s="'+s+'"] .idf-art'), res = testOf(st[s], samples[k]);
+    const x = K === 'paper' ? 35 + 40*k : 75, tip = K === 'paper' ? 30 : 4, land = K === 'paper' ? 65 : 58;   // toạ độ trong .idf-art: đầu ống → chỗ giọt rơi
     const p = document.createElement('div');
-    p.className = 'idf-pour'; p.style.cssText = `left:${x - 17}px;top:${tip - 122}px`;
-    p.innerHTML = sym('sym-pipette', 34, 124, LIQ);
-    art.appendChild(p); SFX.pour();
-    if(s){                                                              // cốc được thay sạch cho mẫu mới
+    if(gas){ p.className = 'idf-gjar ' + K; p.innerHTML = sym('sym-jar-blank', 46, 65, LIQ); SFX.clink(); }
+    else { p.className = 'idf-pour'; p.style.cssText = `left:${x - 17}px;top:${tip - 122}px`; p.innerHTML = sym('sym-pipette', 34, 124, LIQ); SFX.pour(); }
+    art.appendChild(p);
+    if(K === 'cup'){                                                    // cốc được thay sạch cho mẫu mới
       sims[s].reset();
       const who = art.querySelector('.idf-who'); who.textContent = k + 1; who.style.display = 'block';
     }
-    for(let n = 0; n < 3; n++) setTimeout(() => {
+    if(!gas) for(let n = 0; n < 3; n++) setTimeout(() => {
       const d = document.createElement('div');
       d.className = 'idf-drip'; d.style.cssText = `left:${x}px;top:${tip}px;--fall:${land - tip}px`;
       art.appendChild(d); setTimeout(() => d.remove(), 400);
-      if(s) setTimeout(() => sims[s].poke(x - LIQ_X, 140), 320);         // giọt chạm mặt nước (hết .32s rơi)
+      if(K === 'cup') setTimeout(() => sims[s].poke(x - LIQ_X, 140), 320);   // giọt chạm mặt nước (hết .32s rơi)
     }, 250 + n*160);
     setTimeout(() => {
       p.remove(); busy[s] = 0;
       if(!art.isConnected) return;                                      // đã bỏ dở minigame
-      if(s) inBeaker(s, res.fx); else onPaper(art, k, res.fx);
+      if(K === 'cup') inBeaker(s, res.fx); else if(K === 'splint') onSplint(art, res.fx); else onPaper(art, k, res.fx);
       // dòng chữ thoáng hiện trên trạm rồi mờ hẳn — giúp nhìn rõ hiện tượng nhạt (hơi đục), nhưng không lưu lại
       art.querySelector('.idf-seen')?.remove();
       art.insertAdjacentHTML('beforeend', `<div class="idf-seen">${seenText(res.fx)}</div>`);
@@ -2237,10 +2263,22 @@ const MG = {
     art.querySelector('.idf-paper').insertAdjacentHTML('beforeend', `<div class="idf-spot idf-spot${k}" style="left:${3+40*k}px;--c:${fx.spot}"></div>`);
     SFX.clink();
   }
-  // cốc thuốc thử: kết tủa nở ra rồi lắng thành đống / sủi bọt khí; không phản ứng thì chỉ còn gợn sóng của giọt rơi
+  // cốc thuốc thử: kết tủa nở ra rồi lắng thành đống / sủi bọt khí; không phản ứng thì chỉ còn gợn sóng của giọt rơi.
+  // Lọ khí (bub): khí sục qua cốc thành bọt trước, kết tủa (nước vôi vẩn đục) hiện ra sau một nhịp
   function inBeaker(s, fx){
-    if(fx.ppt){ sims[s].ppt(fx.ppt, fx.faint ? 14 : 70, fx.faint); SFX.tinkle(); }
+    if(fx.bub){ sims[s].gas(2.2); SFX.fizz(); }
+    const ppt = () => { sims[s].ppt(fx.ppt, fx.faint ? 14 : 70, fx.faint); SFX.tinkle(); };
+    if(fx.ppt){ if(fx.bub) setTimeout(ppt, 700); else ppt(); }
     else if(fx.gas){ sims[s].gas(2.6); SFX.fizz(); }
+  }
+  // que đóm: tàn đỏ bùng thành lửa / lửa sáng chói / tắt kèm làn khói / khí ở miệng lọ chớp lửa xanh, nổ "bụp".
+  // 2,4 s sau que tự trở lại như cũ (châm lại) để thử lọ khác
+  function onSplint(art, fx){
+    const sv = art.querySelector('.idf-spl');
+    delete sv.dataset.fx; void sv.getBoundingClientRect();             // xoá rồi đặt lại: hoạt ảnh chạy lại từ đầu
+    sv.dataset.fx = fx.fire || '';
+    ({flare:SFX.ignite, bright:SFX.ignite, out:SFX.sizzle, pop:SFX.bang}[fx.fire] || (() => {}))();
+    clearTimeout(sv._back); sv._back = setTimeout(() => delete sv.dataset.fx, 2400);
   }
   const tell = (k, s) => { obs.innerHTML = `<b>Mẫu ${k+1} + ${stName(s)}:</b> ${rec[k+'-'+s].d}`; };
   G.querySelectorAll('.idf-tab td').forEach(td => td.onclick = () => {      // bấm ô đã ghi để đọc lại hiện tượng
@@ -2287,32 +2325,6 @@ const MG = {
       if(++shown === samples.length) setTimeout(() => { if(root.isConnected) showResult(i, {correct, total:samples.length}); }, 1800);
     }, 300 + J*550));
   };
- },
-
- /* --- day 10: pick the reducing agent --- */
- redox(i, day){
-  let qi = 0, correct = 0;
-  mgFrame(i, day, '<div id="qbox" class="paper" style="min-width:560px;text-align:center"></div>');
-  mgScore(0, day.quiz.length); mgRun(PAT.redox);
-  function ask(){
-    if(qi >= day.quiz.length){ showResult(i, {correct, total:day.quiz.length}); return; }
-    const q = day.quiz[qi];
-    runItem();
-    G.querySelector('#qbox').innerHTML = `<p style="opacity:.7">Câu ${qi+1}/${day.quiz.length}</p>
-      <h2 style="font-family:var(--fh)">${q.q}</h2><p>Chất khử là chất nào?</p>
-      <div class="row" style="justify-content:center">${q.opts.map((op,x)=>`<button class="btn" data-x="${x}">${op}</button>`).join('')}</div>
-      <p id="why" style="min-height:26px;font-size:15px"></p>`;
-    G.querySelectorAll('#qbox .btn').forEach(b => b.onclick = () => {
-      const ok = +b.dataset.x === q.ans;
-      if(ok){ correct++; SFX.coin(); } else { SFX.err(); runMiss(); }
-      mgScore(correct, day.quiz.length);
-      if(ok) mgHit();
-      G.querySelector('#why').innerHTML = (ok ? ico('check',15)+' Chuẩn! ' : ico('close',15)+' Chưa đúng. ') + q.why + '.';
-      G.querySelectorAll('#qbox .btn').forEach(x => x.disabled = true);
-      qi++; setTimeout(ask, 1600);
-    });
-  }
-  ask();
  },
 
  /* --- day 24: order metals by activity --- */
@@ -3449,7 +3461,7 @@ function ptQuiz(day){
 /* =====================  TIỆN ÍCH TÍNH TOÁN (chế độ khó trong ca)  ===================== */
 const CONC_TOL = 0.05;                       // sai số tối đa 5% khi tự cân đong
 // khối lượng mol tính từ công thức (bảng nguyên tử khối KHTN 8)
-const ATOM = {H:1,C:12,N:14,O:16,Na:23,Mg:24,Al:27,P:31,S:32,Cl:35.5,K:39,Ca:40,Mn:55,Fe:56,Cu:64,Zn:65,Ag:108,Ba:137};
+const ATOM = {H:1,C:12,N:14,O:16,Na:23,Mg:24,Al:27,P:31,S:32,Cl:35.5,K:39,Ca:40,Mn:55,Fe:56,Cu:64,Zn:65,Br:80,Ag:108,Ba:137};
 // đếm nguyên tử trong một công thức, có ngoặc: 'Ca(OH)2' → {Ca:1, O:2, H:2}
 function atomCounts(f){
   let i = 0;
@@ -3479,7 +3491,7 @@ const pick = a => a[Math.floor(Math.random()*a.length)];
    (cân), số ml (ống đong, lọ dung dịch có ghi Cₘ) hoặc số lít khí. Bên trong vẫn quy về
    đơn vị 0,1 mol nên toàn bộ động cơ phản ứng giữ nguyên; chỉ chấm lệch tối đa 5%. */
 const GAS_VM = 24.79;   // lít/mol ở đkc (25 °C, 1 bar) — KHTN 8
-const SOL_CM = {HCl:2, H2SO4:1, HNO3:1, H3PO4:1, NaOH:1, KOH:1, 'Ca(OH)2':0.5};   // nồng độ lọ dung dịch trên kệ (M)
+const SOL_CM = {HCl:2, H2SO4:1, HNO3:1, H3PO4:1, NaOH:1, KOH:1, 'Ca(OH)2':0.5, 'Ba(OH)2':0.2, Br2:0.2};   // nồng độ lọ dung dịch trên kệ (M); nước brom, Ba(OH)₂ ít tan nên chỉ 0,2M
 // lượng một chất trên phiếu hàng: bản thường ghi mol; chế độ khó ghi lít (khí) hoặc gam
 function qtyStr(f, units){
   if(!(lab && lab.hard)) return amt(units);
@@ -3550,11 +3562,21 @@ function hardHint(od, tier){
   if(tier === 2) return '<b>Gợi ý 2:</b> ' + inv.map(x => 'M(' + sub(x) + ') = ' + fmt(molarMass(x), 1)).join(' · ');
   if(!r) return '<b>Lời giải:</b> n(' + sub(f) + ') = ' + fmt(n, 3) + ' mol → lấy <b>' + doseStr(f, od.n) + '</b>.';
   const k = n / r.pr[f];
-  return '<b>Lời giải:</b> ' + eqStr(r) + ' · n(' + sub(f) + ') = ' + fmt(n, 3) + ' mol → '
+  let out = '<b>Lời giải:</b> ' + eqStr(r) + ' · n(' + sub(f) + ') = ' + fmt(n, 3) + ' mol → '
     + Object.keys(r.rg).filter(x => x !== 'H2O').map(x => {
         const nx = k * r.rg[x];
         return fmt(nx, 3) + ' mol ' + sub(x) + (lab.day.chems.includes(x) ? ' = <b>' + doseStr(x, nx*10) + '</b>' : ' (tự điều chế)');
       }).join(', ') + '.';
+  // đơn có strip: phụ phẩm tan của phương trình chính phải kéo ra thành kết tủa bằng chất strip rồi lọc bỏ
+  // (ngày 12 khó: H₂SO₄ đi cùng HBr → thêm Ba(OH)₂ vừa đủ cho BaSO₄↓)
+  if(od.strip){
+    const by = Object.keys(r.pr).find(x => x !== f && x !== 'H2O' && CHEMS[x].s !== 'k');
+    const r2 = by && REACTIONS.find(q => q.rg[by] && q.rg[od.strip] && Object.keys(q.pr).some(isPrecip));
+    if(r2){ const ns = k * r.pr[by] / r2.rg[by] * r2.rg[od.strip];
+      out += ' Rồi kéo ' + sub(by) + ' ra: ' + eqStr(r2) + ' · cần ' + fmt(ns, 3) + ' mol ' + sub(od.strip)
+        + ' = <b>' + doseStr(od.strip, ns*10) + '</b>, lọc bỏ kết tủa.'; }
+  }
+  return out;
 }
 function showHardBook(){
   const sols = lab.day.chems.filter(f => SOL_CM[f]);
@@ -3609,7 +3631,8 @@ const RX_NOTES = [
   'Chất oxi hoá mạnh (thuốc tím) giành electron của chất khử (Cl trong HCl đặc), giải phóng khí clo.',
   'H₂SO₄ ĐẶC, NÓNG oxi hoá được cả kim loại đứng sau H và phi kim, giải phóng SO₂ chứ không phải H₂; Al, Fe thụ động khi nguội.',
   'HNO₃ không bao giờ giải phóng H₂: loãng cho NO, đặc cho NO₂ nâu đỏ. Al, Fe thụ động trong HNO₃ đặc nguội.',
-  'Mỗi phản ứng có điều kiện riêng: đun nóng, xúc tác (MnO₂), axit đặc hay loãng — thiếu điều kiện là không xảy ra.'
+  'Mỗi phản ứng có điều kiện riêng: đun nóng, xúc tác (MnO₂), axit đặc hay loãng — thiếu điều kiện là không xảy ra.',
+  'SO₂ khử brom thành axit HBr. Ba(OH)₂ là kiềm của bari: gặp gốc sunfat thì kết tủa trắng BaSO₄, gặp axit thì trung hoà.'
 ];
 const rxGroupOf = i => { let k = 0; RX_GROUPS.forEach((g, j) => { if(g.i <= i) k = j; }); return k; };
 // một phân tử = chùm bi: nguyên tố "trung tâm" ở giữa, O quây quanh, H bám ngoài cùng

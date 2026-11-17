@@ -6,6 +6,9 @@
      rg    chất tham gia  {công thức: hệ số}
      pr    chất tạo thành {công thức: hệ số}
      heat  1 = phải đun (đèn cồn)
+     dry   1 = NUNG CHẤT RẮN KHÔ (đi kèm heat): chỉ chạy khi trong cốc không có nước hay dung dịch nào — bazơ
+             không tan, muối cacbonat, KMnO₄, khử oxit kim loại… Kết tủa phải lọc ra đĩa, kéo đĩa vào cốc khô rồi
+             mới đun. Nước sinh ra bay thành hơi, không đọng lại trong cốc
      burn  1 = phản ứng CHÁY: KHÔNG chạy trong cốc. Chất rắn đặt lên muôi đốt, hơ qua
              đèn cồn cho bén lửa rồi đưa vào lọ khí (O₂ / Cl₂) — xem burnInJar()
      elec  1 = phải cắm nguồn điện phân (người chơi tự định lượng, không tự chạy)
@@ -193,24 +196,24 @@ const REACTIONS = [
  {rg:{Na2SO4:1,CaCl2:1},      pr:{CaSO4:1,NaCl:2}},
 
  /* ---------- 15. NHIỆT PHÂN ---------- */
- {rg:{'Cu(OH)2':1},           pr:{CuO:1,H2O:1},          heat:1, obs:'Kết tủa xanh lam hoá đen khi đun — tạo CuO và hơi nước.'},
- {rg:{'Fe(OH)3':2},           pr:{Fe2O3:1,H2O:3},        heat:1},
- {rg:{'Mg(OH)2':1},           pr:{MgO:1,H2O:1},          heat:1},
- {rg:{'Zn(OH)2':1},           pr:{ZnO:1,H2O:1},          heat:1},
- {rg:{'Al(OH)3':2},           pr:{Al2O3:1,H2O:3},        heat:1},
- {rg:{CaCO3:1},               pr:{CaO:1,CO2:1},          heat:1},
+ {rg:{'Cu(OH)2':1},           pr:{CuO:1,H2O:1},          heat:1, dry:1, obs:'Chất rắn xanh lam hoá đen khi nung — tạo CuO, hơi nước bay ra.'},
+ {rg:{'Fe(OH)3':2},           pr:{Fe2O3:1,H2O:3},        heat:1, dry:1},
+ {rg:{'Mg(OH)2':1},           pr:{MgO:1,H2O:1},          heat:1, dry:1},
+ {rg:{'Zn(OH)2':1},           pr:{ZnO:1,H2O:1},          heat:1, dry:1},
+ {rg:{'Al(OH)3':2},           pr:{Al2O3:1,H2O:3},        heat:1, dry:1},
+ {rg:{CaCO3:1},               pr:{CaO:1,CO2:1},          heat:1, dry:1},
  {rg:{NaHCO3:2},              pr:{Na2CO3:1,H2O:1,CO2:1}, heat:1},
- {rg:{KMnO4:2},               pr:{O2:1,K2MnO4:1,MnO2:1}, heat:1, obs:'Thuốc tím đun nóng giải phóng khí oxi — que đóm còn tàn đỏ bùng cháy.'},
+ {rg:{KMnO4:2},               pr:{O2:1,K2MnO4:1,MnO2:1}, heat:1, dry:1, obs:'Thuốc tím đun nóng giải phóng khí oxi — que đóm còn tàn đỏ bùng cháy.'},
 
  /* ---------- 16. KHỬ OXIT KIM LOẠI (H₂ hoặc C) ---------- */
- {rg:{CuO:1,H2:1},            pr:{Cu:1,H2O:1},   heat:1, obs:'Bột đen CuO chuyển dần thành đồng màu đỏ gạch, thành ống đọng hơi nước.'},
- {rg:{ZnO:1,H2:1},            pr:{Zn:1,H2O:1},   heat:1},
- {rg:{Fe2O3:1,H2:3},          pr:{Fe:2,H2O:3},   heat:1},
- {rg:{Fe3O4:1,H2:4},          pr:{Fe:3,H2O:4},   heat:1},
- {rg:{CuO:2,C:1},             pr:{Cu:2,CO2:1},   heat:1},
- {rg:{ZnO:2,C:1},             pr:{Zn:2,CO2:1},   heat:1},
- {rg:{Fe2O3:2,C:3},           pr:{Fe:4,CO2:3},   heat:1},
- {rg:{Fe3O4:1,C:2},           pr:{Fe:3,CO2:2},   heat:1},
+ {rg:{CuO:1,H2:1},            pr:{Cu:1,H2O:1},   heat:1, dry:1, obs:'Bột đen CuO chuyển dần thành đồng màu đỏ gạch, thành ống đọng hơi nước.'},
+ {rg:{ZnO:1,H2:1},            pr:{Zn:1,H2O:1},   heat:1, dry:1},
+ {rg:{Fe2O3:1,H2:3},          pr:{Fe:2,H2O:3},   heat:1, dry:1},
+ {rg:{Fe3O4:1,H2:4},          pr:{Fe:3,H2O:4},   heat:1, dry:1},
+ {rg:{CuO:2,C:1},             pr:{Cu:2,CO2:1},   heat:1, dry:1},
+ {rg:{ZnO:2,C:1},             pr:{Zn:2,CO2:1},   heat:1, dry:1},
+ {rg:{Fe2O3:2,C:3},           pr:{Fe:4,CO2:3},   heat:1, dry:1},
+ {rg:{Fe3O4:1,C:2},           pr:{Fe:3,CO2:2},   heat:1, dry:1},
 
  /* ---------- 17. HALOGEN ----------
     Kim loại cháy trong lọ khí clo (burn). H₂ + Cl₂ là hai khí → trộn trong cốc, châm lửa. */
@@ -549,9 +552,9 @@ const REACTIONS = [
  {rg:{P2O5:1,K2O:3}, pr:{K3PO4:2}},
 
  /* ---------- 27. NHIỆT PHÂN (MỞ RỘNG) ---------- */
- {rg:{MgCO3:1}, pr:{MgO:1,CO2:1}, heat:1, obs:'Xuất hiện kết tủa MgO; Sủi bọt khí CO₂.'},
- {rg:{ZnCO3:1}, pr:{ZnO:1,CO2:1}, heat:1, obs:'Xuất hiện kết tủa ZnO; Sủi bọt khí CO₂.'},
- {rg:{Ag2CO3:1}, pr:{Ag2O:1,CO2:1}, heat:1, obs:'Xuất hiện kết tủa nâu đen Ag₂O; Sủi bọt khí CO₂.'},
+ {rg:{MgCO3:1}, pr:{MgO:1,CO2:1}, heat:1, dry:1, obs:'Bột trắng MgCO₃ nung thành MgO; khí CO₂ thoát ra.'},
+ {rg:{ZnCO3:1}, pr:{ZnO:1,CO2:1}, heat:1, dry:1, obs:'Bột trắng ZnCO₃ nung thành ZnO; khí CO₂ thoát ra.'},
+ {rg:{Ag2CO3:1}, pr:{Ag2O:1,CO2:1}, heat:1, dry:1, obs:'Chất rắn hoá nâu đen — Ag₂O; khí CO₂ thoát ra.'},
 
  /* ---------- 28. OXI HOÁ – KHỬ (mở rộng) ----------
     Thuốc tím oxi hoá HCl đặc ngay ở nhiệt độ thường — cách điều chế clo nhanh trong phòng thí nghiệm
@@ -592,7 +595,7 @@ const REACTIONS = [
 
  /* ---------- 31. OXI HOÁ – KHỬ KHÁC (có điều kiện) ---------- */
  // điều chế oxi: KClO₃ cần đun VÀ xúc tác MnO₂ (MnO₂ phải có trong cốc, không bị tiêu hao)
- {rg:{KClO3:2},               pr:{KCl:2,O2:3}, heat:1, cat:['MnO2'], obs:'Que đóm còn tàn đỏ bùng cháy — khí oxi thoát ra.'},
+ {rg:{KClO3:2},               pr:{KCl:2,O2:3}, heat:1, dry:1, cat:['MnO2'], obs:'Que đóm còn tàn đỏ bùng cháy — khí oxi thoát ra.'},
  {rg:{KClO3:1,HCl:6},         pr:{KCl:1,Cl2:3,H2O:3}, tag:{HCl:'đặc'}},
  // clo với kiềm, vôi tôi, muối sắt(II). Cl₂ + H₂O ⇌ HCl + HClO cố ý KHÔNG có: game không chạy được phản ứng
  // thuận nghịch dừng giữa chừng, mà cho chạy hết thì clo rót vào nước biến mất (hỏng đơn HCl từ H₂ + Cl₂ ngày 25)
@@ -604,21 +607,33 @@ const REACTIONS = [
  {rg:{Cu:1,'Fe2(SO4)3':1},    pr:{CuSO4:1,FeSO4:2}},
  {rg:{'Fe(OH)2':4,O2:1,H2O:2}, pr:{'Fe(OH)3':4}, obs:'Kết tủa trắng xanh hoá nâu đỏ khi gặp oxi.'},
  // sắt + lưu huỳnh, nhiệt nhôm, nhôm lưỡng tính
- {rg:{Fe:1,S:1},              pr:{FeS:1}, heat:1, exo:1, obs:'Hỗn hợp bột sắt và lưu huỳnh nóng đỏ lên, tạo chất rắn màu đen FeS.'},
- {rg:{Al:2,Fe2O3:1},          pr:{Al2O3:1,Fe:2}, heat:1, exo:1, obs:'Phản ứng nhiệt nhôm toả nhiệt rất mạnh, sắt nóng chảy chảy ra.'},
- {rg:{Al:2,CuO:3},            pr:{Al2O3:1,Cu:3}, heat:1, exo:1},
+ {rg:{Fe:1,S:1},              pr:{FeS:1}, heat:1, dry:1, exo:1, obs:'Hỗn hợp bột sắt và lưu huỳnh nóng đỏ lên, tạo chất rắn màu đen FeS.'},
+ {rg:{Al:2,Fe2O3:1},          pr:{Al2O3:1,Fe:2}, heat:1, dry:1, exo:1, obs:'Phản ứng nhiệt nhôm toả nhiệt rất mạnh, sắt nóng chảy chảy ra.'},
+ {rg:{Al:2,CuO:3},            pr:{Al2O3:1,Cu:3}, heat:1, dry:1, exo:1},
  {rg:{Al:2,NaOH:2,H2O:2},     pr:{NaAlO2:2,H2:3}, obs:'Nhôm tan trong dung dịch kiềm, sủi bọt khí H₂ — cách nhận ra nhôm.'},
  {rg:{Al2O3:1,NaOH:2},        pr:{NaAlO2:2,H2O:1}},
  {rg:{'Al(OH)3':1,NaOH:1},    pr:{NaAlO2:1,H2O:2}, obs:'Kết tủa keo trắng Al(OH)₃ tan trong kiềm dư.'},
  // cacbon monooxit: điều chế và khử oxit (lò cao). C + H₂O → CO + H₂ (khí than ướt) cố ý KHÔNG có: cần ~1000 °C, đèn
  // cồn không làm được — để thì cốc nào có than và nước đem đun cũng sinh CO
- {rg:{C:1,CO2:1},             pr:{CO:2}, heat:1},
- {rg:{CuO:1,CO:1},            pr:{Cu:1,CO2:1}, heat:1},
- {rg:{Fe2O3:1,CO:3},          pr:{Fe:2,CO2:3}, heat:1, obs:'Như trong lò cao: CO khử oxit sắt thành sắt.'},
- {rg:{Fe3O4:1,CO:4},          pr:{Fe:3,CO2:4}, heat:1},
- {rg:{ZnO:1,CO:1},            pr:{Zn:1,CO2:1}, heat:1},
+ {rg:{C:1,CO2:1},             pr:{CO:2}, heat:1, dry:1},
+ {rg:{CuO:1,CO:1},            pr:{Cu:1,CO2:1}, heat:1, dry:1},
+ {rg:{Fe2O3:1,CO:3},          pr:{Fe:2,CO2:3}, heat:1, dry:1, obs:'Như trong lò cao: CO khử oxit sắt thành sắt.'},
+ {rg:{Fe3O4:1,CO:4},          pr:{Fe:3,CO2:4}, heat:1, dry:1},
+ {rg:{ZnO:1,CO:1},            pr:{Zn:1,CO2:1}, heat:1, dry:1},
  {rg:{CO:2,O2:1},             pr:{CO2:2}, heat:1, obs:'Khí CO cháy với ngọn lửa màu xanh nhạt.'},
- {rg:{NH3:2,CuO:3},           pr:{Cu:3,N2:1,H2O:3}, heat:1, obs:'Bột CuO đen hoá đỏ — NH₃ khử đồng oxit.'}
+ {rg:{NH3:2,CuO:3},           pr:{Cu:3,N2:1,H2O:3}, heat:1, dry:1, obs:'Bột CuO đen hoá đỏ — NH₃ khử đồng oxit.'},
+
+ /* ---------- BROM VÀ BARI HIĐROXIT (ngày 12 chế độ khó: điều chế dung dịch HBr tinh khiết; ngày 23: bazơ của bari) ----------
+    Ba(OH)₂ vừa đủ thì gốc sunfat kết tủa TRƯỚC (cờ last trên hai phản ứng trung hoà của Ba(OH)₂), nên trong cốc chỉ
+    còn HBr; thừa Ba(OH)₂ mới trung hoà tới HBr. Đổ ngược thứ tự thì BaBr₂ + H₂SO₄ kéo về đúng kết quả cuối. */
+ {rg:{Br2:1,SO2:1,H2O:2},     pr:{HBr:2,H2SO4:1}, obs:'Nước brom vàng nâu nhạt dần rồi mất màu — SO₂ đã khử brom thành axit bromhiđric.'},
+ {rg:{H2SO4:1,'Ba(OH)2':1},   pr:{BaSO4:1,H2O:2}, obs:'Xuất hiện kết tủa trắng BaSO₄, nước lọc chỉ còn là nước.'},
+ {rg:{HBr:2,'Ba(OH)2':1},     pr:{BaBr2:1,H2O:2}, last:1},
+ {rg:{BaBr2:1,H2SO4:1},       pr:{BaSO4:1,HBr:2}, obs:'Xuất hiện kết tủa trắng BaSO₄.'},
+ {rg:{HCl:2,'Ba(OH)2':1},     pr:{BaCl2:1,H2O:2}, last:1},
+ {rg:{'Ba(OH)2':1,CO2:1},     pr:{BaCO3:1,H2O:1}, obs:'Dung dịch Ba(OH)₂ vẩn đục trắng — như nước vôi trong gặp CO₂.'},
+ {rg:{MgCl2:1,'Ba(OH)2':1},   pr:{'Mg(OH)2':1,BaCl2:1}, obs:'Xuất hiện kết tủa trắng Mg(OH)₂.'},
+ {rg:{MgSO4:1,'Ba(OH)2':1},   pr:{BaSO4:1,'Mg(OH)2':1}, obs:'Hai kết tủa trắng cùng lúc: BaSO₄ và Mg(OH)₂.'}
 ];
 
 /* Mốc chia nhóm cho Sổ tay ở màn hình chính. i = số thứ tự phản ứng đầu tiên của nhóm.
@@ -654,7 +669,8 @@ const RX_GROUPS = [
  {i:462, t:'Oxi hoá – khử (mở rộng)'},
  {i:463, t:'Axit sunfuric đặc'},
  {i:470, t:'Axit nitric loãng và đặc'},
- {i:487, t:'Oxi hoá – khử khác (có điều kiện)'}
+ {i:487, t:'Oxi hoá – khử khác (có điều kiện)'},
+ {i:508, t:'Brom và bari hiđroxit'}
 ];
 
 /* =====================================================================
@@ -667,11 +683,16 @@ const RX_GROUPS = [
      d     câu mô tả đầy đủ, hiện dưới bảng
      fx    hình trong cốc: {ppt:'màu kết tủa'} (faint:1 = chỉ hơi vẩn đục) · {gas:1} sủi bọt ·
            {spot:'màu'} vết trên giấy quỳ · {} không đổi. col = tên màu, cho dòng chữ "kết tủa trắng" hiện trên trạm
-   'quy' là giấy quỳ tím (luôn có, không nằm trong day.reagents) — mẫu nào cũng phải có dòng 'quy'.
+           Lọ khí (ngày 10): {fire:'flare' | 'bright' | 'out' | 'pop'} que đóm bùng cháy / cháy sáng hơn / tắt /
+           khí cháy lửa xanh nổ "bụp" · {bub:1} khí sục qua cốc. seen = dòng chữ thoáng hiện trên trạm (thay câu tự ghép)
+   Thuốc thử không phải dung dịch thì ghi thêm: name (tên trên trạm), th (tên cột trong sổ), kind:'splint' (que đóm,
+   lit:'ember' còn tàn đỏ / 'flame' đang cháy). Không ghi kind là cốc dung dịch.
+   'quy' là giấy quỳ tím: có sẵn ở mọi màn nhận biết dung dịch (không nằm trong day.reagents), nên mẫu dung dịch nào
+   cũng phải có dòng 'quy'. Màn lọ khí (day.gas) không có giấy quỳ — chỉ những trạm ghi trong day.reagents.
    ===================================================================== */
 const NO_TEST = {t:'—', d:'Không thấy hiện tượng gì.', fx:{}};
 const TESTS = {
- quy:   {tip:'Quỳ tím: axit → ĐỎ, bazơ → XANH, trung tính → vẫn TÍM', on:{
+ quy:   {name:'Quỳ tím', th:'Quỳ', kind:'paper', tip:'Quỳ tím: axit → ĐỎ, bazơ → XANH, trung tính → vẫn TÍM', on:{
    HCl:      {t:'đỏ',   d:'Quỳ tím hoá ĐỎ → mẫu là axit.',            fx:{spot:'#d9634f', col:'đỏ'}},
    H2SO4:    {t:'đỏ',   d:'Quỳ tím hoá ĐỎ → mẫu là axit.',            fx:{spot:'#d9634f', col:'đỏ'}},
    NaOH:     {t:'xanh', d:'Quỳ tím hoá XANH → mẫu là bazơ.',          fx:{spot:'#4f78c9', col:'xanh'}},
@@ -693,6 +714,24 @@ const TESTS = {
  Na2CO3:{tip:'Na₂CO₃: sủi bọt khí CO₂ với axit', on:{
    HCl:      {t:'sủi bọt', d:'Sủi bọt khí CO₂ → mẫu là axit.',            fx:{gas:1}},
    H2SO4:    {t:'sủi bọt', d:'Sủi bọt khí CO₂ → mẫu là axit.',            fx:{gas:1}},
-   'Ca(OH)2':{t:'↓ trắng', d:'Kết tủa trắng CaCO₃ → mẫu có canxi (Ca).', fx:{ppt:'#ffffff', col:'trắng'}}}}
+   'Ca(OH)2':{t:'↓ trắng', d:'Kết tủa trắng CaCO₃ → mẫu có canxi (Ca).', fx:{ppt:'#ffffff', col:'trắng'}}}},
+ // ---- nhận biết KHÍ (ngày 10): mẫu là lọ khí; "nhỏ thử" là đưa miệng lọ lại gần que đóm, hay dẫn khí vào nước vôi ----
+ domTan: {name:'Que đóm còn tàn đỏ', th:'Tàn đỏ', kind:'splint', lit:'ember', tip:'Que đóm còn tàn đỏ: gặp khí OXI thì bùng cháy', on:{
+   O2:  {t:'bùng cháy', d:'Que đóm còn tàn đỏ bùng cháy → khí oxi (duy trì sự cháy).', fx:{fire:'flare', seen:'que đóm bùng cháy'}},
+   H2:  {t:'tắt',  d:'Tàn đỏ tắt ngấm — trong lọ không có oxi để duy trì sự cháy.', fx:{fire:'out', seen:'tàn đỏ tắt'}},
+   CO2: {t:'tắt',  d:'Tàn đỏ tắt ngấm — khí này không duy trì sự cháy.',          fx:{fire:'out', seen:'tàn đỏ tắt'}},
+   SO2: {t:'tắt',  d:'Tàn đỏ tắt ngấm — khí này không duy trì sự cháy.',          fx:{fire:'out', seen:'tàn đỏ tắt'}}}},
+ domChay:{name:'Que đóm đang cháy', th:'Đóm cháy', kind:'splint', lit:'flame', tip:'Que đóm đang cháy: khí HIĐRO cháy với lửa xanh mờ, nổ "bụp" nhỏ', on:{
+   H2:  {t:'lửa xanh, bụp', d:'Khí ở miệng lọ cháy với ngọn lửa xanh mờ, nổ "bụp" nhỏ → khí hiđro (cháy được).', fx:{fire:'pop', seen:'lửa xanh mờ, nổ "bụp"'}},
+   O2:  {t:'cháy sáng',     d:'Que đóm cháy sáng chói hơn hẳn → khí oxi (duy trì sự cháy).', fx:{fire:'bright', seen:'que đóm cháy sáng hơn'}},
+   CO2: {t:'tắt', d:'Que đóm tắt ngay — khí này không cháy và không duy trì sự cháy.', fx:{fire:'out', seen:'que đóm tắt'}},
+   SO2: {t:'tắt', d:'Que đóm tắt ngay — khí này không cháy và không duy trì sự cháy.', fx:{fire:'out', seen:'que đóm tắt'}}}},
+ 'Ca(OH)2':{name:'Nước vôi trong', th:'Nước vôi', tip:'Nước vôi trong: khí CO₂ (cả SO₂) làm nước vôi vẩn đục', on:{
+   CO2: {t:'vẩn đục',  d:'Nước vôi trong vẩn đục (CaCO₃ không tan) → khí cacbonic CO₂.', fx:{bub:1, ppt:'#ffffff', col:'trắng', seen:'nước vôi vẩn đục'}},
+   SO2: {t:'vẩn đục',  d:'Nước vôi trong vẩn đục (CaSO₃ không tan) → khí sunfurơ SO₂ — mở nắp còn ngửi thấy mùi hắc.', fx:{bub:1, ppt:'#ffffff', col:'trắng', seen:'nước vôi vẩn đục'}},
+   H2:  {t:'vẫn trong', d:'Khí sục qua, nước vôi vẫn trong veo.', fx:{bub:1, seen:'nước vôi vẫn trong'}},
+   O2:  {t:'vẫn trong', d:'Khí sục qua, nước vôi vẫn trong veo.', fx:{bub:1, seen:'nước vôi vẫn trong'}}}}
 };
 const testOf = (r, f) => TESTS[r].on[f] || NO_TEST;
+// các trạm thử của một màn nhận biết: giấy quỳ (trừ màn lọ khí) rồi tới day.reagents — dùng chung cho minigame và tự kiểm tra
+const idStations = day => (day.gas ? [] : ['quy']).concat(day.reagents);
