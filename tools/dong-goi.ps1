@@ -39,8 +39,9 @@ $canShip = @(
   'sw.js',                  # lưu sẵn game để chơi khi mất mạng
   'fonts\itim-latin.woff2', 'fonts\itim-latin-ext.woff2', 'fonts\itim-vietnamese.woff2',
   'fonts\patrick-hand-latin.woff2', 'fonts\patrick-hand-latin-ext.woff2', 'fonts\patrick-hand-vietnamese.woff2',
-  'fonts\OFL-Itim.txt', 'fonts\OFL-PatrickHand.txt',   # giấy phép font phải đi kèm font
-  'assets\man-hinh-chinh.webp', # ảnh render 3D của menu chính (trong assets\ chỉ file này được ship)
+  'fonts\paytone-one-latin.woff2', 'fonts\paytone-one-vietnamese.woff2',   # tên game sticker ở menu
+  'fonts\OFL-Itim.txt', 'fonts\OFL-PatrickHand.txt', 'fonts\OFL-PaytoneOne.txt',   # giấy phép font phải đi kèm font
+  'assets\man-hinh-chinh.svg',  # cảnh menu chính có chuyển động, dựng bằng Blender\pov_dong.py (trong assets\ chỉ file này được ship)
   'favicon.ico',
   'favicon.png'
 )

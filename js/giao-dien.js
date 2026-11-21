@@ -307,6 +307,27 @@ function confirmModal(html, onYes, yesLabel, noLabel){
 }
 
 /* =====================  SCENES  ===================== */
+// Tên game kiểu nhãn dán: chữ Paytone One vàng, khối 3D màu mực, viền trắng + nét mực, bóng mờ trên tường.
+// Mỗi lớp là cả hai dòng <text> chồng lên nhau, từ dưới lên. Thử kiểu khác ở thu-ten-game.html (kiểu F là bản này).
+// viewBox đo sẵn bằng getBBox với Paytone One; đổi chữ, cỡ hay cách dòng thì đo lại ở trang thử.
+function tenGameSVG(){
+  const B = 10, K = 3, D = 9, DX = .35, INK = '#3b3025', PAPER = '#fffdf5';   // viền trắng, nét mực, độ dày khối 3D, độ lệch phải mỗi lớp khối
+  const dong = [['Trợ lý', 4, 48, 48], ['Hóa học nhí', 0, 48 + 64 * 1.12, 64]];   // chữ, x, y, cỡ; dòng 2 cách 1,12 cỡ chữ
+  const lop = (a, dx = 0, dy = 0) => dong.map(([t, x, y, s]) => `<text x="${x}" y="${y}" font-size="${s}" transform="translate(${dx} ${dy})" ${a}>${t}</text>`).join('');
+  const dac = (c, w) => `fill="${c}" stroke="${c}" stroke-width="${w}"`;
+  const ba = [0, D / 2, D], khoi = Array.from({length: D}, (_, i) => i + 1);
+  return `<svg viewBox="-15 -20 428 202" width="556" height="263" font-family="'Paytone One'" font-weight="400" stroke-linejoin="round" paint-order="stroke" aria-hidden="true">
+    <defs><filter id="tgMo" x="-10%" y="-20%" width="120%" height="140%"><feGaussianBlur stdDeviation="3"/></filter>
+      <linearGradient id="tgMat" x1="0" y1="0" x2="0" y2="1"><stop offset=".2" stop-color="#ffe08a"/><stop offset=".95" stop-color="#e8b84b"/></linearGradient>
+      <clipPath id="tgCat">${lop('')}</clipPath></defs>
+    <g filter="url(#tgMo)" opacity=".28">${lop(dac(INK, 2 * (B + K)), 4, D + 5)}</g>
+    ${ba.map(k => lop(dac(INK, 2 * (B + K)), k * DX, k)).join('')}
+    ${ba.map(k => lop(dac(PAPER, 2 * B), k * DX, k)).join('')}
+    ${khoi.map(k => lop(dac(INK, 4 * K), k * DX, k)).join('')}
+    ${lop(`fill="url(#tgMat)" stroke="${INK}" stroke-width="${2 * K}"`)}
+    <g clip-path="url(#tgCat)">${lop('fill="none" stroke="#fff" stroke-width="3" stroke-opacity=".7"', 1.6, 2.4)}</g>
+  </svg>`;
+}
 function showMenu(){
   runStop();
   SFX.music(0);
@@ -315,11 +336,12 @@ function showMenu(){
   const nextDay = Math.min(save.unlocked, DAYS.length);
   // nút menu: "> nhãn <" — hai mũi nhọn hiện khi hover (style.css .menu-btns .sel); ::before của .btn đã là đế chống rung
   const mb = (id, cls, html) => `<button class="btn${cls}" id="${id}"><i class="sel" aria-hidden="true">&gt;</i>${html}<i class="sel" aria-hidden="true">&lt;</i></button>`;
-  // Phòng, bảng tên, bàn và giáo sư đều nằm trong ảnh render 3D (xem .menu-3d ở style.css); chỉ nút và lời chào là HTML
+  // Cảnh bàn thí nghiệm nhìn từ mắt giáo sư: SVG có chuyển động, dựng bằng Blender/pov_dong.py. <object> chứ không <img>,
+  // để rê chuột vào cốc, đèn cồn, phễu… có phản ứng; CSS của nó nằm riêng trong file, không đụng CSS game
   G.innerHTML = `<div class="scene center" style="padding:0">
-    <img class="menu-3d" src="assets/man-hinh-chinh.webp" alt="" draggable="false">
+    <object class="menu-pov" data="assets/man-hinh-chinh.svg" type="image/svg+xml" aria-hidden="true" tabindex="-1"></object>
+    <h1 class="menu-title" aria-label="Trợ Lý Hóa Học Nhí — Trợ lý phòng thí nghiệm của giáo sư Hoffmann">${tenGameSVG()}</h1>
     <div class="menu-main">
-      <h1 class="menu-title">Trợ Lý Hóa Học Nhí — Trợ lý phòng thí nghiệm của giáo sư Hoffmann</h1>
       <div class="menu-btns">
         ${mb('bstart', ' big', inProgress ? ico('play')+' Ngày '+nextDay+' →' : ico('play')+' Bắt đầu')}
         ${mb('brx', '', ico('note')+' Sổ tay')}
@@ -328,11 +350,6 @@ function showMenu(){
         ${mb('bset', '', ico('gear')+' Cài đặt')}
       </div>
     </div>
-    <span class="mbub" style="left:362px;bottom:208px;width:12px;height:12px"></span>
-    <span class="mbub" style="left:380px;bottom:196px;width:8px;height:8px;animation-delay:2.3s"></span>
-    <span class="mbub" style="left:1000px;bottom:262px;width:11px;height:11px;animation-delay:1.1s"></span>
-    <span class="mbub" style="left:1018px;bottom:256px;width:7px;height:7px;animation-delay:3.4s"></span>
-    <span class="mbub" style="left:990px;bottom:250px;width:9px;height:9px;animation-delay:5.2s"></span>
     <div class="menu-bubble">${PROF_GREETING}</div>
   </div>`;
   G.querySelector('#bstart').onclick = () => go(showMap);

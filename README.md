@@ -55,7 +55,7 @@ npx --yes http-server -p 8642 -c-1 .
 | `js/khoi-dong.js` | Tự kiểm tra (mở bằng `#dev`) và vào game — nạp cuối |
 | `js/loi-thoai.js`, `js/nhan-vat.js` | Thoại khách, đa dạng hoá dàn khách |
 
-`docs/hoa-chat.md` là sổ tay tra cứu 67 chất. `tools/dong-goi.ps1` đóng gói bản tải lên itch.io. `assets/` chứa SVG nhân vật, hình vẽ tay và `man-hinh-chinh.webp` (ảnh render 3D của menu chính, 1707×1024 px game, dựng bằng Blender), `tools/` chứa trang xem thử và bản mẫu phối cảnh.
+`docs/hoa-chat.md` là sổ tay tra cứu 67 chất. `tools/dong-goi.ps1` đóng gói bản tải lên itch.io. `assets/` chứa SVG nhân vật, hình vẽ tay và `man-hinh-chinh.svg` (cảnh menu chính nhìn từ mắt giáo sư, có chuyển động và phản ứng khi rê chuột, dựng bằng Blender + Affinity, `pov_dong.py` trong thư mục Blender), `tools/` chứa trang xem thử và bản mẫu phối cảnh.
 
 ### Trạng thái
 

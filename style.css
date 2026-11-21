@@ -6,6 +6,9 @@
 @font-face{font-family:'Patrick Hand';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/patrick-hand-vietnamese.woff2) format('woff2');unicode-range:U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB}
 @font-face{font-family:'Patrick Hand';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/patrick-hand-latin-ext.woff2) format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF}
 @font-face{font-family:'Patrick Hand';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/patrick-hand-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
+/* Paytone One: chỉ cho tên game sticker ở menu. ponytail: bỏ bản latin-ext vì tên game không có ký tự đó; dùng font cho chữ khác thì tải thêm */
+@font-face{font-family:'Paytone One';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/paytone-one-vietnamese.woff2) format('woff2');unicode-range:U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB}
+@font-face{font-family:'Paytone One';font-style:normal;font-weight:400;font-display:swap;src:url(fonts/paytone-one-latin.woff2) format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
 /* Toàn bộ giao diện game — khung 1280×720 co giãn theo cửa sổ (xem fit()). */
 :root{--ink:#3b3025;--paper:#f7f1e3;--card:#fffdf5;--accent:#e8b84b;--red:#d9634f;--green:#7aa95c;--blue:#6f9ec9;--purple:#9b7bb8;
 --wood:#c89a63;--wood2:#8a6238;--wood3:#a97c4b;--cork:#d9b98a;
@@ -48,18 +51,27 @@ h2{font-size:26px;margin:6px 0}
 .center{text-align:center}
 .row{display:flex;gap:10px;align-items:center}
 /* ---------- main menu ---------- */
-/* Ảnh render 3D (hoffmann.py, thư mục Blender): phủ đúng vùng rộng nhất game từng hiện (21:9 và 5:4), tâm trùng tâm 1280×720.
-   Không co giãn theo màn hình: toạ độ trong ảnh = toạ độ game, nên nút và lời chào luôn khớp với cảnh. */
-.menu-3d{position:absolute;left:calc(-640px/3);top:-152px;width:calc(1280px + 1280px/3);height:1024px;background:#e6dcc8;user-select:none;pointer-events:none}
-.menu-title{position:absolute;width:1px;height:1px;margin:0;overflow:hidden;clip-path:inset(50%)}
-.menu-bubble{position:absolute;top:172px;left:872px;width:176px;background:var(--card);border:1.2px solid var(--ink);border-radius:8.4px 9.6px 1.8px 8.4px;padding:9px 12px;font-family:var(--fh);font-size:15px;line-height:1.35;transform:rotate(1.2deg)}
-.menu-bubble::after{content:'';position:absolute;bottom:10px;right:-18px;border:8px solid transparent;border-left:10px solid var(--ink)}
+/* Cảnh bàn nhìn từ mắt giáo sư (SVG 16:9 = đúng vùng 1280×720): phủ cả phần nới ra của màn rộng/cao, SVG tự cắt mép
+   (preserveAspectRatio slice) nên ngoài 16:9 cảnh hơi phóng to; nút và lời chào nằm trên tường/bàn trống bên phải nên không vướng. */
+.menu-pov{position:absolute;left:calc(-1*var(--bx));top:calc(-1*var(--by));width:calc(1280px + 2*var(--bx));height:calc(720px + 2*var(--by));background:#d3c9b4;border:0}
+.titlemode .menu-pov{pointer-events:none}   /* màn START: <object> nuốt cú chạm, phải để nó rơi xuống trang */
+/* Tên game (SVG sticker, xem tenGameSVG()) nằm giữa phần tường, từ mép trên màn hình tới chân tường.
+   Cảnh 1920×1080 phủ cả màn theo tỉ lệ --s, tâm cảnh = tâm khung game, chân tường ở y=380 của cảnh
+   → --tuong = khoảng cách mép trên màn hình tới chân tường. Hộp SVG cao 263, phần chữ + bóng thấy được cao 221, cách đỉnh hộp 18.
+   Tường thấp (màn rất rộng) thì chữ thu nhỏ cho vừa, chừa 14px trên và dưới; không bao giờ to hơn 263. */
+.menu-title{position:absolute;left:34px;z-index:5;margin:0;line-height:0;pointer-events:none;
+  --s:max((1280px + 2*var(--bx)) / 1920, (720px + 2*var(--by)) / 1080);
+  --tuong:calc(var(--by) + 360px - 160*var(--s));
+  --h:min(263px, (var(--tuong) - 28px) * 263 / 221);
+  top:calc(var(--tuong)/2 - var(--by) - var(--h)*(110.5 + 18)/263)}
+.menu-title svg{display:block;overflow:visible;height:var(--h);width:calc(var(--h)*556/263)}
+.menu-bubble{position:absolute;top:34px;right:58px;width:262px;z-index:5;background:var(--card);border:1.2px solid var(--ink);border-radius:8.4px 9.6px 1.8px 8.4px;padding:9px 12px;font-family:var(--fh);font-size:15px;line-height:1.35;transform:rotate(1.2deg)}
 .menu-stats{display:inline-block;margin-top:10px;font-size:13.5px;background:var(--card);border:1.2px solid var(--ink);border-radius:6px;padding:3px 14px;}
 .menu-danger-link{background:none;border:none;padding:0;color:var(--ink);opacity:.4;font-size:12px;text-decoration:underline;cursor:pointer;font-family:var(--fb)}
 /* menu chính: các nút xếp dọc, cùng bề ngang cho thẳng hàng */
-/* nút lệch sang phải 100px cho thẳng bảng tên trong ảnh 3D (margin-left 200 = dời tâm 100) */
-.menu-main{position:relative;z-index:5;margin-left:200px}
-.menu-btns{display:flex;flex-direction:column;align-items:center;gap:9px;margin-top:213px}
+/* cột nút bên phải, trên mảng tường và mặt bàn trống phía trên sổ tay */
+.menu-main{position:absolute;z-index:5;right:64px;top:128px}
+.menu-btns{display:flex;flex-direction:column;align-items:center;gap:9px}
 .menu-btns .btn{width:250px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px}
 /* hover / chọn bằng phím: "> Bắt đầu <" — hai mũi nhọn (i.sel) luôn giữ chỗ nên chữ không xê dịch, chỉ hiện ra và khép vào */
 .menu-btns .sel{font-style:normal;font-size:20px;line-height:1;opacity:0;transition:opacity .15s,transform .15s}
