@@ -328,26 +328,148 @@ function tenGameSVG(){
     <g clip-path="url(#tgCat)">${lop('fill="none" stroke="#fff" stroke-width="3" stroke-opacity=".7"', 1.6, 2.4)}</g>
   </svg>`;
 }
+// Bộ lọc sticker khi hover nút menu chính (#ico-ink cho icon không stroke, #stk-union bọc liền nút + icon)
+const MENU_STK_DEFS = `<svg width="0" height="0" style="position:absolute;pointer-events:none" aria-hidden="true"><defs>`
+  + `<filter id="ico-ink" x="-30%" y="-30%" width="160%" height="160%" color-interpolation-filters="sRGB">`
+  + `<feGaussianBlur in="SourceAlpha" stdDeviation="1.05" result="b"/>`
+  + `<feComponentTransfer in="b" result="m"><feFuncA type="linear" slope="18" intercept="-1.4"/></feComponentTransfer>`
+  + `<feFlood flood-color="#3b3025" result="c"/><feComposite in="c" in2="m" operator="in" result="ink"/>`
+  + `<feMerge><feMergeNode in="ink"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
+  + `<filter id="stk-union" x="-35%" y="-90%" width="170%" height="280%" color-interpolation-filters="sRGB">`
+  + `<feMorphology in="SourceAlpha" operator="dilate" radius="1.4" result="d0"/>`
+  + `<feGaussianBlur in="d0" stdDeviation="2.6" result="bw"/>`
+  + `<feComponentTransfer in="bw" result="wm"><feFuncA type="linear" slope="20" intercept="-1.8"/></feComponentTransfer>`
+  + `<feFlood flood-color="#fffdf5" result="wc"/><feComposite in="wc" in2="wm" operator="in" result="wrim"/>`
+  + `<feGaussianBlur in="wm" stdDeviation="1.15" result="bi"/>`
+  + `<feComponentTransfer in="bi" result="im"><feFuncA type="linear" slope="18" intercept="-1.4"/></feComponentTransfer>`
+  + `<feFlood flood-color="#3b3025" result="ic"/><feComposite in="ic" in2="im" operator="in" result="irim"/>`
+  + `<feGaussianBlur in="im" stdDeviation="3.4" result="sb"/><feOffset in="sb" dx="0" dy="4.5" result="so"/>`
+  + `<feFlood flood-color="#3b3025" flood-opacity="0.28" result="sc"/><feComposite in="sc" in2="so" operator="in" result="sh"/>`
+  + `<feMerge><feMergeNode in="sh"/><feMergeNode in="irim"/><feMergeNode in="wrim"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`
+  + `</defs></svg>`;
+// Icon SVG tự vẽ hoàn toàn không stroke cho các nút menu chính (tràn viền khi hover)
+const MENU_ICONS = (() => {
+  const starPath = (cx, cy, pts, outerR, innerR) => {
+    let d = '';
+    for(let i = 0; i < pts * 2; i++){
+      const r = i % 2 === 0 ? outerR : innerR, a = -Math.PI / 2 + (i * Math.PI) / pts;
+      d += (i === 0 ? 'M' : 'L') + (cx + r * Math.cos(a)).toFixed(2) + ',' + (cy + r * Math.sin(a)).toFixed(2);
+    }
+    return d + 'Z';
+  };
+  const sparklePath = (cx, cy, R) => {
+    const k = R * 0.22;
+    return `M${cx},${cy - R} Q${cx + k},${cy - k} ${cx + R},${cy} Q${cx + k},${cy + k} ${cx},${cy + R} Q${cx - k},${cy + k} ${cx - R},${cy} Q${cx - k},${cy - k} ${cx},${cy - R}Z`;
+  };
+  const gearPath = (cx, cy, teeth, outerR, rootR, holeR) => {
+    const step = (Math.PI * 2) / teeth;
+    const pt = (r, a) => (cx + r * Math.cos(a)).toFixed(2) + ',' + (cy + r * Math.sin(a)).toFixed(2);
+    let d = '';
+    for(let i = 0; i < teeth; i++){
+      const a0 = i * step - step * 0.22, a1 = i * step - step * 0.13, a2 = i * step + step * 0.13, a3 = i * step + step * 0.22;
+      const nextA0 = (i + 1) * step - step * 0.22;
+      if(i === 0) d += 'M' + pt(rootR, a0);
+      d += ` L${pt(outerR, a1)} A${outerR},${outerR} 0 0,1 ${pt(outerR, a2)} L${pt(rootR, a3)} A${rootR},${rootR} 0 0,1 ${pt(rootR, nextA0)}`;
+    }
+    d += 'Z';
+    if(holeR > 0) d += ` M${cx + holeR},${cy} A${holeR},${holeR} 0 1,0 ${cx - holeR},${cy} A${holeR},${holeR} 0 1,0 ${cx + holeR},${cy}Z`;
+    return d;
+  };
+  const ringPath = (cx, cy, outerR, innerR) =>
+    `M${cx + outerR},${cy} A${outerR},${outerR} 0 1,0 ${cx - outerR},${cy} A${outerR},${outerR} 0 1,0 ${cx + outerR},${cy}Z`
+    + ` M${cx + innerR},${cy} A${innerR},${innerR} 0 1,0 ${cx - innerR},${cy} A${innerR},${innerR} 0 1,0 ${cx + innerR},${cy}Z`;
+  return {
+    bstart: `<svg viewBox="0 0 56 56">`
+      + `<path d="M22,13 H34 L33,22.5 L46,43 C47.6,45.8 45.6,49 42.3,49 H13.7 C10.4,49 8.4,45.8 10,43 L23,22.5 Z" fill="#d6f0f3"/>`
+      + `<path d="M28,13 H34 L33,22.5 L46,43 C47.6,45.8 45.6,49 42.3,49 H28 Z" fill="#b4dfe5" opacity="0.58"/>`
+      + `<path d="M22.7,15.5 H33.3 L33,19 H23 Z" fill="#8ec0c9" opacity="0.72"/>`
+      + `<rect x="19" y="10" width="18" height="4.8" rx="2.4" fill="#9bcad3"/>`
+      + `<rect x="20.6" y="11.1" width="8.5" height="1.8" rx="0.9" fill="#ecf9fa" opacity="0.88"/>`
+      + `<path d="M18.6,32.5 H37.4 L44.1,43.5 C45,45 43.9,46.8 42,46.8 H14 C12.1,46.8 11,45 11.9,43.5 Z" fill="#63b85a"/>`
+      + `<path d="M28,32.5 H37.4 L44.1,43.5 C45,45 43.9,46.8 42,46.8 H28 Z" fill="#4a9b43" opacity="0.6"/>`
+      + `<ellipse cx="28" cy="32.5" rx="9.4" ry="2.3" fill="#9be086"/>`
+      + `<circle cx="22" cy="40.5" r="2" fill="#c7f2b5" opacity="0.92"/>`
+      + `<circle cx="32.5" cy="38" r="1.5" fill="#c7f2b5" opacity="0.85"/>`
+      + `<circle cx="26.8" cy="43" r="1.2" fill="#e5fae0" opacity="0.85"/>`
+      + `<path d="M23.5,24.8 L15.5,39.5 C14.9,40.6 16.4,41.6 17.2,40.4 L25,25.8 C25.6,24.7 24.1,23.8 23.5,24.8 Z" fill="#ffffff" opacity="0.78"/>`
+      + `<g class="fx-bub1"><circle cx="25" cy="6.6" r="2.6" fill="#9be086"/><circle cx="24.2" cy="5.8" r="0.85" fill="#ffffff" opacity="0.88"/></g>`
+      + `<g class="fx-bub2"><circle cx="31.2" cy="4.8" r="2" fill="#bceea8"/><circle cx="30.6" cy="4.2" r="0.65" fill="#ffffff" opacity="0.88"/></g>`
+      + `<g class="fx-bub3"><circle cx="28.3" cy="8.2" r="1.5" fill="#63b85a" opacity="0.88"/></g></svg>`,
+    brx: `<svg viewBox="0 0 56 56"><g class="fx-breath">`
+      + `<path d="M32,42 H38.5 V52 L35.25,49.2 L32,52 Z" fill="#d9634f"/>`
+      + `<rect x="15" y="10" width="30" height="38" rx="5" fill="#3a7b81"/>`
+      + `<rect x="14" y="8.5" width="29.5" height="37" rx="4.5" fill="#fff7e3"/>`
+      + `<rect x="40" y="11" width="2.5" height="32" rx="1.2" fill="#e6d7b8"/>`
+      + `<rect x="12.5" y="7" width="28" height="37" rx="4.5" fill="#5da9b0"/>`
+      + `<path d="M17,7 H19 V44 H17 C14.5,44 12.5,42 12.5,39.5 V11.5 C12.5,9 14.5,7 17,7 Z" fill="#468e95"/>`
+      + `<rect x="21" y="14" width="15.5" height="11" rx="2.5" fill="#fffdf5"/>`
+      + `<rect x="23" y="16.8" width="11.5" height="2" rx="1" fill="#3b3025" opacity="0.82"/>`
+      + `<rect x="23" y="20.5" width="8" height="2" rx="1" fill="#5da9b0" opacity="0.88"/>`
+      + `<path d="M27,29 H30.5 L30,32.5 L33.5,38 C34,38.8 33.4,39.8 32.4,39.8 H25.1 C24.1,39.8 23.5,38.8 24,38 L27.5,32.5 Z" fill="#dff4f5" opacity="0.92"/>`
+      + `<circle cx="15" cy="13.8" r="2.1" fill="#2b5d62"/><rect x="8.5" y="12" width="8" height="3.6" rx="1.8" fill="#f7e6c4"/>`
+      + `<circle cx="15" cy="21.8" r="2.1" fill="#2b5d62"/><rect x="8.5" y="20" width="8" height="3.6" rx="1.8" fill="#f7e6c4"/>`
+      + `<circle cx="15" cy="29.8" r="2.1" fill="#2b5d62"/><rect x="8.5" y="28" width="8" height="3.6" rx="1.8" fill="#f7e6c4"/>`
+      + `<circle cx="15" cy="37.8" r="2.1" fill="#2b5d62"/><rect x="8.5" y="36" width="8" height="3.6" rx="1.8" fill="#f7e6c4"/>`
+      + `</g></svg>`,
+    bach: `<svg viewBox="0 0 56 56"><g class="fx-float">`
+      + `<path fill-rule="evenodd" d="M17,14 C10.5,14 9,20 11,24.5 C12.5,27.8 16.5,28.5 19.5,27.5 L19.5,24 C17,24.5 14.8,24 14,22 C13.2,19.8 14.2,17.2 17,17.2 Z" fill="#dba027"/>`
+      + `<path fill-rule="evenodd" d="M39,14 C45.5,14 47,20 45,24.5 C43.5,27.8 39.5,28.5 36.5,27.5 L36.5,24 C39,24.5 41.2,24 42,22 C42.8,19.8 41.8,17.2 39,17.2 Z" fill="#c78d1c"/>`
+      + `<path d="M16.5,11 H39.5 L38.5,24 C38,31 33.5,35 28,35 C22.5,35 18,31 17.5,24 Z" fill="#f4c246"/>`
+      + `<path d="M28,11 H39.5 L38.5,24 C38,31 33.5,35 28,35 Z" fill="#dca126" opacity="0.62"/>`
+      + `<rect x="15" y="9" width="26" height="4.2" rx="2.1" fill="#ffe184"/>`
+      + `<path d="M19.5,15 C19.5,21 20.5,26.5 23,29.5 C21.8,30.2 20.4,29.4 19.6,27.6 C18.2,24.5 17.8,19.5 18.2,15 Z" fill="#fff2ba" opacity="0.86"/>`
+      + `<rect x="25.5" y="34" width="5" height="7" fill="#d39620"/><ellipse cx="28" cy="36" rx="4.6" ry="2" fill="#f4c246"/>`
+      + `<path d="M19.5,41 H36.5 L38,44.5 H18 Z" fill="#9c7046"/><rect x="16" y="44" width="24" height="5" rx="2" fill="#7c5634"/>`
+      + `<rect x="23" y="45.3" width="10" height="2.4" rx="1" fill="#f4c246"/>`
+      + `<path d="${starPath(28, 22.5, 5, 5.2, 2.2)}" fill="#fffdf5"/></g></svg>`,
+    bstory: `<svg viewBox="0 0 56 56">`
+      + `<path d="M8,19 L28,22 L48,19 L49.5,43 L28,46.5 L6.5,43 Z" fill="#885aa3"/>`
+      + `<rect x="24.5" y="42" width="7" height="5.5" rx="2.5" fill="#6b4282"/>`
+      + `<path d="M26.5,44 H30.5 V52.5 L28.5,50.2 L26.5,52.5 Z" fill="#e8b84b"/>`
+      + `<path d="M10.5,16.5 Q19,13.5 28,18.5 V42.5 Q19,38.5 9.5,40.5 Z" fill="#fffdf5"/>`
+      + `<path d="M45.5,16.5 Q37,13.5 28,18.5 V42.5 Q37,38.5 46.5,40.5 Z" fill="#f3e8d2"/>`
+      + `<path d="M26.2,17.8 L28,18.5 L29.8,17.8 V42.5 L28,43 L26.2,42.5 Z" fill="#d9cab0"/>`
+      + `<rect x="13" y="22.5" width="11" height="2.2" rx="1.1" fill="#b495cc" opacity="0.72"/>`
+      + `<rect x="13" y="27" width="9.5" height="2.2" rx="1.1" fill="#b495cc" opacity="0.72"/>`
+      + `<rect x="13" y="31.5" width="10.5" height="2.2" rx="1.1" fill="#b495cc" opacity="0.72"/>`
+      + `<rect x="32.5" y="21.5" width="9.5" height="9" rx="2" fill="#f4c246"/>`
+      + `<circle cx="37.25" cy="26" r="2.2" fill="#fffdf5" opacity="0.88"/>`
+      + `<rect x="32" y="33" width="10.5" height="2.2" rx="1.1" fill="#b495cc" opacity="0.68"/>`
+      + `<g class="fx-float"><path d="${sparklePath(28, 11.5, 5.4)}" fill="#f7c948"/>`
+      + `<circle cx="20.5" cy="13" r="1.7" fill="#7fc4c9"/><circle cx="35.5" cy="12" r="1.6" fill="#e988a8"/></g></svg>`,
+    bset: `<svg viewBox="0 0 56 56">`
+      + `<g class="fx-gear1" style="transform-origin:22px 24px">`
+      + `<path fill-rule="evenodd" d="${gearPath(22, 24, 8, 14.8, 11.0, 4.4)}" fill="#e0a53c"/>`
+      + `<path fill-rule="evenodd" d="${ringPath(22, 24, 8.8, 5.6)}" fill="#c48926"/>`
+      + `<circle cx="22" cy="17" r="1.3" fill="#ffe184" opacity="0.88"/></g>`
+      + `<g class="fx-gear2" style="transform-origin:39.5px 37.5px">`
+      + `<path fill-rule="evenodd" d="${gearPath(39.5, 37.5, 6, 10.4, 7.4, 2.9)}" fill="#5c99a1"/>`
+      + `<path fill-rule="evenodd" d="${ringPath(39.5, 37.5, 6.0, 3.8)}" fill="#85bec6"/>`
+      + `<circle cx="39.5" cy="32.7" r="1" fill="#dff4f5" opacity="0.9"/></g></svg>`
+  };
+})();
 function showMenu(){
   runStop();
   SFX.music(0);
   // Ca tự do chuyển sang tấm lịch: nó là "ngày 1 của tháng sau", xem showMap().
   const inProgress = save.unlocked > 1; // đã qua ít nhất ngày 1 → có gì đó để "tiếp tục"
   const nextDay = Math.min(save.unlocked, DAYS.length);
-  // nút menu: "> nhãn <" — hai mũi nhọn hiện khi hover (style.css .menu-btns .sel); ::before của .btn đã là đế chống rung
-  const mb = (id, cls, html) => `<button class="btn${cls}" id="${id}"><i class="sel" aria-hidden="true">&gt;</i>${html}<i class="sel" aria-hidden="true">&lt;</i></button>`;
+  // nút menu: bình thường chỉ có chữ; khi hover nổi 1 icon không stroke tràn viền và viền sticker hợp nhất (style.css .mbtn)
+  const mb = (id, cls, side, label) => `<button class="mbtn${cls} ico-${side}" id="${id}" type="button">`
+    + `<span class="btn-ico" aria-hidden="true">${MENU_ICONS[id]}</span>`
+    + `<span class="btn-label">${label}</span></button>`;
   // Cảnh bàn thí nghiệm nhìn từ mắt giáo sư: SVG có chuyển động, dựng bằng Blender/pov_dong.py. <object> chứ không <img>,
   // để rê chuột vào cốc, đèn cồn, phễu… có phản ứng; CSS của nó nằm riêng trong file, không đụng CSS game
-  G.innerHTML = `<div class="scene center" style="padding:0">
+  G.innerHTML = `<div class="scene center" style="padding:0">${MENU_STK_DEFS}
     <object class="menu-pov" data="assets/man-hinh-chinh.svg" type="image/svg+xml" aria-hidden="true" tabindex="-1"></object>
     <h1 class="menu-title" aria-label="Trợ Lý Hóa Học Nhí — Trợ lý phòng thí nghiệm của giáo sư Hoffmann">${tenGameSVG()}</h1>
     <div class="menu-main">
       <div class="menu-btns">
-        ${mb('bstart', ' big', inProgress ? ico('play')+' Ngày '+nextDay+' →' : ico('play')+' Bắt đầu')}
-        ${mb('brx', '', ico('note')+' Sổ tay')}
-        ${mb('bach', '', ico('trophy')+' Thành tựu')}
-        ${storiesOwned() ? mb('bstory', '', ico('book')+' Truyện nguyên tố') : ''}
-        ${mb('bset', '', ico('gear')+' Cài đặt')}
+        ${mb('bstart', ' big', 'right', inProgress ? 'Ngày '+nextDay+' →' : 'Bắt đầu')}
+        ${mb('brx', '', 'left', 'Sổ tay')}
+        ${mb('bach', '', 'right', 'Thành tựu')}
+        ${storiesOwned() ? mb('bstory', '', 'right', 'Truyện nguyên tố') : ''}
+        ${mb('bset', '', 'left', 'Cài đặt')}
       </div>
     </div>
     <div class="menu-bubble">${PROF_GREETING}</div>

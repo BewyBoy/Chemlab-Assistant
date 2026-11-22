@@ -68,17 +68,46 @@ h2{font-size:26px;margin:6px 0}
 .menu-bubble{position:absolute;top:34px;right:58px;width:262px;z-index:5;background:var(--card);border:1.2px solid var(--ink);border-radius:8.4px 9.6px 1.8px 8.4px;padding:9px 12px;font-family:var(--fh);font-size:15px;line-height:1.35;transform:rotate(1.2deg)}
 .menu-stats{display:inline-block;margin-top:10px;font-size:13.5px;background:var(--card);border:1.2px solid var(--ink);border-radius:6px;padding:3px 14px;}
 .menu-danger-link{background:none;border:none;padding:0;color:var(--ink);opacity:.4;font-size:12px;text-decoration:underline;cursor:pointer;font-family:var(--fb)}
-/* menu chính: các nút xếp dọc, cùng bề ngang cho thẳng hàng */
+/* menu chính: các nút xếp dọc, cùng bề ngang cho thẳng hàng; hover dịch thẳng lên thành sticker với 1 icon không stroke tràn viền */
 /* cột nút bên phải, trên mảng tường và mặt bàn trống phía trên sổ tay */
 .menu-main{position:absolute;z-index:5;right:64px;top:128px}
-.menu-btns{display:flex;flex-direction:column;align-items:center;gap:9px}
-.menu-btns .btn{width:250px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px}
-/* hover / chọn bằng phím: "> Bắt đầu <" — hai mũi nhọn (i.sel) luôn giữ chỗ nên chữ không xê dịch, chỉ hiện ra và khép vào */
-.menu-btns .sel{font-style:normal;font-size:20px;line-height:1;opacity:0;transition:opacity .15s,transform .15s}
-.menu-btns .sel:first-child{transform:translateX(-10px)}
-.menu-btns .sel:last-child{transform:translateX(10px)}
-.menu-btns .btn:hover .sel,.menu-btns .btn:focus-visible .sel{opacity:1;transform:none}
-.menu-btns .btn.big{width:250px;padding:16px 20px}
+.menu-btns{display:flex;flex-direction:column;align-items:center;gap:13px}
+.mbtn{position:relative;z-index:1;width:264px;height:52px;overflow:visible;display:inline-flex;align-items:center;justify-content:center;padding:0 24px;border:none;border-radius:15px;font-family:var(--fh);font-size:21px;font-weight:700;letter-spacing:.01em;line-height:1.2;color:var(--ink);background:linear-gradient(180deg,#fffef9 0%,#f7efe0 100%);box-shadow:inset 0 1.5px 0 #ffffff,0 4px 0 #cabaa0,0 7px 14px rgba(59,48,37,.16);cursor:pointer;user-select:none;transform:translateY(0);transition:transform .2s cubic-bezier(.22,1,.36,1),background .16s ease}
+.mbtn::before{content:'';position:absolute;left:-6px;right:-6px;top:100%;height:8px;background:transparent}
+.mbtn.big{height:64px;border-radius:17px;font-size:26px;font-weight:700;background:linear-gradient(180deg,#f8d46d 0%,#e7b33d 100%);box-shadow:inset 0 2px 0 rgba(255,251,226,.76),0 5px 0 #b8811d,0 10px 20px rgba(59,48,37,.22)}
+.mbtn .btn-label{display:inline-block;text-shadow:.45px 0 0 currentColor,-.45px 0 0 currentColor}
+.mbtn.ico-left{--tilt:-10deg}
+.mbtn.ico-right{--tilt:10deg}
+.mbtn .btn-ico{position:absolute;top:50%;width:56px;height:56px;pointer-events:none;z-index:2;opacity:0;visibility:hidden;transform:translateY(calc(-50% + 8px)) rotate(var(--tilt));transition:opacity .16s ease-out,visibility 0s linear .16s,transform .22s cubic-bezier(.22,1,.36,1)}
+.mbtn.big .btn-ico{width:64px;height:64px}
+.mbtn .btn-ico svg{display:block;width:100%;height:100%;overflow:visible}
+.mbtn.ico-left .btn-ico{left:-16px}
+.mbtn.ico-right .btn-ico{right:-16px}
+.mbtn.big.ico-left .btn-ico{left:-18px}
+.mbtn.big.ico-right .btn-ico{right:-18px}
+.mbtn:hover,.mbtn:focus-visible{z-index:20;outline:none;filter:url(#stk-union);transform:translateY(-3px);box-shadow:inset 0 0 0 2.2px #3b3025,inset 0 4px 0 rgba(255,255,255,.55),inset 0 -4px 0 rgba(59,48,37,.12)}
+.mbtn:hover .btn-ico,.mbtn:focus-visible .btn-ico{opacity:1;visibility:visible;filter:url(#ico-ink);transform:translateY(calc(-50% - 6px)) rotate(var(--tilt));transition:opacity .16s ease-out,visibility 0s,transform .22s cubic-bezier(.22,1,.36,1)}
+#bstart:hover,#bstart:focus-visible{background:linear-gradient(180deg,#ffe082 0%,#eeb63c 100%)}
+#brx:hover,#brx:focus-visible{background:linear-gradient(180deg,#e7f7f8 0%,#d4eef0 100%)}
+#bach:hover,#bach:focus-visible{background:linear-gradient(180deg,#fff5d4 0%,#fce5a4 100%)}
+#bstory:hover,#bstory:focus-visible{background:linear-gradient(180deg,#f3ebfc 0%,#e4d4f7 100%)}
+#bset:hover,#bset:focus-visible{background:linear-gradient(180deg,#e7f2fa 0%,#d4e6f5 100%)}
+.mbtn:active{transform:translateY(1px);transition-duration:.08s}
+.fx-bub1,.fx-bub2,.fx-bub3,.fx-float,.fx-breath{transform-box:fill-box;transform-origin:center}
+.fx-gear1,.fx-gear2{transform-box:view-box}
+.mbtn:hover .fx-bub1,.mbtn:focus-visible .fx-bub1{animation:softBub 2.6s ease-in-out infinite}
+.mbtn:hover .fx-bub2,.mbtn:focus-visible .fx-bub2{animation:softBub 3.0s ease-in-out .4s infinite}
+.mbtn:hover .fx-bub3,.mbtn:focus-visible .fx-bub3{animation:softBub 2.4s ease-in-out .8s infinite}
+.mbtn:hover .fx-float,.mbtn:focus-visible .fx-float{animation:softFloat 3.0s ease-in-out infinite}
+.mbtn:hover .fx-breath,.mbtn:focus-visible .fx-breath{animation:softBreath 3.2s ease-in-out infinite}
+.mbtn:hover .fx-gear1,.mbtn:focus-visible .fx-gear1{animation:slowSpinCW 20s linear infinite}
+.mbtn:hover .fx-gear2,.mbtn:focus-visible .fx-gear2{animation:slowSpinCCW 15s linear infinite}
+@keyframes softBub{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.8px)}}
+@keyframes softFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.5px)}}
+@keyframes softBreath{0%,100%{transform:rotate(-1.2deg)}50%{transform:rotate(1.2deg)}}
+@keyframes slowSpinCW{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes slowSpinCCW{from{transform:rotate(0)}to{transform:rotate(-360deg)}}
+@media (prefers-reduced-motion:reduce){.mbtn,.btn-ico{transition:none!important}.fx-bub1,.fx-bub2,.fx-bub3,.fx-float,.fx-breath,.fx-gear1,.fx-gear2{animation:none!important}}
 .menu-danger-link:hover{opacity:.75}
 .mbub{position:absolute;border:1px solid #ffffffc0;border-radius:50%;background:radial-gradient(circle at 32% 30%,#fffffff0,#ffffff30 35%,#bfe7e640 70%,#ffffff70);opacity:0;animation:mbubrise 7s linear infinite;pointer-events:none}
 @keyframes mbubrise{0%{transform:translateY(0) translateX(0);opacity:0}12%{opacity:.55}55%{transform:translateY(-160px) translateX(10px)}88%{opacity:.55}100%{transform:translateY(-320px) translateX(-6px);opacity:0}}
