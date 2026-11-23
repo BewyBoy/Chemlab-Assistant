@@ -308,7 +308,7 @@ function confirmModal(html, onYes, yesLabel, noLabel){
 
 /* =====================  SCENES  ===================== */
 // Tên game kiểu nhãn dán: chữ Paytone One vàng, khối 3D màu mực, viền trắng + nét mực, bóng mờ trên tường.
-// Mỗi lớp là cả hai dòng <text> chồng lên nhau, từ dưới lên. Thử kiểu khác ở thu-ten-game.html (kiểu F là bản này).
+// Mỗi lớp là cả hai dòng <text> chồng lên nhau, từ dưới lên. Thử kiểu khác ở tools/xem-ten-game.html (kiểu F là bản này).
 // viewBox đo sẵn bằng getBBox với Paytone One; đổi chữ, cỡ hay cách dòng thì đo lại ở trang thử.
 function tenGameSVG(){
   const B = 10, K = 3, D = 9, DX = .35, INK = '#3b3025', PAPER = '#fffdf5';   // viền trắng, nét mực, độ dày khối 3D, độ lệch phải mỗi lớp khối

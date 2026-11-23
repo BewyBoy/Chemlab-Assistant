@@ -1,0 +1,31 @@
+<!doctype html>
+<!-- Trang thử: tên game kiểu chữ 3D tròn, viền ngoài như sticker. Không ship (không có trong tools/dong-goi.ps1).
+     Game đang dùng kiểu F (Paytone One, tenGameSVG trong js/giao-dien.js); đổi chữ / cỡ / cách dòng thì đo lại viewBox ở đây.
+     Font ngoài Itim lấy tạm từ Google Fonts; chốt kiểu nào thì tải woff2 về fonts/ như Itim. -->
+<html lang="vi"><head><meta charset="utf-8"><title>Thử tên game sticker</title>
+<link rel="stylesheet" href="../style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Coiny&family=Mali:wght@700&family=Nunito:wght@900&family=Paytone+One&display=swap">
+<style>
+html,body{height:auto;overflow:auto}
+body{padding:20px;color:#f7f1e3}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,600px);gap:16px}
+.card{position:relative;width:600px;height:270px;border-radius:8px;overflow:hidden;background:#d3c9b4 url(../assets/man-hinh-chinh.svg) 0 0/1280px 720px}
+.lb{position:absolute;right:10px;bottom:8px;background:#3b3025d9;color:#f7f1e3;font-size:13px;padding:3px 9px;border-radius:5px;max-width:250px}
+.lb b{font-size:15px}
+.wrap{position:absolute;left:30px;top:16px}
+</style></head><body>
+<div class="grid" id="grid"></div>
+<script src="xem-ten-game.js"></script>
+<script>
+(async () => {
+  await Promise.all(V.map(v => document.fonts.load(`${v.w} 64px "${v.font}"`, LINES.join(' '))));
+  for (const v of V) {
+    const card = document.createElement('div'); card.className = 'card';
+    card.innerHTML = `<div class="wrap"></div><div class="lb"><b>${v.id} · ${v.name}</b><br>${v.note}</div>`;
+    grid.append(card);
+    sticker(v, card.firstChild);
+  }
+  document.title += ' ✓';
+})();
+</script>
+</body></html>
