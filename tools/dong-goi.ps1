@@ -41,7 +41,9 @@ $canShip = @(
   'fonts\patrick-hand-latin.woff2', 'fonts\patrick-hand-latin-ext.woff2', 'fonts\patrick-hand-vietnamese.woff2',
   'fonts\paytone-one-latin.woff2', 'fonts\paytone-one-vietnamese.woff2',   # tên game sticker ở menu
   'fonts\OFL-Itim.txt', 'fonts\OFL-PatrickHand.txt', 'fonts\OFL-PaytoneOne.txt',   # giấy phép font phải đi kèm font
-  'assets\man-hinh-chinh.svg',  # cảnh menu chính có chuyển động, dựng bằng Blender\pov_dong.py (trong assets\ chỉ file này được ship)
+  'assets\man-hinh-chinh.svg',  # cảnh menu chính có chuyển động, dựng bằng Blender\pov_dong.py
+  'assets\logo-mo-dau.svg',     # logo studio ở màn mở đầu (halftone, có chuyển động), sinh bằng Blender\logo\tao_logo.py --game
+                                # (trong assets\ chỉ hai file này được ship)
   'favicon.ico',
   'favicon.png'
 )

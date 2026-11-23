@@ -299,17 +299,13 @@ document.addEventListener('visibilitychange', () => {
 document.body.insertAdjacentHTML('afterbegin',
   '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>' + SVG_DEFS + SVG_DEFS_3D + '</defs></svg>');
 fit();
-/* Mở game: (1) màn đen + logo (tạm, chờ logo thật) hiện dần rồi TỰ TẮT; chạm sớm thì tắt luôn. (2) Màn tiêu đề:
+/* Mở game: (1) màn đen + logo studio BewyBoy chạy hiệu ứng rồi TỰ TẮT; chạm sớm thì tắt luôn. (2) Màn tiêu đề:
    ảnh menu nhưng chưa có nút, chỉ một dòng "Nhấn START để bắt đầu" ở dưới; chạm / bấm phím thì các nút hiện ra.
    Cú chạm ấy cũng là cú chạm đầu tiên mà trình duyệt đòi để phát tiếng (SFX.unlock). Chế độ dev (#dev) bỏ qua cả hai.
-   Thay logo: sửa SPLASH_LOGO (chuỗi HTML / SVG, hoặc một <img>). */
-const SPLASH_LOGO = '<svg class="splash-mark" viewBox="0 0 200 200" aria-hidden="true">'
-  + '<rect x="6" y="6" width="188" height="188" rx="34" fill="none" stroke="#f4ecd8" stroke-width="4" stroke-dasharray="14 10" opacity=".55"/>'
-  + '<path d="M80,46 h40 M86,46 v42 l-34,62 q-6,14 10,14 h76 q16,0 10,-14 l-34,-62 v-42" fill="none" stroke="#f4ecd8" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>'
-  + '<path d="M62,132 q38,-14 76,0 l8,14 q4,8 -6,8 h-80 q-10,0 -6,-8z" fill="#7fc4c9"/>'
-  + '<circle cx="92" cy="116" r="6" fill="#7fc4c9"/><circle cx="108" cy="100" r="4" fill="#7fc4c9"/></svg>'
-  + '<div class="splash-name">LOGO</div>';
-const SPLASH_MS = 2600;   // logo hiện dần (~1,3 s) rồi đứng một nhịp, sau đó màn đen tự mờ đi
+   Logo: assets/logo-mo-dau.svg (bản halftone) tự chạy hiệu ứng bằng CSS bên trong file: oval bật ra, nhân vật trồi lên
+   rồi chớp mắt, xong trong ~1,8 s. File sinh từ Blender/logo/tao_logo.py --game, đừng sửa tay. */
+const SPLASH_LOGO = '<img class="splash-mark" src="assets/logo-mo-dau.svg" alt="">';
+const SPLASH_MS = 2800;   // hiệu ứng logo xong lúc ~1,8 s, đứng thêm một nhịp rồi màn đen tự mờ đi
 function hideSplash(){
   const sp = document.querySelector('.splash:not(.out)');
   if(!sp) return;
