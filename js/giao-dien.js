@@ -454,10 +454,10 @@ function showMenu(){
   // Ca tự do chuyển sang tấm lịch: nó là "ngày 1 của tháng sau", xem showMap().
   const inProgress = save.unlocked > 1; // đã qua ít nhất ngày 1 → có gì đó để "tiếp tục"
   const nextDay = Math.min(save.unlocked, DAYS.length);
-  // nút menu: bình thường chỉ có chữ; khi hover nổi 1 icon không stroke tràn viền và viền sticker hợp nhất (style.css .mbtn)
+  // nút menu: .mbtn giữ vùng bấm đứng yên để mép dưới không giật khi hover; .mbtn-face trượt lên kèm icon không stroke và viền sticker (style.css)
   const mb = (id, cls, side, label) => `<button class="mbtn${cls} ico-${side}" id="${id}" type="button">`
-    + `<span class="btn-ico" aria-hidden="true">${MENU_ICONS[id]}</span>`
-    + `<span class="btn-label">${label}</span></button>`;
+    + `<span class="mbtn-face"><span class="btn-ico" aria-hidden="true">${MENU_ICONS[id]}</span>`
+    + `<span class="btn-label">${label}</span></span></button>`;
   // Cảnh bàn thí nghiệm nhìn từ mắt giáo sư: SVG có chuyển động, dựng bằng Blender/pov_dong.py. <object> chứ không <img>,
   // để rê chuột vào cốc, đèn cồn, phễu… có phản ứng; CSS của nó nằm riêng trong file, không đụng CSS game
   G.innerHTML = `<div class="scene center" style="padding:0">${MENU_STK_DEFS}
