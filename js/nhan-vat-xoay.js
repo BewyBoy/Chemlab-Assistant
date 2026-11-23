@@ -2,38 +2,35 @@
    NHÂN VẬT XOAY 3/4 — dáng "nghiêng vừa phải" lúc đi, dựng từ CHÍNH hình nhìn thẳng (không vẽ bộ hình riêng).
    Nạp SAU js/nhan-vat-skin.js. Xem thử: tools/xem-xoay.html.
 
-   Cách làm (xoay giả 2,5D): tách hình thẳng thành các lớp theo chiều sâu rồi dời chúng bằng CSS —
-     .tq-feat    nét trên mặt (mắt, lông mày, má hồng, miệng, kính, nếp nhăn, râu lún phún…): trượt về bên trái, ép hẹp
-     .tq-nose    mũi: nhô gần người xem nhất nên trượt nhiều nhất
-     .tq-earfar  tai / khuyên tai phía xa (bên trái hình): lùi vào sau mặt rồi ẩn
-     .tq-blushfar má hồng phía xa: co hẹp và nhạt đi (trượt theo nét mặt là tràn ra ngoài viền mặt)
-     .tq-earnear tai / khuyên tai phía gần: nhích vào trong
-     .tq-body    mọi thứ dưới cằm (thân, tay, trang phục, đạo cụ): ép hẹp quanh trục giữa — vai xoay nghiêng
-     .tq-arml / .tq-armr  hai cánh tay (tay áo + bàn tay, kể cả tay vẽ lại trong lớp trang phục), nằm TRONG .tq-body:
-                 lúc bước thì đánh quanh vai, hai tay ngược nhịp
-   Sọ, tóc, mũ, cổ đứng yên. Vì dựng từ hình thẳng nên cả 3 bộ đồ, mọi biểu cảm và chớp mắt đều có sẵn, và khi
-   khách dừng trước khay thì các lớp trượt về chỗ cũ (transition trong style.css) — khách quay mặt về phía người
-   chơi chứ không đổi hình đột ngột.
-
-   Phân lớp bằng HÌNH HỌC chứ không dò chuỗi SVG (hình vẽ tay khung 280 và hình khung 200 có cấu trúc khác hẳn nhau):
-   dựng hình trong một khung ẩn, đo khung bao từng phần tử theo toạ độ viewBox, so với vị trí hai mắt. Kết quả là
-   một chuỗi SVG đã bọc lớp, nhớ lại theo (khách, skin) nên mỗi hình chỉ đo một lần.
+   Cách làm (xoay giả 2,5D toàn thân): tách hình thẳng thành các lớp theo chiều sâu từ sau ra trước rồi dời bằng CSS —
+     .tq-hairback  búi tóc sau đỉnh đầu, lớp tóc xõa sau lưng: lùi nhẹ về phía sau sọ
+     .tq-head      hộp sọ / khuôn mặt: dịch nhẹ sang trái và thu hẹp theo góc 3/4
+     .tq-hair      vòm tóc chính, mũ, nón: xoay và dịch sang trái ôm khít hộp sọ
+     .tq-hairfront ngôi tóc, lọn mái trước trán, kẹp tóc, hoa cài, sọc mũ / kính bảo hộ trên mũ: dịch mạnh theo trán
+     .tq-feat      nét trên mặt (mắt, lông mày, má hồng gần, miệng, kính, nếp nhăn…): trượt về bên trái, ép hẹp
+     .tq-nose      mũi: nhô gần người xem nhất nên trượt nhiều nhất
+     .tq-earfar    tai / khuyên tai / tóc mai / chùm tóc phía xa (bên trái hình): lùi vào sau mặt rồi ẩn
+     .tq-blushfar  má hồng phía xa: co hẹp và nhạt đi
+     .tq-earnear   tai / khuyên tai / tóc mai / chùm tóc phía gần: nhích vào theo mép má gần
+     .tq-neck      cổ và bóng dưới cằm: dịch theo đầu và khớp vào hõm cổ áo
+     .tq-body      thân áo ngoài: dịch sang trái và thu hẹp vai theo góc 3/4
+     .tq-chest     chi tiết mặt trước ngực (cổ áo, ve áo, cà vạt, hàng cúc, tạp dề, yếm, khăn quàng, dây chuyền, đạo cụ):
+                   trượt sang trái nhiều hơn thân áo để tạo chiều sâu ngực xoay 3/4
+     .tq-arml / .tq-armr  hai cánh tay (tay xa khép vào sau ngực, tay gần dịch theo vai gần; lúc bước đánh ngược nhịp)
    ===================================================================== */
 'use strict';
 
 const XOAY_NS = 'http://www.w3.org/2000/svg';
 let xoayHost = null;
 
-// bọc lớp cho một chuỗi SVG hình thẳng; trả về chuỗi SVG mới (class "charsvg turn"). Không có DOM thì trả nguyên.
 function xoayBuild(svgStr){
   if(typeof document === 'undefined' || !document.body) return svgStr;
-  if(!xoayHost || !xoayHost.isConnected){   // khung đo bị gỡ khỏi trang (thay cả body) thì dựng lại, kẻo đo hụt ra hình thẳng
+  if(!xoayHost || !xoayHost.isConnected){
     xoayHost = document.createElement('div');
     xoayHost.setAttribute('aria-hidden', 'true');
     xoayHost.style.cssText = 'position:absolute;left:-9999px;top:0;width:300px;height:300px;visibility:hidden;pointer-events:none;overflow:hidden';
     document.body.appendChild(xoayHost);
   }
-  // đo ở biểu cảm "bực": lúc đó chấm mắt của mọi người đều hiện (người mắt cười ẩn chấm lúc bình thường)
   xoayHost.innerHTML = svgStr.replace('<svg ', '<svg style="width:280px;height:280px" ').replace(/data-exp="[^"]*"/, 'data-exp="annoy"');
   const svg = xoayHost.firstElementChild;
   const root = svg && svg.getScreenCTM && svg.getScreenCTM();
@@ -47,10 +44,9 @@ function xoayBuild(svgStr){
   };
   const eyes = [...svg.querySelectorAll('.eyes2 .eo-open ellipse')].map(box).filter(Boolean);
   if(eyes.length < 2){ xoayHost.innerHTML = ''; return svgStr; }
-  const cx = (eyes[0].cx + eyes[1].cx)/2, ey = (eyes[0].cy + eyes[1].cy)/2;   // trục giữa mặt, độ cao mắt
+  const cx = (eyes[0].cx + eyes[1].cx)/2, ey = (eyes[0].cy + eyes[1].cy)/2;
   const vb = (svg.getAttribute('viewBox') || '0 0 200 280').split(/\s+/).map(Number), H = vb[3];
 
-  // bọc el trong <g class="cls">, tâm biến đổi (px, py) cho theo toạ độ viewBox → đổi sang hệ toạ độ của phần tử cha
   const wrap = (el, cls, px, py) => {
     const P = el.parentNode, pm = P.getScreenCTM ? P.getScreenCTM() : root;
     const o = new DOMPoint(px, py).matrixTransform(root).matrixTransform((pm || root).inverse());
@@ -59,61 +55,101 @@ function xoayBuild(svgStr){
     g.setAttribute('style', `transform-origin:${o.x.toFixed(1)}px ${o.y.toFixed(1)}px`);
     P.insertBefore(g, el); g.appendChild(el);
   };
-  const classify = B => {
+  const armSide = B => B.y0 >= ey + 66 && B.w <= 58 ? (B.x1 <= cx - 34 ? 'l' : B.x0 >= cx + 34 ? 'r' : '') : '';
+  const isFaceSkull = (el, B) => {
+    const d = (el.getAttribute('d') || '').trim();
+    return /^M7\d[.,]/.test(d) && B.y0 >= ey - 60 && B.y0 <= ey - 25 && B.y1 >= ey + 45 && B.y1 <= ey + 75 && B.w >= 74 && B.w <= 112;
+  };
+  const classify = (el, B) => {
     const dx = B.cx - cx, adx = Math.abs(dx);
-    // nét trên mặt: nằm gọn trong lòng khuôn mặt, từ lông mày tới trên cằm
-    if(B.x0 >= cx - 48 && B.x1 <= cx + 48 && B.y0 >= ey - 30 && B.y1 <= ey + 58 && adx <= 37 && B.w <= 86)
+    // 1. Hộp sọ khuôn mặt chính
+    if(isFaceSkull(el, B)) return 'tq-head';
+    // 2. Cổ và bóng dưới cằm
+    if(B.y0 >= ey + 26 && B.y0 < ey + 56 && B.y1 >= ey + 52 && B.w <= 64 && adx <= 18) return 'tq-neck';
+    // 3. Nét trên mặt (mắt, lông mày, miệng, kính, nếp nhăn trán, râu cằm)
+    if(B.x0 >= cx - 48 && B.x1 <= cx + 48 && B.y0 >= ey - 32 && B.y1 <= ey + 58 && adx <= 37 && B.w <= 86)
       return adx <= 7 && B.cy >= ey + 2 && B.cy <= ey + 36 && B.w <= 34 && B.h >= 12 ? 'tq-nose' : 'tq-feat';
-    // tai, khuyên tai: mảnh nhỏ sát hai mép mặt
-    if(B.w <= 30 && B.h <= 44 && B.cy >= ey - 16 && B.cy <= ey + 30 && adx >= 44 && adx <= 68) return dx < 0 ? 'tq-earfar' : 'tq-earnear';
-    if(B.w <= 18 && B.h <= 30 && B.cy >= ey + 22 && B.cy <= ey + 52 && adx >= 34 && adx <= 60) return dx < 0 ? 'tq-earfar' : 'tq-earnear';
-    // tóc mai mảnh thò dưới vành mũ, sát mép mặt (Anh Minh): theo tai — bên xa ẩn đi, bên gần nhích vào
-    if(B.w <= 12 && B.h >= 8 && B.h <= 40 && B.cy >= ey - 40 && B.cy < ey && adx >= 40 && adx <= 66) return dx < 0 ? 'tq-earfar' : 'tq-earnear';
-    // dưới cằm: thân, tay, trang phục, đạo cụ
-    if(B.y0 >= ey + 56) return 'tq-body';
+    // 4. Tai, khuyên tai, chùm tóc buộc hai bên, tóc mai sát mép mặt
+    if(B.w <= 34 && B.h <= 56 && B.cy >= ey - 32 && B.cy <= ey + 34 && adx >= 40 && adx <= 78) return dx < 0 ? 'tq-earfar' : 'tq-earnear';
+    if(B.w <= 20 && B.h <= 32 && B.cy >= ey + 18 && B.cy <= ey + 54 && adx >= 34 && adx <= 64) return dx < 0 ? 'tq-earfar' : 'tq-earnear';
+    if(B.w <= 16 && B.h >= 8 && B.h <= 42 && B.cy >= ey - 42 && B.cy < ey + 2 && adx >= 38 && adx <= 68) return dx < 0 ? 'tq-earfar' : 'tq-earnear';
+    // 5. Mũ, nón, phụ kiện trên đầu (phía trên mắt / thái dương)
+    if(B.y0 < ey + 10 && B.y1 < ey + 45){
+      if(B.w <= 88 && B.h <= 46 && B.y1 <= ey + 5) return 'tq-hairfront';
+      return 'tq-hair';
+    }
+    // 6. Dưới cằm: thân áo, chi tiết ngực / cổ áo, đạo cụ
+    if(B.y0 >= ey + 50){
+      return (B.w <= 88 && adx <= 42) ? 'tq-chest' : 'tq-body';
+    }
     return '';
   };
-  const origin = (cls, B) => cls === 'tq-body' ? [cx, H] : cls === 'tq-feat' || cls === 'tq-nose' ? [cx, ey + 10] : [B.cx, B.cy];
-  // cánh tay: mảnh dọc dưới vai, nằm hẳn ngoài lõi thân (tay áo, bàn tay, nét ngón tay)
-  const armSide = B => B.y0 >= ey + 70 && B.w <= 54 ? (B.x1 <= cx - 36 ? 'l' : B.x0 >= cx + 36 ? 'r' : '') : '';
+  const origin = (cls, B) =>
+    (cls === 'tq-body' || cls === 'tq-chest') ? [cx, H] :
+    (cls === 'tq-head' || cls === 'tq-hair' || cls === 'tq-hairfront' || cls === 'tq-hairback') ? [cx, ey] :
+    cls === 'tq-neck' ? [cx, ey + 50] :
+    (cls === 'tq-feat' || cls === 'tq-nose') ? [cx, ey + 10] : [B.cx, B.cy];
+
   const arms = {l:[], r:[]};
   const SKIP = /^(defs|style|title|desc|clippath|mask|pattern|lineargradient|radialgradient|filter)$/;
+  const hasRotOrFlip = el => /scale\(\s*-|rotate|matrix\(\s*-/.test(el.getAttribute('transform') || '');
+
   const walk = (P, depth) => {
     for(const el of [...P.children]){
       const tag = el.tagName.toLowerCase(), cl = el.getAttribute('class') || '';
       if(SKIP.test(tag)) continue;
-      if(/\b(x-neutral|x-happy|x-annoy|eyes2)\b/.test(cl)){ wrap(el, 'tq-feat', cx, ey + 10); continue; }   // miệng theo biểu cảm, mắt
+      if(/\bsua1_bui\b/.test(cl)){ wrap(el, 'tq-hairback', cx, ey); continue; }
+      if(/\btq-keep-body\b/.test(cl)){ wrap(el, 'tq-body', cx, H); continue; }
+      if(/\b(sua_mai|sua8_hoa|sua10_kep)\b/.test(cl)){ wrap(el, 'tq-hairfront', cx, ey); continue; }
+      if(/\bsua_hair\b/.test(cl)){
+        if(tag === 'g' && depth < 6 && el.children.length && !hasRotOrFlip(el)){ walk(el, depth + 1); continue; }
+        const isLine = (el.getAttribute('fill') === 'none') || /fill:\s*none/.test(el.getAttribute('style') || '');
+        wrap(el, isLine ? 'tq-hairfront' : 'tq-hair', cx, ey);
+        continue;
+      }
+      if(/\bsua10_duoi\b/.test(cl)){ wrap(el, 'tq-hairback', cx, ey); continue; }
+      if(/\b(x-neutral|x-happy|x-annoy|eyes2)\b/.test(cl)){ wrap(el, 'tq-feat', cx, ey + 10); continue; }
+
       const B = box(el);
       if(!B) continue;
-      // má hồng (ellipse tô gradient má) bên trái trục mặt: lớp riêng, không trượt theo nét mặt
-      // (cả nhóm <g> chỉ bọc một má hồng — diversify dời má theo khuôn mặt mới bằng một nhóm như thế)
+      // Bóng dưới chân nhân vật: giữ theo trục thân (.tq-body)
+      if((tag === 'use' && B.y0 > H - 45) || (tag === 'ellipse' && B.cy > H - 25)){ wrap(el, 'tq-body', cx, H); continue; }
+      // Má hồng phía xa
       const blushEl = x => x.tagName.toLowerCase() === 'ellipse' && /blush|Radial/.test(x.getAttribute('fill') || x.getAttribute('style') || '');
       const isBlush = blushEl(el) || (tag === 'g' && el.children.length === 1 && blushEl(el.children[0]));
       if(isBlush && B.cx < cx - 10 && B.cy > ey && B.cy < ey + 50){ wrap(el, 'tq-blushfar', B.x1, B.cy); continue; }
-      // mảng bóng mờ dưới cằm / trên cổ: đứng yên cùng cổ (trượt theo nét mặt là lòi ra cạnh cổ)
-      // độ mờ của phần tử (hoặc của phần tử con duy nhất, khi nó bọc trong một <g> dời toạ độ); hình vẽ tay ghi trong style
+      // Bóng mờ dưới cằm / trên cổ: đi theo cổ (.tq-neck)
       const one = tag === 'g' && el.children.length === 1 ? el.children[0] : el;
       const opOf = x => +(x.getAttribute('opacity') || 1) * +(((x.getAttribute('style') || '').match(/fill-opacity:([\d.]+)/) || [, 1])[1]);
-      if(opOf(el) * (one === el ? 1 : opOf(one)) < .3 && B.cy > ey + 28 && B.y1 < ey + 80) continue;
-      const cls = classify(B);
-      if(cls === 'tq-body'){
-        const side = armSide(B);
-        if(side){ arms[side].push([el, B]); continue; }
-        // nhóm dưới cằm có lẫn cánh tay: xét từng phần tử con để tách tay ra
-        if(tag === 'g' && depth < 5 && el.children.length && [...el.children].some(c => { const b = box(c); return b && armSide(b); })){ walk(el, depth + 1); continue; }
+      if(opOf(el) * (one === el ? 1 : opOf(one)) < .3 && B.cy > ey + 28 && B.y1 < ey + 82){ wrap(el, 'tq-neck', cx, ey + 50); continue; }
+
+      // Cánh tay (kể cả nhóm <g> bọc riêng 1 tay hoặc có clip-path trên 1 tay)
+      const side = armSide(B);
+      if(side){ arms[side].push([el, B]); continue; }
+
+      // Nhóm có clip-path ở thân áo (sọc phản quang, sọc áo khoác, gân áo len): giữ nguyên khối theo thân áo
+      if(el.hasAttribute('clip-path') && B.y0 >= ey + 50){ wrap(el, 'tq-body', cx, H); continue; }
+
+      // Nếu là nhóm <g> không xoay/lật và bao nhiều phần tử (hoặc chưa phân loại riêng được), đệ quy vào từng phần tử con
+      if(tag === 'g' && depth < 6 && el.children.length && !hasRotOrFlip(el) && !el.hasAttribute('clip-path')){
+        const clsG = classify(el, B);
+        if(!clsG || clsG === 'tq-body' || clsG === 'tq-hair' || (clsG === 'tq-chest' && [...el.children].some(c => { const b = box(c); return b && (armSide(b) || b.w > 88); }))){
+          walk(el, depth + 1);
+          continue;
+        }
       }
-      // nhóm nét mặt có lẫn mảng bóng mờ dưới cằm (hình vẽ tay): xét từng con để mảng bóng đứng yên
-      if(cls === 'tq-feat' && tag === 'g' && depth < 5 && [...el.querySelectorAll('path')].some(x => /fill-opacity:0?\.[0-2]/.test(x.getAttribute('style') || ''))){ walk(el, depth + 1); continue; }
+
+      const cls = classify(el, B);
       if(cls){ wrap(el, cls, ...origin(cls, B)); continue; }
-      if(tag === 'g' && depth < 5 && el.children.length) walk(el, depth + 1);   // nhóm lẫn nhiều lớp: xét từng phần tử con
+      if(tag === 'g' && depth < 6 && el.children.length && !hasRotOrFlip(el)) walk(el, depth + 1);
     }
   };
   walk(svg, 0);
-  // bọc tay: lớp trong đánh quanh vai (đỉnh khung bao chung của cả cánh tay), lớp ngoài ép hẹp cùng thân
+
   for(const side of ['l', 'r']){
     if(!arms[side].length) continue;
     const u = arms[side].reduce((a, [, B]) => ({x0:Math.min(a.x0, B.x0), y0:Math.min(a.y0, B.y0), x1:Math.max(a.x1, B.x1)}), {x0:1e9, y0:1e9, x1:-1e9});
-    const sx = side === 'l' ? u.x1 - 8 : u.x0 + 8, sy = u.y0 + 6;   // khớp vai: phía trong, sát đỉnh tay áo
+    const sx = side === 'l' ? u.x1 - 8 : u.x0 + 8, sy = u.y0 + 6;
     for(const [el] of arms[side]){ wrap(el, 'tq-arm' + side, sx, sy); wrap(el.parentNode, 'tq-body', cx, H); }
   }
   svg.removeAttribute('style');
@@ -124,17 +160,11 @@ function xoayBuild(svgStr){
   return out;
 }
 
-const xoayMemo = {};
-const XOAY_HOLDS = {'0:0':1};
-// hình 3/4 của khách i (0..9, như custSVG), biểu cảm exp, skin k — cùng vóc (dangNguoi) với hình thẳng
+const turnMemo = {};
 function custTurnSVG(i, exp, k){
   k = k || 0;
   const key = i + ':' + k;
-  if(!xoayMemo[key]){
-    let built = xoayBuild(custArt(i, k));
-    // khách đang ôm đồ trước ngực bằng hai tay (Bà Tư cổ điển ôm bánh mì): tay chỉ đung đưa khẽ (.holds trong style.css)
-    if(XOAY_HOLDS[i + ':' + k]) built = built.replace('class="charsvg turn"', 'class="charsvg turn holds"');
-    xoayMemo[key] = typeof dangNguoi === 'function' ? dangNguoi(built, i + 1) : built;
-  }
-  return xoayMemo[key].replace('data-exp="neutral"', 'data-exp="' + exp + '"');
+  const art = turnMemo[key] || (turnMemo[key] = xoayBuild(custSVG(i, 'neutral', k)));
+  return (i === 0 && k === 0 ? art.replace('charsvg turn', 'charsvg turn holds') : art)
+    .replace('data-exp="neutral"', 'data-exp="' + exp + '"');
 }

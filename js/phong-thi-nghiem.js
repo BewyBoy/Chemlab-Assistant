@@ -2228,7 +2228,10 @@ function nextCustomer(){
   sp.classList.add('hush');                       // bóng thoại trống và ẩn cho tới khi khách đứng yên trước khay, nhìn thẳng
   custSay('', true);
   // mỗi lượt ghé một bộ đồ (nhan-vat-skin.js): đổi theo ngày và lượt khách, chơi lại đúng ngày thì vẫn y như cũ
-  const skin = custSkinFor(lab.i, lab.oi, od.who), tall = s => s.replace('<svg ', '<svg style="height:250px" ');
+  const skin = custSkinFor(lab.i, lab.oi, od.who), tall = s => {
+    const vb = s.match(/viewBox="[^"]*?(\d+(?:\.\d+)?)"/), h = vb && +vb[1] > 320 ? Math.round(250 * +vb[1] / 280) : 250;
+    return s.replace('<svg ', '<svg style="height:' + h + 'px" ');
+  };
   // WALK_VIEW '3/4': hình thẳng đã bọc lớp (nhan-vat-xoay.js: đi vào ở dáng 3/4, tới khay thì quay mặt thẳng) + hình
   // nghiêng hẳn (nhan-vat-nghieng.js: lúc đi ra). 'nghieng': hình thẳng thường + hình nghiêng hẳn cho cả lúc vào lẫn ra.
   cw.innerHTML = '<div class="cwin">' + tall(WALK_VIEW === '3/4' && typeof custTurnSVG === 'function'

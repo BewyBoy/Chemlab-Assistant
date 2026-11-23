@@ -42,7 +42,7 @@ var BASE = { x0:72, x1:168, top:54, chin:168, eyeCy:106, eyeDX:21, cheekY:130 };
 var FACE_META = {
   square : {x0:71, x1:169, top:54, chin:167},
   oval   : {x0:73, x1:167, top:54, chin:166},
-  chubby : {x0:70, x1:170, top:54, chin:168},
+  chubby : {x0:72, x1:168, top:54, chin:168},
   small  : {x0:75, x1:165, top:66, chin:169},   // Bạn Tí: hạ cả đầu xuống, trước cổ dài quá so với thân
   heart  : {x0:72, x1:168, top:52, chin:166},
   long   : {x0:75, x1:165, top:51, chin:170},
@@ -57,7 +57,7 @@ var FACE_META = {
 var JAW = {
   square : 'q6,36 -6,56 q-12,14 -42,14 q-30,0 -42,-14 q-12,-20 -6,-56',
   oval   : 'q3,32 -14,52 q-13,18 -34,18 q-21,0 -34,-18 q-17,-20 -14,-52',
-  chubby : 'q8,32 -6,54 q-14,20 -42,20 q-28,0 -42,-20 q-14,-22 -6,-54',
+  chubby : 'q4,34 -12,54 q-14,18 -36,18 q-22,0 -36,-18 q-16,-20 -12,-54',
   small  : 'q4,30 -10,50 q-13,16 -38,16 q-25,0 -38,-16 q-14,-20 -10,-50',
   heart  : 'q4,30 -18,52 q-16,20 -30,22 q-14,-2 -30,-22 q-22,-22 -18,-52',
   long   : 'q4,38 -12,58 q-13,18 -36,18 q-23,0 -36,-18 q-16,-20 -12,-58',
@@ -77,12 +77,13 @@ var NOSE = {
 
 /* ---------- long may (ve 1 ben, ben kia lat guong quanh x=120) ---------- */
 var BROW = {
-  thick : 'M78,87 q19,-6 35,-1 q-2,7 -17,6 q-13,-1 -18,-5z',
-  thin  : 'M82,86 q18,-10 32,-3 q-3,5 -15,3 q-11,-1 -17,0z',
-  bushy : 'M78,88 q18,-9 34,-2 q-3,8 -17,7 q-13,-2 -17,-5z',
-  kid   : 'M87,90 q13,-7 25,-2 q-2,4 -12,4 q-8,-1 -13,-2z',
-  arch  : 'M82,82 q18,-10 32,-2 q-3,6 -15,4 q-11,-2 -17,-2z',
-  flatb : 'M78,85 q19,-4 36,0 q-2,6 -18,6 q-13,0 -18,-6z'
+  thick : 'M75,83 l39,3 l-2,7 l-38,-4z',
+  thin  : 'M81,84 q16,-4 33,-1 q-2,4 -16,3 q-11,-1 -17,-2z',
+  bushy : 'M76,89 q6,-11 19,-10 l3,-4 q10,3 17,9 q-4,5 -18,4 q-13,-1 -21,1z',
+  kid   : 'M85,87 q9,-9 26,-5 l-2,6 q-11,-3 -24,-1z',
+  arch  : 'M79,88 q12,-15 35,-6 q-4,4 -16,-1 q-11,-2 -19,7z',
+  flatb : 'M77,85 l25,-6 l13,5 l-3,4 l-11,-3 l-23,4z',
+  crescentb: 'M82,86 q16,-12 32,0 q-3,3 -16,-4 q-13,1 -16,4z'
 };
 function brows(kind){
   var d = BROW[kind] || BROW.thick;
@@ -128,13 +129,13 @@ function eyes(idE, o){
 /* ---------- quan ao: lop phu tren than (co ao / khuy / ca vat / tap de) ---------- */
 var GARMENT = {
   crew: function(){                                   // co tron, ao thun
-    return '<path d="M96,180 q24,16 48,0" fill="none" stroke="#3b3025" stroke-width="3" stroke-linecap="round"/>';
+    return '<path d="M97,177 q23,13 46,0 l3,6 q-26,16 -52,0z" fill="#3b3025" fill-opacity=".14" stroke="#3b3025" stroke-width="1.6" stroke-linejoin="round"/>';
   },
   vneck: function(c){
-    return '<path d="M98,178 L120,212 L142,178 q-22,12 -44,0z" fill="'+(c||'#f3eddc')+'" stroke="#3b3025" stroke-width="3" stroke-linejoin="round"/>';
+    return '<path d="M98,178 L120,212 L142,178 q-22,12 -44,0z" fill="'+(c||'#f3eddc')+'" stroke="#3b3025" stroke-width="1.6" stroke-linejoin="round"/>';
   },
   lapel: function(c){                                 // ao so mi co be
-    return '<g stroke="#3b3025" stroke-width="3" stroke-linejoin="round">'
+    return '<g stroke="#3b3025" stroke-width="1.6" stroke-linejoin="round">'
          + '<path d="M100,180 l20,20 l-14,14 q-16,-8 -18,-22z" fill="'+(c||'#f3eddc')+'"/>'
          + '<path d="M140,180 l-20,20 l14,14 q16,-8 18,-22z" fill="'+(c||'#f3eddc')+'"/></g>';
   },
@@ -143,15 +144,15 @@ var GARMENT = {
          + '<g fill="#3b3025" opacity=".55"><circle cx="120" cy="224" r="3"/><circle cx="120" cy="248" r="3"/></g>';
   },
   openShirt: function(c){                             // ao ba lo / so mi mo cuc
-    return '<g stroke="#3b3025" stroke-width="3" stroke-linejoin="round">'
+    return '<g stroke="#3b3025" stroke-width="1.6" stroke-linejoin="round">'
          + '<path d="M98,176 q22,26 44,0 q-8,26 -22,30 q-14,-4 -22,-30z" fill="'+(c||'#efe6d2')+'"/></g>';
   },
   apron: function(c){                                 // tap de: bo goc tron, day thap, quai vat qua vai
-    return '<g stroke="#3b3025" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">'
+    return '<g stroke="#3b3025" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">'
          + '<path d="M101,200 Q103,186 108,177 M139,200 Q137,186 132,177" fill="none" stroke="'+(c||'#e0a458')+'" stroke-width="7"/>'
          + '<path d="M101,200 Q103,186 108,177 M139,200 Q137,186 132,177" fill="none" stroke-width="1.6" opacity=".6"/>'
          + '<path d="M98,200 q22,-7 44,0 q6,30 2,52 q-24,9 -48,0 q-4,-22 2,-52z" fill="'+(c||'#e0a458')+'"/>'
-         + '<path d="M104,232 h32" fill="none" stroke-width="2.2" opacity=".45"/></g>';
+         + '<path d="M132,200 q6,0 10,0 q6,30 2,52 q-6,3 -12,4 q3,-24 0,-56z" fill="#3b3025" fill-opacity=".1" stroke="none"/><path d="M105,224 h30 v17 q-15,5 -30,0z" fill="#3b3025" fill-opacity=".12" stroke="#3b3025" stroke-width="1.4"/></g>';
   }
 };
 
@@ -332,7 +333,7 @@ var SPECS = {
             'Ê ê, cái cốc kia sủi bọt kìa, ngầu ghê!'] },
 
  7: { hd:8, name:'Chị Hoa', earOut:-1, job:'tiệm vàng bạc',
-      face:'heart', nose:'slim',
+      face:'heart', nose:'slim', brow:'arch',
       eyes:{dx:21, rx:10.5, ry:7.2, pr:3.5, lash:1, po:2.2, tilt:4},
       garment:['vneck','#efe3d2'],
       // trau cai hoa trong sprite goc dat de len long may trai -> dua len toc
@@ -352,7 +353,7 @@ var SPECS = {
             'Thầy chờ. Sai thì thầy giảng lại, không mắng đâu.'] },
 
  9: { hd:10, name:'Cô Mai', earOut:6, job:'quán chè',
-      face:'wide', nose:'round', brow:'thin',
+      face:'wide', nose:'round', brow:'crescentb',
       eyes:{crescent:1, rx:11, ry:8},
       garment:['apron','#e0a458'],
       trait:'Xởi lởi, nhiệt tình. Gặp ai cũng mời ăn chè.',

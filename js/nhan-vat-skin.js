@@ -155,20 +155,22 @@ function custArt(i, k){
 /* DÁNG NGƯỜI — mỗi khách một vóc: [rộng, cao] nhân lên cả hình, neo ở giữa đáy (chân đứng yên). Trẻ con nhỏ hẳn,
    Anh Minh to ngang, Ông Sáu thấp đậm, Thầy Nam cao, Chị Hoa mảnh… Dùng chung cho hình thẳng (custSVG) và hình
    nghiêng (custSideSVG) nên hai hình vẫn khớp nhau. custHead (ảnh đầu cắt theo HD_HEADS) không áp. */
-const DANG = {1:[0.98, 0.92], 2:[0.95, 1], 3:[0.9, 0.9], 4:[1.07, 1.02], 5:[0.94, 0.99], 6:[1.04, 0.94], 7:[0.88, 0.88], 8:[0.92, 1.02], 9:[0.98, 1.05], 10:[0.94, 0.95]};
+const DANG = {1:[0.98, 0.92], 2:[0.95, 1], 3:[0.9, 0.9], 4:[1.07, 1.02], 5:[0.94, 0.99], 6:[0.98, 0.96], 7:[0.88, 0.88], 8:[0.92, 1.02], 9:[0.98, 1.05], 10:[0.94, 0.95]};
 function dangNguoi(svg, hd){
-  const d = DANG[hd], vb = svg.match(/viewBox="0 0 (\d+) (\d+)"/);
+  const d = DANG[hd], vb = svg.match(/viewBox="(-?\d+) 0 (\d+) (\d+)"/);
   if(!d || !vb) return svg;
-  const cx = +vb[1] === 280 ? 156 : 120, H = +vb[2];
+  const x0 = +vb[1], W = +vb[2], H = +vb[3];
+  const cx = (W === 280 && x0 === 0) ? 156 : (x0 === 18 ? 160 : 120);
+  const ha = Math.min(H, 280);
   return svg.replace(/(<svg[^>]*>)([\s\S]*)(<\/svg>)/, (m, a, b, c) =>
-    `${a}<g transform="translate(${(cx*(1 - d[0])).toFixed(2)},${(H*(1 - d[1])).toFixed(2)}) scale(${d[0]},${d[1]})">${b}</g>${c}`);
+    `${a}<g transform="translate(${(cx*(1 - d[0])).toFixed(2)},${(ha*(1 - d[1])).toFixed(2)}) scale(${d[0]},${d[1]})">${b}</g>${c}`);
 }
 const custDangMemo = {};
 function custSVG(i, exp, k){
   const key = i + ':' + (k || 0), art = custDangMemo[key] || (custDangMemo[key] = dangNguoi(custArt(i, k), i + 1));
   return art.replace('data-exp="neutral"', 'data-exp="' + exp + '"');
 }
-function custHead(i, k){ return custArt(i, k).replace(/viewBox="[^"]+"/, 'viewBox="' + HD_HEADS[i + 1] + '"'); }
+function custHead(i, k){ return custArt(i, k).replace(' overflow="visible"', '').replace('<svg ', '<svg style="overflow:hidden" ').replace(/viewBox="[^"]+"/, 'viewBox="' + HD_HEADS[i + 1] + '"'); }
 const profMemo = {};
 function profSVG(exp, k){
   k = k || 0;

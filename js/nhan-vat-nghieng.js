@@ -2,24 +2,8 @@
    NHÂN VẬT NHÌN NGHIÊNG — dáng đi từ phải sang trái (mặt quay sang trái)
    Nạp SAU js/nhan-vat-skin.js (dùng EYE_STYLE, eyeDims, EYE_INK, HD_CHARS, dangNguoi).
 
-   Mỗi khách vẽ tay riêng: dáng đầu nghiêng (trán, mũi, môi, cằm, quai hàm), tóc, mũ, kính, râu, đồ nhận diện —
-   theo đúng hình nhìn thẳng của người đó và theo từng skin (0 cổ điển, 1, 2 trong js/trang-phuc.js).
-
-   TOẠ ĐỘ — vẽ thẳng trong viewBox của hình nhìn thẳng (khách 1..3: 280x280, khách 4..10: 200x280):
-     · "hệ đầu": gốc (cx, ey) = trung điểm hai mắt của hình thẳng (đo trong trình duyệt), x âm = phía trước mặt.
-       Đầu nghiêng nằm đúng chỗ mặt hình thẳng, cùng cỡ — lúc khách dừng, đổi sang hình thẳng không bị giật.
-     · "hệ thân": gốc (cx + ox, nb) = chân cổ. Bàn che mọi thứ dưới y ≈ 216–226 nên chỉ thấy đầu, vai, ngực trên:
-       đồ nhận diện (khăn quàng, yếm, dây đeo, cà vạt…) đặt trong dải y thân −14..35.
-
-   CỬ ĐỘNG (CSS trong style.css, khối .custwalk): các nhóm khớp có lớp
-     sd-arm / sd-fore  — tay gần: cánh tay đánh từ vai, cẳng tay gập ở khuỷu (đưa ra trước thì bàn tay nhô lên khỏi bàn),
-     sd-far / sd-forefar — tay xa sau lưng, ngược nhịp,  sd-hold — tay ôm bánh mì (Bà Tư cổ điển), đánh khẽ,
-     sd-head — đầu gật bù nhịp nhún,  sd-sway — tóc đuôi ngựa / tóc dài / ba lô đung đưa trễ nhịp.
-   Mỗi nhóm khớp chứa một hình chữ nhật vô hình TÂM ĐÚNG KHỚP (sdBB) nên với transform-box:fill-box,
-   transform-origin:50% 50% chính là khớp — dùng được cho cả hai cỡ viewBox và mọi tỉ lệ dangNguoi.
-
-   Biểu cảm dùng chung CSS với hình thẳng: x-neutral / x-happy / x-annoy (miệng), .eyes2 (một mắt, bản soi gương
-   mắt phải của dotEyes), lông mày .brw .brw-r.
+   Mỗi khách vẽ tay riêng: dáng đầu nghiêng (trán, mũi nhỏ gọn đơn giản, cằm, quai hàm ngắn gọn nối êm vào cổ),
+   cổ vừa khít miệng cổ áo, tóc, mũ, kính, đồ nhận diện — khớp với hình nhìn thẳng và từng skin (0, 1, 2).
    ===================================================================== */
 'use strict';
 
@@ -28,42 +12,41 @@ const SD_DARK = ['#4a4038', '#37302a', '#2a2420'], SD_GREY = ['#eceae2', '#c3c2b
 const sdF = v => +(+v).toFixed(1);
 const sdG = (inner, w) => `<g stroke="${SD_INK}" stroke-width="${w || 3}" stroke-linejoin="round" stroke-linecap="round">${inner}</g>`;
 const sdLn = (d, c, w, op) => `<path d="${d}" fill="none" stroke="${c || SD_INK}" stroke-width="${w || 2}" stroke-linecap="round" stroke-linejoin="round"${op ? ` opacity="${op}"` : ''}/>`;
-// khung vô hình tâm (0,0): giữ tâm hộp bao của nhóm khớp đúng ở khớp
 const sdBB = R => `<rect x="${-R}" y="${-R}" width="${2*R}" height="${2*R}" fill="none" stroke="none"/>`;
-// nhóm khớp: đặt ở (x, y), lớp cls cử động quanh (x, y); inner vẽ quanh gốc (0,0)
 const sdPiv = (x, y, cls, R, inner) => `<g transform="translate(${sdF(x)},${sdF(y)})"><g class="${cls}">${sdBB(R)}${inner}</g></g>`;
 const sdLin = (id, c, x2, y2) => `<linearGradient id="${id}" x1="0" y1="0" x2="${x2 == null ? 0 : x2}" y2="${y2 == null ? 1 : y2}">${c.map((s, n) => `<stop offset="${sdF(n/(c.length - 1))}" stop-color="${s}"/>`).join('')}</linearGradient>`;
 
-/* ---------- dáng đầu nghiêng ----------
-   h: top (đỉnh sọ), back (gáy sau), nape (chân gáy), fx (trán ngang lông mày), fs (trán ngả ra sau),
-      n: mũi {tx,ty: chóp; r: độ tròn chóp; bx,by: chân mũi; hump: sống mũi gồ (+) / lõm (−)},
-      lu, ll: môi trên / môi dưới (x), my: khoé miệng (y), ch: cằm [x,y], jaw: góc hàm [x,y]
-   close = false: chỉ nét viền (bỏ đoạn đáy từ góc hàm về gáy — chỗ đó cổ đi ra). */
-function sdHeadD(h, close){
-  const {top:T, back:B, nape:N, fx:F, n, lu, ll, my, ch, jaw} = h, fs = h.fs || 5, r = n.r;
-  const d = `M${B - 3},${N}`
-    + ` C${B + 4},${N - 26} ${B + 5},${T + 10} ${sdF(B*0.3)},${T}`
-    + ` C${sdF(F*0.45)},${T} ${F + fs},${sdF(T*0.6)} ${F},-17`
-    + ` C${F - 1.5},-13 ${F - 1},-9 ${F + 1.5},-6`
-    + ` C${F + 2},${sdF(n.ty*0.3)} ${n.tx + (n.hump || 0) + 3},${n.ty - 13} ${n.tx},${n.ty - r}`
-    + ` C${sdF(n.tx - r*0.8)},${n.ty} ${sdF(n.tx + r*0.2)},${sdF(n.ty + r)} ${sdF(n.tx + r*1.4)},${sdF(n.ty + r*0.8)}`
-    + ` C${n.bx - 6},${n.by + 1} ${n.bx - 2},${n.by} ${n.bx},${n.by}`
-    + ` C${n.bx + 1},${n.by + 4} ${lu},${my - 8} ${lu},${my - 3}`
-    + ` C${lu},${my - 1} ${lu + 2},${my} ${lu + 3},${my}`
-    + ` C${ll},${my + 1} ${ll - 0.5},${my + 6} ${ll + 2},${my + 8}`
-    + ` C${ll + 4},${my + 10} ${ch[0] - 1},${ch[1] - 12} ${sdF(ch[0] - 1.5)},${ch[1] - 6}`
-    + ` C${ch[0] - 2},${ch[1]} ${ch[0] + 4},${ch[1] + 3} ${ch[0] + 10},${ch[1] + 3}`
-    + ` C${sdF((ch[0] + jaw[0])/2)},${ch[1] + (h.square ? 3 : 2)} ${jaw[0] - (h.square ? 4 : 10)},${jaw[1] + 4} ${jaw[0]},${jaw[1]}`;
-  return close ? d + ' Z' : d;
+function sdHeadD(h, close, bald){
+  const {top:T, back:B, nape:N, fx:F, n, ch, jaw} = h, fs = h.fs || 5, r = n.r || 3.2;
+  const nbk = h.nbk != null ? h.nbk : 22;
+  const ntx = Math.max(n.tx, F - 10);
+  if(bald){
+    const d = `M${nbk},${N}`
+      + ` C${B - 4},${N - 6} ${B + 4},${N - 26} ${B + 2},${sdF(T*0.42)}`
+      + ` C${B},${T + 8} ${sdF(B*0.28)},${T} ${sdF(F*0.35)},${T}`
+      + ` C${F + fs},${T} ${F + 1},${sdF(T*0.48)} ${F},-10`
+      + ` C${F},-4 ${F},1 ${F},4`
+      + ` Q${ntx},${n.ty - r*0.6} ${ntx},${n.ty}`
+      + ` Q${ntx},${n.ty + r*0.8} ${n.bx},${n.by}`
+      + ` C${n.bx + 1},${sdF((n.by + ch[1])*0.46)} ${ch[0] - 2},${ch[1] - 10} ${ch[0]},${ch[1] - 2}`
+      + ` C${ch[0] + 2},${ch[1] + 2} ${ch[0] + 10},${ch[1] + 3} ${sdF((ch[0] + jaw[0])*0.5)},${sdF((ch[1] + jaw[1])*0.5 + 1.5)}`
+      + ` Q${jaw[0] - 3},${jaw[1] + 1} ${jaw[0]},${jaw[1]}`;
+    return close ? d + ' Z' : d;
+  }
+  const backFill = `M${nbk},${N} C${nbk + 4},${N - 10} ${B - 10},${N - 24} ${B - 10},-34 C${B - 12},${T + 16} ${F + 18},${T + 16} ${F + 3},-26`;
+  const faceStroke = `${close ? backFill : `M${F + 2},-26`}`
+    + ` C${F + 1},-20 ${F},-14 ${F},-10`
+    + ` C${F},-4 ${F},1 ${F},4`
+    + ` Q${ntx},${n.ty - r*0.6} ${ntx},${n.ty}`
+    + ` Q${ntx},${n.ty + r*0.8} ${n.bx},${n.by}`
+    + ` C${n.bx + 1},${sdF((n.by + ch[1])*0.46)} ${ch[0] - 2},${ch[1] - 10} ${ch[0]},${ch[1] - 2}`
+    + ` C${ch[0] + 2},${ch[1] + 2} ${ch[0] + 10},${ch[1] + 3} ${sdF((ch[0] + jaw[0])*0.5)},${sdF((ch[1] + jaw[1])*0.5 + 1.5)}`
+    + ` Q${jaw[0] - 3},${jaw[1] + 1} ${jaw[0]},${jaw[1]}`;
+  return close ? faceStroke + ' Z' : faceStroke;
 }
-// cánh mũi (nét cong sau chóp mũi) — w: bè ngang
-const sdAla = (n, w) => sdLn(`M${n.bx + 1},${n.by - 1} c${sdF(4*w)},0 ${sdF(5*w)},-7 ${sdF(w)},-${sdF(8 + 2*w)}`, SD_INK, 2.2, '.8');
-// tai: (x, y) mép trước giữa tai
-const sdEar = (x, y, S) => sdG(`<path d="M${x - 3},${y - 12} C${x + 8},${y - 18} ${x + 16},${y - 6} ${x + 13},${y + 6} C${x + 11},${y + 14} ${x + 3},${y + 18} ${x - 2},${y + 13} Z" fill="${S}"/>`
-  + `<path d="M${x + 2},${y - 6} c5,-2 8,3 6,8 c-1,3 -4,4 -6,2" fill="none" stroke-width="2"/>`, 2.8);
+const sdEar = (x, y, S) => sdG(`<path d="M${x - 3},${y - 11} C${x + 7},${y - 16} ${x + 15},${y - 5} ${x + 12},${y + 6} C${x + 10},${y + 13} ${x + 3},${y + 17} ${x - 2},${y + 12} Z" fill="${S}"/>`
+  + `<path d="M${x + 2},${y - 5} c4,-2 7,3 5,7 c-1,3 -3.5,4 -5,2" fill="none" stroke-width="1.9"/>`, 2.8);
 
-/* một con mắt nhìn nghiêng: soi gương mắt PHẢI của dotEyes (s = −1): đuôi mắt hướng ra sau (phải), đầu mắt phía mũi.
-   bực = mí sụp chéo, thấp dần về phía trước mặt; vui = vòng cung; người "mắt cười" (eo-smiley) vui thì nhắm tít. */
 function sdEye(hd, x, y, lid){
   const st = (typeof EYE_STYLE !== 'undefined' && EYE_STYLE[hd]) || {r:3.8, k:1}, r = st.r, f = sdF;
   const {rx, ry} = typeof eyeDims === 'function' ? eyeDims(r, st.k) : {rx:r*0.85, ry:r*1.4*st.k}, ink = typeof EYE_INK !== 'undefined' ? EYE_INK : '#1f1812';
@@ -72,7 +55,7 @@ function sdEye(hd, x, y, lid){
     + `<path d="M${f(xo)},${f(yo)} L${f(xi)},${f(yi)}" fill="none" stroke="${ink}" stroke-width="2.6" stroke-linecap="round"/>`;
   const laugh = `<path d="M${f(x - s*(r + 1))},${f(y - 4.5)} L${f(x + s*r)},${f(y)} L${f(x - s*(r + 1))},${f(y + 4.5)}" fill="none" stroke="${ink}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`;
   const lash = [];
-  const lm = (dx, dy) => ` class="eo-lash" style="--lx:${f(dx)}px;--ly:${f(dy)}px"`;   // lông mi bám mí khi chớp (style.css)
+  const lm = (dx, dy) => ` class="eo-lash" style="--lx:${f(dx)}px;--ly:${f(dy)}px"`;
   if(st.lash) lash.push(`<path${lm(-s*0.55*rx, 0.74*ry)} d="M${f(x - s*(rx + 0.5))},${f(y - ry*0.5)} l${f(-s*4.5)},-4" fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round"/>`);
   if(st.lash > 1) lash.push(`<path${lm(-s*0.22*rx, 1.24*ry + 0.5)} d="M${f(x - s*rx*0.4)},${f(y - ry - 0.5)} l${f(-s*3)},-4.5" fill="none" stroke="${ink}" stroke-width="1.8" stroke-linecap="round"/>`);
   if(st.crease) lash.push(`<path d="M${f(x - s*(rx + 3))},${f(y + 1)} l${f(-s*4)},2 M${f(x - s*(rx + 3))},${f(y + 3.5)} l${f(-s*3.5)},3" fill="none" stroke="${SD_INK}" stroke-width="1.5" stroke-linecap="round" opacity=".7"/>`);
@@ -82,459 +65,471 @@ function sdEye(hd, x, y, lid){
   return `<g class="eyes2${st.smiley ? ' eo-smiley' : ''}"><g class="eo-open">${open}</g><g class="eo-glare">${glare}</g>`
     + `<g class="eo-arc">${arc}</g>${st.smiley ? `<g class="eo-laugh">${laugh}</g>` : ''}</g>`;
 }
-// lông mày (hướng trái = trước mặt): x0 đầu trước, w dài, t dày, y
 const sdBrow = (x0, y, w, t, arch) => `<path class="brw brw-r" d="M${x0},${y + 1} C${sdF(x0 + w*0.25)},${sdF(y - t - (arch || 1))} ${sdF(x0 + w*0.7)},${sdF(y - t - (arch || 1))} ${x0 + w},${y} C${sdF(x0 + w*0.7)},${sdF(y - t*0.35)} ${sdF(x0 + w*0.3)},${sdF(y - t*0.3)} ${x0},${y + 1} Z" fill="${SD_INK}" stroke="${SD_INK}" stroke-width="1" stroke-linejoin="round"/>`;
-// miệng theo biểu cảm, đặt ở khoé môi (x, y) trên viền mặt
-const sdMouth = (x, y) => `<g class="x-neutral">${sdLn(`M${x - 1},${y} q4,1.6 8,0`, SD_INK, 2.4)}</g>`
-  + `<g class="x-happy"><path d="M${x - 2},${y - 1.5} C${x - 1},${y + 6} ${x + 8},${y + 6} ${x + 10},${y - 2} Q${x + 4},${y + 0.5} ${x - 2},${y - 1.5} Z" fill="#a04a3c" stroke="${SD_INK}" stroke-width="2" stroke-linejoin="round"/></g>`
-  + `<g class="x-annoy">${sdLn(`M${x - 1},${y + 2} q4,-3.6 9,-0.6`, SD_INK, 2.4)}</g>`;
-// dấu bực đỏ cạnh thái dương (chỉ hiện lúc bực)
+const sdMouth = (x, y) => `<g class="x-neutral">${sdLn(`M${x},${y} q4.5,1.8 9,-0.4`, SD_INK, 2.4)}</g>`
+  + `<g class="x-happy"><path d="M${x - 1},${y - 1.5} C${x},${y + 6} ${x + 9},${y + 6} ${x + 11},${y - 2} Q${x + 5},${y + 0.5} ${x - 1},${y - 1.5} Z" fill="#a04a3c" stroke="${SD_INK}" stroke-width="2" stroke-linejoin="round"/></g>`
+  + `<g class="x-annoy">${sdLn(`M${x},${y + 2} q4.5,-3.6 9,-0.6`, SD_INK, 2.4)}</g>`;
 const sdVex = (x, y) => `<g class="x-annoy">${sdLn(`M${x},${y} l5,-9 l5,9 M${x + 12},${y + 6} l5,-9`, '#d9634f', 2.4)}</g>`;
 
-/* ---------- thân ----------
-   torso: thân nghiêng bề dày 2a (ngực trước x −a, lưng x +a), gốc ở chân cổ; bust: ngực nhô; hunch: lưng gù */
-function sdTorsoD(a, bust, hunch){
+/* ---------- thân ---------- */
+function sdTorsoD(a, bust, hunch, tall){
   bust = bust || 0; hunch = hunch || 0;
-  return `M-16,-6 C${sdF(-a*0.6)},-4 ${sdF(-a*0.97 - bust)},8 ${sdF(-a - bust*0.6)},30`
+  if(tall){
+    return `M-15,-7 C${sdF(-a*0.58)},-4 ${sdF(-a*0.97 - bust)},12 ${sdF(-a - bust*0.6)},42`
+      + ` C${sdF(-a*1.02)},78 ${sdF(-a*0.92)},136 ${sdF(-a*0.95)},216 L${sdF(a*0.90)},216`
+      + ` C${sdF(a*0.92)},136 ${sdF(a*1.04 + hunch*0.5)},58 ${sdF(a*0.95 + hunch)},20`
+      + ` C${sdF(a*0.84 + hunch)},-4 ${sdF(a*0.42)},${-12 - hunch*0.5} 17,-13 Z`;
+  }
+  return `M-14,-7 C${sdF(-a*0.58)},-4 ${sdF(-a*0.97 - bust)},8 ${sdF(-a - bust*0.6)},30`
     + ` C${sdF(-a*1.02)},52 ${sdF(-a*0.98)},84 ${sdF(-a*0.97)},130 L${sdF(a*0.92)},130`
     + ` C${sdF(a*0.96)},84 ${sdF(a*1.04 + hunch*0.5)},40 ${sdF(a*0.95 + hunch)},14`
-    + ` C${sdF(a*0.84 + hunch)},-4 ${sdF(a*0.45)},${-13 - hunch*0.5} 18,-14 Z`;
+    + ` C${sdF(a*0.84 + hunch)},-4 ${sdF(a*0.42)},${-12 - hunch*0.5} 16,-13 Z`;
 }
-// cánh tay (gốc = khớp vai, buông thẳng xuống): ống tay trên dài 42, cẳng tay 34 + bàn tay
-const SD_L1 = 40, SD_L2 = 34;
-function sdUpper(fill, add){
-  return sdG(`<path d="M-16,4 C-18,-19 18,-19 16,4 L12,${SD_L1} Q0,${SD_L1 + 7} -12,${SD_L1} Z" fill="${fill}"/>`, 3) + (add || '');
-}
-function sdFore(fill, skin, add, cuff){
-  const L = SD_L2;
-  return sdG(`<path d="M-11.5,-8 L11.5,-8 L10,${L - 8} Q0,${L - 4} -10,${L - 8} Z" fill="${fill}"/>`, 3)
-    + (cuff ? sdG(`<path d="M-10.5,${L - 14} L10.5,${L - 14} L10,${L - 8} Q0,${L - 4} -10,${L - 8} Z" fill="${cuff}"/>`, 2.4) : '')
+const SD_L1 = 40, SD_L2 = 34, SD_TL1 = 102, SD_TL2 = 84;
+function sdUpper(fill, add, tall){
+  if(tall){
+    const L1 = SD_TL1;
+    return `<g stroke="${SD_INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">`
+      + `<path d="M-19,4 C-20,-20 20,-20 19,4 L14,${L1} Q0,${L1 + 7} -14,${L1} Z" fill="${fill}" stroke="none"/>`
+      + `<path d="M6,-14 C15,-12 18,-2 16,10 L12.5,${L1 - 2} L5,${L1 + 3} C7,34 6.5,-2 6,-14 Z" fill="${SD_INK}" opacity=".09" stroke="none"/>`
+      + (add || '')
+      + `<path d="M-14,${L1 - 2} L-19,4 C-20,-20 20,-20 19,4 L14,${L1 - 2}" fill="none"/>`
+      + `<path d="M-11,${L1 - 4} Q-3,${L1 + 1} 4,${L1 - 3}" fill="none" stroke-width="1.6" opacity=".45"/>`
+      + `</g>`;
+  }
+  return `<g stroke="${SD_INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">`
+    + `<path d="M-14,2 C-15,-16 15,-16 14,2 L10.5,${SD_L1} Q0,${SD_L1 + 5} -10.5,${SD_L1} Z" fill="${fill}" stroke="none"/>`
+    + `<path d="M4,-12 C11,-10 13.5,-2 12,6 L9.2,${SD_L1 - 1} L4,${SD_L1 + 2} C5.5,16 5,-2 4,-12 Z" fill="${SD_INK}" opacity=".09" stroke="none"/>`
     + (add || '')
-    + sdG(`<path d="M-8,${L - 8} C-11,${L + 4} -5,${L + 11} 1,${L + 10} C8,${L + 9} 10,${L} 8,${L - 8} Z" fill="${skin}"/>`
-      + `<path d="M-8,${L - 3} q-6,2 -4,8 q2,2 5,-1" fill="${skin}"/>`, 2.6);
+    + `<path d="M-10.5,${SD_L1 - 2} L-14,2 C-15,-16 15,-16 14,2 L10.5,${SD_L1 - 2}" fill="none"/>`
+    + `<path d="M-8.5,${SD_L1 - 3} Q-2.5,${SD_L1} 2,${SD_L1 - 2}" fill="none" stroke-width="1.5" opacity=".45"/>`
+    + `</g>`;
+}
+function sdFore(fill, skin, add, cuff, tall){
+  if(tall){
+    const L = SD_TL2;
+    const hand = `<g stroke="${SD_INK}" stroke-linejoin="round" stroke-linecap="round">`
+      + `<path d="M-8,${L - 12} C-14,${L - 2} -15,${L + 10} -10,${L + 15} C-7,${L + 18} -4,${L + 14} -3.5,${L + 8} C-3.5,${L + 22} 0,${L + 34} 6,${L + 32} C12,${L + 29} 13,${L + 10} 9,${L - 12} Z" fill="${skin}" stroke-width="2.6"/>`
+      + `<path d="M2,${L + 12} C2,${L + 21} 3,${L + 27} 4,${L + 31}" fill="none" stroke-width="1.4"/>`
+      + `</g>`;
+    const foreSleeve = `<g stroke="${SD_INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">`
+      + `<path d="M-14,-6 Q0,-11 14,-6 L10.5,${L - 11} Q0,${L - 5} -10.5,${L - 11} Z" fill="${fill}" stroke="none"/>`
+      + `<path d="M3.5,-6 L12,-6 L9.8,${L - 11} L3.5,${L - 10} Z" fill="${SD_INK}" opacity=".09" stroke="none"/>`
+      + (cuff ? `<path d="M-11,${L - 19} Q0,${L - 15} 11,${L - 19} L10.5,${L - 11} Q0,${L - 5} -10.5,${L - 11} Z" fill="${cuff}" stroke-width="1.6"/>`
+              : `<path d="M-11,${L - 18} Q0,${L - 14} 11,${L - 18}" fill="none" stroke-width="1.5" opacity=".55"/>`)
+      + (add || '')
+      + `<path d="M-14,-1 L-10.5,${L - 11} Q0,${L - 5} 10.5,${L - 11} L14,-1" fill="none"/>`
+      + `</g>`;
+    return hand + foreSleeve;
+  }
+  const L = SD_L2;
+  const hand = `<g stroke="${SD_INK}" stroke-linejoin="round" stroke-linecap="round">`
+    + `<path d="M-6,${L - 10} C-10.5,${L - 4} -10.5,${L + 2} -6.5,${L + 4} C-4.5,${L + 5} -3,${L + 3} -2.5,${L} C-2.5,${L + 6} 0,${L + 10} 4,${L + 9} C8,${L + 8} 8.5,${L + 1} 6.5,${L - 10} Z" fill="${skin}" stroke-width="2.6"/>`
+    + `<path d="M1.5,${L + 3} C1.5,${L + 6.5} 2,${L + 8.5} 2.8,${L + 9.2}" fill="none" stroke-width="1.4"/>`
+    + `</g>`;
+  const foreSleeve = `<g stroke="${SD_INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">`
+    + `<path d="M-10.5,-4 Q0,-8 10.5,-4 L8,${L - 9} Q0,${L - 5} -8,${L - 9} Z" fill="${fill}" stroke="none"/>`
+    + `<path d="M2.5,-4 L9,-4 L7.5,${L - 9} L2.5,${L - 8} Z" fill="${SD_INK}" opacity=".09" stroke="none"/>`
+    + (cuff ? `<path d="M-8.5,${L - 14} Q0,${L - 11} 8.5,${L - 14} L8,${L - 9} Q0,${L - 5} -8,${L - 9} Z" fill="${cuff}" stroke-width="1.6"/>`
+            : `<path d="M-8.4,${L - 13.5} Q0,${L - 10.5} 8.4,${L - 13.5}" fill="none" stroke-width="1.5" opacity=".55"/>`)
+    + (add || '')
+    + `<path d="M-10.5,-1 L-8,${L - 9} Q0,${L - 5} 8,${L - 9} L10.5,-1" fill="none"/>`
+    + `</g>`;
+  return hand + foreSleeve;
 }
 
 /* ---------- đồ dùng chung ---------- */
-// khăn quàng đỏ (nút nhỏ ở cổ + hai đuôi ngắn) — hệ thân; x: mép trước cổ
-const sdScarf = x => sdG(`<path d="M20,-14 C8,-6 ${x + 8},-2 ${x},-1 L${x + 1},5 C${x + 10},4 10,-2 22,-8 Z" fill="#d9364a"/>`
+const sdScarf = x => sdG(`<path d="M17,-13 C7,-6 ${x + 8},-2 ${x},-1 L${x + 1},5 C${x + 10},4 9,-2 19,-7 Z" fill="#d9364a"/>`
   + `<path d="M${x - 1},3 L${x - 9},19 L${x - 3},18 L${x + 2},6 Z" fill="#d9364a"/><path d="M${x + 1},4 L${x - 1},21 L${x + 4},19 L${x + 4},6 Z" fill="#c22d40"/>`
-  + `<ellipse cx="${x}" cy="2" rx="4.6" ry="4" fill="#e8515f"/>`, 2.2);
-// mảng áo trong lộ ở cổ áo chữ V (cắt theo thân): từ cổ trước xuống tới ngực
+  + `<ellipse cx="${x}" cy="2" rx="4.6" ry="4" fill="#e8515f"/>`, 1.5);
 const sdVee = (a, fill, depth) => `<path d="M-40,-20 L-4,-20 L${sdF(-a*0.55)},${depth || 34} L${-a - 20},${depth || 34} Z" fill="${fill}"/>`
-  + sdLn(`M-4,-14 L${sdF(-a*0.55)},${depth || 34}`, SD_INK, 2.2);
-// yếm / tạp dề ở ngực (nhìn nghiêng thấy mép yếm và dây đeo cổ / dây qua vai)
+  + sdLn(`M-4,-14 L${sdF(-a*0.55)},${depth || 34}`, SD_INK, 1.5);
 function sdBib(a, y0, fill, strap, over){
   const x0 = -a - 2;
-  return sdG(`<path d="M${x0},${y0} L${x0 + 20},${y0 - 2} L${x0 + 22},140 L${x0 - 2},140 Z" fill="${fill}"/>`, 2.6)
-    + (over ? sdG(`<path d="M${x0 + 18},${y0 + 1} C${x0 + 26},-6 ${-4},-18 ${sdF(a*0.5)},-12 L${sdF(a*0.6)},-5 C4,-10 ${x0 + 30},2 ${x0 + 24},${y0 + 2} Z" fill="${strap}"/>`, 2.2)
+  return sdG(`<path d="M${x0},${y0} L${x0 + 20},${y0 - 2} L${x0 + 22},140 L${x0 - 2},140 Z" fill="${fill}"/>`, 1.6)
+    + (over ? sdG(`<path d="M${x0 + 18},${y0 + 1} C${x0 + 26},-6 ${-4},-18 ${sdF(a*0.5)},-12 L${sdF(a*0.6)},-5 C4,-10 ${x0 + 30},2 ${x0 + 24},${y0 + 2} Z" fill="${strap}"/>`, 1.5)
       : sdLn(`M${x0 + 16},${y0} C${x0 + 20},10 -16,0 -12,-10`, strap, 4));
 }
 
-/* ---------- 10 khách ---------- */
-// x (ngữ cảnh vẽ): P tiền tố id, S/H da / tóc, a nửa bề dày thân, k skin, h dáng đầu
 const SD_CHARS = {
-  /* 1 · Bà Tư — lò bánh mì: cụ bà, kính tròn, tóc bạc búi cao, nếp nhăn; mũi dài hơi trễ, môi mỏng hơi móm */
-  1: {cx:159, ey:103, nb:186, ox:6, D:94, hunch:5, skin:['#f9e6d1', '#f0d0ac', '#e2b184'], hc:SD_GREY, ear:null,
-    h:{top:-66, back:54, nape:30, fx:-44, fs:6, n:{tx:-65, ty:25, bx:-50, by:31, r:5, hump:1}, lu:-47, ll:-46, my:46, ch:[-44, 68], jaw:[14, 58]},
+  /* 1 · Bà Tư — lò bánh mì */
+  1: {cx:159, ey:103, nb:186, ox:6, D:92, hunch:4, skin:['#f9e6d1', '#f0d0ac', '#e2b184'], hc:SD_GREY, ear:[11, 3], nf:-8, nbk:21,
+    h:{top:-65, back:46, nape:28, nbk:21, fx:-43, fs:6, n:{tx:-52, ty:19, bx:-44, by:25, r:3.2}, my:41, ch:[-40, 61], jaw:[-5, 52]},
     look(k){
       return [{body:['#b699cf', '#9b7bb8'], sleeve:['#9b7bb8', '#7d5f99'], hold:1},
         {body:['#fffdf6', '#e9e2cf'], sleeve:['#f1ebdc', '#d6ccb6']},
         {body:['#b77aa8', '#9a5f8e'], sleeve:['#9a5f8e', '#7e4874']}][k];
     },
-    back(x){   // búi tóc (mũ đầu bếp che mất)
-      if(x.k === 1) return '';
-      return sdG(`<circle cx="38" cy="-72" r="15" fill="${x.H}"/>` + sdLn('M28,-78 q10,-6 20,2 M30,-68 q8,4 18,-2', SD_INK, 1.4, '.4'), 2.8);
-    },
+    back(){ return ''; },
     hair(x){
-      const top = x.k === 0 ? sdLn('M-34,-50 C-14,-70 26,-72 50,-46 M-38,-40 C-24,-56 0,-62 22,-58', SD_INK, 1.5, '.4') : '';
-      return sdG(`<path d="M-40,-34 C-47,-60 -20,-82 14,-80 C48,-78 68,-50 64,-14 C63,12 61,40 57,58 C46,64 30,63 19,58 C15,40 12,22 8,8 C4,-8 -8,-24 -26,-31 C-32,-34 -37,-35 -40,-34 Z" fill="${x.H}"/>`, 3)
-        + top + sdLn('M18,-26 C32,-6 40,22 44,52 M30,-36 C46,-16 52,18 52,48 M8,-20 C16,0 20,24 22,48', SD_INK, 1.5, '.35');
+      // Tóc bạc ngắn uốn phồng cúp ngang gáy (không dùng búi tóc để khác hẳn với Chị Hoa)
+      return sdG(`<path d="M-39,-32 C-45,-58 -20,-78 12,-76 C44,-74 58,-50 54,-20 C58,-8 56,6 46,16 C52,24 46,34 34,34 C26,34 22,30 21,26 C17,18 15,10 15,2 C13,-6 8,-10 2,-12 C-4,-22 -16,-30 -39,-32 Z" fill="${x.H}"/>`, 3)
+        + sdLn('M-28,-50 C-8,-66 24,-66 40,-44 M18,-26 C32,-16 38,2 34,20 M6,-36 C22,-26 32,-8 28,12 M34,16 C40,20 42,26 36,30', '#8a887e', 1.5, '.55');
     },
     hat(x){
-      if(x.k === 1)   // mũ đầu bếp: thân phồng + băng mũ
-        return sdG(`<path d="M-47,-56 C-68,-72 -52,-104 -27,-96 C-24,-124 16,-128 26,-104 C42,-122 80,-108 63,-82 C76,-72 70,-56 61,-56 C30,-66 -24,-64 -47,-56 Z" fill="#fffdf6"/>`
-          + sdLn('M-24,-94 C-26,-80 -24,-70 -20,-62 M4,-104 C2,-88 2,-74 4,-64 M30,-100 C34,-86 36,-74 36,-62', SD_INK, 1.6, '.35')
-          + `<path d="M-49,-38 C-30,-46 30,-48 63,-37 L61,-57 C30,-67 -24,-65 -47,-57 Z" fill="#f1ebdc"/>`, 3);
-      if(x.k === 2){  // khăn trùm đỏ chấm kem, thắt sau gáy dưới búi
+      if(x.k === 1)
+        return sdG(`<path d="M-45,-52 C-62,-68 -48,-98 -24,-92 C-20,-118 16,-120 26,-98 C42,-114 74,-100 58,-76 C68,-66 62,-52 54,-52 C26,-62 -22,-60 -45,-52 Z" fill="#fffdf6"/>`
+          + `<path d="M-24,-55 C-27,-72 -24,-86 -18,-92 C-20,-78 -19,-64 -16,-55 Z M1,-56 C-1,-74 0,-90 5,-99 C6,-84 6,-68 8,-56 Z M27,-55 C30,-70 31,-84 28,-94 C35,-82 37,-68 35,-55 Z" fill="#dfd6c0" stroke="none"/>`
+          + `<path d="M-47,-35 C-28,-43 26,-45 56,-34 L54,-53 C26,-63 -22,-61 -45,-53 Z" fill="#f1ebdc"/>`, 3);
+      if(x.k === 2){
         return `<defs><pattern id="${x.P}kdot" width="11" height="11" patternUnits="userSpaceOnUse"><rect width="11" height="11" fill="#d9634f"/><circle cx="3" cy="3" r="1.8" fill="#fff6ea"/><circle cx="8.5" cy="8.5" r="1.8" fill="#fff6ea"/></pattern></defs>`
-          + sdG(`<path d="M58,-40 L74,-30 L66,-22 Z M58,-38 L70,-16 L60,-14 Z" fill="#d9634f"/>`
-          + `<path d="M-47,-36 C-48,-62 -22,-78 10,-77 C36,-76 56,-64 62,-44 L60,-34 C40,-42 0,-44 -47,-36 Z" fill="url(#${x.P}kdot)"/>`, 2.8);
+          + sdG(`<path d="M48,-18 L63,-10 L56,-2 Z M47,-16 L58,2 L49,4 Z" fill="#d9634f"/>`
+          + `<path d="M-44,-34 C-44,-58 -20,-75 10,-75 C36,-75 58,-56 56,-22 L46,-14 C32,-34 -4,-40 -44,-34 Z" fill="url(#${x.P}kdot)"/>`, 2.8);
       }
       return '';
     },
     face(x){
-      const {h} = x, n = h.n, ex = h.fx + 15;
-      return sdLn(`M${h.fx + 7},-30 q6,-2.5 12,-1 M${h.fx + 6},-24 q6,-2 11,-0.5`, SD_INK, 1.5, '.45')       // nếp trán
-        + sdLn(`M${n.bx + 4},${n.by - 4} C${n.bx + 9},${n.by + 4} ${h.lu + 9},${h.my - 6} ${h.lu + 7},${h.my + 3}`, SD_INK, 1.6, '.45')   // rãnh mũi má
-        + sdLn(`M${ex + 9},-3 l6,-2.5 M${ex + 9},1.5 l6,1.5 M${ex + 8},5.5 l5,3.5`, SD_INK, 1.4, '.55')     // chân chim
-        + sdLn(`M${h.ch[0] + 14},${h.ch[1] - 6} q8,4 14,0`, SD_INK, 1.4, '.35')
-        + sdBrow(ex - 11, -15, 22, 4.5, 2)
-        + sdLn(`M${ex + 10},-3 L12,-4`, SD_INK, 2.4)           // gọng kính ra tai
-        + sdG(`<circle cx="${ex - 2}" cy="0" r="11.5" fill="#e3edf4" fill-opacity=".35"/>`, 2.6)
-        + sdLn(`M${ex - 8},-5 q3,-4 8,-4`, '#ffffff', 1.8, '.8');
+      const {h} = x, ex = h.fx + 15;
+      return sdLn(`M${h.fx + 7},-28 q6,-2 11,-1 M${h.fx + 6},-22 q6,-2 10,-0.5`, SD_INK, 1.4, '.4')
+        + sdLn(`M${ex + 9},-2 l5,-2 M${ex + 9},2 l5,1.5`, SD_INK, 1.4, '.5')
+        + `<path class="brw brw-r" d="M${ex - 10},-14 C${ex - 4},-20 ${ex + 4},-20 ${ex + 10},-13 C${ex + 5},-15 ${ex - 4},-15 ${ex - 10},-14 Z" fill="#9e9b91" stroke="${SD_INK}" stroke-width="1.6" stroke-linejoin="round"/>`
+        + sdLn(`M${ex + 9},-3 L10,-3`, SD_INK, 2.3)
+        + sdG(`<circle cx="${ex - 2}" cy="0" r="11" fill="#e3edf4" fill-opacity=".35"/>`, 2.5)
+        + sdLn(`M${ex - 7},-5 q3,-3.5 7,-3.5`, '#ffffff', 1.7, '.8');
     },
     dress(x){
       const {a, k} = x;
-      if(k === 1)   // áo bếp trắng: cổ đứng tím nhạt, khăn quàng tím mận, hàng khuy
-        return {over: sdG(`<path d="M-18,-12 C-6,-4 12,-8 22,-16 L22,-8 C12,0 -6,2 -18,-4 Z" fill="#c9aee6"/>`, 2.2)
-          + sdG(`<path d="M-22,0 L-30,16 L-24,16 L-20,6 Z M-20,0 L-20,18 L-15,15 L-16,4 Z" fill="#7b4a9e"/><ellipse cx="-21" cy="0" rx="5" ry="4.4" fill="#8d5cb3"/>`, 2.2)
+      if(k === 1)
+        return {over: sdG(`<path d="M-15,-11 C-5,-4 9,-8 17,-13 L17,-6 C9,0 -5,2 -15,-4 Z" fill="#c9aee6"/>`, 1.5)
+          + sdG(`<path d="M-17,0 L-25,16 L-19,16 L-15,6 Z M-15,0 L-15,18 L-10,15 L-11,4 Z" fill="#7b4a9e"/><ellipse cx="-16" cy="0" rx="5" ry="4.4" fill="#8d5cb3"/>`, 1.5)
           + `<g fill="${SD_INK}" opacity=".7"><circle cx="${sdF(-a + 9)}" cy="20" r="2.2"/><circle cx="${sdF(-a + 9)}" cy="32" r="2.2"/></g>`};
-      const collar = sdG(`<path d="M-14,-10 L-34,6 L-22,9 L-11,0 Z" fill="${k ? '#7e4874' : '#7d5f99'}"/>`, 2.2);
-      if(k === 2)   // tạp dề caro từ y 204
+      const collar = sdG(`<path d="M-13,-9 L-28,6 L-18,9 L-9,0 Z" fill="${k ? '#7e4874' : '#7d5f99'}"/>`, 1.5);
+      if(k === 2)
         return {defs:`<pattern id="${x.P}caro" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#fff6ea"/><rect width="5" height="10" fill="#e8907d" opacity=".55"/><rect width="10" height="5" fill="#e8907d" opacity=".55"/></pattern>`,
           over: collar + sdBib(a, 18, `url(#${x.P}caro)`, '#e8907d')};
       return {over: collar};
     },
-    bread(){   // ổ bánh mì ôm sát ngực (trong nhóm cẳng tay — tay ôm, bàn tay nắm phía dưới)
+    bread(){
       return sdG(`<g transform="translate(0,${SD_L2 + 2}) rotate(186)"><rect x="-22" y="-9.5" width="84" height="19" rx="9.5" fill="#d99a52"/>`
         + `<path d="M2,-6 l6,9 M20,-6 l6,9 M38,-6 l6,9" fill="none" stroke-width="2" opacity=".65"/></g>`, 2.6);
     }
   },
 
-  /* 2 · Chú Ba — nông dân: rám nắng, mũi to, râu lún phún, nón lá rộng và thấp như hình thẳng */
-  2: {cx:160.5, ey:108, nb:184, ox:6, D:98, skin:['#eec49e', '#d9a878', '#b9834f'], hc:SD_DARK, ear:[14, 0],
-    h:{top:-62, back:54, nape:30, fx:-46, fs:4, n:{tx:-68, ty:22, bx:-52, by:28, r:4, hump:-2}, lu:-50, ll:-48, my:40, ch:[-46, 60], jaw:[16, 52]},
+  /* 2 · Chú Ba — nông dân */
+  2: {cx:160.5, ey:108, nb:184, ox:6, D:96, tallMale:1, skin:['#eec49e', '#d9a878', '#b9834f'], hc:SD_DARK, ear:[12, 1], nf:-9, nbk:22,
+    h:{top:-62, back:46, nape:28, nbk:22, fx:-44, fs:4, n:{tx:-53, ty:18, bx:-45, by:24, r:3.4}, my:37, ch:[-41, 56], jaw:[-6, 48]},
     look(k){
       return [{body:['#a37b4d', '#8a6238'], sleeve:['#8a6238', '#6a4a29']},
         {body:['#e09478', '#cc7a5e'], sleeve:['#d98a6e', '#b86a50']},
         {body:['#bf7150', '#a55c3f'], sleeve:['#b4674a', '#945036']}][k];
     },
-    hair(x){   // tóc ngắn dưới vành nón: tóc mai + gáy
-      return sdG(`<path d="M-26,-36 L58,-38 C61,-12 58,12 52,30 C44,26 36,18 31,8 C27,0 23,-4 18,-4 C13,-4 11,4 10,14 C5,2 3,-12 0,-20 C-8,-28 -16,-34 -26,-36 Z" fill="${x.H}"/>`, 2.8);
+    hair(x){
+      return sdG(`<path d="M-24,-34 L48,-36 C50,-12 44,12 22,28 C19,20 18,10 19,0 C16,-6 12,-8 9,-4 C7,4 6,10 5,14 C1,4 -1,-10 -3,-18 C-8,-26 -16,-32 -24,-34 Z" fill="${x.H}"/>`, 2.8);
     },
     hat(x){
-      return sdG(`<path d="M-93,-30 C-56,-46 -28,-60 4,-66 C40,-58 74,-48 99,-38 C99,-33 95,-30 89,-31 C40,-38 -40,-30 -87,-25 C-92,-25 -95,-27 -93,-30 Z" fill="url(#${x.P}straw)"/>`
-        + `<path d="M4,-66 L-50,-37 M4,-66 L-20,-35 M4,-66 L28,-36 M4,-66 L58,-37 M-60,-36 Q4,-44 70,-39" fill="none" stroke-width="1.3" opacity=".35"/>`, 2.8);
+      return sdG(`<path d="M-90,-30 C-54,-46 -26,-60 4,-66 C38,-58 70,-48 94,-38 C94,-33 90,-30 84,-31 C38,-38 -38,-30 -84,-25 C-89,-25 -92,-27 -90,-30 Z" fill="url(#${x.P}straw)"/>`
+        + `<path d="M4,-66 C38,-58 70,-48 94,-38 C94,-33 90,-30 84,-31 L4,-34 Z" fill="${SD_INK}" opacity=".1" stroke="none"/>`, 2.8);
     },
     face(x){
-      const {h} = x, n = h.n, ex = h.fx + 15;
-      const dots = [[-44, 36], [-40, 34], [-36, 37], [-46, 52], [-42, 56], [-37, 53], [-34, 58], [-30, 54], [-26, 60], [-20, 56], [-14, 58], [-8, 54], [-2, 52], [-30, 47]];
-      return `<path d="M${h.lu + 2},${h.my - 9} C${h.lu + 14},${h.my - 6} ${h.lu + 18},${h.my + 4} -6,${h.my + 6} C6,${h.my + 6} 12,46 16,50 C0,62 -24,64 ${h.ch[0] + 6},${h.ch[1] + 2} C${h.ch[0] - 2},${h.ch[1] - 6} ${h.ll + 2},${h.my + 8} ${h.lu + 2},${h.my - 9} Z" fill="#5b4636" opacity=".14"/>`
-        + `<g fill="${SD_INK}" opacity=".45">${dots.map(([px, py]) => `<circle cx="${px}" cy="${py}" r="1.15"/>`).join('')}</g>`
-        + sdLn(`M${n.bx + 5},${n.by - 3} C${n.bx + 10},${n.by + 4} ${h.lu + 10},${h.my - 4} ${h.lu + 8},${h.my + 2}`, SD_INK, 1.5, '.35')
-        + sdBrow(ex - 11, -16, 22, 5, 1);
+      const {h} = x, ex = h.fx + 15;
+      const dots = [[-39, 34], [-35, 32], [-31, 35], [-40, 48], [-36, 52], [-32, 49], [-28, 53], [-23, 50], [-18, 53], [-13, 50]];
+      return `<g fill="${SD_INK}" opacity=".45">${dots.map(([px, py]) => `<circle cx="${px}" cy="${py}" r="1.15"/>`).join('')}</g>`
+        + `<path class="brw brw-r" d="M${ex - 11},-15 L${ex - 2},-22 L${ex + 11},-17 L${ex + 10},-12 L${ex - 2},-16 L${ex - 10},-11 Z" fill="${SD_INK}" stroke="${SD_INK}" stroke-width="1" stroke-linejoin="round"/>`;
     },
     dress(x){
-      const {a, k} = x, collar = sdG(`<path d="M-14,-10 L-32,8 L-20,8 L-10,-1 Z" fill="${['#6a4a29', '#b86a50', '#945036'][k]}"/>`, 2.2);
-      if(k === 1) return {over: collar + sdBib(a, 20, '#6f8fb5', '#5f80a8', 1) + sdG(`<rect x="${sdF(-a + 12)}" y="16" width="9" height="7" rx="1.5" fill="#c9ccd2"/>`, 1.8)};
-      if(k === 2)   // gi-lê kaki + túi ngực có ống nghiệm thử đất
+      const {a, k} = x, collar = sdG(`<path d="M-13,-9 L-28,7 L-18,8 L-9,-1 Z" fill="${['#6a4a29', '#b86a50', '#945036'][k]}"/>`, 1.5);
+      if(k === 1) return {over: collar + sdBib(a, 20, '#6f8fb5', '#5f80a8', 1) + sdG(`<rect x="${sdF(-a + 12)}" y="16" width="9" height="7" rx="1.5" fill="#c9ccd2"/>`, 1.4)};
+      if(k === 2)
         return {deco: `<path d="M-4,-24 L120,-24 L120,140 L${sdF(-a + 10)},140 L${sdF(-a + 8)},40 C${sdF(-a + 8)},20 -16,4 -4,-24 Z" fill="#dccb9c"/>`
-            + sdLn(`M-4,-14 C-16,4 ${sdF(-a + 8)},20 ${sdF(-a + 8)},48`, SD_INK, 2.4),
+            + sdLn(`M-4,-14 C-16,4 ${sdF(-a + 8)},20 ${sdF(-a + 8)},48`, SD_INK, 1.5),
           over: collar + sdG(`<rect x="${sdF(-a + 15)}" y="2" width="5" height="22" rx="2.5" fill="#e9f3f6"/><rect x="${sdF(-a + 15)}" y="14" width="5" height="10" rx="2.5" fill="#8a6238"/>`
-            + `<path d="M${sdF(-a + 10)},14 L${sdF(-a + 26)},14 L${sdF(-a + 26)},32 L${sdF(-a + 11)},32 Z" fill="#d2c08e"/>`, 1.8)};
+            + `<path d="M${sdF(-a + 10)},14 L${sdF(-a + 26)},14 L${sdF(-a + 26)},32 L${sdF(-a + 11)},32 Z" fill="#d2c08e"/>`, 1.5)};
       return {over: collar};
     }
   },
 
-  /* 3 · Bé Na — học sinh lớp 8: đầu tròn trẻ con, mũi nhỏ hếch, tóc bob mái bằng, hai túm tóc buộc dây đỏ */
-  3: {cx:159, ey:120, nb:190, ox:5, D:84, skin:['#fbe8d6', '#f5d3b3', '#e9b98c'], hc:SD_DARK, ear:null,
-    h:{top:-74, back:56, nape:24, fx:-42, fs:9, n:{tx:-55, ty:15, bx:-45, by:20, r:4, hump:-4}, lu:-45, ll:-43, my:33, ch:[-39, 54], jaw:[12, 44]},
+  /* 3 · Bé Na — học sinh lớp 8 */
+  3: {cx:159, ey:120, nb:190, ox:5, D:82, skin:['#fbe8d6', '#f5d3b3', '#e9b98c'], hc:SD_DARK, ear:[10, 2], nf:-8, nbk:19,
+    h:{top:-70, back:42, nape:22, nbk:19, fx:-40, fs:8, n:{tx:-47, ty:13, bx:-41, by:18, r:2.8}, my:30, ch:[-36, 48], jaw:[-5, 41]},
     look(k){
       return [{body:['#f0b8c9', '#e79db5'], sleeve:['#e79db5', '#cf7f9c']},
         {body:['#fdeef3', '#f7d9e4'], sleeve:['#f29bb6', '#e07a9c']},
         {body:['#d4587c', '#b8406a'], sleeve:['#c44c72', '#a3365c']}][k];
     },
     hair(x){
-      return sdG(`<path d="M-45,-24 C-52,-58 -20,-86 14,-84 C50,-82 70,-52 67,-14 C67,6 65,26 59,40 C51,47 40,47 29,44 C24,32 20,20 14,10 C10,2 4,-6 -2,-12 L-4,-23 C-18,-23 -32,-24 -45,-24 Z" fill="${x.H}"/>`, 3)
-        + sdLn('M-38,-30 C-30,-58 0,-74 30,-66 M-18,-26 C-14,-50 6,-64 30,-58 M30,-40 C44,-20 50,10 50,36', '#7a6a5c', 1.5, '.5')
-        // túm tóc + dây buộc đỏ cạnh tai
-        + sdG(`<path d="M18,8 C12,20 14,40 22,54 C26,50 30,46 32,40 C34,30 32,18 26,8 Z" fill="${x.H}"/>`, 2.6)
-        + sdLn('M22,14 C20,26 22,40 25,50 M27,14 C28,24 29,34 29,42', '#8a7a6c', 1.4, '.8')
-        + sdG(`<path d="M22,8 l-10,-5 l1,12 z M22,8 l10,-7 l1,12 z" fill="#e0604c"/><circle cx="22" cy="8" r="3.6" fill="#e8515f"/>`, 2);
+      return sdG(`<path d="M-42,-22 C-47,-56 -18,-78 10,-76 C40,-74 52,-48 47,-14 C44,6 34,18 19,22 C15,14 14,6 14,-2 C11,-10 6,-12 2,-6 C-2,-16 -10,-20 -20,-21 C-28,-21 -35,-21 -42,-22 Z" fill="${x.H}"/>`, 3)
+        + sdLn('M-32,-32 C-24,-54 2,-66 26,-58 M20,-38 C32,-22 36,0 30,16', '#7a6a5c', 1.5, '.55')
+        + `<g transform="translate(42,6)"><g class="sd-sway">${sdBB(40)}`
+        + sdG(`<path d="M0,-4 C14,-6 24,4 23,19 C22,28 15,34 6,33 C1,22 0,10 -3,2 Z" fill="${x.H}"/>`, 2.8)
+        + sdLn('M6,2 C13,8 15,18 13,28', '#7a6a5c', 1.4, '.6')
+        + sdG(`<path d="M-2,-2 l-9,-6 l1,12 z M-2,-2 l10,-7 l2,12 z" fill="#e8515f"/><circle cx="-2" cy="-2" r="3.8" fill="#ff6b78"/>`, 2)
+        + `</g></g>`;
     },
-    face(x){ const {h} = x, ex = h.fx + 14; return sdBrow(ex - 10, -19, 19, 3.6, 1); },
+    face(x){ const {h} = x, ex = h.fx + 14; return `<path class="brw brw-r" d="M${ex - 8},-18 C${ex - 3},-23 ${ex + 5},-23 ${ex + 8},-18 C${ex + 6},-15 ${ex - 6},-15 ${ex - 8},-18 Z" fill="${SD_INK}" stroke="${SD_INK}" stroke-width="1" stroke-linejoin="round"/>`; },
     dress(x){
-      const {a, k} = x, sc = sdScarf(-22);
-      if(k === 1)   // đồ thể dục: sọc hồng hai bên, khiên trường hồng
+      const {a, k} = x, sc = sdScarf(-15);
+      if(k === 1)
         return {deco: `<path d="M8,-30 L16,-30 L18,140 L10,140 Z" fill="#f29bb6"/>`,
           over: sdG(`<path d="M${sdF(-a + 6)},12 h12 v8 q0,7 -6,10 q-6,-3 -6,-10 z" fill="#f29bb6"/><path d="M${sdF(-a + 9)},17 h6 M${sdF(-a + 12)},14 v9" fill="none" stroke="#fff" stroke-width="1.6"/>`, 1.8) + sc,
           arm: `<path d="M-3,-14 L3,-14 L3,${SD_L1} L-3,${SD_L1} Z" fill="#fdeef3" opacity=".9"/>`};
-      if(k === 2)   // áo khoác mâm xôi mở: sơ mi trắng, quai ba lô vàng, ba lô sau lưng
+      if(k === 2)
         return {deco: sdVee(a, '#fbf8f0', 60),
           back: `<g transform="translate(${sdF(a - 4)},2)"><g class="sd-sway">${sdBB(60)}`
             + sdG(`<path d="M-2,-4 C8,-8 24,-6 28,4 L30,46 C30,54 22,56 10,54 L0,50 Z" fill="#e8b84b"/><path d="M4,18 L26,20 L26,38 L6,36 Z" fill="#c99a32"/>`, 2.8) + `</g></g>`,
-          over: sc + sdG(`<path d="M${sdF(a*0.55)},-10 C${sdF(a*0.2)},-14 -6,-10 -12,6 L-6,8 C-2,-4 ${sdF(a*0.2)},-6 ${sdF(a*0.6)},-2 Z" fill="#e8b84b"/>`, 2)};
+          over: sc + sdG(`<path d="M${sdF(a*0.55)},-10 C${sdF(a*0.2)},-14 -6,-10 -12,6 L-6,8 C-2,-4 ${sdF(a*0.2)},-6 ${sdF(a*0.6)},-2 Z" fill="#e8b84b"/>`, 1.5)};
       return {over: sc};
     }
   },
 
-  /* 4 · Anh Minh — thợ xây: hàm vuông, mũi tẹt bè, mũ bảo hộ */
-  4: {cx:120, ey:106, nb:182, ox:6, D:110, skin:['#f4d6ae', '#e3b98c', '#c99a68'], hc:SD_DARK, ear:[14, 2],
-    h:{top:-64, back:52, nape:28, fx:-48, fs:3, n:{tx:-62, ty:21, bx:-50, by:27, r:7, hump:-2}, lu:-50, ll:-49, my:39, ch:[-47, 56], jaw:[20, 52], square:1},
+  /* 4 · Anh Minh — thợ xây: đầu và cổ bè ngang khỏe khoắn (fx=-49, back=54, nbk=28) khớp với mặt vuông to ở góc thẳng */
+  4: {cx:120, ey:106, nb:182, ox:6, D:110, tallMale:1, skin:['#f4d6ae', '#e3b98c', '#c99a68'], hc:SD_DARK, ear:[15, 2], nf:-12, nbk:28,
+    h:{top:-64, back:54, nape:28, nbk:28, fx:-49, fs:3, n:{tx:-58, ty:18, bx:-49, by:24, r:3.8}, my:37, ch:[-47, 55], jaw:[-8, 49]},
     look(k){
       return [{body:['#8ab4da', '#6f9ec9'], sleeve:['#6f9ec9', '#537da8']},
         {body:['#3f6198', '#304f80'], sleeve:['#304f80', '#243e68']},
         {body:['#6189b8', '#4d73a0'], sleeve:['#4d73a0', '#3b5c86']}][k];
     },
     hair(x){
-      return sdG(`<path d="M0,-28 L14,-28 C12,-16 10,-6 8,4 C3,-4 1,-14 0,-28 Z M28,-28 L60,-28 C61,-2 58,16 52,28 C44,22 38,10 33,-2 C31,-12 29,-20 28,-28 Z" fill="${x.H}"/>`, 2.6);
+      return sdG(`<path d="M0,-26 L12,-26 C11,-15 9,-5 7,3 C2,-4 0,-14 0,-26 Z M24,-26 L56,-26 C57,-4 49,15 28,28 C25,18 23,4 24,-26 Z" fill="${x.H}"/>`, 2.6);
     },
     hat(x){
       const c = [['#f0b429', '#f7c948'], ['#f4f1e8', '#fffdf5'], ['#f0b429', '#f7c948']][x.k];
-      const dome = 'M-56,-28 C-58,-62 -30,-84 4,-84 C40,-84 64,-62 62,-28 Z';
+      const dome = 'M-58,-28 C-60,-62 -30,-82 4,-82 C40,-82 64,-62 62,-28 Z';
       let s = sdG(`<path d="${dome}" fill="${c[0]}"/>`, 3);
-      if(x.k === 1) s += `<clipPath id="${x.P}dome"><path d="${dome}"/></clipPath><path clip-path="url(#${x.P}dome)" d="M-62,-36 C-48,-80 40,-92 70,-40" fill="none" stroke="#f0883e" stroke-width="13"/>` + sdLn(dome, SD_INK, 3);
-      else s += sdLn('M-50,-44 C-30,-76 30,-78 56,-50', '#8a6a1a', 2, '.5');
+      if(x.k === 1) s += `<clipPath id="${x.P}dome"><path d="${dome}"/></clipPath><path clip-path="url(#${x.P}dome)" d="M-62,-36 C-48,-78 40,-90 70,-40" fill="none" stroke="#f0883e" stroke-width="13"/>` + sdLn(dome, SD_INK, 3);
+      else s += `<path d="M-54,-38 C-30,-74 28,-76 56,-48 C30,-66 -24,-64 -50,-32 Z" fill="#d89d1c" stroke="none"/>`;
       s += sdG(`<path d="M-72,-24 C-64,-33 -52,-33 -40,-31 L64,-31 C69,-29 69,-22 64,-21 L-66,-19 C-73,-19 -75,-22 -72,-24 Z" fill="${c[1]}"/>`, 3);
-      if(x.k === 2)   // kính bảo hộ trên vành mũ
-        s += sdLn('M-50,-44 C-20,-56 30,-58 60,-40', SD_INK, 5) + sdG(`<path d="M-60,-48 q2,-12 16,-12 q11,0 11,10 q-2,9 -13,9 q-13,0 -14,-7 z" fill="#bfe0e6"/>`, 2.6)
-          + sdLn('M-54,-53 q5,-3 10,-2', '#ffffff', 2);
+      if(x.k === 2)
+        s += sdLn('M-52,-44 C-20,-56 30,-58 60,-40', SD_INK, 5) + sdG(`<path d="M-62,-48 q2,-12 16,-12 q11,0 11,10 q-2,9 -13,9 q-13,0 -14,-7 z" fill="#bfe0e6"/>`, 2.6)
+          + sdLn('M-56,-53 q5,-3 10,-2', '#ffffff', 2);
       return s;
     },
-    face(x){
-      const {h} = x, ex = h.fx + 15;
-      return sdBrow(ex - 12, -16, 23, 4.6, 0.5) + sdLn(`M${h.n.bx + 6},${h.n.by - 2} C${h.n.bx + 11},${h.n.by + 5} ${h.lu + 11},${h.my - 4} ${h.lu + 9},${h.my + 2}`, SD_INK, 1.5, '.3');
-    },
-    alaW: 1.7,
+    face(x){ const {h} = x, ex = h.fx + 15; return `<path class="brw brw-r" d="M${ex - 12},-13 L${ex + 11},-17 L${ex + 10},-11 L${ex - 11},-8 Z" fill="${SD_INK}" stroke="${SD_INK}" stroke-width="1" stroke-linejoin="round"/>`; },
     dress(x){
       const {a, k} = x;
-      if(k === 1)   // gi-lê phản quang cam trên áo sơ mi xanh than; hai sọc phản quang ở y 198 và 214
+      if(k === 1)
         return {deco: `<path d="M-6,-24 L120,-24 L120,140 L-80,140 L-80,30 C-30,20 -12,6 -6,-24 Z" fill="#f0883e"/>`
-            + sdLn(`M-6,-14 C-12,8 -30,24 ${sdF(-a)},30`, SD_INK, 2.2)
+            + sdLn(`M-6,-14 C-12,8 -30,24 ${sdF(-a)},30`, SD_INK, 1.5)
             + `<path d="M-80,13 L120,13 L120,20 L-80,20 Z M-80,29 L120,29 L120,36 L-80,36 Z" fill="#e9eef0"/>`};
-      if(k === 2)   // dây đai an toàn đỏ: dây qua vai, dây ngang ngực, khoá bạc
-        return {over: sdG(`<path d="M${sdF(a*0.5)},-14 C${sdF(a*0.2)},-14 -20,-8 ${sdF(-a + 6)},26 L${sdF(-a + 14)},30 C-14,0 ${sdF(a*0.2)},-6 ${sdF(a*0.55)},-6 Z" fill="#d9634f"/>`, 2.2)
-          + sdG(`<path d="M${sdF(-a - 1)},18 L${sdF(a)},18 L${sdF(a)},26 L${sdF(-a - 1)},26 Z" fill="#d9634f"/>`, 2.2)
-          + sdG(`<rect x="${sdF(-a + 4)}" y="16" width="11" height="12" rx="2" fill="#c9ccd2"/>`, 2)};
-      return {over: sdLn(`M-16,-6 C-8,-2 12,-6 20,-13`, '#537da8', 3.2)};
+      if(k === 2)
+        return {over: sdG(`<path d="M${sdF(a*0.5)},-14 C${sdF(a*0.2)},-14 -20,-8 ${sdF(-a + 6)},26 L${sdF(-a + 14)},30 C-14,0 ${sdF(a*0.2)},-6 ${sdF(a*0.55)},-6 Z" fill="#d9634f"/>`, 1.5)
+          + sdG(`<path d="M${sdF(-a - 1)},18 L${sdF(a)},18 L${sdF(a)},26 L${sdF(-a - 1)},26 Z" fill="#d9634f"/>`, 1.5)
+          + sdG(`<rect x="${sdF(-a + 4)}" y="16" width="11" height="12" rx="2" fill="#c9ccd2"/>`, 1.5)};
+      return {over: sdG(`<path d="M-15,-10 C-5,-4 9,-8 17,-13 L18,-6 C10,0 -5,3 -16,-4 Z" fill="#537da8"/>`, 1.5)};
     }
   },
 
-  /* 5 · Cô Lan — y tá: mặt trái xoan, mũi thẳng, kính chữ nhật, tóc dài sợi rõ, mái hất */
-  5: {cx:120, ey:101.5, nb:178, ox:6, D:90, bust:3, skin:['#f9e6d1', '#f0d0ac', '#e2b184'], hc:SD_DARK, ear:[14, 4],
-    h:{top:-72, back:54, nape:28, fx:-45, fs:6, n:{tx:-63, ty:21, bx:-50, by:26, r:4, hump:0}, lu:-48, ll:-46, my:40, ch:[-42, 60], jaw:[14, 50]},
+  /* 5 · Cô Lan — y tá */
+  5: {cx:120, ey:101.5, nb:178, ox:6, D:88, bust:3, skin:['#f9e6d1', '#f0d0ac', '#e2b184'], hc:SD_DARK, ear:[12, 3], nf:-8, nbk:20,
+    h:{top:-68, back:44, nape:26, nbk:20, fx:-42, fs:5, n:{tx:-50, ty:17, bx:-43, by:22, r:3.0}, my:36, ch:[-39, 55], jaw:[-5, 46]},
     look(k){
       return [{body:['#6cc0b9', '#4fa6a0'], sleeve:['#4fa6a0', '#3c827c']},
         {body:['#3e9c95', '#2f817b'], sleeve:['#2f817b', '#22655f']},
         {body:['#fdfcf8', '#e9e5da'], sleeve:['#e9e5da', '#d3cdbe']}][k];
     },
-    back(x){   // tóc dài rủ sau lưng (đung đưa)
-      return `<g transform="translate(38,-6)"><g class="sd-sway">${sdBB(130)}`
-        + sdG(`<path d="M-14,-16 C18,-20 34,6 32,44 C31,72 30,92 34,116 C22,122 6,120 -6,114 C-2,86 -4,56 -12,34 C-18,16 -22,0 -14,-16 Z" fill="${x.H}"/>`, 2.8)
-        + sdLn('M2,-8 C12,20 14,60 12,110 M14,0 C22,30 22,70 24,112 M-6,10 C2,40 2,76 2,112 M24,20 C28,50 26,84 30,112', '#7a6a5c', 1.4, '.6')
+    back(x){
+      return `<g transform="translate(24,-4)"><g class="sd-sway">${sdBB(120)}`
+        + sdG(`<path d="M-6,-14 C18,-16 30,6 28,42 C27,68 28,88 32,108 C20,114 6,112 -4,106 C-2,80 -4,52 -8,30 Z" fill="${x.H}"/>`, 2.8)
+        + sdLn('M4,-4 C12,22 14,58 12,104 M16,4 C22,32 22,68 24,106', '#7a6a5c', 1.4, '.6')
         + `</g></g>`;
     },
     hair(x){
-      const cap = x.k === 2 ? '' : sdLn('M-30,-62 C-8,-76 26,-74 48,-56', '#7a6a5c', 1.5, '.5');
-      return sdG(`<path d="M-44,-30 C-50,-62 -20,-86 14,-84 C50,-82 70,-54 66,-16 C64,6 58,22 48,34 C40,30 34,18 30,8 C27,-2 22,-12 14,-14 C8,-16 4,-18 0,-22 C-12,-30 -28,-32 -44,-30 Z" fill="${x.H}"/>`, 3)
-        + cap + sdLn('M20,-40 C34,-24 40,0 42,24 M8,-50 C26,-38 36,-16 38,8', '#7a6a5c', 1.4, '.55')
-        // lọn mái hất ra trước trán
-        + (x.k === 2 ? '' : sdG(`<path d="M10,-56 C-10,-58 -36,-52 -46,-34 C-48,-28 -44,-24 -40,-28 C-34,-40 -18,-46 4,-44 Z" fill="${x.H}"/>`, 2.4));
+      return sdG(`<path d="M-42,-28 C-47,-58 -20,-78 12,-76 C44,-74 56,-48 52,-14 C50,6 42,22 32,30 C24,24 20,14 18,4 C16,-6 12,-12 7,-14 C-4,-20 -18,-30 -42,-28 Z" fill="${x.H}"/>`, 3)
+        + (x.k === 2 ? '' : sdLn('M-28,-54 C-6,-68 24,-66 40,-48 M-18,-40 C0,-52 24,-48 36,-28', '#7a6a5c', 1.5, '.55'))
+        + sdLn('M18,-32 C28,-18 34,2 34,22', '#7a6a5c', 1.4, '.55');
     },
     hat(x){
       if(x.k !== 2) return '';
-      return sdG(`<path d="M-48,-34 C-52,-66 -20,-90 14,-88 C50,-86 70,-60 67,-28 C40,-36 0,-40 -48,-34 Z" fill="#3fa39a"/>`
-        + `<path d="M-30,-70 C-4,-80 30,-78 52,-60" fill="none" stroke-width="1.4" opacity=".4"/>`, 3);
+      return sdG(`<path d="M-44,-30 C-48,-62 -20,-82 12,-80 C44,-78 58,-54 55,-24 C32,-32 -2,-36 -44,-30 Z" fill="#3fa39a"/>`
+        + `<path d="M-44,-30 C-10,-42 26,-40 55,-24 C32,-32 -2,-36 -44,-30 Z" fill="#318a82" stroke="none"/>`, 3);
     },
     face(x){
-      const {h} = x, ex = h.fx + 15;
-      return sdBrow(ex - 10, -17, 20, 3.4, 1.5)
-        + sdLn(`M${ex + 6},-4 L12,-6`, SD_INK, 2.4)
-        + sdG(`<rect x="${ex - 12}" y="-10" width="18" height="16" rx="3" fill="#e3edf4" fill-opacity=".35"/>`, 2.4)
+      const {h} = x, ex = h.fx + 14;
+      return sdBrow(ex - 10, -17, 20, 2.4, 0.6)
+        + sdLn(`M${ex + 6},-4 L10,-5`, SD_INK, 2.3)
+        + sdG(`<rect x="${ex - 12}" y="-10" width="18" height="15" rx="3" fill="#e3edf4" fill-opacity=".35"/>`, 2.3)
         + sdLn(`M${ex - 8},-6 l6,0`, '#ffffff', 1.6, '.8');
     },
     dress(x){
       const {a, k} = x;
-      const steth = sdLn(`M18,-12 C4,-4 -10,6 ${sdF(-a + 10)},22 C${sdF(-a + 4)},28 ${sdF(-a + 4)},34 ${sdF(-a + 6)},38`, '#5f6b78', 3.2)
+      const steth = sdLn(`M16,-12 C4,-4 -10,6 ${sdF(-a + 10)},22 C${sdF(-a + 4)},28 ${sdF(-a + 4)},34 ${sdF(-a + 6)},38`, '#5f6b78', 3.2)
         + sdG(`<circle cx="${sdF(-a + 7)}" cy="40" r="5" fill="#c9ccd2"/>`, 2);
-      const cross = sdG(`<rect x="${sdF(-a + 14)}" y="16" width="14" height="13" rx="3" fill="#fffef9"/><path d="M${sdF(-a + 21)},19 v7 M${sdF(-a + 17.5)},22.5 h7" fill="none" stroke="#e0364a" stroke-width="2.6"/>`, 1.8);
-      const lapel = c => sdG(`<path d="M-14,-10 L-32,4 L-22,18 L-12,2 Z" fill="${c}"/>`, 2.2);
-      if(k === 0) return {deco: sdVee(a, '#f6eedc', 26), over: sdG(`<path d="M-14,-10 L-32,6 L-22,14 L-12,0 Z" fill="#f6eedc"/>`, 2.2) + steth + cross};
+      const cross = sdG(`<rect x="${sdF(-a + 14)}" y="16" width="14" height="13" rx="3" fill="#fffef9"/><path d="M${sdF(-a + 21)},19 v7 M${sdF(-a + 17.5)},22.5 h7" fill="none" stroke="#e0364a" stroke-width="2.4"/>`, 1.4);
+      const lapel = c => sdG(`<path d="M-13,-10 L-28,4 L-19,18 L-10,2 Z" fill="${c}"/>`, 1.5);
+      if(k === 0) return {deco: sdVee(a, '#f6eedc', 26), over: sdG(`<path d="M-13,-10 L-28,6 L-19,14 L-10,0 Z" fill="#f6eedc"/>`, 1.5) + steth + cross};
       if(k === 1) return {deco: sdVee(a, '#ffffff', 30), over: lapel('#8fd3cb') + steth};
       return {deco: sdVee(a, '#2f8f88', 30), over: lapel('#5fb5ab') + steth + cross,
-        arm: sdG(`<path d="M-15.5,8 L15.5,8 L14.8,26 L-14.8,26 Z" fill="#fffef9"/>`, 2) + `<path d="M0,11 v12 M-6,17 h12" stroke="#e0364a" stroke-width="3.2"/>`};
+        arm: sdG(`<path d="M-15.5,8 L15.5,8 L14.8,26 L-14.8,26 Z" fill="#fffef9"/>`, 1.5) + `<path d="M0,11 v12 M-6,17 h12" stroke="#e0364a" stroke-width="3.2"/>`};
     }
   },
 
-  /* 6 · Ông Sáu — chủ ao cá: mập, mũi củ tỏi, hói hẳn, không râu (khớp hình thẳng) */
-  6: {cx:120, ey:102, nb:180, ox:6, D:106, bust:4, hunch:3, skin:['#f6e2ca', '#ecc99f', '#cf9f6d'], hc:SD_GREY, ear:[16, 2],
-    h:{top:-52, back:58, nape:32, fx:-48, fs:10, n:{tx:-68, ty:22, bx:-52, by:31, r:9, hump:-3}, lu:-52, ll:-50, my:46, ch:[-47, 62], jaw:[22, 56]},
+  /* 6 · Ông Sáu — chủ ao cá */
+  6: {cx:120, ey:102, nb:180, ox:6, D:102, bust:3, hunch:3, bald:1, tallMale:1, skin:['#f6e2ca', '#ecc99f', '#cf9f6d'], hc:SD_GREY, ear:[14, 2], nf:-10, nbk:25,
+    h:{top:-54, back:49, nape:25, nbk:25, fx:-45, fs:7, n:{tx:-54, ty:18, bx:-45, by:25, r:3.8}, my:39, ch:[-42, 57], jaw:[-6, 50]},
     look(k){
-      return [{body:['#8d9a55', '#74803f'], sleeve:['#74803f', '#5a6430']},
+      return [{body:['#8d9a55', '#74803f'], sleeve:['#fffef9', '#e6dec8']},
         {body:['#c3cd96', '#a9b67a'], sleeve:['#c9dcec', '#a6c1da']},
         {body:'stripe', sleeve:'stripe'}][k];
     },
-    hair(x){   // hói hẳn như hình thẳng (bỏ vành tóc bạc sau tai): chỉ còn nếp nhăn trán
-      return x.k === 1 ? '' : sdLn('M-36,-40 q14,-8 30,-6 M-38,-32 q14,-7 28,-5', SD_INK, 1.5, '.4');
+    hair(x){   // vành tóc bạc ôm từ thái dương trên tai vòng kín ra tận mép sọ sau (back=49) xuống chân gáy (25, 25)
+      return sdG(`<path d="M5,-12 C14,-18 36,-18 49,-6 C51,6 42,20 25,25 C22,16 21,8 19,0 C15,-6 9,-8 5,-12 Z" fill="${x.H}"/>`, 2.6)
+        + (x.k === 1 ? '' : sdLn('M-35,-38 q14,-7 28,-5 M-37,-30 q14,-6 26,-4', SD_INK, 1.5, '.4'));
     },
     hat(x){
       if(x.k !== 1) return '';
-      return sdG(`<path d="M-50,-34 C-52,-66 -20,-80 8,-80 C40,-80 66,-66 64,-34 Z" fill="#b9c48c"/>`, 3)
-        + sdLn('M-50,-44 C-14,-53 30,-53 64,-44', '#6c7b45', 7)
-        + sdG(`<path d="M-70,-28 C-36,-42 46,-44 86,-28 C89,-22 84,-19 78,-21 C46,-31 -34,-31 -64,-19 C-72,-18 -74,-24 -70,-28 Z" fill="#a3b075"/>`, 2.8);
+      return sdG(`<path d="M-49,-32 C-51,-64 -18,-78 6,-78 C38,-78 58,-64 56,-32 Z" fill="#b9c48c"/>`, 3)
+        + sdLn('M-49,-42 C-14,-51 26,-51 56,-42', '#6c7b45', 7)
+        + sdG(`<path d="M-68,-26 C-34,-40 42,-42 78,-26 C81,-20 76,-17 70,-19 C40,-29 -32,-29 -62,-17 C-70,-16 -72,-22 -68,-26 Z" fill="#a3b075"/>`, 2.8);
     },
     face(x){
-      const {h} = x, n = h.n, ex = h.fx + 16, H = x.H;
-      // không râu (đã bỏ theo hình thẳng): chỉ lông mày rậm và nếp mũi
-      return sdBrow(ex - 12, -14, 24, 5.4, 1)
-        + sdLn(`M${n.tx + 6},${n.ty - 2} c4,-4 9,-2 10,3`, SD_INK, 1.6, '.5');
+      const {h} = x, ex = h.fx + 15;
+      return `<path class="brw brw-r" d="M${ex - 11},-13 C${ex - 8},-21 ${ex},-22 ${ex + 4},-19 L${ex + 7},-23 C${ex + 11},-20 ${ex + 13},-15 ${ex + 12},-11 C${ex + 6},-13 ${ex - 3},-13 ${ex - 11},-13 Z" fill="${SD_INK}" stroke="${SD_INK}" stroke-width="1" stroke-linejoin="round"/>`;
     },
-    mouth: [-48, 48],
     dress(x){
       const {a, k} = x;
-      const fish = sdG(`<rect x="${sdF(-a + 12)}" y="14" width="18" height="12" rx="3" fill="#f6eedc"/><path d="M${sdF(-a + 15)},20 q5,-5 10,0 q-5,5 -10,0 z M${sdF(-a + 25)},20 l4,-3 v6 z" fill="#4f8fc0" stroke-width="1"/>`, 1.8);
-      if(k === 2)   // yếm lội ao rêu + cá chép cam trên nền kem
+      const fish = sdG(`<rect x="${sdF(-a + 12)}" y="14" width="18" height="12" rx="3" fill="#f6eedc"/><path d="M${sdF(-a + 15)},20 q5,-5 10,0 q-5,5 -10,0 z M${sdF(-a + 25)},20 l4,-3 v6 z" fill="#4f8fc0" stroke-width="1"/>`, 1.4);
+      if(k === 2)
         return {defs:`<pattern id="${x.P}stripe" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="#f3efdc"/><rect width="10" height="4.5" fill="#7f8f42"/></pattern>`,
           over: sdBib(a, 16, '#4e5e37', '#56663c', 1)
-          + sdG(`<ellipse cx="${sdF(-a + 9)}" cy="28" rx="8" ry="6" fill="#f6eedc"/><path d="M${sdF(-a + 4)},28 q4,-4 8,0 q-4,4 -8,0 z M${sdF(-a + 12)},28 l3,-2.5 v5 z" fill="#ef8a4c" stroke-width="1"/>`, 1.6)};
+          + sdG(`<ellipse cx="${sdF(-a + 9)}" cy="28" rx="8" ry="6" fill="#f6eedc"/><path d="M${sdF(-a + 4)},28 q4,-4 8,0 q-4,4 -8,0 z M${sdF(-a + 12)},28 l3,-2.5 v5 z" fill="#ef8a4c" stroke-width="1"/>`, 1.4)};
       const shirt = k === 0 ? '#f3eddc' : '#d3e3ef';
       return {deco: sdVee(a, shirt, 60), over: fish};
     }
   },
 
-  /* 7 · Bạn Tí — học sinh lớp 8: mũi nút nhỏ, tàn nhang, mũ lưỡi trai (lưỡi quay ra sau) */
-  7: {cx:120, ey:110, nb:182, ox:5, D:82, skin:['#f9e2c8', '#eec9a1', '#d8a877'], hc:SD_DARK, ear:[12, 0],
-    h:{top:-64, back:52, nape:22, fx:-42, fs:7, n:{tx:-55, ty:14, bx:-44, by:18, r:4, hump:-5}, lu:-45, ll:-43, my:30, ch:[-38, 44], jaw:[12, 38]},
+  /* 7 · Bạn Tí — học sinh lớp 8: hạ thấp cằm/hàm (ch=[−36, 54], jaw=[−5, 47]) để cổ ngắn lại đúng bằng góc thẳng */
+  7: {cx:120, ey:110, nb:182, ox:5, D:80, skin:['#f9e2c8', '#eec9a1', '#d8a877'], hc:SD_DARK, ear:[10, 3], nf:-8, nbk:19,
+    h:{top:-60, back:42, nape:27, nbk:19, fx:-40, fs:6, n:{tx:-47, ty:16, bx:-41, by:21, r:2.8}, my:34, ch:[-36, 54], jaw:[-5, 47]},
     look(k){
       return [{body:['#f0d878', '#e8c34b'], sleeve:['#e8c34b', '#c9a23c'], cap:['#f0d878', '#e2ad2a']},
         {body:['#f7c63f', '#eaa91c'], sleeve:['#eaa91c', '#c98912'], cap:['#f7c63f', '#c98912']},
         {body:['#f8a24a', '#ee8a2e'], sleeve:['#ee8a2e', '#d27220'], cap:['#f8a24a', '#d27220']}][k];
     },
     hair(x){
-      return sdG(`<path d="M-2,-24 L12,-24 C11,-14 9,-6 7,2 C2,-6 0,-14 -2,-24 Z M26,-24 L58,-24 C59,0 56,12 50,22 C42,16 36,6 32,-4 C30,-12 28,-18 26,-24 Z" fill="${x.H}"/>`, 2.6);
+      // Nối liền tóc mai trước tai với phần tóc sau gáy dưới vành mũ (không bị hở khoảng da trên tai)
+      return sdG(`<path d="M-42,-22 C-44,-14 -39,-12 -33,-21 Z M-2,-25 L46,-25 C47,-4 40,16 19,27 C17,17 16,6 14,-2 C11,-10 7,-10 5,-2 C3,4 2,8 0,10 C-2,-2 -2,-12 -2,-25 Z" fill="${x.H}"/>`, 2.6);
     },
     hat(x){
       const c = x.look.cap;
-      return sdG(`<path d="M52,-26 C64,-30 78,-29 84,-23 C82,-18 74,-18 54,-18 Z" fill="${c[1]}"/>`, 2.8)
-        + sdG(`<path d="M-48,-22 C-52,-54 -22,-72 6,-72 C40,-72 62,-52 60,-22 C30,-27 -20,-27 -48,-22 Z" fill="${c[0]}"/>`
-        + `<path d="M-38,-46 C-14,-56 30,-56 50,-44" fill="none" stroke-width="1.5" opacity=".35"/>`
-        + `<circle cx="6" cy="-72" r="4" fill="#4f8fc0"/>`, 3);
+      return sdG(`<path d="M44,-23 C56,-27 70,-26 76,-20 C74,-15 66,-15 46,-15 Z" fill="${c[1]}"/>`, 2.8)
+        + sdG(`<path d="M-45,-20 C-49,-50 -20,-68 4,-68 C36,-68 52,-48 50,-20 C24,-25 -18,-25 -45,-20 Z" fill="${c[0]}"/>`
+        + `<path d="M-45,-20 C-18,-27 24,-27 50,-20 L49,-27 C22,-33 -18,-33 -44,-27 Z" fill="${SD_INK}" opacity=".13" stroke="none"/>`
+        + `<circle cx="4" cy="-68" r="4" fill="#4f8fc0"/>`, 3);
     },
     face(x){
-      const {h} = x, ex = h.fx + 14, fr = [[ex + 2, 12], [ex + 7, 14], [ex + 4, 18], [ex + 10, 18], [ex + 12, 13]];
-      return sdBrow(ex - 10, -15, 19, 3.6, 1)
+      const {h} = x, ex = h.fx + 14, fr = [[ex + 2, 13], [ex + 7, 15], [ex + 4, 19], [ex + 10, 19], [ex + 12, 14]];
+      return `<path class="brw brw-r" d="M${ex - 9},-13 Q${ex - 2},-21 ${ex + 9},-17 L${ex + 8},-12 Q${ex - 1},-15 ${ex - 8},-11 Z" fill="${SD_INK}" stroke="${SD_INK}" stroke-width="1" stroke-linejoin="round"/>`
         + `<g fill="#c08060" opacity=".75">${fr.map(([px, py]) => `<circle cx="${px}" cy="${py}" r="1.3"/>`).join('')}</g>`;
     },
     dress(x){
-      const {a, k} = x, sc = sdScarf(-20);
-      if(k === 1)   // áo đấu: số 8 xanh than ở ngực, viền cổ, băng tay
-        return {over: sdLn('M-16,-6 C-8,-2 12,-6 20,-13', '#2f5592', 3.4) + sc
+      const {a, k} = x, sc = sdScarf(-15);
+      if(k === 1)
+        return {over: sdG(`<path d="M-14,-10 C-5,-4 9,-8 16,-13 L17,-6 C9,0 -5,3 -15,-4 Z" fill="#2f5592"/>`, 1.5) + sc
             + `<text x="${sdF(-a + 16)}" y="30" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="17" fill="#2f5592" stroke="${SD_INK}" stroke-width="1" text-anchor="middle">8</text>`,
-          arm: sdG(`<path d="M-15,12 L15,12 L14.6,19 L-14.6,19 Z" fill="#2f5592"/>`, 1.6)};
-      if(k === 2)   // áo gió: băng ngực kem + xanh than (y 192–211), khoá kéo
+          arm: sdG(`<path d="M-15,12 L15,12 L14.6,19 L-14.6,19 Z" fill="#2f5592"/>`, 1.4)};
+      if(k === 2)
         return {deco: `<path d="M-90,10 L120,10 L120,20 L-90,20 Z" fill="#f4ecd6"/><path d="M-90,20 L120,20 L120,29 L-90,29 Z" fill="#2f5592"/>`
-            + sdLn('M-90,10 L120,10 M-90,29 L120,29', SD_INK, 1.8) + sdLn(`M${sdF(-a + 4)},0 L${sdF(-a + 2)},140`, '#b8601a', 1.8),
-          over: sc, arm: sdG(`<path d="M-15,10 L15,10 L14.7,18 L-14.7,18 Z" fill="#f4ecd6"/>`, 1.6)};
+            + sdLn('M-90,10 L120,10 M-90,29 L120,29', SD_INK, 1.5) + sdLn(`M${sdF(-a + 4)},0 L${sdF(-a + 2)},140`, '#b8601a', 1.5),
+          over: sc, arm: sdG(`<path d="M-15,10 L15,10 L14.7,18 L-14.7,18 Z" fill="#f4ecd6"/>`, 1.4)};
       return {over: sc};
     }
   },
 
-  /* 8 · Chị Hoa — tiệm vàng bạc: mặt trái tim (cằm nhọn), mũi thon, mi cong, hoa đỏ cài tóc, bông tai vàng */
-  8: {cx:120, ey:104, nb:182, ox:5, D:86, bust:4, skin:['#f9e6d1', '#f0d0ac', '#e2b184'], hc:SD_DARK, ear:[12, 2], neckF:33,
-    h:{top:-76, back:52, nape:26, fx:-44, fs:5, n:{tx:-63, ty:22, bx:-50, by:26, r:3, hump:1}, lu:-49, ll:-46, my:41, ch:[-40, 64], jaw:[10, 44]},
+  /* 8 · Chị Hoa — tiệm vàng bạc */
+  8: {cx:120, ey:104, nb:182, ox:5, D:86, bust:4, skin:['#f9e6d1', '#f0d0ac', '#e2b184'], hc:SD_DARK, ear:[11, 2], nf:-8, nbk:19,
+    h:{top:-68, back:44, nape:24, nbk:19, fx:-42, fs:5, n:{tx:-50, ty:17, bx:-43, by:22, r:2.9}, my:36, ch:[-38, 57], jaw:[-5, 45]},
     look(k){
       return [{body:['#98c479', '#7aa95c'], sleeve:['#7aa95c', '#5e8944']},
         {body:['#4fa88b', '#358a70'], sleeve:['#358a70', '#276c58']},
         {body:'gold', sleeve:'gold'}][k];
     },
-    back(x){   // búi tóc gọn sau gáy
-      return sdG(`<ellipse cx="54" cy="-26" rx="14" ry="16" fill="${x.H}"/>`, 2.8) + sdLn('M46,-36 q10,4 14,16', '#7a6a5c', 1.4, '.5');
+    back(x){
+      // Búi tóc cao to tròn nổi bật phía sau đỉnh đầu kèm đai vàng chân búi
+      return sdG(`<ellipse cx="38" cy="-64" rx="22" ry="20" fill="${x.H}"/>`
+        + `<path d="M18,-51 Q33,-59 50,-44 L46,-39 Q31,-52 16,-45 Z" fill="#e8b84b"/>`, 2.8)
+        + sdLn('M26,-74 q14,-4 24,8 M28,-64 q12,4 22,0', '#7a6a5c', 1.5, '.55');
     },
     hair(x){
-      return sdG(`<path d="M-42,-34 C-52,-62 -26,-86 12,-85 C48,-84 67,-58 64,-26 C62,-10 58,4 50,14 C42,8 34,-2 28,-10 C22,-16 14,-18 8,-16 C4,-26 -10,-34 -24,-34 C-30,-34 -36,-34 -42,-34 Z" fill="${x.H}"/>`, 3)
-        // mái phồng hất lên
-        + sdG(`<path d="M-44,-36 C-56,-58 -40,-82 -6,-84 C-26,-76 -36,-62 -30,-42 C-34,-38 -40,-36 -44,-36 Z" fill="${x.H}"/>`, 2.4)
-        + sdLn('M-30,-58 C-10,-80 30,-82 52,-56 M-20,-44 C0,-66 30,-68 50,-44 M10,-30 C26,-30 40,-16 48,4', '#7a6a5c', 1.5, '.55')
-        // hoa 5 cánh đỏ + lá
-        + sdG(`<path d="M2,-36 q-10,-4 -14,4 q8,2 14,-4 z" fill="#6ea85a"/>`
-          + [[0, -7], [6.7, -2.2], [4.1, 5.7], [-4.1, 5.7], [-6.7, -2.2]].map(([dx, dy]) => `<circle cx="${sdF(6 + dx)}" cy="${sdF(-44 + dy)}" r="5" fill="#e8605a"/>`).join('')
-          + `<circle cx="6" cy="-44" r="3" fill="#f5c842"/>`, 1.8);
+      return sdG(`<path d="M-41,-30 C-47,-60 -20,-80 12,-78 C44,-76 56,-50 52,-18 C50,2 38,18 19,24 C16,14 15,4 15,-6 C11,-14 6,-16 2,-10 C-4,-22 -18,-28 -41,-30 Z" fill="${x.H}"/>`, 3)
+        + sdLn('M-28,-52 C-8,-70 24,-70 42,-48 M-16,-38 C4,-54 26,-52 40,-32 M16,-22 C26,-18 34,-4 32,12', '#7a6a5c', 1.5, '.55')
+        + sdG(`<path d="M2,-34 q-10,-4 -14,4 q8,2 14,-4 z" fill="#6ea85a"/>`
+          + [[0, -6.5], [6.2, -2], [3.8, 5.2], [-3.8, 5.2], [-6.2, -2]].map(([dx, dy]) => `<circle cx="${sdF(6 + dx)}" cy="${sdF(-42 + dy)}" r="4.8" fill="#e8605a"/>`).join('')
+          + `<circle cx="6" cy="-42" r="2.8" fill="#f5c842"/>`, 1.8);
     },
     face(x){
       const {h} = x, ex = h.fx + 14, k = x.k;
-      const ear = k === 2 ? sdG(`<circle cx="18" cy="${h.my - 12}" r="6.5" fill="none" stroke="#c8a227" stroke-width="3"/>`, 0)
-        : sdLn(`M18,${h.my - 18} v5`, SD_INK, 1.4) + sdG(`<circle cx="18" cy="${h.my - 10}" r="3.6" fill="#f2c94c"/>`, 1.6);
-      return sdBrow(ex - 11, -17, 21, 3.8, 2) + `<g class="sd-ear2">${ear}</g>`;
+      const ear = k === 2 ? sdG(`<circle cx="14" cy="21" r="5.8" fill="none" stroke="#c8a227" stroke-width="2.6"/>`, 0)
+        : sdLn(`M14,15 v4`, SD_INK, 1.4) + sdG(`<circle cx="14" cy="21" r="3.4" fill="#f2c94c"/>`, 1.6);
+      return `<path class="brw brw-r" d="M${ex - 10},-14 Q${ex},-26 ${ex + 11},-14 Q${ex},-20 ${ex - 10},-14 Z" fill="${SD_INK}" stroke="${SD_INK}" stroke-width="1" stroke-linejoin="round"/>` + `<g class="sd-ear2">${ear}</g>`;
     },
-    lips: '#d77a6a',
     dress(x){
       const {a, k} = x;
-      const chain = sdLn(`M18,-12 C6,-2 -10,8 ${sdF(-a + 10)},16`, '#d9a72c', 2.6) + sdG(`<circle cx="${sdF(-a + 9)}" cy="19" r="4" fill="#f2c94c"/>`, 1.6);
+      const chain = sdLn(`M16,-12 C6,-2 -10,8 ${sdF(-a + 10)},16`, '#d9a72c', 2.6) + sdG(`<circle cx="${sdF(-a + 9)}" cy="19" r="4" fill="#f2c94c"/>`, 1.6);
       if(k === 0) return {deco: sdVee(a, '#f6eedc', 18), over: chain};
-      if(k === 1) return {deco: sdVee(a, '#f6eedc', 26), over: sdG(`<path d="M-12,-10 L-30,8 L-24,26 L-14,6 Z" fill="#2c7f66"/>`, 2.2) + chain};
+      if(k === 1) return {deco: sdVee(a, '#f6eedc', 26), over: sdG(`<path d="M-12,-10 L-28,8 L-22,26 L-13,6 Z" fill="#2c7f66"/>`, 1.5) + chain};
       return {defs:`<pattern id="${x.P}gold" width="16" height="16" patternUnits="userSpaceOnUse"><rect width="16" height="16" fill="#23946a"/><g fill="#f2c94c"><circle cx="4" cy="4" r="1.6"/><circle cx="6.4" cy="4" r="1.3"/><circle cx="1.6" cy="4" r="1.3"/><circle cx="4" cy="1.6" r="1.3"/><circle cx="4" cy="6.4" r="1.3"/></g><circle cx="12" cy="12" r="1.2" fill="#f2c94c"/></pattern>`,
         deco: sdVee(a, '#f6eedc', 10),
-        over: `<path d="M18,-12 C6,-2 -10,8 ${sdF(-a + 10)},14" fill="none" stroke="#f2c94c" stroke-width="3.6" stroke-dasharray="0.1 5" stroke-linecap="round"/>`
+        over: `<path d="M16,-12 C6,-2 -10,8 ${sdF(-a + 10)},14" fill="none" stroke="#f2c94c" stroke-width="3.6" stroke-dasharray="0.1 5" stroke-linecap="round"/>`
           + sdG(`<path d="M${sdF(-a + 10)},14 l4,6 l-4,6 l-4,-6 z" fill="#f2c94c"/>`, 1.6)};
     }
   },
 
-  /* 9 · Thầy Nam — giáo viên Hoá: mặt dài, mũi thẳng dài, tóc rẽ ngôi gọn */
-  9: {cx:120, ey:105, nb:180, ox:6, D:96, skin:['#f2dcc0', '#e3c39a', '#c49a6c'], hc:SD_DARK, ear:[14, 2],
-    h:{top:-72, back:54, nape:30, fx:-46, fs:4, n:{tx:-65, ty:24, bx:-51, by:29, r:4, hump:2}, lu:-49, ll:-48, my:45, ch:[-45, 68], jaw:[18, 58]},
+  /* 9 · Thầy Nam — giáo viên Hoá: tóc nghiêng hạ độ phồng đỉnh xuống y≈-68, mái rẽ ngôi ôm nhẹ xuống trán khớp với góc thẳng */
+  9: {cx:120, ey:105, nb:180, ox:6, D:94, tallMale:1, skin:['#f2dcc0', '#e3c39a', '#c49a6c'], hc:SD_DARK, ear:[12, 2], nf:-9, nbk:21,
+    h:{top:-64, back:44, nape:28, nbk:21, fx:-43, fs:4, n:{tx:-52, ty:19, bx:-44, by:24, r:3.2}, my:39, ch:[-41, 61], jaw:[-6, 51]},
     look(k){
       return [{body:['#f3eddc', '#fffef9'], sleeve:['#fffef9', '#e6e0cf']},
         {body:['#fffef9', '#e6e0cf'], sleeve:['#fffef9', '#e6e0cf']},
         {body:['#fffefa', '#e4dfd2'], sleeve:['#fffefa', '#e4dfd2']}][k];
     },
     hair(x){
-      return sdG(`<path d="M-46,-32 C-56,-52 -40,-80 -4,-82 C32,-84 62,-64 63,-30 C63,-8 59,10 53,26 C45,20 37,8 31,-2 C25,-10 19,-12 14,-10 C10,-6 8,2 6,10 C3,-6 -1,-18 -8,-27 C-20,-33 -34,-33 -46,-32 Z" fill="${x.H}"/>`, 3)
-        // mái hất lên phía trước + đường ngôi
-        + sdG(`<path d="M-48,-34 C-60,-52 -46,-78 -16,-81 C-30,-72 -36,-60 -34,-44 C-38,-38 -44,-34 -48,-34 Z" fill="${x.H}"/>`, 2.4)
-        + sdLn('M-24,-72 C0,-80 30,-77 52,-60', '#8a7a6a', 2, '.7') + sdLn('M-20,-62 C4,-72 30,-68 48,-50 M-10,-50 C10,-58 30,-52 44,-38', '#7a6a5c', 1.4, '.5');
+      // vòm tóc gọn vừa phải (đỉnh y≈-68 thay vì y=-78), mái rẽ ngôi 7/3 đổ nhẹ xuống trán (y=-23) và tóc mai thẳng gọn trước tai
+      return sdG(`<path d="M-43,-23 C-46,-42 -36,-62 -12,-67 C16,-72 44,-60 49,-30 C51,-8 42,14 21,28 C18,18 18,6 18,-4 C15,-12 9,-12 7,-2 C5,4 4,8 3,10 C1,-4 -1,-14 -6,-21 C-16,-19 -30,-20 -43,-23 Z" fill="${x.H}"/>`, 3)
+        + sdLn('M-24,-48 C-32,-40 -38,-32 -41,-24 M-24,-48 C-2,-58 22,-54 38,-36 M-12,-36 C8,-44 26,-40 36,-24', '#8a7a6a', 1.6, '.65');
     },
-    face(x){ const {h} = x, ex = h.fx + 15; return sdBrow(ex - 12, -18, 24, 4.4, 1); },
+    face(x){ const {h} = x, ex = h.fx + 15; return `<path class="brw brw-r" d="M${ex - 11},-16 L${ex - 3},-22 L${ex + 11},-17 L${ex + 10},-13 L${ex - 2},-17 L${ex - 10},-13 Z" fill="${SD_INK}" stroke="${SD_INK}" stroke-width="1" stroke-linejoin="round"/>`; },
     dress(x){
       const {a, k} = x;
-      const tie = c => sdG(`<path d="M-22,0 L-28,4 L${sdF(-a + 3)},40 L${sdF(-a + 8)},47 L${sdF(-a + 10)},38 L-20,6 Z" fill="${c}"/><path d="M-26,-4 L-20,-6 L-17,2 L-24,6 Z" fill="${c}"/>`, 2);
-      const collar = c => sdG(`<path d="M-14,-12 L-32,0 L-22,10 L-10,-2 Z" fill="${c}"/>`, 2.2);
-      if(k === 0) return {deco: sdVee(a, '#fffef9', 40), over: tie('#d9534a') + collar('#fffef9')};
-      if(k === 1)   // gi-lê len mù tạt (sọc dệt) trên sơ mi trắng, ghim bình tam giác xanh
+      if(k === 0) return {};
+      if(k === 1)
         return {deco: `<path d="M-4,-24 L120,-24 L120,140 L${sdF(-a + 8)},140 L${sdF(-a + 6)},40 C${sdF(-a + 8)},26 -14,8 -4,-24 Z" fill="#d8a94c"/>`
-            + `<g stroke="#b98a35" stroke-width="1.4" opacity=".6">${[-30, -18, -6, 6, 18, 30].map(px => `<path d="M${px},-10 v150"/>`).join('')}</g>`
-            + sdLn(`M-4,-14 C-14,8 ${sdF(-a + 6)},26 ${sdF(-a + 6)},44`, SD_INK, 2.4),
-          over: tie('#d9534a') + collar('#fffef9') + sdG(`<path d="M${sdF(-a + 22)},12 v6 l-5,8 h12 l-5,-8 v-6 z" fill="#e9f3f6"/><path d="M${sdF(-a + 18.5)},23 h9 l1.5,3 h-12 z" fill="#7cc36a" stroke="none"/>`, 1.6)};
-      // áo blouse trắng mở trên sơ mi kem, cà vạt mù tạt, ống nghiệm tím trong túi ngực
-      return {deco: sdVee(a, '#fbf6e8', 50) + sdLn(`M-8,-18 L${sdF(-a*0.55 - 4)},50`, SD_INK, 2.4),
-        over: tie('#d8a94c') + sdG(`<path d="M-12,-12 L-34,4 L-26,22 L-10,0 Z" fill="#fffefa"/>`, 2.2)
-          + sdG(`<rect x="${sdF(-a + 20)}" y="4" width="5" height="22" rx="2.5" fill="#e9f3f6"/><rect x="${sdF(-a + 20)}" y="14" width="5" height="12" rx="2.5" fill="#9b7bb8"/>`
-          + `<path d="M${sdF(-a + 15)},16 L${sdF(-a + 32)},16 L${sdF(-a + 32)},36 L${sdF(-a + 16)},36 Z" fill="#f4f1e8"/>`, 1.8)};
+            + `<g stroke="#b98a35" stroke-width="1.2" opacity=".6">${[-30, -18, -6, 6, 18, 30].map(px => `<path d="M${px},-10 v150"/>`).join('')}</g>`
+            + sdLn(`M-4,-14 C-14,8 ${sdF(-a + 6)},26 ${sdF(-a + 6)},44`, SD_INK, 1.5),
+          over: sdG(`<path d="M${sdF(-a + 22)},12 v6 l-5,8 h12 l-5,-8 v-6 z" fill="#e9f3f6"/><path d="M${sdF(-a + 18.5)},23 h9 l1.5,3 h-12 z" fill="#7cc36a" stroke="none"/>`, 1.4)};
+      return {deco: sdVee(a, '#fbf6e8', 50) + sdLn(`M-8,-18 L${sdF(-a*0.55 - 4)},50`, SD_INK, 1.5),
+        over: sdG(`<rect x="${sdF(-a + 20)}" y="4" width="5" height="22" rx="2.5" fill="#e9f3f6"/><rect x="${sdF(-a + 20)}" y="14" width="5" height="12" rx="2.5" fill="#9b7bb8"/>`
+          + `<path d="M${sdF(-a + 15)},16 L${sdF(-a + 32)},16 L${sdF(-a + 32)},36 L${sdF(-a + 16)},36 Z" fill="#f4f1e8"/>`, 1.5)};
     }
   },
 
-  /* 10 · Cô Mai — quán chè: tóc nữ phồng, mái lệch, kẹp xanh lá dứa, đuôi ngựa thấp buộc dây san hô rủ qua vai */
-  10: {cx:120, ey:106, nb:180, ox:6, D:92, bust:4, skin:['#f9e6d1', '#f0d0ac', '#e2b184'], hc:SD_DARK, ear:[13, 4],
-    h:{top:-70, back:54, nape:28, fx:-44, fs:6, n:{tx:-61, ty:20, bx:-48, by:25, r:5, hump:-1}, lu:-47, ll:-45, my:40, ch:[-41, 59], jaw:[14, 48]},
+  /* 10 · Cô Mai — quán chè */
+  10: {cx:120, ey:106, nb:180, ox:6, D:90, bust:4, skin:['#f9e6d1', '#f0d0ac', '#e2b184'], hc:SD_DARK, ear:[11, 3], nf:-8, nbk:20,
+    h:{top:-68, back:44, nape:26, nbk:20, fx:-42, fs:6, n:{tx:-49, ty:16, bx:-43, by:21, r:3.0}, my:35, ch:[-38, 53], jaw:[-5, 45]},
     look(k){
       return [{body:['#f6b49c', '#ea9a7e'], sleeve:['#ea9a7e', '#d47f63']},
         {body:['#ef8f76', '#e2755c'], sleeve:['#e2755c', '#c95e47']},
         {body:['#fcd5ad', '#f6bb88'], sleeve:['#f6bb88', '#df9c66'], cuff:'#fde4e0'}][k];
     },
     hair(x){
-      return sdG(`<path d="M-46,-26 C-55,-62 -24,-90 12,-88 C52,-86 74,-58 69,-18 C67,4 62,20 55,30 C46,32 37,28 30,22 C26,12 22,0 18,-8 C12,-14 4,-14 -2,-16 C-16,-20 -32,-24 -46,-26 Z" fill="${x.H}"/>`, 3)
-        // mái lệch hất về trước, vén một lọn
-        + sdG(`<path d="M30,-80 C0,-84 -36,-68 -48,-40 C-52,-30 -50,-22 -45,-24 C-38,-44 -16,-56 14,-58 Z" fill="${x.H}"/>`, 2.4)
-        + sdLn('M24,-72 C0,-74 -30,-62 -42,-36 M28,-60 C42,-50 50,-30 52,2 M40,-72 C56,-60 62,-36 62,-10', '#7a6a5c', 1.5, '.55')
-        // kẹp tóc xanh lá dứa trên mái
-        + `<g transform="rotate(-24 -18 -62)">` + sdG(`<rect x="-28" y="-64.5" width="20" height="5.5" rx="2.75" fill="#7cc3a4"/>`, 1.6) + `<circle cx="-23" cy="-61.8" r="1" fill="#fff"/></g>`;
+      const clip = x.k === 1 ? '' : `<g transform="rotate(-22 -18 -56)">` + sdG(`<rect x="-27" y="-58.5" width="18" height="5" rx="2.5" fill="#7cc3a4"/>`, 1.6) + `<circle cx="-22.5" cy="-56" r="1" fill="#fff"/></g>`;
+      return sdG(`<path d="M-43,-24 C-49,-58 -20,-80 12,-78 C44,-76 58,-50 54,-14 C52,6 40,22 20,26 C17,16 15,6 14,-4 C11,-12 6,-14 0,-16 C-14,-20 -28,-22 -43,-24 Z" fill="${x.H}"/>`, 3)
+        + sdLn('M18,-62 C-4,-64 -26,-52 -38,-30 M20,-48 C34,-38 42,-18 40,10', '#7a6a5c', 1.5, '.55')
+        + clip;
     },
     hat(x){
       if(x.k !== 1) return '';
-      // băng đô mâm xôi + nơ ở gáy
-      return sdG(`<path d="M62,-50 l14,-10 l2,14 z M62,-48 l12,8 l-10,6 z" fill="#e05a6a"/><circle cx="62" cy="-48" r="3.6" fill="#c8384e"/>`, 2.2)
-        + sdG(`<path d="M-44,-46 C-30,-68 20,-78 64,-56 L62,-44 C20,-64 -26,-58 -42,-34 Z" fill="#c8384e"/>`
-        + `<path d="M-30,-56 h4 M0,-66 h4 M32,-62 h4" fill="none" stroke="#fff" stroke-width="2"/>`, 2.6);
+      return sdG(`<path d="M52,-44 l13,-10 l2,13 z M52,-42 l11,8 l-9,6 z" fill="#e05a6a"/><circle cx="52" cy="-42" r="3.4" fill="#c8384e"/>`, 2.2)
+        + sdG(`<path d="M-41,-42 C-28,-64 18,-72 54,-50 L52,-39 C18,-58 -24,-52 -39,-31 Z" fill="#c8384e"/>`
+        + `<path d="M-26,-51 h4 M2,-60 h4 M28,-56 h4" fill="none" stroke="#fff" stroke-width="2"/>`, 2.6);
     },
     face(x){
       const {h} = x, ex = h.fx + 14;
-      return sdBrow(ex - 10, -16, 20, 2.4, 2.5)
-        + sdG(`<path d="M15,21 v4" fill="none" stroke-width="1.4"/><circle cx="15" cy="21" r="2.2" fill="#f2c94c"/><circle cx="15" cy="28" r="3" fill="#ef8a6f"/>`, 1.4);
+      return `<path class="brw brw-r" d="M${ex - 10},-14 Q${ex},-25 ${ex + 10},-14 Q${ex},-20 ${ex - 10},-14 Z" fill="${SD_INK}" stroke="${SD_INK}" stroke-width="1" stroke-linejoin="round"/>`
+        + sdG(`<path d="M13,19 v4" fill="none" stroke-width="1.4"/><circle cx="13" cy="19" r="2.1" fill="#f2c94c"/><circle cx="13" cy="26" r="2.8" fill="#ef8a6f"/>`, 1.4);
     },
-    lips: '#d77a6a',
-    // đuôi ngựa thấp: buộc dây san hô sau tai, rủ qua vai gần ra trước ngực (đung đưa)
     last(x){
-      return `<g transform="translate(30,26)"><g class="sd-sway">${sdBB(110)}`
-        + sdG(`<path d="M-2,0 C-12,20 -14,44 -10,62 C-6,76 -12,88 -22,96 C-6,96 4,84 6,68 C8,50 12,26 8,2 Z" fill="${x.H}"/>`, 2.8)
-        + sdLn('M2,8 C-4,30 -4,52 -2,70 C0,80 -6,88 -12,92', '#7a6a5c', 1.5, '.6')
-        + sdG(`<path d="M-6,-4 q6,-6 16,-2 q2,6 -2,9 q-8,3 -14,-1 q-2,-3 0,-6z" fill="#e0604c"/>`, 2)
+      return `<g transform="translate(44,4)"><g class="sd-sway">${sdBB(90)}`
+        + sdG(`<path d="M0,-2 C18,2 28,22 22,50 C18,68 8,82 -6,88 C-3,72 -5,56 -10,42 C-14,28 -12,10 0,-2 Z" fill="${x.H}"/>`, 2.8)
+        + sdLn('M8,14 C16,30 16,52 7,72', '#7a6a5c', 1.6, '.55')
+        + sdG(`<path d="M-5,-2 C-1,-9 11,-6 13,2 C11,9 -1,8 -5,2 Z" fill="#e0604c"/>`, 2.2)
         + `</g></g>`;
     },
     dress(x){
-      const {a, k} = x, collar = sdG(`<path d="M-14,-12 L-30,2 L-20,8 L-10,-2 Z" fill="${x.look.body[0]}"/>`, 2.2);
+      const {a, k} = x, collar = sdG(`<path d="M-13,-11 L-27,2 L-18,8 L-9,-2 Z" fill="${x.look.body[0]}"/>`, 1.5);
       if(k === 1)
         return {defs:`<pattern id="${x.P}candy" width="9" height="9" patternUnits="userSpaceOnUse"><rect width="9" height="9" fill="#fff6ea"/><rect width="4.5" height="9" fill="#c8384e"/></pattern>`,
           over: collar + sdBib(a, 20, `url(#${x.P}candy)`, '#c8384e')};
-      if(k === 2)   // tạp dề jean + ly chè ba màu ở túi yếm
+      if(k === 2)
         return {over: collar + sdBib(a, 20, '#6f8fb5', '#5f80a8')
           + sdG(`<path d="M${sdF(-a + 1)},24 L${sdF(-a + 15)},24 L${sdF(-a + 13)},42 L${sdF(-a + 3)},42 Z" fill="#fdf6ea"/>`, 1.8)
           + `<path d="M${sdF(-a + 2)},28 h12 l-0.4,4 h-11.2 z" fill="#7cc36a"/><path d="M${sdF(-a + 2.5)},32 h11 l-0.5,5 h-10 z" fill="#f2c94c"/><path d="M${sdF(-a + 3)},37 h10 l-0.4,4 h-9.2 z" fill="#8a5a3a"/>`
@@ -546,23 +541,19 @@ const SD_CHARS = {
 
 /* ---------- ghép hình ---------- */
 const sideMemo = {};
-// hình nghiêng của khách i (0..9, như custSVG), skin k
 function sideArt(i, k){
   k = k || 0;
   const key = i + ':' + k;
   if(sideMemo[key]) return sideMemo[key];
   const hd = i + 1, c = SD_CHARS[hd];
   if(!c) return '';
-  const P = `sd${hd}k${k}_`, look = c.look(k) || c.look(0), h = c.h, a = c.D/2, sk = c.skin;
+  const P = `sd${hd}k${k}_`, look = c.look(k) || c.look(0), h = c.h, T = !!c.tallMale, a = (c.D/2) * (T ? 1.1 : 1), sk = c.skin;
   const x = {P, k, h, a, look, S:`url(#${P}skin)`, H:`url(#${P}hair)`};
   const dr = c.dress(x) || {};
-  // màu áo: gradient dọc cho thân, ngang cho tay; 'stripe' / 'gold' là hoa văn khai báo trong dress().defs
   const fillOf = (spec, id) => spec === 'stripe' ? `url(#${P}stripe)` : spec === 'gold' ? `url(#${P}gold)` : `url(#${P}${id})`;
   const grad = (spec, id, hor) => typeof spec === 'string' ? '' : sdLin(P + id, spec, hor ? 1 : 0, hor ? 0 : 1);
   const farFill = typeof look.sleeve === 'string' ? fillOf(look.sleeve) : look.sleeve[1];
-  // da: gradient theo toạ độ (userSpaceOnUse) — đầu, tai, mí mắt và cổ cùng một trường màu nên chỗ cổ nối đầu không lộ
-  // vệt; cổ nằm trong hệ thân nên dùng bản dời gốc (skinn). Bàn tay: gradient theo hình (skinb).
-  const [cx, ey, nb, ox] = [c.cx, c.ey, c.nb, c.ox], bx = cx + ox;
+  const [cx, ey, nb, ox] = [c.cx, c.ey, c.nb + (T ? 8 : 0), c.ox], bx = cx + ox;
   const skStops = `<stop offset="0" stop-color="${sk[0]}"/><stop offset="62%" stop-color="${sk[1]}"/><stop offset="100%" stop-color="${sk[2]}"/>`;
   const defs = `<defs><radialGradient id="${P}skin" gradientUnits="userSpaceOnUse" cx="-14" cy="-12" r="96">${skStops}</radialGradient>`
     + `<radialGradient id="${P}skinn" gradientUnits="userSpaceOnUse" cx="${-14 - ox}" cy="${sdF(-12 - (nb - ey))}" r="96">${skStops}</radialGradient>`
@@ -571,50 +562,52 @@ function sideArt(i, k){
     + `<radialGradient id="${P}blush" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#e88f72" stop-opacity=".5"/><stop offset="100%" stop-color="#e88f72" stop-opacity="0"/></radialGradient>`
     + grad(look.body, 'body') + grad(look.sleeve, 'sleeve', 1) + (dr.defs || '') + `</defs>`;
   const S = x.S, SB = `url(#${P}skinb)`, bodyFill = fillOf(look.body, 'body'), sleeveFill = fillOf(look.sleeve, 'sleeve');
-  const torso = sdTorsoD(a, c.bust, c.hunch);
-  const shX = sdF(a*0.08), shY = 7;
+  const torso = sdTorsoD(a, c.bust, c.hunch, T);
+  const L1 = T ? SD_TL1 : SD_L1, shX = sdF(a*0.08), shY = T ? 12 : 7;
 
-  // --- thân (hệ thân): tay xa, ba lô, cổ, thân áo, trang trí
-  // cổ: mép trước mọc ra dưới quai hàm, mép sau nối liền đường gáy (đỉnh = điểm đầu nét viền đầu) rồi thoải xuống vai
-  const L = (px, py) => `${sdF(px - ox)},${sdF(py + ey - nb)}`, nbL = nb - ey, B = h.back, N = h.nape, nf = h.ch[0] + (c.neckF || 27);
-  const neck = `<path d="M${L(nf, h.jaw[1] - 6)} L${L(nf + 3, nbL + 6)} L${L(B - 24, nbL + 6)} L${L(B - 24, nbL - 6)} C${L(B - 20, nbL - 20)} ${L(B - 5, N + 16)} ${L(B - 3, N - 2)} Z" fill="url(#${P}skinn)"/>`
-    + `<path d="M${L(nf, h.jaw[1] + 4)} C${L(nf + 18, h.jaw[1] + 2)} ${L(B - 14, N + 14)} ${L(B - 6, N + 4)} L${L(B - 14, nbL - 6)} L${L(nf + 3, nbL)} Z" fill="${SD_INK}" opacity=".1"/>`
-    + sdLn(`M${L(nf, h.jaw[1] - 6)} L${L(nf + 3, nbL + 4)} M${L(B - 3, N)} C${L(B - 5, N + 16)} ${L(B - 20, nbL - 20)} ${L(B - 24, nbL - 6)}`, SD_INK, 3);
-  const farArm = sdPiv(shX + 6, shY - 3, 'sd-far', 100,
-    sdPiv(0, SD_L1, 'sd-forefar', 60, sdFore(farFill, sk[2])) + sdUpper(farFill));
+  // --- thân (hệ thân): người đầu/cổ bè ngang (Anh Minh, Ông Sáu) thì chân cổ mở rộng theo nf/nbk
+  const L = (px, py) => `${sdF(px - ox)},${sdF(py + ey - nb)}`, nbL = nb - ey;
+  const nf = c.nf != null ? c.nf : -8, nbk = c.nbk != null ? c.nbk : 21, N = h.nape, jy = h.jaw[1];
+  const nfBot = Math.min(ox - 13.5, nf + 1.5), nbkBot = Math.max(ox + 15.5, nbk - 2);
+  const neck = `<path d="M${L(nf, jy - 4)} Q${L(nf + 1, (jy + nbL)*0.5)} ${L(nfBot, nbL + 4)} L${L(nbkBot, nbL + 4)} Q${L(nbk - 1, (N + nbL)*0.5)} ${L(nbk, N - 2)} Z" fill="url(#${P}skinn)"/>`
+    + `<path d="M${L(nf, jy)} L${L(h.jaw[0] + 2, jy - 1)} L${L(nf + 1, jy + 7)} Z" fill="${SD_INK}" opacity=".14"/>`
+    + sdLn(`M${L(nf, jy)} Q${L(nf + 1, (jy + nbL)*0.5)} ${L(nfBot, nbL + 2)} M${L(nbk, N)} Q${L(nbk - 1, (N + nbL)*0.5)} ${L(nbkBot, nbL - 4)}`, SD_INK, 3);
+  const farArm = sdPiv(shX + (T ? 7 : 6), shY - 3, 'sd-far', T ? 180 : 100,
+    sdPiv(0, L1, 'sd-forefar', T ? 140 : 60, sdFore(farFill, sk[2], null, null, T)) + sdUpper(farFill, null, T));
+  const decoS = T ? (dr.deco || '').replace(/,140/g, ',216').replace(/v150/g, 'v226') : (dr.deco || '');
+  const overS = T ? (dr.over || '').replace(/,140/g, ',216') : (dr.over || '');
   const body = `<g transform="translate(${bx},${nb})">` + farArm + (dr.back || '') + neck
     + `<clipPath id="${P}tc"><path d="${torso}"/></clipPath>`
-    + sdG(`<path d="${torso}" fill="${bodyFill}"/>`, 3.2)
-    + (dr.deco ? `<g clip-path="url(#${P}tc)">${dr.deco}</g>` + sdLn(torso, SD_INK, 3.2) : '')
-    + (dr.over || '') + `</g>`;
+    + sdG(`<path d="${torso}" fill="${bodyFill}"/><path d="M${sdF(a*0.35)},-10 C${sdF(a*0.78)},0 ${sdF(a*0.98)},${T ? 60 : 40} ${sdF(a*0.92)},${T ? 216 : 130} L${sdF(a*0.58)},${T ? 216 : 130} C${sdF(a*0.64)},${T ? 76 : 50} ${sdF(a*0.54)},10 ${sdF(a*0.35)},-10 Z" fill="${SD_INK}" opacity=".08" stroke="none"/>`, 3.2)
+    + (decoS ? `<g clip-path="url(#${P}tc)">${decoS}</g>` + sdLn(torso, SD_INK, 3.2) : '')
+    + overS + `</g>`;
 
   // --- đầu (hệ đầu)
-  const ex = h.fx + 15, n = h.n, [mx, my] = c.mouth || [h.lu + 3, h.my];
+  const ex = h.fx + 14, n = h.n, [mx, my] = c.mouth || [n.bx + 2, h.my];
   const head = (c.back ? c.back(x) : '')
-    + `<path d="${sdHeadD(h, 1)}" fill="${S}"/>` + sdLn(sdHeadD(h), SD_INK, 3.2)
-    + `<ellipse cx="${ex + 6}" cy="${n.by - 6}" rx="12" ry="8" fill="url(#${P}blush)"/>`
-    + (c.lips ? sdLn(`M${h.lu + 1},${h.my - 4} C${h.lu + 1},${h.my - 1} ${h.lu + 2},${h.my} ${h.lu + 3},${h.my}`, c.lips, 2.2, '.7') : '')
-    + sdAla(n, c.alaW || 1)
+    + `<path d="${sdHeadD(h, 1, c.bald)}" fill="${S}"/>` + sdLn(sdHeadD(h, 0, c.bald), SD_INK, 3.2)
+    + `<ellipse cx="${ex + 5}" cy="${n.by + 4}" rx="11" ry="7.5" fill="url(#${P}blush)"/>`
     + sdEye(hd, ex, 0, S)
     + sdMouth(mx, my)
     + c.hair(x) + (c.ear ? sdEar(c.ear[0], c.ear[1], S) : '') + (c.face ? c.face(x) : '') + (c.hat ? c.hat(x) : '')
-    + sdVex(h.back + 9, h.top + 64);
+    + sdVex(h.back + 6, h.top + 60);
   const headG = `<g transform="translate(${cx},${ey})">` + sdPiv(6, 50, 'sd-head', 200, `<g transform="translate(-6,-50)">${head}</g>`) + `</g>`;
 
   // --- tay gần (hệ thân) + đồ đè cuối (đuôi ngựa)
   const nearFore = look.hold
-    ? sdPiv(0, SD_L1, 'sd-fore sd-forehold', 70, (c.bread ? c.bread(x) : '') + sdFore(sleeveFill, SB))
-    : sdPiv(0, SD_L1, 'sd-fore', 60, sdFore(sleeveFill, SB, dr.fore, look.cuff));
-  const near = `<g transform="translate(${bx},${nb})">` + sdPiv(shX, shY, look.hold ? 'sd-hold' : 'sd-arm', 100, nearFore + sdUpper(sleeveFill, dr.arm)) + `</g>`;
+    ? sdPiv(0, L1, 'sd-fore sd-forehold', 70, (c.bread ? c.bread(x) : '') + sdFore(sleeveFill, SB, null, null, T))
+    : sdPiv(0, L1, 'sd-fore', T ? 140 : 60, sdFore(sleeveFill, SB, dr.fore, look.cuff, T));
+  const near = `<g transform="translate(${bx},${nb})">` + sdPiv(shX, shY, look.hold ? 'sd-hold' : 'sd-arm', T ? 180 : 100, nearFore + sdUpper(sleeveFill, dr.arm, T)) + `</g>`;
   const last = c.last ? `<g transform="translate(${cx},${ey})">${c.last(x)}</g>` : '';
 
   const front = typeof HD_CHARS !== 'undefined' ? HD_CHARS[hd] : '', vb = (front.match(/viewBox="([^"]+)"/) || [, '0 0 200 280'])[1];
+  const shadow = T ? '' : `<ellipse cx="${cx + 6}" cy="270" rx="60" ry="9" fill="${SD_INK}" opacity=".12"/>`;
   return (sideMemo[key] = `<svg xmlns="http://www.w3.org/2000/svg" class="charsvg side" data-exp="neutral" viewBox="${vb}" overflow="visible">${defs}`
-    + `<ellipse cx="${cx + 6}" cy="270" rx="60" ry="9" fill="${SD_INK}" opacity=".12"/>` + body + headG + near + last + `</svg>`);
+    + shadow + body + headG + near + last + `</svg>`);
 }
 const sideDangMemo = {};
 function custSideSVG(i, exp, k){
   const key = i + ':' + (k || 0);
-  const art = sideDangMemo[key] || (sideDangMemo[key] = typeof dangNguoi === 'function' ? dangNguoi(sideArt(i, k), i + 1) : sideArt(i, k));   // cùng vóc với hình thẳng
+  const art = sideDangMemo[key] || (sideDangMemo[key] = typeof dangNguoi === 'function' ? dangNguoi(sideArt(i, k), i + 1) : sideArt(i, k));
   return art.replace('data-exp="neutral"', 'data-exp="' + exp + '"');
 }

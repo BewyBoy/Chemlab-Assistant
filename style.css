@@ -220,7 +220,7 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
    mép bàn), tay xa ngược nhịp; người nhún một lần mỗi bước (thấp lúc tay ở hai đầu, cao lúc tay đi ngang thân);
    đầu gật bù; đuôi tóc / tóc dài / ba lô đung đưa trễ nhịp. Bà Tư cổ điển ôm bánh mì: tay gần chỉ đung đưa khẽ. */
 .side .sd-arm,.side .sd-fore,.side .sd-far,.side .sd-forefar,.side .sd-hold,.side .sd-head,.side .sd-sway{transform-box:fill-box;transform-origin:50% 50%}
-.side .sd-fore,.side .sd-forefar{transform:rotate(8deg)}
+.side .sd-fore,.side .sd-forefar{transform:rotate(4deg)}
 .side .sd-hold{transform:rotate(8deg)}
 .side .sd-fore.sd-forehold{transform:rotate(100deg)}
 .custwalk.walking .side .sd-arm{animation:sdarm .55s ease-in-out infinite alternate}
@@ -231,20 +231,30 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .custwalk.walking .side .sd-hold{animation:sdhold .55s ease-in-out infinite alternate}
 .custwalk.walking .side .sd-head{animation:sdhead .55s ease-in-out infinite}
 .custwalk.walking .side .sd-sway{animation:sdsway .55s ease-in-out -.18s infinite alternate}
-@keyframes sdarm{from{transform:rotate(-22deg)}to{transform:rotate(35deg)}}
-@keyframes sdfore{from{transform:rotate(12deg)}to{transform:rotate(96deg)}}
-@keyframes sdhold{from{transform:rotate(3deg)}to{transform:rotate(12deg)}}
+@keyframes sdarm{from{transform:rotate(-7deg)}to{transform:rotate(9deg)}}
+@keyframes sdfore{from{transform:rotate(2deg)}to{transform:rotate(12deg)}}
+@keyframes sdhold{from{transform:rotate(3deg)}to{transform:rotate(8deg)}}
 @keyframes sdhead{0%,100%{transform:rotate(0)}50%{transform:rotate(-2deg)}}
 @keyframes sdsway{from{transform:rotate(-6deg)}to{transform:rotate(7deg)}}
 /* dáng 3/4 (js/nhan-vat-xoay.js): hình thẳng đã bọc lớp; lúc bước vào (.walking) và lúc xoay người trước khi đi ra
    (.turnout) các lớp trượt sang trái thành mặt nghiêng vừa phải, dừng lại thì trượt về — khách quay mặt về phía người chơi. .is-turned: giữ dáng 3/4 (trang xem thử) */
-.charsvg.turn .tq-feat,.charsvg.turn .tq-nose,.charsvg.turn .tq-earfar,.charsvg.turn .tq-earnear,.charsvg.turn .tq-body,.charsvg.turn .tq-blushfar{transition:transform .32s ease-out,opacity .2s}
-.custwalk.walking .turn .tq-blushfar,.custwalk.turnout .turn .tq-blushfar,.turn.is-turned .tq-blushfar{transform:translateX(-3px) scaleX(.5);opacity:.55}
-.custwalk.walking .turn .tq-feat,.custwalk.turnout .turn .tq-feat,.turn.is-turned .tq-feat{transform:translateX(-10px) scaleX(.9)}
+.charsvg.turn .tq-hairback,.charsvg.turn .tq-head,.charsvg.turn .tq-hair,.charsvg.turn .tq-hairfront,.charsvg.turn .tq-feat,.charsvg.turn .tq-nose,.charsvg.turn .tq-earfar,.charsvg.turn .tq-earnear,.charsvg.turn .tq-neck,.charsvg.turn .tq-body,.charsvg.turn .tq-chest,.charsvg.turn .tq-arml,.charsvg.turn .tq-armr,.charsvg.turn .tq-blushfar{transition:transform .32s ease-out,opacity .2s}
+.custwalk.walking .turn .tq-hairback,.custwalk.turnout .turn .tq-hairback,.turn.is-turned .tq-hairback{transform:translateX(0px) scaleX(.91)}
+.custwalk.walking .turn .tq-head,.custwalk.turnout .turn .tq-head,.turn.is-turned .tq-head{transform:translateX(-5px) scaleX(.9)}
+.custwalk.walking .turn .tq-hair,.custwalk.turnout .turn .tq-hair,.turn.is-turned .tq-hair{transform:translateX(-7.5px) scaleX(.93)}
+.custwalk.walking .turn .tq-hairfront,.custwalk.turnout .turn .tq-hairfront,.turn.is-turned .tq-hairfront{transform:translateX(-11px) scaleX(.88)}
+.custwalk.walking .turn .tq-blushfar,.custwalk.turnout .turn .tq-blushfar,.turn.is-turned .tq-blushfar{transform:translateX(-6px) scaleX(.42);opacity:.38}
+.custwalk.walking .turn .tq-feat,.custwalk.turnout .turn .tq-feat,.turn.is-turned .tq-feat{transform:translateX(-10px) scaleX(.89)}
 .custwalk.walking .turn .tq-nose,.custwalk.turnout .turn .tq-nose,.turn.is-turned .tq-nose{transform:translateX(-16px) scaleX(.9)}
-.custwalk.walking .turn .tq-earfar,.custwalk.turnout .turn .tq-earfar,.turn.is-turned .tq-earfar{transform:translateX(10px);opacity:0}
-.custwalk.walking .turn .tq-earnear,.custwalk.turnout .turn .tq-earnear,.turn.is-turned .tq-earnear{transform:translateX(-5px)}
-.custwalk.walking .turn .tq-body,.custwalk.turnout .turn .tq-body,.turn.is-turned .tq-body{transform:scaleX(.84)}
+.custwalk.walking .turn .tq-earfar,.custwalk.turnout .turn .tq-earfar,.turn.is-turned .tq-earfar{transform:translateX(10px) scaleX(.2);opacity:0}
+.custwalk.walking .turn .tq-earnear,.custwalk.turnout .turn .tq-earnear,.turn.is-turned .tq-earnear{transform:translateX(-10px) scaleX(1.04)}
+.custwalk.walking .turn .tq-neck,.custwalk.turnout .turn .tq-neck,.turn.is-turned .tq-neck{transform:translateX(-6.5px) scaleX(.84)}
+.custwalk.walking .turn .tq-body,.custwalk.turnout .turn .tq-body,.turn.is-turned .tq-body{transform:translateX(-4.5px) scaleX(.82)}
+.custwalk.walking .turn .tq-chest,.custwalk.turnout .turn .tq-chest,.turn.is-turned .tq-chest{transform:translateX(-10.5px) scaleX(.82)}
+.custwalk.turnout .turn .tq-arml,.turn.is-turned .tq-arml{transform:translateX(9px) scaleX(.82)}
+.custwalk.turnout .turn .tq-armr,.turn.is-turned .tq-armr{transform:translateX(-4px) scaleX(.95)}
+.custwalk.turnout .turn .tq-arml:has(.arm-l),.turn.is-turned .tq-arml:has(.arm-l){transform:rotate(2deg) scaleX(.9)}
+.custwalk.turnout .turn .tq-armr:has(.arm-r),.turn.is-turned .tq-armr:has(.arm-r){transform:rotate(-1.5deg) scaleX(.95)}
 /* có hình 3/4 thì: đi vào = hình 3/4 (ẩn hình nghiêng); đi ra (.away) = hình nghiêng hẳn; .turnout = xoay tại chỗ trước khi đi ra */
 .custwalk.walking:not(.away) .charsvg.turn{display:inline}
 /* tay đánh theo nhịp bước (cùng nhịp custbob .55s): xoay dương = bàn tay đưa về phía trước (bên trái màn hình);
@@ -264,6 +274,7 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .newtool{background:#fff3c4;border:1.2px solid var(--ink);border-radius:4.8px;padding:3px 7px;margin:-1px -3px 5px;}
 .day-card.freecard .dt{font-family:var(--fh)}
 /* characters: blink + expressions */
+.charsvg{overflow:visible}
 .charsvg .x-neutral,.charsvg .x-happy,.charsvg .x-annoy{display:none}
 .charsvg[data-exp="neutral"] .x-neutral{display:inline}
 .charsvg[data-exp="happy"] .x-happy{display:inline}
