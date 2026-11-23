@@ -3579,16 +3579,261 @@ function hardHint(od, tier){
   }
   return out;
 }
+let hardBookPage = 0;
 function showHardBook(){
-  const sols = lab.day.chems.filter(f => SOL_CM[f]);
-  modal('<h2>' + ico('book',22) + ' Sổ tay công thức</h2><div style="text-align:left;font-size:15px;line-height:1.85">'
-    + '<div><b>Số mol ↔ khối lượng:</b> n = m / M &nbsp;⇒&nbsp; m = n · M</div>'
-    + '<div><b>Dung dịch:</b> n = Cₘ · V &nbsp;(V tính bằng <b>lít</b>: 50 ml = 0,05 l)</div>'
-    + '<div><b>Chất khí ở đkc</b> (25 °C, 1 bar): V = n · 24,79 &nbsp;(lít)</div>'
-    + '<div><b>Theo phương trình:</b> số mol các chất tỉ lệ đúng với hệ số. Vd 2Mg + O₂ → 2MgO: 0,2 mol Mg cần 0,1 mol O₂.</div>'
-    + (sols.length ? '<div style="margin-top:4px"><b>Lọ dung dịch hôm nay:</b> ' + sols.map(f => sub(f) + ' ' + fmt(SOL_CM[f],2) + 'M').join(' · ') + '</div>' : '')
-    + '<div style="margin-top:6px"><b>Nguyên tử khối:</b> ' + Object.keys(ATOM).map(e => e + ' = ' + fmt(ATOM[e],1)).join(' · ') + '</div>'
-    + '<div style="margin-top:6px;opacity:.75">Giao hàng được chấp nhận nếu lệch không quá <b>5%</b>.</div></div>');
+  const sols = (lab && lab.day && lab.day.chems) ? lab.day.chems.filter(f => SOL_CM[f]) : [];
+  const FH = 'font-family="Itim, sans-serif"';
+  const atomDot = el => (ATOM_STYLE[el] && ATOM_STYLE[el][0]) || '#ccc';
+  const ball = (x, y, r, el, lbl) =>
+    `<circle cx="${x}" cy="${y}" r="${r}" fill="${atomDot(el)}" stroke="#3b3025" stroke-width="2"/>`
+    + `<circle cx="${x - r*0.32}" cy="${y - r*0.32}" r="${Math.max(2, r*0.26).toFixed(1)}" fill="#fff" opacity=".6"/>`
+    + (lbl ? `<text x="${x}" y="${y + 4}" text-anchor="middle" ${FH} font-size="11.5" font-weight="bold" fill="${el==='C'?'#fff':'#3b3025'}">${lbl}</text>` : '');
+  const triBox = (topL, leftL, rightL, title, subText) =>
+    `<div class="hb-tri"><svg class="hb-tri-svg" viewBox="0 0 84 68" aria-hidden="true">`
+    + `<polygon points="42,5 79,63 5,63" fill="#fffdf5" stroke="#3b3025" stroke-width="2.2" stroke-linejoin="round"/>`
+    + `<polygon points="42,6 60,34 24,34" fill="#fef0b8"/>`
+    + `<line x1="23" y1="35" x2="61" y2="35" stroke="#3b3025" stroke-width="1.8"/>`
+    + `<line x1="42" y1="35" x2="42" y2="63" stroke="#3b3025" stroke-width="1.8"/>`
+    + `<text x="42" y="28" text-anchor="middle" ${FH} font-size="13" font-weight="bold" fill="#3b3025">${topL}</text>`
+    + `<text x="27" y="54" text-anchor="middle" ${FH} font-size="12.5" font-weight="bold" fill="#3b3025">${leftL}</text>`
+    + `<text x="58" y="54" text-anchor="middle" ${FH} font-size="11.5" font-weight="bold" fill="#3b3025">${rightL}</text>`
+    + `<circle cx="42" cy="49" r="2" fill="#3b3025"/>`
+    + `</svg><div class="hb-tri-txt"><b>${title}</b>${subText}</div></div>`;
+  const curlSVG = dir => {
+    const inner = `<polygon points="8,64 64,8 64,64" fill="transparent"/>`
+      + `<path d="M12,64 L64,12 V64 Z" fill="#e7d7b5"/>`
+      + `<path d="M12,64 L64,12" stroke="#8a6a44" stroke-width=".9" opacity=".35"/>`
+      + `<path d="M12,64 C24,52 34,36 30,22 C44,34 52,24 64,12 L52,26 C38,40 26,52 12,64 Z" fill="#3b3025" opacity=".16"/>`
+      + `<path d="M12,64 Q26,48 24,24 Q48,26 64,12 Q40,36 12,64 Z" fill="url(#hbcurl-${dir})" stroke="#8a6a44" stroke-width="1.35" stroke-linejoin="round"/>`
+      + `<path d="M16,60 Q28,44 25,27" fill="none" stroke="#fffef8" stroke-width="1.3" opacity=".8" stroke-linecap="round"/>`
+      + `<text x="51" y="53" text-anchor="middle" ${FH} font-size="15" font-weight="bold" fill="#7c5d3a" opacity=".72">›</text>`;
+    return `<svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="hbcurl-${dir}" x1="0" y1="0" x2="1" y2="1">`
+      + `<stop offset="0%" stop-color="#fffef9"/><stop offset="65%" stop-color="#f5ecd4"/><stop offset="100%" stop-color="#dfcea5"/>`
+      + `</linearGradient></defs>`
+      + (dir === 'prev' ? `<g transform="translate(64,0) scale(-1,1)">${inner}</g>` : inner)
+      + `</svg>`;
+  };
+
+  // Trang 1: Khối lượng (n = m / M) — minh hoạ cân điện tử trực tiếp trên giấy
+  const svgMass = `<svg class="hb-svg" viewBox="0 0 280 185" aria-hidden="true">`
+    + `<text x="140" y="25" text-anchor="middle" ${FH} font-size="12.5" font-weight="bold" fill="#6e5438">Cân điện tử đo gam (g) → đổi sang mol</text>`
+    + `<path d="M36,31 Q140,33 244,30" fill="none" stroke="#8a6a44" stroke-width="1.2" opacity=".35"/>`
+    + `<rect x="20" y="138" width="128" height="32" rx="7" fill="#d8cfc0" stroke="#3b3025" stroke-width="2.2"/>`
+    + `<rect x="26" y="130" width="116" height="12" rx="4" fill="#ebe4d5" stroke="#3b3025" stroke-width="2"/>`
+    + `<rect x="44" y="146" width="80" height="18" rx="3" fill="#cfe6c8" stroke="#3b3025" stroke-width="1.6"/>`
+    + `<text x="84" y="159" text-anchor="middle" ${FH} font-size="12" font-weight="bold" fill="#294820">5,85 g</text>`
+    + `<rect x="77" y="114" width="14" height="16" fill="#9fb0b8" stroke="#3b3025" stroke-width="2"/>`
+    + `<rect x="34" y="106" width="100" height="9" rx="4" fill="#cfd8dc" stroke="#3b3025" stroke-width="2.2"/>`
+    + `<path d="M52,106 Q72,72 84,74 Q98,72 116,106 Z" fill="#fffdf5" stroke="#3b3025" stroke-width="2" stroke-linejoin="round"/>`
+    + `<rect x="66" y="88" width="6" height="6" rx="1" fill="#e6eef2" stroke="#3b3025" stroke-width="1.2" transform="rotate(12 69 91)"/>`
+    + `<rect x="86" y="84" width="7" height="7" rx="1" fill="#e6eef2" stroke="#3b3025" stroke-width="1.2" transform="rotate(-14 89 87)"/>`
+    + `<rect x="97" y="95" width="6" height="6" rx="1" fill="#e6eef2" stroke="#3b3025" stroke-width="1.2" transform="rotate(18 100 98)"/>`
+    + `<text x="84" y="64" text-anchor="middle" ${FH} font-size="13.5" font-weight="bold" fill="#3b3025">NaCl (M = 58,5)</text>`
+    + `<path d="M150,96 Q172,82 192,94" fill="none" stroke="#3b3025" stroke-width="2.4" stroke-linecap="round"/>`
+    + `<path d="M187,88 L194,95 L185,98" fill="none" stroke="#3b3025" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`
+    + `<text x="171" y="79" text-anchor="middle" ${FH} font-size="11.5" font-weight="bold" fill="#8a6238">÷ M</text>`
+    + `<path d="M200,90 Q232,86 263,92 Q262,104 228,102 Q198,101 200,90 Z" fill="#f7e396" opacity=".62"/>`
+    + `<text x="231" y="96" text-anchor="middle" ${FH} font-size="18.5" font-weight="bold" fill="#3b3025">0,1 mol</text>`
+    + `<text x="231" y="114" text-anchor="middle" ${FH} font-size="12.5" fill="#6e5438">NaCl</text>`
+    + `</svg>`;
+
+  // Trang 2: Dung dịch (n = Cm · V) — minh hoạ ống đong ml -> lít trực tiếp trên giấy
+  const svgSol = `<svg class="hb-svg" viewBox="0 0 280 185" aria-hidden="true">`
+    + `<text x="140" y="25" text-anchor="middle" ${FH} font-size="12.5" font-weight="bold" fill="#35628c">Đong ml trong ống đong, tính V bằng lít (l)</text>`
+    + `<path d="M32,31 Q140,33 248,30" fill="none" stroke="#5b87ad" stroke-width="1.2" opacity=".35"/>`
+    + `<polygon points="46,162 114,162 106,154 54,154" fill="#c7d5dc" stroke="#3b3025" stroke-width="2" stroke-linejoin="round"/>`
+    + `<rect x="60" y="54" width="40" height="100" rx="3" fill="#f2f9fc" stroke="#3b3025" stroke-width="2.2"/>`
+    + `<rect x="61" y="96" width="38" height="57" fill="#89bce0" opacity=".82"/>`
+    + `<path d="M61,96 Q80,99 99,96" fill="none" stroke="#3b3025" stroke-width="1.6"/>`
+    + `<path d="M90,72 H99 M92,84 H99 M88,96 H99 M92,108 H99 M90,120 H99 M92,132 H99 M90,144 H99" stroke="#3b3025" stroke-width="1.4" stroke-linecap="round"/>`
+    + `<text x="44" y="100" text-anchor="end" ${FH} font-size="11.5" font-weight="bold" fill="#3b3025">50 ml</text>`
+    + `<line x1="47" y1="96" x2="58" y2="96" stroke="#3b3025" stroke-width="1.4" stroke-dasharray="2 2"/>`
+    + `<circle cx="72" cy="118" r="3" fill="#d9634f"/><circle cx="85" cy="128" r="3" fill="#d9634f"/>`
+    + `<circle cx="76" cy="140" r="3" fill="#7aa95c"/><circle cx="89" cy="112" r="3" fill="#7aa95c"/>`
+    + `<path d="M114,104 L144,104" stroke="#3b3025" stroke-width="2.4" stroke-linecap="round"/>`
+    + `<path d="M138,98 L145,104 L138,110" fill="none" stroke="#3b3025" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`
+    + `<text x="129" y="96" text-anchor="middle" ${FH} font-size="11" font-weight="bold" fill="#6e5438">÷ 1000</text>`
+    + `<text x="205" y="77" text-anchor="middle" ${FH} font-size="14" font-weight="bold" fill="#3b3025">V = 0,05 lít</text>`
+    + `<text x="205" y="95" text-anchor="middle" ${FH} font-size="12.5" fill="#4f7ea8">× Cₘ = 2 mol/l</text>`
+    + `<path d="M205,103 L205,118" stroke="#3b3025" stroke-width="2.2" stroke-linecap="round"/>`
+    + `<path d="M200,114 L205,120 L210,114" fill="none" stroke="#3b3025" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`
+    + `<path d="M164,137 Q205,133 246,139 Q244,151 204,150 Q164,149 164,137 Z" fill="#f7e396" opacity=".62"/>`
+    + `<text x="205" y="145" text-anchor="middle" ${FH} font-size="17" font-weight="bold" fill="#3b3025">n = 0,1 mol</text>`
+    + `</svg>`;
+
+  // Trang 3: Chất khí (V = n · 24,79) — minh hoạ quả khí + đồng hồ trực tiếp trên giấy
+  const svgGas = `<svg class="hb-svg" viewBox="0 0 280 185" aria-hidden="true">`
+    + `<text x="140" y="25" text-anchor="middle" ${FH} font-size="12.5" font-weight="bold" fill="#8f5324">Điều kiện chuẩn (đkc): 25 °C · 1 bar</text>`
+    + `<path d="M40,31 Q140,33 240,30" fill="none" stroke="#b87640" stroke-width="1.2" opacity=".35"/>`
+    + `<ellipse cx="82" cy="96" rx="46" ry="40" fill="#dbeff7" stroke="#3b3025" stroke-width="2.2"/>`
+    + `<path d="M74,135 L90,135 L86,144 L78,144 Z" fill="#dbeff7" stroke="#3b3025" stroke-width="2" stroke-linejoin="round"/>`
+    + `<path d="M82,144 Q82,162 108,162 L129,162" fill="none" stroke="#3b3025" stroke-width="2.2" stroke-linecap="round"/>`
+    + `<rect x="129" y="145" width="48" height="28" rx="6" fill="#cfd8dc" stroke="#3b3025" stroke-width="2"/>`
+    + `<text x="153" y="163" text-anchor="middle" ${FH} font-size="11" font-weight="bold" fill="#3b3025">đồng hồ</text>`
+    + ball(66, 94, 7, 'O') + ball(78, 94, 7, 'O')
+    + ball(89, 113, 7, 'O') + ball(101, 113, 7, 'O')
+    + `<text x="82" y="77" text-anchor="middle" ${FH} font-size="11.5" font-weight="bold" fill="#3b3025">2,48 lít O₂</text>`
+    + `<path d="M132,96 L160,96" stroke="#3b3025" stroke-width="2.4" stroke-linecap="round"/>`
+    + `<path d="M154,90 L161,96 L154,102" fill="none" stroke="#3b3025" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`
+    + `<text x="146" y="88" text-anchor="middle" ${FH} font-size="11" font-weight="bold" fill="#8a6238">÷ 24,79</text>`
+    + `<path d="M178,78 Q216,74 252,80 Q251,92 215,90 Q177,89 178,78 Z" fill="#f7e396" opacity=".62"/>`
+    + `<text x="215" y="86" text-anchor="middle" ${FH} font-size="18.5" font-weight="bold" fill="#3b3025">0,1 mol</text>`
+    + `<text x="215" y="106" text-anchor="middle" ${FH} font-size="11.5" fill="#6e5438">1 mol khí đkc</text>`
+    + `<text x="215" y="122" text-anchor="middle" ${FH} font-size="12.5" font-weight="bold" fill="#a8442a">= 24,79 lít</text>`
+    + `</svg>`;
+
+  // Trang 4: Theo phương trình — minh hoạ tỉ lệ phân tử 2Mg + O₂ → 2MgO trực tiếp trên giấy
+  const svgEq = `<svg class="hb-svg" viewBox="0 0 280 202" aria-hidden="true">`
+    + `<text x="140" y="28" text-anchor="middle" ${FH} font-size="14" font-weight="bold" fill="#2f5920">2Mg  +  O₂  →  2MgO</text>`
+    + `<path d="M68,34 Q140,36 212,33" fill="none" stroke="#5d8a45" stroke-width="1.3" opacity=".4"/>`
+    + ball(34, 74, 11, 'Mg', 'Mg') + ball(58, 74, 11, 'Mg', 'Mg')
+    + `<text x="46" y="102" text-anchor="middle" ${FH} font-size="13" font-weight="bold" fill="#2e7054">2 phần</text>`
+    + `<text x="46" y="118" text-anchor="middle" ${FH} font-size="12" fill="#3b3025">0,2 mol</text>`
+    + `<text x="84" y="79" text-anchor="middle" ${FH} font-size="18" font-weight="bold" fill="#3b3025">+</text>`
+    + ball(108, 74, 10, 'O', 'O') + ball(127, 74, 10, 'O', 'O')
+    + `<text x="118" y="102" text-anchor="middle" ${FH} font-size="13" font-weight="bold" fill="#a8442a">1 phần</text>`
+    + `<text x="118" y="118" text-anchor="middle" ${FH} font-size="12" fill="#3b3025">0,1 mol</text>`
+    + `<path d="M145,74 L166,74" stroke="#3b3025" stroke-width="2.4" stroke-linecap="round"/>`
+    + `<path d="M161,69 L167,74 L161,79" fill="none" stroke="#3b3025" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`
+    + ball(190, 66, 10, 'Mg', 'Mg') + ball(209, 66, 10, 'O', 'O')
+    + ball(234, 80, 10, 'Mg', 'Mg') + ball(253, 80, 10, 'O', 'O')
+    + `<text x="222" y="102" text-anchor="middle" ${FH} font-size="13" font-weight="bold" fill="#3b3025">2 phần</text>`
+    + `<text x="222" y="118" text-anchor="middle" ${FH} font-size="12" fill="#3b3025">0,2 mol</text>`
+    + `<path d="M22,130 H258" stroke="#3b3025" stroke-width="1.2" stroke-dasharray="4 3" opacity=".38"/>`
+    + `<path d="M16,149 Q140,145 264,151 Q262,163 140,161 Q16,160 16,149 Z" fill="#f7e396" opacity=".62"/>`
+    + `<text x="140" y="157" text-anchor="middle" ${FH} font-size="12" font-weight="bold" fill="#3b3025">Tỉ lệ hệ số: n(Mg) : n(O₂) : n(MgO) = 2 : 1 : 2</text>`
+    + `<text x="140" y="178" text-anchor="middle" ${FH} font-size="12" fill="#6e5438">Chú ý hệ số cân bằng trước mỗi chất!</text>`
+    + `</svg>`;
+
+  // Trang 5: Cách cộng M có dấu ngoặc (Ca(OH)2) — trực tiếp trên giấy
+  const svgMolar = `<svg class="hb-svg" viewBox="0 0 280 185" aria-hidden="true">`
+    + `<text x="140" y="25" text-anchor="middle" ${FH} font-size="12.5" font-weight="bold" fill="#5e3e7a">Cách cộng khối lượng mol M — Ca(OH)₂</text>`
+    + `<path d="M36,31 Q140,33 244,30" fill="none" stroke="#8562a3" stroke-width="1.2" opacity=".35"/>`
+    + ball(48, 70, 15, 'Ca', 'Ca')
+    + `<text x="48" y="100" text-anchor="middle" ${FH} font-size="12" font-weight="bold" fill="#3b3025">40</text>`
+    + `<text x="80" y="75" text-anchor="middle" ${FH} font-size="17" font-weight="bold" fill="#3b3025">+</text>`
+    + `<text x="102" y="76" ${FH} font-size="18" font-weight="bold" fill="#a8442a">2 × (</text>`
+    + ball(154, 70, 13, 'O', 'O')
+    + `<text x="176" y="75" text-anchor="middle" ${FH} font-size="16" font-weight="bold" fill="#3b3025">+</text>`
+    + ball(196, 70, 10, 'H', 'H')
+    + `<text x="215" y="76" ${FH} font-size="18" font-weight="bold" fill="#a8442a">)</text>`
+    + `<text x="176" y="99" text-anchor="middle" ${FH} font-size="11.5" fill="#6e5438">16 + 1 = 17  (nhân 2)</text>`
+    + `<path d="M26,112 H254" stroke="#3b3025" stroke-width="1.2" stroke-dasharray="4 3" opacity=".32"/>`
+    + `<path d="M28,131 Q140,126 252,133 Q250,145 140,143 Q28,142 28,131 Z" fill="#f7e396" opacity=".62"/>`
+    + `<text x="140" y="139" text-anchor="middle" ${FH} font-size="14.5" font-weight="bold" fill="#3b3025">M = 40 + 2 × (16 + 1) = 74 g/mol</text>`
+    + `<text x="140" y="160" text-anchor="middle" ${FH} font-size="11.5" fill="#6e5438">Nhớ nhân chỉ số ngoài ngoặc cho cả nhóm!</text>`
+    + `</svg>`;
+
+  const atomCards = Object.keys(ATOM).map(el =>
+    `<div class="hb-atom"><span class="hb-atom-l"><i class="hb-adot" style="background:${atomDot(el)}"></i>${el}</span><span>${fmt(ATOM[el], 1)}</span></div>`
+  ).join('');
+
+  const PAGES = [
+    {
+      title: 'Số mol ↔ Khối lượng',
+      left: svgMass + triBox('m', 'n', 'M', 'Tam giác công thức', 'Che chữ cần tìm để thấy ngay phép tính'),
+      right: `<div class="hb-mainf"><div class="hb-fbig">n = m / M</div>`
+        + `<div class="hb-alts"><span class="hb-alt">m = n · M</span><span class="hb-alt">M = m / n</span></div></div>`
+        + `<div class="hb-vars">`
+        +   `<div class="hb-var"><span class="hb-sym">n</span><span>Số mol chất (<b>mol</b>)</span></div>`
+        +   `<div class="hb-var"><span class="hb-sym">m</span><span>Khối lượng cân được bằng gam (<b>g</b>)</span></div>`
+        +   `<div class="hb-var"><span class="hb-sym">M</span><span>Khối lượng mol = tổng nguyên tử khối (<b>g/mol</b>)</span></div>`
+        + `</div>`
+        + `<div class="hb-ex"><b>Ví dụ:</b> Cần lấy <b>0,1 mol NaCl</b> (M = 23 + 35,5 = 58,5)<br>⇒ Cân <b>m = 0,1 × 58,5 = 5,85 g</b>.</div>`
+    },
+    {
+      title: 'Nồng độ mol dung dịch',
+      left: svgSol + triBox('n', 'Cₘ', 'V (lít)', 'Tam giác nồng độ', 'V luôn phải đổi sang đơn vị lít (ml ÷ 1000)'),
+      right: `<div class="hb-mainf"><div class="hb-fbig">n = Cₘ · V</div>`
+        + `<div class="hb-alts"><span class="hb-alt">V = n / Cₘ</span><span class="hb-alt">Cₘ = n / V</span></div></div>`
+        + `<div class="hb-vars">`
+        +   `<div class="hb-var"><span class="hb-sym">n</span><span>Số mol chất tan có trong dung dịch (<b>mol</b>)</span></div>`
+        +   `<div class="hb-var"><span class="hb-sym">Cₘ</span><span>Nồng độ mol ghi trên nhãn lọ (<b>mol/l = M</b>)</span></div>`
+        +   `<div class="hb-var"><span class="hb-sym">V</span><span>Thể tích dung dịch tính bằng <b>lít</b> (50 ml = 0,05 l)</span></div>`
+        + `</div>`
+        + `<div class="hb-ex"><b>Ví dụ:</b> Lấy <b>0,1 mol HCl</b> từ lọ nồng độ <b>2M</b><br>⇒ Đong <b>V = 0,1 / 2 = 0,05 lít = 50 ml</b>.</div>`
+    },
+    {
+      title: 'Thể tích khí ở đkc',
+      left: svgGas + triBox('V (l)', 'n', '24,79', 'Tam giác thể tích khí', 'Chuẩn mới (25 °C, 1 bar): 1 mol = 24,79 lít'),
+      right: `<div class="hb-mainf"><div class="hb-fbig">V = n · 24,79</div>`
+        + `<div class="hb-alts"><span class="hb-alt">n = V / 24,79</span></div></div>`
+        + `<div class="hb-vars">`
+        +   `<div class="hb-var"><span class="hb-sym">V</span><span>Thể tích chất khí đo ở đkc (<b>lít</b>)</span></div>`
+        +   `<div class="hb-var"><span class="hb-sym">n</span><span>Số mol chất khí (<b>mol</b>)</span></div>`
+        +   `<div class="hb-var"><span class="hb-sym">24,79</span><span>Thể tích mol của mọi chất khí ở 25 °C, 1 bar</span></div>`
+        + `</div>`
+        + `<div class="hb-ex"><b>Ví dụ:</b> Khách đặt <b>2,48 lít O₂</b> ⇒ n = 2,48 / 24,79 ≈ <b>0,1 mol</b>.<br>Hoặc nạp <b>0,2 mol O₂</b> ⇒ V = 0,2 × 24,79 ≈ <b>4,96 lít</b>.</div>`
+    },
+    {
+      title: 'Tính theo phương trình hoá học',
+      left: svgEq,
+      right: `<div class="hb-mainf"><div class="hb-fbig sm">n(A) / a = n(B) / b = n(C) / c</div>`
+        + `<div class="hb-alts"><span class="hb-alt">aA + bB → cC</span></div></div>`
+        + `<div class="hb-vars">`
+        +   `<div class="hb-var"><span class="hb-sym">1.</span><span>Tính <b>n</b> chất khách đặt bằng công thức phù hợp</span></div>`
+        +   `<div class="hb-var"><span class="hb-sym">2.</span><span>Viết và cân bằng đúng phương trình (hệ số <b>a, b, c</b>)</span></div>`
+        +   `<div class="hb-var"><span class="hb-sym">3.</span><span>Nhân chéo theo tỉ lệ hệ số ra số mol chất cần lấy</span></div>`
+        + `</div>`
+        + `<div class="hb-ex"><b>Ví dụ:</b> Làm <b>0,2 mol MgO</b> từ 2Mg + O₂ → 2MgO:<br>⇒ Cần <b>0,2 mol Mg</b> (4,8 g) và <b>0,1 mol O₂</b> (2,48 lít).</div>`
+    },
+    {
+      title: 'Tra cứu Nguyên tử khối & Dung dịch',
+      left: svgMolar
+        + (sols.length ? `<div class="hb-sols"><b>Lọ dung dịch hôm nay:</b> ${sols.map(f => sub(f) + ' <b>' + fmt(SOL_CM[f], 2) + 'M</b>').join(' · ')}</div>` : ''),
+      right: `<div style="font-family:var(--fh);font-size:14.5px;color:#6e5438;margin:-4px 0 -4px">Bảng nguyên tử khối (${Object.keys(ATOM).length} nguyên tố)</div>`
+        + `<div class="hb-atoms">${atomCards}</div>`
+    }
+  ];
+
+  const hadTimer = !!(lab && lab.timer);
+  if(hadTimer){ clearInterval(lab.timer); lab.timer = null; }
+  hardBookPage = Math.max(0, Math.min(PAGES.length - 1, hardBookPage));
+
+  let keyHandler = null;
+  const cleanup = () => {
+    if(keyHandler){ removeEventListener('keydown', keyHandler); keyHandler = null; }
+    if(hadTimer && lab && lab.timer === null && !lab.cardOpen && !G.querySelector('.pausecard'))
+      lab.timer = setInterval(labTick, 1000);
+  };
+
+  const ov = modal(`<div class="hb-cover">`
+    + `<div class="hb-paper">`
+    +   `<div class="hb-spread" id="hbBody"></div>`
+    +   `<button type="button" class="hb-curl prev" id="hbprev" aria-label="Trang trước" title="Lật trang trước">${curlSVG('prev')}</button>`
+    +   `<button type="button" class="hb-curl next" id="hbnext" aria-label="Trang sau" title="Lật trang sau">${curlSVG('next')}</button>`
+    + `</div>`
+    + `</div>`, cleanup, 'hbook');
+
+  const showPage = (idx, silent, dir) => {
+    hardBookPage = Math.max(0, Math.min(PAGES.length - 1, idx));
+    const pg = PAGES[hardBookPage];
+    const body = ov.querySelector('#hbBody');
+    body.className = 'hb-spread' + (hardBookPage === 4 ? ' hb-ref' : '');
+    if(dir){
+      body.style.animation = 'none';
+      void body.offsetWidth;
+      body.style.animation = '';
+      body.classList.add(dir > 0 ? 'turn-next' : 'turn-prev');
+    }
+    body.innerHTML = `<div class="hb-art">${pg.left}</div>`
+      + `<div class="hb-info"><h3 class="hb-title" id="hbTitle">${pg.title}</h3>${pg.right}</div>`;
+    ov.querySelector('#hbprev').hidden = hardBookPage === 0;
+    ov.querySelector('#hbnext').hidden = hardBookPage === PAGES.length - 1;
+    if(!silent) SFX.page();
+  };
+
+  ov.querySelector('#hbprev').onclick = () => { if(hardBookPage > 0) showPage(hardBookPage - 1, false, -1); };
+  ov.querySelector('#hbnext').onclick = () => { if(hardBookPage < PAGES.length - 1) showPage(hardBookPage + 1, false, 1); };
+
+  keyHandler = e => {
+    if(!ov.isConnected) return cleanup();
+    if(e.key === 'ArrowLeft' && hardBookPage > 0){ e.preventDefault(); showPage(hardBookPage - 1, false, -1); }
+    else if(e.key === 'ArrowRight' && hardBookPage < PAGES.length - 1){ e.preventDefault(); showPage(hardBookPage + 1, false, 1); }
+    else if(e.key === 'Escape'){ e.preventDefault(); ov.querySelector('#mclose').click(); }
+  };
+  addEventListener('keydown', keyHandler);
+  showPage(hardBookPage, true, 0);
 }
 
 /* =====================  THẺ PHẢN ỨNG  =====================

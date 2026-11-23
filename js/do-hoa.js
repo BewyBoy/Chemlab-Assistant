@@ -1223,35 +1223,35 @@ const SVG_DEFS = `
 <!-- Wall Clock -->
 <symbol id="sym-clock" viewBox="0 0 100 100">
   <!-- wooden rim outer -->
-  <circle cx="50" cy="50" r="46" fill="url(#teCWoodRim)" stroke="#3b3025" stroke-width="3"/>
+  <circle cx="50" cy="50" r="46" fill="url(#teCWoodRim)" stroke="#86653e" stroke-width="3"/>
   <!-- wooden rim inner edge -->
   <circle cx="50" cy="50" r="40" fill="none" stroke="#8a6238" stroke-width="2" opacity="0.5"/>
   <!-- clock face -->
-  <circle cx="50" cy="50" r="36" fill="#fffdf5" stroke="#3b3025" stroke-width="2"/>
+  <circle cx="50" cy="50" r="36" fill="#fffdf5" stroke="#cccac4" stroke-width="2"/>
   <!-- 12 tick marks -->
-  <line x1="50" y1="16" x2="50" y2="22" stroke="#3b3025" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="68.4" y1="21.4" x2="65.3" y2="26.7" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
-  <line x1="81.6" y1="34.6" x2="76.3" y2="37.7" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
-  <line x1="86" y1="50" x2="80" y2="50" stroke="#3b3025" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="81.6" y1="65.4" x2="76.3" y2="62.3" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
-  <line x1="68.4" y1="78.6" x2="65.3" y2="73.3" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
-  <line x1="50" y1="84" x2="50" y2="78" stroke="#3b3025" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="31.6" y1="78.6" x2="34.7" y2="73.3" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
-  <line x1="18.4" y1="65.4" x2="23.7" y2="62.3" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
-  <line x1="14" y1="50" x2="20" y2="50" stroke="#3b3025" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="18.4" y1="34.6" x2="23.7" y2="37.7" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
-  <line x1="31.6" y1="21.4" x2="34.7" y2="26.7" stroke="#3b3025" stroke-width="2" stroke-linecap="round"/>
+  <line x1="50" y1="16" x2="50" y2="22" stroke="#856e52" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="68.4" y1="21.4" x2="65.3" y2="26.7" stroke="#856e52" stroke-width="2" stroke-linecap="round"/>
+  <line x1="81.6" y1="34.6" x2="76.3" y2="37.7" stroke="#856e52" stroke-width="2" stroke-linecap="round"/>
+  <line x1="86" y1="50" x2="80" y2="50" stroke="#856e52" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="81.6" y1="65.4" x2="76.3" y2="62.3" stroke="#856e52" stroke-width="2" stroke-linecap="round"/>
+  <line x1="68.4" y1="78.6" x2="65.3" y2="73.3" stroke="#856e52" stroke-width="2" stroke-linecap="round"/>
+  <line x1="50" y1="84" x2="50" y2="78" stroke="#856e52" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="31.6" y1="78.6" x2="34.7" y2="73.3" stroke="#856e52" stroke-width="2" stroke-linecap="round"/>
+  <line x1="18.4" y1="65.4" x2="23.7" y2="62.3" stroke="#856e52" stroke-width="2" stroke-linecap="round"/>
+  <line x1="14" y1="50" x2="20" y2="50" stroke="#856e52" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="18.4" y1="34.6" x2="23.7" y2="37.7" stroke="#856e52" stroke-width="2" stroke-linecap="round"/>
+  <line x1="31.6" y1="21.4" x2="34.7" y2="26.7" stroke="#856e52" stroke-width="2" stroke-linecap="round"/>
   <!-- hour hand -->
   <g class="ck-h" style="transform:rotate(var(--ckh,0deg));transform-origin:50px 50px">
-    <path d="M50,50 Q48,44 50,24 Q52,44 50,50 Z" fill="#3b3025" stroke="#3b3025" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M50,50 Q48,44 50,24 Q52,44 50,50 Z" fill="#735b40" stroke="#57432d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
   <!-- minute hand -->
   <g class="ck-m" style="transform:rotate(var(--ckm,0deg));transform-origin:50px 50px">
-    <path d="M50,50 Q49,42 50,18 Q51,42 50,50 Z" fill="#3b3025" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M50,50 Q49,42 50,18 Q51,42 50,50 Z" fill="#735b40" stroke="#57432d" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
   <!-- center pin -->
-  <circle cx="50" cy="50" r="4" fill="#c9a23c" stroke="#3b3025" stroke-width="2"/>
-  <circle cx="50" cy="50" r="2" fill="#3b3025"/>
+  <circle cx="50" cy="50" r="4" fill="#c9a23c" stroke="#a18230" stroke-width="2"/>
+  <circle cx="50" cy="50" r="2" fill="#735b40"/>
 </symbol>
 
 <!-- Window -->
@@ -1288,101 +1288,101 @@ const SVG_DEFS = `
 <!-- Periodic Table Poster -->
 <symbol id="sym-poster-periodic" viewBox="0 0 140 180">
   <!-- paper background with curl -->
-  <path d="M14,6 Q14,4 18,4 Q70,3 122,4 Q126,4 126,8 L126,174 Q126,177 122,177 Q70,178 18,177 Q14,177 14,174 Z" fill="#fffdf5" stroke="#3b3025" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14,6 Q14,4 18,4 Q70,3 122,4 Q126,4 126,8 L126,174 Q126,177 122,177 Q70,178 18,177 Q14,177 14,174 Z" fill="#fffdf5" stroke="#c9c8c2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- corner curl bottom-right -->
-  <path d="M118,168 Q126,168 126,174 Q120,174 116,170 Z" fill="#f0e6c8" stroke="#3b3025" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M118,168 Q126,168 126,174 Q120,174 116,170 Z" fill="#f0e6c8" stroke="#beb69e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- pin at top -->
-  <circle cx="70" cy="8" r="5" fill="#d9634f" stroke="#3b3025" stroke-width="2"/>
+  <circle cx="70" cy="8" r="5" fill="#d9634f" stroke="#ab4e3e" stroke-width="2"/>
   <circle cx="70" cy="8" r="2" fill="#ffffff" opacity="0.5"/>
   <!-- wavy title squiggle -->
-  <path d="M24,22 Q35,18 46,22 Q57,26 68,22 Q79,18 90,22 Q101,26 112,22" stroke="#3b3025" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.6"/>
-  <path d="M30,30 Q55,27 90,30" stroke="#3b3025" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.3"/>
+  <path d="M24,22 Q35,18 46,22 Q57,26 68,22 Q79,18 90,22 Q101,26 112,22" stroke="#9c8d74" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M30,30 Q55,27 90,30" stroke="#9c8d74" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.3"/>
   <!-- periodic table grid ~7 cols x 5 rows of small rounded cells -->
   <!-- row 1 -->
-  <rect x="18" y="38" width="14" height="12" rx="3" fill="#e8b84b" stroke="#3b3025" stroke-width="1.5"/>
-  <path d="M21,42 Q25,40 29,42" stroke="#3b3025" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
-  <rect x="34" y="38" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#3b3025" stroke-width="1.5"/>
-  <path d="M37,42 Q41,40 45,42" stroke="#3b3025" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
-  <rect x="50" y="38" width="14" height="12" rx="3" fill="#7aa95c" stroke="#3b3025" stroke-width="1.5"/>
-  <path d="M53,42 Q57,40 61,42" stroke="#3b3025" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
-  <rect x="66" y="38" width="14" height="12" rx="3" fill="#d9634f" stroke="#3b3025" stroke-width="1.5"/>
-  <path d="M69,42 Q73,40 77,42" stroke="#3b3025" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
-  <rect x="82" y="38" width="14" height="12" rx="3" fill="#9b7bb8" stroke="#3b3025" stroke-width="1.5"/>
-  <path d="M85,42 Q89,40 93,42" stroke="#3b3025" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
-  <rect x="98" y="38" width="14" height="12" rx="3" fill="#e8b84b" stroke="#3b3025" stroke-width="1.5"/>
-  <path d="M101,42 Q105,40 109,42" stroke="#3b3025" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
-  <rect x="114" y="38" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#3b3025" stroke-width="1.5"/>
+  <rect x="18" y="38" width="14" height="12" rx="3" fill="#e8b84b" stroke="#b7913b" stroke-width="1.5"/>
+  <path d="M21,42 Q25,40 29,42" stroke="#9c8d74" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <rect x="34" y="38" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#587d9f" stroke-width="1.5"/>
+  <path d="M37,42 Q41,40 45,42" stroke="#9c8d74" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <rect x="50" y="38" width="14" height="12" rx="3" fill="#7aa95c" stroke="#608649" stroke-width="1.5"/>
+  <path d="M53,42 Q57,40 61,42" stroke="#9c8d74" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <rect x="66" y="38" width="14" height="12" rx="3" fill="#d9634f" stroke="#ab4e3e" stroke-width="1.5"/>
+  <path d="M69,42 Q73,40 77,42" stroke="#9c8d74" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <rect x="82" y="38" width="14" height="12" rx="3" fill="#9b7bb8" stroke="#7a6191" stroke-width="1.5"/>
+  <path d="M85,42 Q89,40 93,42" stroke="#9c8d74" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <rect x="98" y="38" width="14" height="12" rx="3" fill="#e8b84b" stroke="#b7913b" stroke-width="1.5"/>
+  <path d="M101,42 Q105,40 109,42" stroke="#9c8d74" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <rect x="114" y="38" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#587d9f" stroke-width="1.5"/>
   <!-- row 2 -->
-  <rect x="18" y="54" width="14" height="12" rx="3" fill="#7aa95c" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="34" y="54" width="14" height="12" rx="3" fill="#9b7bb8" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="50" y="54" width="14" height="12" rx="3" fill="#d9634f" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="66" y="54" width="14" height="12" rx="3" fill="#e8b84b" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="82" y="54" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="98" y="54" width="14" height="12" rx="3" fill="#7aa95c" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="114" y="54" width="14" height="12" rx="3" fill="#d9634f" stroke="#3b3025" stroke-width="1.5"/>
+  <rect x="18" y="54" width="14" height="12" rx="3" fill="#7aa95c" stroke="#608649" stroke-width="1.5"/>
+  <rect x="34" y="54" width="14" height="12" rx="3" fill="#9b7bb8" stroke="#7a6191" stroke-width="1.5"/>
+  <rect x="50" y="54" width="14" height="12" rx="3" fill="#d9634f" stroke="#ab4e3e" stroke-width="1.5"/>
+  <rect x="66" y="54" width="14" height="12" rx="3" fill="#e8b84b" stroke="#b7913b" stroke-width="1.5"/>
+  <rect x="82" y="54" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#587d9f" stroke-width="1.5"/>
+  <rect x="98" y="54" width="14" height="12" rx="3" fill="#7aa95c" stroke="#608649" stroke-width="1.5"/>
+  <rect x="114" y="54" width="14" height="12" rx="3" fill="#d9634f" stroke="#ab4e3e" stroke-width="1.5"/>
   <!-- row 3 -->
-  <rect x="18" y="70" width="14" height="12" rx="3" fill="#9b7bb8" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="34" y="70" width="14" height="12" rx="3" fill="#e8b84b" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="50" y="70" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="66" y="70" width="14" height="12" rx="3" fill="#7aa95c" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="82" y="70" width="14" height="12" rx="3" fill="#d9634f" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="98" y="70" width="14" height="12" rx="3" fill="#9b7bb8" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="114" y="70" width="14" height="12" rx="3" fill="#e8b84b" stroke="#3b3025" stroke-width="1.5"/>
+  <rect x="18" y="70" width="14" height="12" rx="3" fill="#9b7bb8" stroke="#7a6191" stroke-width="1.5"/>
+  <rect x="34" y="70" width="14" height="12" rx="3" fill="#e8b84b" stroke="#b7913b" stroke-width="1.5"/>
+  <rect x="50" y="70" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#587d9f" stroke-width="1.5"/>
+  <rect x="66" y="70" width="14" height="12" rx="3" fill="#7aa95c" stroke="#608649" stroke-width="1.5"/>
+  <rect x="82" y="70" width="14" height="12" rx="3" fill="#d9634f" stroke="#ab4e3e" stroke-width="1.5"/>
+  <rect x="98" y="70" width="14" height="12" rx="3" fill="#9b7bb8" stroke="#7a6191" stroke-width="1.5"/>
+  <rect x="114" y="70" width="14" height="12" rx="3" fill="#e8b84b" stroke="#b7913b" stroke-width="1.5"/>
   <!-- row 4 -->
-  <rect x="18" y="86" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="34" y="86" width="14" height="12" rx="3" fill="#d9634f" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="50" y="86" width="14" height="12" rx="3" fill="#9b7bb8" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="66" y="86" width="14" height="12" rx="3" fill="#e8b84b" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="82" y="86" width="14" height="12" rx="3" fill="#7aa95c" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="98" y="86" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="114" y="86" width="14" height="12" rx="3" fill="#d9634f" stroke="#3b3025" stroke-width="1.5"/>
+  <rect x="18" y="86" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#587d9f" stroke-width="1.5"/>
+  <rect x="34" y="86" width="14" height="12" rx="3" fill="#d9634f" stroke="#ab4e3e" stroke-width="1.5"/>
+  <rect x="50" y="86" width="14" height="12" rx="3" fill="#9b7bb8" stroke="#7a6191" stroke-width="1.5"/>
+  <rect x="66" y="86" width="14" height="12" rx="3" fill="#e8b84b" stroke="#b7913b" stroke-width="1.5"/>
+  <rect x="82" y="86" width="14" height="12" rx="3" fill="#7aa95c" stroke="#608649" stroke-width="1.5"/>
+  <rect x="98" y="86" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#587d9f" stroke-width="1.5"/>
+  <rect x="114" y="86" width="14" height="12" rx="3" fill="#d9634f" stroke="#ab4e3e" stroke-width="1.5"/>
   <!-- row 5 (shorter, lanthanides) -->
-  <rect x="26" y="106" width="14" height="12" rx="3" fill="#e8b84b" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="42" y="106" width="14" height="12" rx="3" fill="#9b7bb8" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="58" y="106" width="14" height="12" rx="3" fill="#7aa95c" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="74" y="106" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="90" y="106" width="14" height="12" rx="3" fill="#d9634f" stroke="#3b3025" stroke-width="1.5"/>
-  <rect x="106" y="106" width="14" height="12" rx="3" fill="#e8b84b" stroke="#3b3025" stroke-width="1.5"/>
+  <rect x="26" y="106" width="14" height="12" rx="3" fill="#e8b84b" stroke="#b7913b" stroke-width="1.5"/>
+  <rect x="42" y="106" width="14" height="12" rx="3" fill="#9b7bb8" stroke="#7a6191" stroke-width="1.5"/>
+  <rect x="58" y="106" width="14" height="12" rx="3" fill="#7aa95c" stroke="#608649" stroke-width="1.5"/>
+  <rect x="74" y="106" width="14" height="12" rx="3" fill="#6f9ec9" stroke="#587d9f" stroke-width="1.5"/>
+  <rect x="90" y="106" width="14" height="12" rx="3" fill="#d9634f" stroke="#ab4e3e" stroke-width="1.5"/>
+  <rect x="106" y="106" width="14" height="12" rx="3" fill="#e8b84b" stroke="#b7913b" stroke-width="1.5"/>
   <!-- wavy underline title squiggle -->
-  <path d="M22,130 Q40,128 58,130 Q76,132 94,130 Q112,128 128,130" stroke="#3b3025" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <path d="M22,130 Q40,128 58,130 Q76,132 94,130 Q112,128 128,130" stroke="#9c8d74" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4"/>
   <!-- extra squiggle marks on bottom -->
-  <path d="M24,144 Q60,142 116,144" stroke="#3b3025" stroke-width="1.5" fill="none" opacity="0.25" stroke-linecap="round"/>
-  <path d="M30,154 Q70,152 110,154" stroke="#3b3025" stroke-width="1.5" fill="none" opacity="0.2" stroke-linecap="round"/>
-  <path d="M34,164 Q65,162 106,164" stroke="#3b3025" stroke-width="1" fill="none" opacity="0.15" stroke-linecap="round"/>
+  <path d="M24,144 Q60,142 116,144" stroke="#9c8d74" stroke-width="1.5" fill="none" opacity="0.25" stroke-linecap="round"/>
+  <path d="M30,154 Q70,152 110,154" stroke="#9c8d74" stroke-width="1.5" fill="none" opacity="0.2" stroke-linecap="round"/>
+  <path d="M34,164 Q65,162 106,164" stroke="#9c8d74" stroke-width="1" fill="none" opacity="0.15" stroke-linecap="round"/>
 </symbol>
 
 <!-- Safety Poster -->
 <symbol id="sym-poster-safety" viewBox="0 0 140 180">
   <!-- paper background -->
-  <path d="M14,6 Q14,4 18,4 Q70,3 122,4 Q126,4 126,8 L126,174 Q126,177 122,177 Q70,178 18,177 Q14,177 14,174 Z" fill="#fffdf5" stroke="#3b3025" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14,6 Q14,4 18,4 Q70,3 122,4 Q126,4 126,8 L126,174 Q126,177 122,177 Q70,178 18,177 Q14,177 14,174 Z" fill="#fffdf5" stroke="#cccac4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- pin at top -->
-  <circle cx="70" cy="8" r="5" fill="#d9634f" stroke="#3b3025" stroke-width="2"/>
+  <circle cx="70" cy="8" r="5" fill="#d9634f" stroke="#ae4f3f" stroke-width="2"/>
   <circle cx="70" cy="8" r="2" fill="#ffffff" opacity="0.5"/>
   <!-- goggles doodle -->
   <!-- left lens -->
-  <path d="M24,52 Q22,42 30,38 Q40,34 50,38 Q56,42 56,50 Q56,60 50,64 Q40,68 30,64 Q22,60 24,52 Z" fill="#6f9ec9" fill-opacity="0.25" stroke="#3b3025" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M24,52 Q22,42 30,38 Q40,34 50,38 Q56,42 56,50 Q56,60 50,64 Q40,68 30,64 Q22,60 24,52 Z" fill="#6f9ec9" fill-opacity="0.25" stroke="#5b87ad" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- right lens -->
-  <path d="M82,52 Q80,42 88,38 Q98,34 108,38 Q114,42 116,50 Q116,60 108,64 Q98,68 88,64 Q80,60 82,52 Z" fill="#6f9ec9" fill-opacity="0.25" stroke="#3b3025" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M82,52 Q80,42 88,38 Q98,34 108,38 Q114,42 116,50 Q116,60 108,64 Q98,68 88,64 Q80,60 82,52 Z" fill="#6f9ec9" fill-opacity="0.25" stroke="#5b87ad" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- bridge between lenses -->
-  <path d="M56,50 Q64,46 82,50" stroke="#3b3025" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M56,50 Q64,46 82,50" stroke="#5b87ad" stroke-width="3" fill="none" stroke-linecap="round"/>
   <!-- left strap -->
-  <path d="M24,52 Q18,50 16,58 Q14,66 20,68" stroke="#3b3025" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M24,52 Q18,50 16,58 Q14,66 20,68" stroke="#5b87ad" stroke-width="2.5" fill="none" stroke-linecap="round"/>
   <!-- right strap -->
-  <path d="M116,52 Q122,50 124,58 Q126,66 120,68" stroke="#3b3025" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M116,52 Q122,50 124,58 Q126,66 120,68" stroke="#5b87ad" stroke-width="2.5" fill="none" stroke-linecap="round"/>
   <!-- lens shine -->
   <path d="M28,44 Q32,40 40,42" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
   <path d="M86,44 Q90,40 98,42" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.6"/>
   <!-- gloved hand doodle -->
-  <path d="M38,100 Q34,94 30,90 Q28,84 32,82 Q36,80 38,86 L40,80 Q40,74 44,74 Q48,74 48,80 L50,76 Q50,70 54,70 Q58,70 58,76 L60,72 Q60,68 64,68 Q68,68 68,74 L68,82 Q72,78 76,80 Q80,82 78,88 Q76,94 70,100 Q66,106 62,110 Q56,116 44,114 Q36,112 38,100 Z" fill="#fffdf5" stroke="#3b3025" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M38,100 Q34,94 30,90 Q28,84 32,82 Q36,80 38,86 L40,80 Q40,74 44,74 Q48,74 48,80 L50,76 Q50,70 54,70 Q58,70 58,76 L60,72 Q60,68 64,68 Q68,68 68,74 L68,82 Q72,78 76,80 Q80,82 78,88 Q76,94 70,100 Q66,106 62,110 Q56,116 44,114 Q36,112 38,100 Z" fill="#fffdf5" stroke="#bfb299" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- glove cuff -->
-  <path d="M34,100 Q36,110 44,114" stroke="#3b3025" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <path d="M34,100 Q36,110 44,114" stroke="#b5a68b" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.4"/>
   <!-- finger lines -->
-  <path d="M48,80 L48,86" stroke="#3b3025" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
-  <path d="M58,76 L58,82" stroke="#3b3025" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
-  <path d="M68,74 L68,80" stroke="#3b3025" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <path d="M48,80 L48,86" stroke="#b5a68b" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <path d="M58,76 L58,82" stroke="#b5a68b" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
+  <path d="M68,74 L68,80" stroke="#b5a68b" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4"/>
   <!-- safety text -->
-  <text font-family="inherit" font-size="13" fill="#d9634f" text-anchor="middle" x="70" y="140" font-weight="bold">AN TOÀN LÀ</text>
-  <text font-family="inherit" font-size="13" fill="#d9634f" text-anchor="middle" x="70" y="158" font-weight="bold">TRÊN HẾT!</text>
+  <text font-family="inherit" font-size="13" fill="#d9634f" text-anchor="middle" x="70" y="140" font-weight="bold" opacity="0.84">AN TOÀN LÀ</text>
+  <text font-family="inherit" font-size="13" fill="#d9634f" text-anchor="middle" x="70" y="158" font-weight="bold" opacity="0.84">TRÊN HẾT!</text>
   <!-- decorative border squiggle -->
   <path d="M22,168 Q45,166 70,168 Q95,170 118,168" stroke="#d9634f" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>
 </symbol>

@@ -76,47 +76,76 @@ const TOOL_ORDER = ['heat','burn','elec','gas','filter'];
    hàng trên khay (TRAY_SVG). Cạnh trái cũng chụm về điểm tụ như cạnh phải; góc sau bên trái nằm BENCH_FAR_L px tính từ
    mép trái màn (−BX) — ngay dưới vai trái khách — nên góc trước rơi ra ngoài mép màn một chút, cạnh trái vẫn thấy.
    BX đổi khi đổi cỡ cửa sổ: fit() vẽ lại bàn. */
-const BENCH_FAR_L = 100;
+const BENCH_FAR_L = -16;
 /* Bàn thí nghiệm có chiều sâu.
    Ánh sáng: đèn trần phía trước–trên–trái (cùng hướng bóng của dụng cụ).
-   · Mặt bàn giữ kiểu đơn giản như cũ (gỗ chuyển màu + vân hội tụ); mép trước bo tròn có đường sáng.
+   · Mặt bàn lát ván gỗ ngang theo phối cảnh + vân gỗ uốn lượn & mắt gỗ nhẹ; mép trước bo tròn có đường sáng.
    · Gầm bàn chia khoang, mỗi khoang một kiểu: tủ cánh bên trái, một cột ngăn kéo, HỐC BÀN ngay dưới thảm làm việc
      (chỗ để chân, tối sâu, thấy hai vách trong), và một ngăn tủ để ngỏ bên phải có kệ, sách, hộp, lọ. */
 function benchSVG(){
   const f = (NEAR_Y - FAR_Y) / (NEAR_Y - VP_Y);
   const xl0 = BENCH_FAR_L - BX, xr0 = xOf(1,0), xl1 = (xl0 - CX*f) / (1 - f), xr1 = xOf(1,1);
   const top = xl0+','+FAR_Y+' '+xr0+','+FAR_Y+' '+xr1+','+NEAR_Y+' '+xl1+','+NEAR_Y;
-  // mặt bàn: vân gỗ hội tụ + hai đường chia độ sâu, như bàn cũ
+  // mặt bàn: các tấm ván gỗ ngang theo phối cảnh + vân gỗ uốn lượn + mắt gỗ nhẹ
+  const GX0 = -480, GX1 = 1400, GSTEP = 230;
+  const plankTs = [0, 0.22, 0.46, 0.72, 1.0];
   let grain = '';
-  for(let k = -35; k <= 7; k++){
-    const u = k/7;
-    grain += '<line x1="'+xOf(u,0)+'" y1="'+FAR_Y+'" x2="'+xOf(u,1)+'" y2="'+NEAR_Y+'" stroke="#6e5232" stroke-width="'+(1 + Math.abs(u)*0.5).toFixed(1)+'" opacity=".16"/>';
+  const grainPath = (y0, amp, phase, sw, op, col) => {
+    let d = 'M' + GX0 + ',' + y0.toFixed(1);
+    for(let x = GX0, i = 0; x < GX1; x += GSTEP, i++){
+      const s = ((i + phase) % 2 ? 1 : -1) * amp;
+      d += ' Q' + (x + GSTEP*0.5) + ',' + (y0 + s).toFixed(1) + ' ' + (x + GSTEP) + ',' + y0.toFixed(1);
+    }
+    return '<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="'+sw+'" stroke-linecap="round" opacity="'+op+'"/>';
+  };
+  for(let p = 0; p < plankTs.length - 1; p++){
+    const t0 = plankTs[p], t1 = plankTs[p + 1];
+    const yTop = yOf(t0), yBot = yOf(t1), h = yBot - yTop;
+    grain += '<rect x="'+GX0+'" y="'+yTop.toFixed(1)+'" width="'+(GX1 - GX0)+'" height="'+h.toFixed(1)+'" fill="'+(p % 2 ? '#f3cf9c' : '#b57f45')+'" opacity="'+(p % 2 ? '.065' : '.075')+'"/>';
+    const sw = (1.05 + p * 0.22).toFixed(2);
+    [0.24, 0.52, 0.78].forEach((r, gi) => {
+      grain += grainPath(yTop + h * r, 2.2 + p * 0.75 + gi * 0.4, p + gi, sw, (0.14 + gi * 0.025).toFixed(2), '#754d26');
+    });
+    grain += grainPath(yTop + h * 0.38, 2.0 + p * 0.6, p + 1, '1.1', '.14', '#f7daaa');
+    if(p > 0){
+      grain += '<line x1="'+GX0+'" y1="'+yTop.toFixed(1)+'" x2="'+GX1+'" y2="'+yTop.toFixed(1)+'" stroke="#6e4b28" stroke-width="1.5" opacity=".22"/>'
+            +  '<line x1="'+GX0+'" y1="'+(yTop + 1.4).toFixed(1)+'" x2="'+GX1+'" y2="'+(yTop + 1.4).toFixed(1)+'" stroke="#fbe2b8" stroke-width="1.1" opacity=".26"/>';
+    }
   }
-  [0.34, 0.68].forEach(t => {
-    grain += '<line x1="'+(xl0 + (xl1 - xl0)*t)+'" y1="'+yOf(t)+'" x2="'+xOf(1,t)+'" y2="'+yOf(t)+'" stroke="#6e5232" stroke-width="1.3" opacity=".12"/>';
+  // vài mắt gỗ dẹt theo góc nhìn nghiêng ở hai bên thảm
+  [[195, 0.35, 22, 2.8], [398, 0.61, 18, 2.4], [468, 0.14, 15, 1.9], [858, 0.36, 17, 2.3], [888, 0.84, 21, 2.9]].forEach(([kx, kt, rx, ry]) => {
+    const ky = yOf(kt);
+    grain += '<g opacity=".17">'
+          +    '<ellipse cx="'+kx+'" cy="'+ky.toFixed(1)+'" rx="'+(rx*0.42).toFixed(1)+'" ry="'+(ry*0.52).toFixed(1)+'" fill="#754d26"/>'
+          +    '<ellipse cx="'+kx+'" cy="'+ky.toFixed(1)+'" rx="'+rx+'" ry="'+ry.toFixed(1)+'" fill="none" stroke="#754d26" stroke-width="1.2"/>'
+          +    '<path d="M'+(kx-rx*1.55).toFixed(1)+','+ky.toFixed(1)+' Q'+kx+','+(ky-ry*1.9).toFixed(1)+' '+(kx+rx*1.55).toFixed(1)+','+ky.toFixed(1)+'" fill="none" stroke="#754d26" stroke-width="1.1"/>'
+          +  '</g>';
   });
 
   // ---- gầm bàn ----
   const LIP = NEAR_Y + 15, RAIL = LIP + 8, BOT = 1600, G2 = 9;     // mép bàn, nẹp ngang dưới mép, đáy: kéo sâu xuống cho màn cao hơn 16:9 (#screen cắt phần thừa)
   const mat = L3.mat.filter(p => p[1] > (FAR_Y + NEAR_Y)/2).map(p => p[0]);
   const hx0 = Math.min(...mat) + 4, hx1 = Math.max(...mat) - 4;   // hốc bàn: đúng bề ngang thảm làm việc
-  // panel gỗ có gờ: sáng ở cạnh trên–trái, tối ở cạnh dưới–phải
-  const panel = (x, y, w, h, fill = 'url(#bdrawer)') => '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3" fill="'+fill+'" stroke="#3b3025" stroke-width="2"/>'
-    + '<path d="M'+(x+2.5)+','+(y+h-2)+' L'+(x+2.5)+','+(y+2.5)+' L'+(x+w-2)+','+(y+2.5)+'" fill="none" stroke="#e3bd88" stroke-width="2" opacity=".7"/>'
-    + '<path d="M'+(x+w-2.5)+','+(y+3)+' L'+(x+w-2.5)+','+(y+h-2.5)+' L'+(x+3)+','+(y+h-2.5)+'" fill="none" stroke="#5e4126" stroke-width="2" opacity=".55"/>';
+  // panel gỗ có gờ: sáng ở cạnh trên–trái, tối ở cạnh dưới–phải (viền cùng tông)
+  const panel = (x, y, w, h, fill = 'url(#bdrawer)') => {
+    const st = fill === 'url(#bdoorin)' ? '#745332' : '#7e5c3a';
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="3" fill="'+fill+'" stroke="'+st+'" stroke-width="2"/>'
+      + '<path d="M'+(x+2.5)+','+(y+h-2)+' L'+(x+2.5)+','+(y+2.5)+' L'+(x+w-2)+','+(y+2.5)+'" fill="none" stroke="#e3bd88" stroke-width="2" opacity=".7"/>'
+      + '<path d="M'+(x+w-2.5)+','+(y+3)+' L'+(x+w-2.5)+','+(y+h-2.5)+' L'+(x+3)+','+(y+h-2.5)+'" fill="none" stroke="#5e4126" stroke-width="2" opacity=".55"/>';
+  };
   const pull = (cx, y, w = 34) => '<rect x="'+(cx - w/2 + 2)+'" y="'+(y + 3)+'" width="'+w+'" height="7" rx="3.5" fill="#00000040"/>'
-    + '<rect x="'+(cx - w/2)+'" y="'+y+'" width="'+w+'" height="7" rx="3.5" fill="url(#bbrass)" stroke="#3b3025" stroke-width="1.4"/>';
+    + '<rect x="'+(cx - w/2)+'" y="'+y+'" width="'+w+'" height="7" rx="3.5" fill="url(#bbrass)" stroke="#a7863a" stroke-width="1.4"/>';
   const knob = (cx, cy) => '<circle cx="'+(cx + 2)+'" cy="'+(cy + 3)+'" r="5" fill="#00000040"/>'
-    + '<circle cx="'+cx+'" cy="'+cy+'" r="5" fill="url(#bbrass)" stroke="#3b3025" stroke-width="1.4"/><circle cx="'+(cx - 1.5)+'" cy="'+(cy - 1.5)+'" r="1.5" fill="#fff6d0"/>';
+    + '<circle cx="'+cx+'" cy="'+cy+'" r="5" fill="url(#bbrass)" stroke="#a7863a" stroke-width="1.4"/><circle cx="'+(cx - 1.5)+'" cy="'+(cy - 1.5)+'" r="1.5" fill="#fff6d0"/>';
   let under = '';
   // cột ngăn kéo sát bên trái hốc bàn
   const dw = 132, dx = hx0 - G2 - dw;
   for(let y = RAIL + 2; y < BOT - 64; y += 68){ under += panel(dx, y, dw, 64) + pull(dx + dw/2, y + 16); }   // ngăn cao 64: hai ngăn cũ gộp một
-  // tủ cánh: phần còn lại bên trái, chia cánh rộng chừng 190 px, núm ở mép cánh
+  // tủ cánh: phần còn lại bên trái, chia cánh rộng chừng 190 px, núm lùi vào trong cánh
   const lx0 = xl1 + G2, lx1 = dx - G2, nd = Math.max(1, Math.round((lx1 - lx0) / 190)), dWd = (lx1 - lx0 - G2*(nd - 1)) / nd;
   for(let i = 0; i < nd; i++){
     const x = lx0 + i*(dWd + G2);
-    under += panel(x, RAIL + 2, dWd, BOT) + panel(x + 12, RAIL + 14, dWd - 24, BOT, 'url(#bdoorin)') + knob(i % 2 ? x + 16 : x + dWd - 16, RAIL + 40);
+    under += panel(x, RAIL + 2, dWd, BOT) + panel(x + 12, RAIL + 14, dWd - 24, BOT, 'url(#bdoorin)') + knob(i % 2 ? x + 26 : x + dWd - 26, RAIL + 42);
   }
   // hốc bàn: tối sâu, thấy hai vách trong chụm vào giữa và vách sau sáng hơn chút
   const hd = 16;   // độ sâu nhìn thấy của vách trong
@@ -124,30 +153,30 @@ function benchSVG(){
     + '<polygon points="'+hx0+','+RAIL+' '+(hx0 + hd)+','+(RAIL + 8)+' '+(hx0 + hd)+','+BOT+' '+hx0+','+BOT+'" fill="#6e4c2b" opacity=".85"/>'
     + '<polygon points="'+hx1+','+RAIL+' '+(hx1 - hd)+','+(RAIL + 8)+' '+(hx1 - hd)+','+BOT+' '+hx1+','+BOT+'" fill="#4a3420" opacity=".85"/>'
     + '<rect x="'+(hx0 + hd)+'" y="'+(RAIL + 8)+'" width="'+(hx1 - hx0 - 2*hd)+'" height="'+(BOT - RAIL)+'" fill="url(#bholeback)"/>'
-    + '<path d="M'+hx0+','+BOT+' L'+hx0+','+RAIL+' L'+hx1+','+RAIL+' L'+hx1+','+BOT+'" fill="none" stroke="#3b3025" stroke-width="2.5"/>';
+    + '<path d="M'+hx0+','+BOT+' L'+hx0+','+RAIL+' L'+hx1+','+RAIL+' L'+hx1+','+BOT+'" fill="none" stroke="#4a3420" stroke-width="2.5"/>';
   // ngăn tủ để ngỏ bên phải: khung, lòng tủ có bóng, một tầng kệ với sách, hộp, lọ
   const ox0 = hx1 + G2, ox1 = xr1 - G2, ow = ox1 - ox0, SH = RAIL + 44;
-  const books = [['#c4553f', 10, 30], ['#5f8fbf', 8, 27], ['#7aa95c', 12, 32], ['#e8b84b', 9, 25]];
+  const books = [['#c4553f', '#9b4332', 10, 30], ['#5f8fbf', '#4b7197', 8, 27], ['#7aa95c', '#608649', 12, 32], ['#e8b84b', '#b7913b', 9, 25]];
   let shelfItems = '', bx = ox0 + 14;
-  books.forEach(([c, w, h], k) => {
+  books.forEach(([c, st, w, h], k) => {
     const lean = k === 3 ? ' transform="rotate(14 '+(bx + w)+' '+SH+')"' : '';
-    shelfItems += '<rect x="'+bx+'" y="'+(SH - h)+'" width="'+w+'" height="'+h+'" rx="1.5" fill="'+c+'" stroke="#3b3025" stroke-width="1.4"'+lean+'/>'
+    shelfItems += '<rect x="'+bx+'" y="'+(SH - h)+'" width="'+w+'" height="'+h+'" rx="1.5" fill="'+c+'" stroke="'+st+'" stroke-width="1.4"'+lean+'/>'
       + '<line x1="'+(bx + 2)+'" y1="'+(SH - h + 6)+'" x2="'+(bx + w - 2)+'" y2="'+(SH - h + 6)+'" stroke="#fff6d8" stroke-width="1.2" opacity=".7"'+lean+'/>';
     bx += w + 1;
   });
   const boxX = ox0 + ow*0.48;
-  shelfItems += '<rect x="'+boxX+'" y="'+(SH - 20)+'" width="40" height="20" rx="2" fill="#d8c29a" stroke="#3b3025" stroke-width="1.4"/>'
-    + '<rect x="'+(boxX + 12)+'" y="'+(SH - 15)+'" width="16" height="8" fill="#fffdf5" stroke="#3b3025" stroke-width="1"/>'
-    + '<path d="M'+(ox1 - 30)+','+SH+' L'+(ox1 - 30)+','+(SH - 18)+' Q'+(ox1 - 30)+','+(SH - 24)+' '+(ox1 - 25)+','+(SH - 26)+' L'+(ox1 - 25)+','+(SH - 32)+' L'+(ox1 - 17)+','+(SH - 32)+' L'+(ox1 - 17)+','+(SH - 26)+' Q'+(ox1 - 12)+','+(SH - 24)+' '+(ox1 - 12)+','+(SH - 18)+' L'+(ox1 - 12)+','+SH+' Z" fill="#e6f2f4" stroke="#3b3025" stroke-width="1.4"/>'
+  shelfItems += '<rect x="'+boxX+'" y="'+(SH - 20)+'" width="40" height="20" rx="2" fill="#d8c29a" stroke="#ab997a" stroke-width="1.4"/>'
+    + '<rect x="'+(boxX + 12)+'" y="'+(SH - 15)+'" width="16" height="8" fill="#fffdf5" stroke="#c9c8c2" stroke-width="1"/>'
+    + '<path d="M'+(ox1 - 30)+','+SH+' L'+(ox1 - 30)+','+(SH - 18)+' Q'+(ox1 - 30)+','+(SH - 24)+' '+(ox1 - 25)+','+(SH - 26)+' L'+(ox1 - 25)+','+(SH - 32)+' L'+(ox1 - 17)+','+(SH - 32)+' L'+(ox1 - 17)+','+(SH - 26)+' Q'+(ox1 - 12)+','+(SH - 24)+' '+(ox1 - 12)+','+(SH - 18)+' L'+(ox1 - 12)+','+SH+' Z" fill="#e6f2f4" stroke="#b6bfc1" stroke-width="1.4"/>'
     + '<rect x="'+(ox1 - 29)+'" y="'+(SH - 12)+'" width="16" height="11" fill="#9fd3e6" opacity=".8"/>';
-  under += '<rect x="'+ox0+'" y="'+RAIL+'" width="'+ow+'" height="'+(BOT - RAIL)+'" fill="url(#bopen)" stroke="#3b3025" stroke-width="2.5"/>'
+  under += '<rect x="'+ox0+'" y="'+RAIL+'" width="'+ow+'" height="'+(BOT - RAIL)+'" fill="url(#bopen)" stroke="#6d4d2c" stroke-width="2.5"/>'
     + '<rect x="'+ox0+'" y="'+RAIL+'" width="'+ow+'" height="12" fill="url(#bunder)"/>'
     + shelfItems
-    + '<rect x="'+ox0+'" y="'+SH+'" width="'+ow+'" height="7" fill="url(#blip)" stroke="#3b3025" stroke-width="1.6"/>'
+    + '<rect x="'+ox0+'" y="'+SH+'" width="'+ow+'" height="7" fill="url(#blip)" stroke="#926f48" stroke-width="1.6"/>'
     + '<rect x="'+ox0+'" y="'+(SH + 7)+'" width="'+ow+'" height="10" fill="url(#bunder)"/>'
     // các tầng kệ trống bên dưới, cách đều, tới tận đáy
     + Array.from({length: Math.floor((BOT - SH) / 74)}, (_, k) => SH + 74*(k + 1)).map(y =>
-        '<rect x="'+ox0+'" y="'+y+'" width="'+ow+'" height="7" fill="url(#blip)" stroke="#3b3025" stroke-width="1.6"/>'
+        '<rect x="'+ox0+'" y="'+y+'" width="'+ow+'" height="7" fill="url(#blip)" stroke="#926f48" stroke-width="1.6"/>'
       + '<rect x="'+ox0+'" y="'+(y + 7)+'" width="'+ow+'" height="10" fill="url(#bunder)"/>').join('');
 
   return '<svg id="benchsvg" viewBox="0 0 1280 720" overflow="visible">'
@@ -177,9 +206,9 @@ function benchSVG(){
     // gầm bàn: nền khung, các khoang, nẹp ngang ngay dưới mép bàn
     + '<path d="M'+xl1+','+NEAR_Y+' L'+xr1+','+NEAR_Y+' L'+xr1+','+BOT+' L'+xl1+','+BOT+' Z" fill="url(#bfront)"/>'
     + under
-    + '<rect x="'+xl1+'" y="'+LIP+'" width="'+(xr1 - xl1)+'" height="'+(RAIL - LIP)+'" fill="#8a6238" stroke="#3b3025" stroke-width="2"/>'
+    + '<rect x="'+xl1+'" y="'+LIP+'" width="'+(xr1 - xl1)+'" height="'+(RAIL - LIP)+'" fill="#8a6238" stroke="#6d4d2c" stroke-width="2"/>'
     + '<rect x="'+xl1+'" y="'+RAIL+'" width="'+(xr1 - xl1)+'" height="7" fill="url(#bunder)" opacity=".7"/>'
-    // mặt bàn: đơn giản như cũ
+    // mặt bàn: vân gỗ ghép theo phối cảnh
     + '<polygon points="'+top+'" fill="url(#btop)"/>'
     + '<g clip-path="url(#btopclip)">' + grain + '</g>'
     // mép trước bo tròn: dải cạnh dày + đường sáng ngay mép
@@ -187,8 +216,8 @@ function benchSVG(){
     + '<line x1="'+(xl1+2)+'" y1="'+(NEAR_Y+2.5)+'" x2="'+(xr1-2)+'" y2="'+(NEAR_Y+2.5)+'" stroke="#fbe2b8" stroke-width="2" opacity=".85"/>'
     // cạnh phải bàn: thấy chút bề dày
     + '<polygon points="'+xr0+','+FAR_Y+' '+(xr0+3)+','+(FAR_Y+8)+' '+(xr1+4)+','+LIP+' '+xr1+','+LIP+' '+xr1+','+NEAR_Y+'" fill="#7a5430"/>'
-    // viền mực như cũ
-    + '<g stroke="#3b3025" stroke-width="4" stroke-linecap="round">'
+    // viền mặt bàn cùng tông gỗ
+    + '<g stroke="#94683b" stroke-width="2.4" stroke-linecap="round">'
     +   '<line x1="'+xl0+'" y1="'+FAR_Y+'" x2="'+xr0+'" y2="'+FAR_Y+'"/>'
     +   '<line x1="'+xl0+'" y1="'+FAR_Y+'" x2="'+xl1+'" y2="'+NEAR_Y+'"/>'
     +   '<line x1="'+xr0+'" y1="'+FAR_Y+'" x2="'+xr1+'" y2="'+NEAR_Y+'"/>'
@@ -202,8 +231,355 @@ function benchSVG(){
 function matSVG(){
   const q = L3.mat, c = q.reduce((a, p) => [a[0] + p[0]/4, a[1] + p[1]/4], [0, 0]);
   const pts = k => q.map(p => (p[0] + (c[0] - p[0])*k).toFixed(1) + ',' + (p[1] + (c[1] - p[1])*k*1.6).toFixed(1)).join(' ');
-  return '<polygon points="' + pts(0) + '" fill="#5fa9a6" stroke="#3b3025" stroke-width="3" stroke-linejoin="round"/>'
-       + '<polygon points="' + pts(0.055) + '" fill="#eef4f0" stroke="#4f9693" stroke-width="2" stroke-linejoin="round"/>';
+  return '<polygon points="' + pts(0) + '" fill="#5fa9a6" stroke="#4b8683" stroke-width="3" stroke-linejoin="round"/>'
+       + '<polygon points="' + pts(0.055) + '" fill="#eef4f0" stroke="#8ec2bf" stroke-width="2" stroke-linejoin="round"/>';
+}
+
+/* Quầy đá bồn rửa bên phải (#sinkcountersvg), ghép khít cạnh phải #benchsvg (913,430 -> 976,636) */
+function sinkCounterSVG(){
+  const xl0 = 915, xr0 = 1700, xl1 = 978, xr1 = 1700;
+  const fy = 430, ny = 636, lip = 651, rail = 659, bot = 1600;
+  const topPts = `${xl0},${fy} ${xr0},${fy} ${xr1},${ny} ${xl1},${ny}`;
+  const dx1 = 986, dw = 136, gap = 8, dx2 = dx1 + dw + gap;
+  const door = (x, w, knobX) => ''
+    + '<rect x="'+x+'" y="'+(rail+2)+'" width="'+w+'" height="'+bot+'" rx="3" fill="url(#psc-drawer)" stroke="#7d5b3a" stroke-width="2"/>'
+    + '<path d="M'+(x+2.5)+','+(rail+300)+' L'+(x+2.5)+','+(rail+4.5)+' L'+(x+w-2)+','+(rail+4.5)+'" fill="none" stroke="#e3bd88" stroke-width="2" opacity=".7"/>'
+    + '<rect x="'+(x+11)+'" y="'+(rail+13)+'" width="'+(w-22)+'" height="'+bot+'" rx="3" fill="url(#psc-doorin)" stroke="#735231" stroke-width="2"/>'
+    + '<circle cx="'+(knobX+2)+'" cy="'+(rail+43)+'" r="4.5" fill="#00000040"/>'
+    + '<circle cx="'+knobX+'" cy="'+(rail+40)+'" r="4.5" fill="url(#psc-brass)" stroke="#a5843a" stroke-width="1.4"/>'
+    + '<circle cx="'+(knobX-1.4)+'" cy="'+(rail+38.6)+'" r="1.4" fill="#fff6d0"/>';
+
+  return '<svg id="sinkcountersvg" viewBox="0 0 1280 720" overflow="visible" aria-hidden="true">'
+    + '<defs>'
+    +   '<linearGradient id="psc-top" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#e8eceb"/><stop offset="100%" stop-color="#d2d9db"/></linearGradient>'
+    +   '<linearGradient id="psc-lip" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#eef2f3"/><stop offset="40%" stop-color="#bec8cb"/><stop offset="100%" stop-color="#8c999f"/></linearGradient>'
+    +   '<linearGradient id="psc-front" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#8a6238"/><stop offset="100%" stop-color="#5e4126"/></linearGradient>'
+    +   '<linearGradient id="psc-drawer" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#b48655"/><stop offset="60%" stop-color="#a0754a"/><stop offset="100%" stop-color="#8a6238"/></linearGradient>'
+    +   '<linearGradient id="psc-doorin" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#a77b4c"/><stop offset="100%" stop-color="#93693f"/></linearGradient>'
+    +   '<linearGradient id="psc-under" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#1e140a" stop-opacity=".55"/><stop offset="100%" stop-color="#1e140a" stop-opacity="0"/></linearGradient>'
+    +   '<linearGradient id="psc-brass" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#f3d98b"/><stop offset="55%" stop-color="#d4a94a"/><stop offset="100%" stop-color="#9c7426"/></linearGradient>'
+    + '</defs>'
+    + '<rect x="'+xl1+'" y="'+ny+'" width="'+(xr1 - xl1)+'" height="'+(bot - ny)+'" fill="url(#psc-front)"/>'
+    + door(dx1, dw, dx1 + dw - 24)
+    + door(dx2, 220, dx2 + 24)
+    + '<rect x="'+xl1+'" y="'+lip+'" width="'+(xr1 - xl1)+'" height="'+(rail - lip)+'" fill="#8a6238" stroke="#6c4c2c" stroke-width="2"/>'
+    + '<rect x="'+xl1+'" y="'+rail+'" width="'+(xr1 - xl1)+'" height="7" fill="url(#psc-under)" opacity=".7"/>'
+    + '<polygon points="'+topPts+'" fill="url(#psc-top)"/>'
+    + '<polygon points="'+xl0+','+fy+' '+(xl0+10)+','+fy+' '+(xl1+12)+','+ny+' '+xl1+','+ny+'" fill="#3b3025" opacity=".08"/>'
+    + '<rect x="'+xl0+'" y="'+fy+'" width="'+(xr0 - xl0)+'" height="8" fill="#3b3025" opacity=".06"/>'
+    + '<rect x="'+xl1+'" y="'+ny+'" width="'+(xr1 - xl1)+'" height="'+(lip - ny)+'" fill="url(#psc-lip)"/>'
+    + '<line x1="'+(xl1+2)+'" y1="'+(ny+2.5)+'" x2="'+xr1+'" y2="'+(ny+2.5)+'" stroke="#ffffff" stroke-width="2" opacity=".75"/>'
+    + '<path class="psc-top-edge" d="M'+xr0+','+fy+' L'+xl0+','+fy+' L'+xl1+','+ny+' L'+xr1+','+ny+' M'+xl1+','+lip+' L'+xr1+','+lip+'" fill="none" stroke="#9ca8ad" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'
+    + '</svg>';
+}
+
+/* Tường bên trong quầy pha chế: tường sơn kem, ốp gỗ chân tường liền mạch, bảng ghim gỗ (giữa),
+   mảng gạch men sau bồn rửa cạnh bàn bên phải (x = 966..1700), và sàn gỗ bên dưới. Toạ độ khớp .wall (y = 64). */
+function wallBgSVG(){
+  let ribs = '';
+  for(let x = -400; x <= 1680; x += 48)
+    ribs += '<line x1="'+x+'" y1="-360" x2="'+x+'" y2="278" stroke="#8a6238" stroke-width="1" opacity=".055"/>';
+  let planks = '';
+  for(let x = -408; x <= 1680; x += 36){
+    planks += '<line x1="'+x+'" y1="279" x2="'+x+'" y2="366" stroke="#6e4c2b" stroke-width="1.3" opacity=".28"/>'
+            + '<line x1="'+(x+1.5)+'" y1="279" x2="'+(x+1.5)+'" y2="366" stroke="#f7ddb0" stroke-width="1" opacity=".24"/>';
+  }
+  let tiles = '';
+  for(let x = 982; x <= 1690; x += 17)
+    tiles += '<line x1="'+x+'" y1="268" x2="'+x+'" y2="366" stroke="#8ca3a8" stroke-width="1" opacity=".38"/>';
+  for(let y = 285; y < 366; y += 17)
+    tiles += '<line x1="966" y1="'+y+'" x2="1700" y2="'+y+'" stroke="#8ca3a8" stroke-width="1" opacity=".38"/>';
+  const corkDots = [
+    [548,128,1.5],[572,140,1.2],[602,126,1.6],[638,136,1.3],[674,128,1.5],[706,138,1.2],
+    [556,174,1.3],[592,188,1.6],[628,176,1.2],[662,190,1.5],[698,174,1.3],[718,196,1.5],
+    [546,220,1.4],[584,230,1.2],[622,222,1.6],[658,232,1.3],[692,220,1.5],[716,232,1.2]
+  ].map(([cx,cy,r]) => '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#8a6238" opacity=".25"/>').join('');
+  const floorLines = [420, 480, 548, 624, 710, 806]
+    .map(y => '<line x1="-420" y1="'+y+'" x2="1700" y2="'+y+'" stroke="#6e4c2b" stroke-width="1.4" opacity=".16"/>').join('');
+  return '<svg class="wall-bg" viewBox="0 0 1280 720" overflow="visible" aria-hidden="true">'
+    + '<defs>'
+    +   '<linearGradient id="wbg-plaster" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#f5edd9"/><stop offset="65%" stop-color="#ede1c7"/><stop offset="100%" stop-color="#e5d6b8"/></linearGradient>'
+    +   '<linearGradient id="wbg-wainscot" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#d5ad79"/><stop offset="55%" stop-color="#c49660"/><stop offset="100%" stop-color="#b2824c"/></linearGradient>'
+    +   '<linearGradient id="wbg-rail" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#e6c08a"/><stop offset="55%" stop-color="#b88953"/><stop offset="100%" stop-color="#8a6238"/></linearGradient>'
+    +   '<linearGradient id="wbg-floor" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#cbb693"/><stop offset="100%" stop-color="#b59d78"/></linearGradient>'
+    +   '<linearGradient id="wbg-tile" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#f5f3ea"/><stop offset="100%" stop-color="#e4eceb"/></linearGradient>'
+    +   '<linearGradient id="wbg-depth" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#3b3025" stop-opacity="0"/><stop offset="100%" stop-color="#3b3025" stop-opacity=".1"/></linearGradient>'
+    + '</defs>'
+    // nền tường thạch cao ấm + vân dọc rất nhẹ
+    + '<rect x="-420" y="-360" width="2120" height="726" fill="url(#wbg-plaster)"/>'
+    + ribs
+    // chân tường ốp gỗ + nẹp phào ngang
+    + '<rect x="-420" y="278" width="2120" height="88" fill="url(#wbg-wainscot)"/>'
+    + planks
+    + '<rect x="-420" y="344" width="2120" height="22" fill="url(#wbg-depth)"/>'
+    + '<line x1="-420" y1="366" x2="1700" y2="366" stroke="#946c42" stroke-width="2" opacity=".45"/>'
+    // phào gỗ chạy ngang ở y = 268..279
+    + '<rect x="-420" y="279" width="2120" height="7" fill="#3b3025" opacity=".12"/>'
+    + '<rect x="-420" y="268" width="2120" height="11" fill="url(#wbg-rail)" stroke="#916c42" stroke-width="2.2"/>'
+    + '<line x1="-420" y1="270" x2="1700" y2="270" stroke="#fbe3b8" stroke-width="1.5" opacity=".75"/>'
+    // mảng gạch men sau bồn rửa cạnh bàn bên phải (mép trên bằng đúng phào gỗ y = 268)
+    + '<rect x="966" y="268" width="734" height="98" rx="2" fill="url(#wbg-tile)" stroke="#b4baba" stroke-width="2"/>'
+    + tiles
+    + '<rect x="965" y="268" width="735" height="5" rx="1.5" fill="#dfe8ea" stroke="#b0b7b9" stroke-width="1.6"/>'
+    // bảng ghim gỗ giữa tường (Vùng B: chỗ ghim Giấy cân bằng / Giấy nhớ)
+    + '<rect x="529" y="112" width="212" height="144" rx="5" fill="#3b3025" opacity=".16"/>'
+    + '<rect x="526" y="108" width="212" height="144" rx="5" fill="#b88852" stroke="#916b41" stroke-width="2.2"/>'
+    + '<rect x="534" y="116" width="196" height="128" rx="2" fill="#d9b98a" stroke="#b69b74" stroke-width="1.4"/>'
+    + corkDots
+    + '<g opacity=".55">'
+    +   '<rect x="702" y="124" width="22" height="22" rx="1.5" fill="#fff7d4" stroke="#d6cfb2" stroke-width="1" transform="rotate(4 713 135)"/>'
+    +   '<circle cx="713" cy="126" r="2" fill="#d9634f" stroke="#ab4e3e" stroke-width=".8"/>'
+    +   '<rect x="542" y="218" width="24" height="18" rx="1.5" fill="#eef4f0" stroke="#c8cdca" stroke-width="1" transform="rotate(-3 554 227)"/>'
+    +   '<circle cx="554" cy="220" r="2" fill="#6f9ec9" stroke="#587d9f" stroke-width=".8"/>'
+    + '</g>'
+    // sàn nhà & len chân tường phía dưới
+    + '<rect x="-420" y="366" width="2120" height="584" fill="url(#wbg-floor)"/>'
+    + floorLines
+    + '<rect x="-420" y="366" width="2120" height="16" fill="#8a6238" stroke="#6d4d2c" stroke-width="2"/>'
+    + '</svg>';
+}
+
+/* Cảnh hành lang văn phòng bên ngoài cửa sổ quầy giao hàng (296×234): hành lang kín gọn sạch (không ghế chờ, không cửa sổ trời) —
+   bên trái đặt chậu trầu bà lá xẻ trồng trong nhà trên kệ gỗ thấp; bên phải treo duy nhất một bảng task công việc. */
+function counterWindowOutSVG(){
+  const seams = [24, 54, 84, 114, 152, 188, 224, 258, 286]
+    .map(x => '<line x1="'+x+'" y1="154" x2="'+x+'" y2="195" stroke="#a89f8d" stroke-width="1.1" opacity=".22"/>').join('');
+  // mạch gạch lát hành lang hội tụ nhẹ về tâm xa (148, 115)
+  const tileJoints = [34, 82, 132, 184, 236, 286].map(bx => {
+    const tx = 148 + (bx - 148) * (203 - 115) / (234 - 115);
+    return '<line x1="'+tx.toFixed(1)+'" y1="203" x2="'+bx+'" y2="234" stroke="#a89f8d" stroke-width="1.2" opacity=".28"/>';
+  }).join('');
+  return '<svg class="win-out-svg" viewBox="0 0 296 234" preserveAspectRatio="xMidYMid slice" aria-hidden="true">'
+    + '<defs>'
+    +   '<linearGradient id="wo-ceil" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#e5dfd2"/><stop offset="100%" stop-color="#d5cebe"/></linearGradient>'
+    +   '<linearGradient id="wo-wall" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#e5e8df"/><stop offset="100%" stop-color="#d9dfd3"/></linearGradient>'
+    +   '<linearGradient id="wo-dado" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#d3cbb9"/><stop offset="100%" stop-color="#c4ba9f"/></linearGradient>'
+    +   '<linearGradient id="wo-floor" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#d8cebc"/><stop offset="100%" stop-color="#c6baa3"/></linearGradient>'
+    +   '<linearGradient id="wo-ceramic" x1="0" y1="0" x2="1" y2="0">'
+    +     '<stop offset="0%" stop-color="#f6f0e2"/><stop offset="55%" stop-color="#ebe1cb"/><stop offset="100%" stop-color="#d9cbb0"/></linearGradient>'
+    +   '<linearGradient id="wo-pot" x1="0" y1="0" x2="1" y2="0">'
+    +     '<stop offset="0%" stop-color="#d48661"/><stop offset="55%" stop-color="#b86845"/><stop offset="100%" stop-color="#964f33"/></linearGradient>'
+    + '</defs>'
+    // tường hành lang & trần
+    + '<rect x="0" y="20" width="296" height="184" fill="url(#wo-wall)"/>'
+    + '<rect x="0" y="0" width="296" height="22" fill="url(#wo-ceil)"/>'
+    + '<rect x="-2" y="20" width="300" height="5" fill="#c7beaa" stroke="#9d9686" stroke-width="1.6"/>'
+    // đèn trần hành lang + quầng sáng ấm dịu
+    + '<ellipse cx="148" cy="46" rx="58" ry="30" fill="#fff7dc" opacity=".28"/>'
+    + '<rect x="132" y="3" width="32" height="5" rx="2" fill="#8a6238" stroke="#6d4d2c" stroke-width="1.5"/>'
+    + '<path d="M135,8 Q148,19 161,8 Z" fill="#fffaf0" stroke="#c9c6be" stroke-width="1.5"/>'
+    // phần ốp chân tường hành lang + phào ngang + len chân tường
+    + '<rect x="0" y="152" width="296" height="44" fill="url(#wo-dado)"/>'
+    + seams
+    + '<rect x="-2" y="148" width="300" height="6" fill="#c2b69c" stroke="#99907b" stroke-width="1.5"/>'
+    + '<rect x="-2" y="195" width="300" height="9" fill="#9c7b56" stroke="#7b6144" stroke-width="1.6"/>'
+    // duy nhất một bảng task công việc (3 cột thẻ việc) bên phải hành lang
+    + '<g>'
+    +   '<rect x="202" y="50" width="80" height="74" rx="3" fill="#3b3025" opacity=".12"/>'
+    +   '<rect x="200" y="48" width="80" height="74" rx="3" fill="#b68c5c" stroke="#906f49" stroke-width="1.6"/>'
+    +   '<rect x="205" y="53" width="70" height="64" rx="1.5" fill="#ede4ce" stroke="#8a6238" stroke-width="1"/>'
+    +   '<rect x="208" y="56" width="64" height="7" rx="1" fill="#dcd1b6"/>'
+    +   '<line x1="212" y1="59.5" x2="230" y2="59.5" stroke="#a89f8d" stroke-width="1.4" opacity=".6"/>'
+    +   '<line x1="234" y1="59.5" x2="250" y2="59.5" stroke="#a89f8d" stroke-width="1.4" opacity=".45"/>'
+    +   '<line x1="229" y1="65" x2="229" y2="114" stroke="#c4b89b" stroke-width="1" stroke-dasharray="2 2"/>'
+    +   '<line x1="251" y1="65" x2="251" y2="114" stroke="#c4b89b" stroke-width="1" stroke-dasharray="2 2"/>'
+    +   '<rect x="209" y="67" width="18" height="16" rx="1" fill="#f7e7b4" stroke="#cfc297" stroke-width=".9"/>'
+    +   '<line x1="212" y1="73" x2="224" y2="73" stroke="#a89f8d" stroke-width="1.1" opacity=".65"/>'
+    +   '<line x1="212" y1="77" x2="221" y2="77" stroke="#a89f8d" stroke-width="1" opacity=".45"/>'
+    +   '<circle cx="218" cy="67" r="1.8" fill="#d9634f" stroke="#ab4e3e" stroke-width=".7"/>'
+    +   '<rect x="209" y="87" width="18" height="17" rx="1" fill="#fffdf5" stroke="#d6d5ce" stroke-width=".9"/>'
+    +   '<line x1="212" y1="93" x2="224" y2="93" stroke="#a89f8d" stroke-width="1.1" opacity=".6"/>'
+    +   '<line x1="212" y1="97" x2="222" y2="97" stroke="#a89f8d" stroke-width="1" opacity=".4"/>'
+    +   '<circle cx="218" cy="87" r="1.8" fill="#e8b84b" stroke="#b7913b" stroke-width=".7"/>'
+    +   '<rect x="231" y="68" width="18" height="19" rx="1" fill="#dbe8ea" stroke="#b8c3c5" stroke-width=".9"/>'
+    +   '<line x1="234" y1="74" x2="246" y2="74" stroke="#6f9ec9" stroke-width="1.2" opacity=".7"/>'
+    +   '<line x1="234" y1="78" x2="244" y2="78" stroke="#a89f8d" stroke-width="1" opacity=".45"/>'
+    +   '<line x1="234" y1="82" x2="245" y2="82" stroke="#a89f8d" stroke-width="1" opacity=".4"/>'
+    +   '<circle cx="240" cy="68" r="1.8" fill="#6f9ec9" stroke="#587d9f" stroke-width=".7"/>'
+    +   '<rect x="231" y="91" width="18" height="15" rx="1" fill="#fffdf5" stroke="#d6d5ce" stroke-width=".9"/>'
+    +   '<line x1="234" y1="97" x2="246" y2="97" stroke="#a89f8d" stroke-width="1.1" opacity=".55"/>'
+    +   '<circle cx="240" cy="91" r="1.8" fill="#d9634f" stroke="#ab4e3e" stroke-width=".7"/>'
+    +   '<rect x="253" y="67" width="18" height="16" rx="1" fill="#d8ecd0" stroke="#b5c6af" stroke-width=".9"/>'
+    +   '<path d="M256,75 L258.5,77.5 L264,72" fill="none" stroke="#5b8c47" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>'
+    +   '<circle cx="262" cy="67" r="1.8" fill="#7aa95c" stroke="#608649" stroke-width=".7"/>'
+    +   '<rect x="253" y="88" width="18" height="15" rx="1" fill="#fffdf5" stroke="#d6d5ce" stroke-width=".9"/>'
+    +   '<path d="M256,95.5 L258.5,98 L264,92.5" fill="none" stroke="#5b8c47" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>'
+    +   '<circle cx="262" cy="88" r="1.8" fill="#e8b84b" stroke="#b7913b" stroke-width=".7"/>'
+    + '</g>'
+    // nền gạch lát hành lang
+    + '<rect x="-2" y="203" width="300" height="33" fill="url(#wo-floor)" stroke="#9c9381" stroke-width="1.6"/>'
+    + '<line x1="-2" y1="218" x2="298" y2="218" stroke="#a89f8d" stroke-width="1.2" opacity=".32"/>'
+    + tileJoints
+    // chậu cây trầu bà lá xẻ (Monstera) trồng trong nhà trên kệ gỗ thấp bên trái
+    + '<ellipse cx="55" cy="211" rx="28" ry="4.5" fill="#5e5140" opacity=".24"/>'
+    + '<path d="M34,196 L40,196 L35,211 L29,211 Z" fill="#9c6e3d" stroke="#7b5730" stroke-width="1.5" stroke-linejoin="round"/>'
+    + '<path d="M70,196 L76,196 L81,211 L75,211 Z" fill="#9c6e3d" stroke="#7b5730" stroke-width="1.5" stroke-linejoin="round"/>'
+    + '<rect x="29" y="191" width="52" height="6" rx="2" fill="#b88852" stroke="#916b41" stroke-width="1.6"/>'
+    // chậu gốm kem nhúng men đất nung ở đáy
+    + '<path d="M32,155 Q55,152 78,155 L76,192 Q55,196 34,192 Z" fill="url(#wo-ceramic)" stroke="#bab2a0" stroke-width="1.8" stroke-linejoin="round"/>'
+    + '<path d="M33.3,179 Q55,182 76.7,179 L76,192 Q55,196 34,192 Z" fill="url(#wo-pot)"/>'
+    + '<ellipse cx="55" cy="155" rx="23" ry="4.6" fill="#e6dcc6" stroke="#b6ae9c" stroke-width="1.8"/>'
+    + '<ellipse cx="55" cy="155" rx="19" ry="3.2" fill="#5c4330"/>'
+    // cuống lá xanh mảnh vươn trực tiếp từ bầu đất
+    + '<path d="M51,155 Q42,130 28,116 M54,154 Q46,118 40,86 M56,154 Q60,115 68,84 M58,155 Q72,132 86,118 M55,154 Q54,132 54,114" fill="none" stroke="#4d7a44" stroke-width="2.8" stroke-linecap="round"/>'
+    // các lá trầu bà xẻ thuỳ xếp lớp tự nhiên
+    + '<g>'
+    +   '<path d="M44,104 C31,105 21,98 18,89 L30,89 L18,84 C18,75 24,69 31,66 L36,77 L34,64 C42,61 52,65 56,74 L46,81 L58,79 C60,90 54,102 44,104 Z" fill="#467342" stroke="#375b34" stroke-width="1.6" stroke-linejoin="round"/>'
+    +   '<path d="M62,104 C54,99 50,89 53,79 L64,83 L55,73 C59,64 69,60 77,63 L72,76 L81,66 C88,70 91,78 90,87 L78,87 L89,92 C85,101 73,107 62,104 Z" fill="#467342" stroke="#375b34" stroke-width="1.6" stroke-linejoin="round"/>'
+    +   '<path d="M43,120 C42,109 32,102 22,105 L28,116 L17,111 C11,118 11,129 17,136 L27,128 L19,140 C27,147 38,146 44,137 L34,130 L45,132 C46,127 45,123 43,120 Z" fill="#609654" stroke="#4c7742" stroke-width="1.6" stroke-linejoin="round"/>'
+    +   '<path d="M66,118 C67,108 77,101 87,104 L81,115 L92,110 C98,117 98,128 92,135 L82,127 L90,139 C82,146 71,145 65,136 L75,129 L64,131 C63,126 64,122 66,118 Z" fill="#609654" stroke="#4c7742" stroke-width="1.6" stroke-linejoin="round"/>'
+    +   '<path d="M54,104 C43,104 35,112 35,122 L46,122 L35,128 C37,138 45,144 54,146 C64,144 72,138 74,128 L63,122 L74,122 C74,112 66,104 54,104 Z" fill="#7cb267" stroke="#628d51" stroke-width="1.6" stroke-linejoin="round"/>'
+    // gân lá sáng nhẹ giúp nhận diện rõ phiến lá trầu bà
+    +   '<path d="M44,101 Q38,85 38,71 M63,101 Q69,85 73,70 M41,122 Q29,122 18,126 M68,120 Q80,120 91,124 M54,112 L54,139 M48,120 L54,124 L60,120 M47,131 L54,134 L61,131" fill="none" stroke="#b5de9c" stroke-width="1.2" stroke-linecap="round" opacity=".62"/>'
+    + '</g>'
+    + '</svg>';
+}
+
+/* Khung cửa sổ giao hàng nhìn từ trong quầy (nằm TRÊN nhân vật): hốc tường tạo chiều sâu, cửa kính trượt mở lên,
+   biển treo "QUẦY GIAO HÀNG", bệ gỗ nhô ra có chuông gọi phục vụ nhỏ bên phải. */
+function counterWindowFrameSVG(){
+  return '<svg class="win-frame-svg" viewBox="0 0 340 310" overflow="visible" aria-hidden="true">'
+    + '<defs>'
+    +   '<linearGradient id="wf-woodV" x1="0" y1="0" x2="1" y2="0">'
+    +     '<stop offset="0%" stop-color="#d5a76e"/><stop offset="50%" stop-color="#be8d55"/><stop offset="100%" stop-color="#a87a48"/></linearGradient>'
+    +   '<linearGradient id="wf-woodH" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#e1b881"/><stop offset="55%" stop-color="#bf8f57"/><stop offset="100%" stop-color="#9c6e3d"/></linearGradient>'
+    +   '<linearGradient id="wf-sill" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#e7c18c"/><stop offset="100%" stop-color="#d1a166"/></linearGradient>'
+    +   '<linearGradient id="wf-sillfront" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#ad7e4b"/><stop offset="100%" stop-color="#845c33"/></linearGradient>'
+    +   '<linearGradient id="wf-brass" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#f5dc88"/><stop offset="55%" stop-color="#d4a94a"/><stop offset="100%" stop-color="#9e7424"/></linearGradient>'
+    + '</defs>'
+    // bóng đổ nhẹ của khung lên tường
+    + '<path d="M11,46 H335 V294 H11 Z M25,60 V290 H321 V60 Z" fill="#3b3025" fill-rule="evenodd" opacity=".16"/>'
+    // má hốc tường (chiều sâu ngăn cách trong quầy và hành lang) + rãnh trượt kính
+    + '<rect x="22" y="56" width="8" height="230" fill="#8f6539" stroke="#71502d" stroke-width="1.6"/>'
+    + '<line x1="26" y1="58" x2="26" y2="284" stroke="#75502c" stroke-width="1.6"/>'
+    + '<rect x="310" y="56" width="8" height="230" fill="#ba8b56" stroke="#936e44" stroke-width="1.6"/>'
+    + '<line x1="314" y1="58" x2="314" y2="284" stroke="#6e4c2b" stroke-width="1.6"/>'
+    + '<rect x="22" y="56" width="296" height="7" fill="#3b3025" opacity=".3"/>'
+    // cánh cửa kính đẩy lên cao (ở y = 56..87 → trên đầu mọi nhân vật)
+    + '<rect x="28" y="56" width="284" height="24" fill="#d9eef3" fill-opacity=".22"/>'
+    + '<path d="M46,77 L62,59 M56,77 L67,64 M206,77 L222,59 M216,77 L227,64" stroke="#ffffff" stroke-width="2" stroke-linecap="round" opacity=".55"/>'
+    + '<rect x="167" y="56" width="6" height="24" fill="#b88953" stroke="#916c42" stroke-width="1.6"/>'
+    + '<rect x="24" y="78" width="292" height="9" rx="1.5" fill="url(#wf-woodH)" stroke="#977145" stroke-width="2"/>'
+    + '<line x1="27" y1="80" x2="313" y2="80" stroke="#fbe3b8" stroke-width="1.2" opacity=".75"/>'
+    + '<rect x="156" y="80" width="28" height="5" rx="2.5" fill="url(#wf-brass)" stroke="#a7863a" stroke-width="1.4"/>'
+    // khung gỗ ngoài (rỗng giữa bằng evenodd) + đường ghép góc
+    + '<path d="M8,42 H332 V290 H8 Z M22,56 V286 H318 V56 Z" fill="url(#wf-woodV)" fill-rule="evenodd" stroke="#966f43" stroke-width="2.6" stroke-linejoin="round"/>'
+    + '<path d="M8,42 L22,56 M332,42 L318,56" stroke="#8c6138" stroke-width="1.8" opacity=".45"/>'
+    + '<path d="M21,285 V55 H319" fill="none" stroke="#fbe3b8" stroke-width="1.3" opacity=".55"/>'
+    // phào đỉnh khung
+    + '<rect x="2" y="37" width="336" height="10" rx="2" fill="url(#wf-woodH)" stroke="#977145" stroke-width="2.4"/>'
+    + '<line x1="5" y1="39.5" x2="335" y2="39.5" stroke="#fbe3b8" stroke-width="1.3" opacity=".8"/>'
+    // biển treo "QUẦY GIAO HÀNG"
+    + '<line x1="112" y1="0" x2="112" y2="10" stroke="#7a5632" stroke-width="2.5" stroke-linecap="round"/>'
+    + '<line x1="228" y1="0" x2="228" y2="10" stroke="#7a5632" stroke-width="2.5" stroke-linecap="round"/>'
+    + '<rect x="76" y="8" width="188" height="28" rx="5" fill="#b88852" stroke="#916b41" stroke-width="2.2"/>'
+    + '<rect x="81" y="12" width="178" height="20" rx="3" fill="#fffdf5" stroke="#c9bca3" stroke-width="1.2"/>'
+    + '<text x="170" y="27" text-anchor="middle" font-family="Itim, Patrick Hand, sans-serif" font-size="14.5" font-weight="bold" fill="#634729" letter-spacing="0.6" opacity="0.94">QUẦY GIAO HÀNG</text>'
+    // bệ cửa sổ nhô ra thành gờ giao dịch + bóng đổ xuống mặt bàn
+    + '<rect x="6" y="301" width="328" height="8" rx="3" fill="#3b3025" opacity=".18"/>'
+    + '<rect x="4" y="291" width="332" height="11" rx="2" fill="url(#wf-sillfront)" stroke="#684928" stroke-width="2.4"/>'
+    + '<path d="M2,285 H338 L336,292 H4 Z" fill="url(#wf-sill)" stroke="#a57f51" stroke-width="2.4" stroke-linejoin="round"/>'
+    + '<line x1="5" y1="286.5" x2="335" y2="286.5" stroke="#fbe3b8" stroke-width="1.4" opacity=".85"/>'
+    // chuông bàn nhỏ ở góc phải bệ cửa sổ
+    + '<rect x="304" y="281" width="22" height="4" rx="1.5" fill="#6e4c2b" stroke="#573c22" stroke-width="1.5"/>'
+    + '<path d="M306,281 Q306,269 315,269 Q324,269 324,281 Z" fill="url(#wf-brass)" stroke="#a7863a" stroke-width="1.6"/>'
+    + '<line x1="315" y1="269" x2="315" y2="266" stroke="#856019" stroke-width="1.8" stroke-linecap="round"/>'
+    + '<circle cx="315" cy="265" r="2" fill="url(#wf-brass)" stroke="#a7863a" stroke-width="1.3"/>'
+    + '<path d="M310,275 Q311,272 314,271" fill="none" stroke="#fffdf5" stroke-width="1.5" stroke-linecap="round" opacity=".85"/>'
+    + '</svg>';
+}
+
+/* Bồn rửa phối cảnh ở bên phải cạnh bàn (đặt trên quầy đá #sinkcountersvg):
+   chỉ giữ nét viền ngoài (#3b3025), bên trong tách lớp bằng mảng màu phẳng không viền, 1 vòi cổ ngỗng thường, chai xà phòng và tia nước bắn khi đổ bỏ (--splash). */
+function sinkSVG(){
+  return '<svg id="sinksvg" class="sink-svg" viewBox="0 0 316 222" width="316" height="222" aria-hidden="true">'
+    + '<defs>'
+    +   '<linearGradient id="ss-deck" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#edf3f5"/><stop offset="100%" stop-color="#d2dde1"/></linearGradient>'
+    +   '<linearGradient id="ss-apron" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#aab9c0"/><stop offset="100%" stop-color="#84969f"/></linearGradient>'
+    +   '<linearGradient id="ss-back" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#899ea8"/><stop offset="100%" stop-color="#a5b7c0"/></linearGradient>'
+    +   '<linearGradient id="ss-floor" x1="0" y1="0" x2="0" y2="1">'
+    +     '<stop offset="0%" stop-color="#b9c8cf"/><stop offset="100%" stop-color="#d8e2e6"/></linearGradient>'
+    +   '<linearGradient id="ss-chrome" x1="0" y1="0" x2="1" y2="0">'
+    +     '<stop offset="0%" stop-color="#f2f6f8"/><stop offset="55%" stop-color="#b7c4cb"/><stop offset="100%" stop-color="#7f8f97"/></linearGradient>'
+    +   '<linearGradient id="ss-soap" x1="0" y1="0" x2="1" y2="0">'
+    +     '<stop offset="0%" stop-color="#9dd4c9"/><stop offset="100%" stop-color="#6faea2"/></linearGradient>'
+    + '</defs>'
+    // bóng đổ nhẹ xuống mặt đá bên dưới mép bồn
+    + '<polygon points="46,184 309,184 313,195 50,195" fill="#3b3025" opacity=".16"/>'
+    // LỚP 1: CHỈ VẼ VIỀN NGOÀI TỔNG THỂ (#3b3025)
+    + '<path d="M8,61 Q8,59 11,59 H236 Q239,59 240,62 L308,180 V188 Q308,191 304,191 H50 Q47,191 46,188 V180 L8,66 Z" fill="url(#ss-deck)" stroke="#3b3025" stroke-width="5.6" stroke-linejoin="round"/>'
+    // chai xà phòng (outer stroke)
+    + '<rect x="18" y="45" width="22" height="24" rx="5" fill="url(#ss-soap)" stroke="#3b3025" stroke-width="4.6"/>'
+    + '<rect x="25" y="39" width="8" height="7" rx="1.5" fill="#d4dee3" stroke="#3b3025" stroke-width="4.6"/>'
+    + '<path d="M29,39 V33 H41" fill="none" stroke="#3b3025" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>'
+    // vòi đơn cổ ngỗng thường (outer stroke — không tay vặn nóng/lạnh)
+    + '<rect x="112" y="55" width="22" height="10" rx="3" fill="#9fb0b8" stroke="#3b3025" stroke-width="4.8"/>'
+    + '<path d="M123,58 L123,29 Q123,13 139,15 Q153,17 153,33 L153,42" fill="none" stroke="#3b3025" stroke-width="11.2" stroke-linecap="round" stroke-linejoin="round"/>'
+    + '<rect x="148" y="40" width="10" height="6" rx="2" fill="#9fb0b8" stroke="#3b3025" stroke-width="4.4"/>'
+    // LỚP 2: TOÀN BỘ MẢNG MÀU BÊN TRONG KHÔNG VIỀN TỐI
+    + '<polygon points="8,59 238,59 240,66 10,66" fill="#f3f7f8"/>'
+    + '<polygon points="10,66 240,66 308,180 46,180" fill="url(#ss-deck)"/>'
+    + '<path d="M46,180 H308 V188 Q308,191 304,191 H50 Q46,191 46,188 Z" fill="url(#ss-apron)"/>'
+    + '<line x1="51" y1="182" x2="303" y2="182" stroke="#ffffff" stroke-width="1.6" opacity=".72"/>'
+    // lòng chậu inox lõm xuống theo phối cảnh 37° (converge về điểm tụ bàn, 0 nét viền tối)
+    + '<polygon points="28,75 224,75 220,97 34,97" fill="url(#ss-back)"/>'
+    + '<polygon points="28,75 34,97 62,167 56,167" fill="#7c919c"/>'
+    + '<polygon points="224,75 220,97 272,167 282,167" fill="#a9bbc4"/>'
+    + '<polygon points="34,97 220,97 272,167 62,167" fill="url(#ss-floor)"/>'
+    + '<line x1="72" y1="160" x2="108" y2="160" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" opacity=".55"/>'
+    // lỗ thoát nước phối cảnh (không viền tối)
+    + '<ellipse cx="152" cy="132" rx="16" ry="7" fill="#82949d"/>'
+    + '<ellipse cx="152" cy="132.4" rx="11" ry="4.5" fill="#4f5d64"/>'
+    + '<line x1="141" y1="132.4" x2="163" y2="132.4" stroke="#b8c6cd" stroke-width="1.5" opacity=".88"/>'
+    + '<line x1="152" y1="127.9" x2="152" y2="136.9" stroke="#b8c6cd" stroke-width="1.5" opacity=".88"/>'
+    // chai xà phòng góc sau trái
+    + '<rect x="25" y="39" width="8" height="7" rx="1.5" fill="#d4dee3"/>'
+    + '<path d="M29,39 V33 H41" fill="none" stroke="#c3cfd5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>'
+    + '<rect x="18" y="45" width="22" height="24" rx="5" fill="url(#ss-soap)"/>'
+    + '<rect x="22" y="53" width="14" height="8" rx="1.5" fill="#fffdf5" opacity=".92"/>'
+    // vòi cổ ngỗng đơn + giọt nước
+    + '<rect x="112" y="55" width="22" height="10" rx="3" fill="url(#ss-chrome)"/>'
+    + '<path d="M123,58 L123,29 Q123,13 139,15 Q153,17 153,33 L153,42" fill="none" stroke="url(#ss-chrome)" stroke-width="6.2" stroke-linecap="round" stroke-linejoin="round"/>'
+    + '<path d="M121,54 L121,29 Q121,17 134,16" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" opacity=".78"/>'
+    + '<rect x="148" y="40" width="10" height="6" rx="2" fill="#9fb0b8"/>'
+    + '<path d="M153,49 Q150.2,55 153,59.5 Q155.8,55 153,49 Z" fill="#6f9ec9" fill-opacity=".86"/>'
+    // tia nước bắn lên khi đổ bỏ (--splash)
+    + '<g style="opacity:var(--splash,0)">'
+    +   '<path d="M142,124 Q133,108 124,102" stroke="#6f9ec9" stroke-width="3" fill="none" stroke-linecap="round" opacity=".85"/>'
+    +   '<path d="M152,121 Q152,102 152,93" stroke="#6f9ec9" stroke-width="3" fill="none" stroke-linecap="round" opacity=".85"/>'
+    +   '<path d="M162,124 Q171,108 180,102" stroke="#6f9ec9" stroke-width="3" fill="none" stroke-linecap="round" opacity=".85"/>'
+    +   '<circle cx="122" cy="99" r="3.6" fill="#6f9ec9" fill-opacity=".8"/>'
+    +   '<circle cx="152" cy="89" r="4" fill="#6f9ec9" fill-opacity=".8"/>'
+    +   '<circle cx="182" cy="99" r="3.6" fill="#6f9ec9" fill-opacity=".8"/>'
+    +   '<circle cx="136" cy="94" r="2.6" fill="#6f9ec9" fill-opacity=".7"/>'
+    +   '<circle cx="168" cy="94" r="2.6" fill="#6f9ec9" fill-opacity=".7"/>'
+    +   '<circle cx="152" cy="106" r="2.2" fill="#ffffff" fill-opacity=".85"/>'
+    + '</g>'
+    + '</svg>';
 }
 
 
@@ -669,9 +1045,10 @@ function benchTools(day){
   TOOLPOS = {};
   return list.map(key => {
     const tl = TOOLBOX[key], sl = L3.slots[key];
+    const sx = key === 'filter' ? 498 : key === 'gas' ? 414 : sl.x;
     // đồ cất ngoài thảm nhỏ đi 20%; riêng bình khí ngày có muôi đốt (kiêm LỌ KHÍ để đốt) to hơn 20% cho dễ thả muôi vào
     const big = key === 'gas' && day.tools.includes('burn') ? 1.2 : 1;
-    const q = TOOLPOS[key] = {x:sl.x, y:sl.y, k:sl.ppm/1000*SIDE*big, z:zAt(sl.y) + 20};
+    const q = TOOLPOS[key] = {x:sx, y:sl.y, k:sl.ppm/1000*SIDE*big, z:zAt(sl.y) + 20};
     // có muôi đốt thì bình khí kiêm lọ khí (thả bình O₂/Cl₂ vào để nạp, thả muôi đang cháy vào để đốt)
     const dz = key === 'gas' ? (day.tools.includes('burn') ? 'jar' : undefined)
              : key === 'heat' ? (day.tools.includes('burn') ? tl.dz : undefined) : tl.dz;
@@ -680,16 +1057,26 @@ function benchTools(day){
   }).join('');
 }
 
-/* Ván tủ hoá chất: mỗi hàng lọ một tấm ván dài suốt lòng tủ, đặt ngay dưới chân lọ (hàng cao thấp khác nhau vì nhãn
-   dài ngắn, nên đo vị trí thật chứ không chia đều); rồi thêm tầng trống cách đều tới đáy tủ, tủ ít chất vẫn đầy đặn. */
+/* Ván tủ hoá chất (2.5 ngăn, tự cuộn khi nhiều chất) & đồng bộ chỉ báo cuộn */
+function updateShelfScrollUI(){
+  const sh = G.querySelector('.shelf'), g = G.querySelector('.shgrid');
+  if(!sh || !g) return;
+  const maxScroll = g.scrollHeight - g.clientHeight;
+  const can = maxScroll > 3;
+  sh.classList.toggle('can-scroll', can);
+  sh.classList.toggle('has-more-up', can && g.scrollTop > 4);
+  sh.classList.toggle('has-more-down', can && g.scrollTop < maxScroll - 4);
+}
 function shelfBoards(){
   const g = G.querySelector('.shgrid'); if(!g) return;
   g.querySelectorAll('.shboard').forEach(b => b.remove());
   const rows = [...new Set([...g.querySelectorAll('.chem')].map(c => c.offsetTop + c.offsetHeight))].sort((a, b) => a - b);
-  if(!rows.length) return;
-  const pitch = rows.length > 1 ? (rows[rows.length - 1] - rows[0]) / (rows.length - 1) : 150;
-  for(let y = rows[rows.length - 1] + pitch; y < g.clientHeight - 10; y += pitch) rows.push(y);
-  g.insertAdjacentHTML('beforeend', rows.map(y => '<i class="shboard" style="top:' + (y - 13) + 'px"></i>').join(''));
+  if(!rows.length){ updateShelfScrollUI(); return; }
+  if(rows.length === 1 && rows[0] + 114 < g.clientHeight - 16){
+    rows.push(rows[0] + 114);   // tủ chỉ có 1 hàng lọ: vẫn giữ ván ngăn 2 cho cân đối
+  }
+  g.insertAdjacentHTML('beforeend', rows.map(y => '<i class="shboard" style="top:' + (y - 11) + 'px"></i>').join(''));
+  updateShelfScrollUI();
 }
 function renderLab(){
   const day = lab.day;
@@ -704,7 +1091,7 @@ function renderLab(){
   
   const hasMagicTools = save.items && save.items.tools && !lab.hard; // chế độ khó tự cân đong, không dùng thìa ma thuật
   const doseSelectorHtml = hasMagicTools ? `
-    <div class="dose-selector" style="display:flex;align-items:center;justify-content:center;gap:6px;margin:0 0 10px 0;background:#fffdf5;border:1.2px solid var(--ink);border-radius:4.8px;padding:4px 8px;font-size:14px;font-family:var(--fh)">
+    <div class="dose-selector" style="display:flex;align-items:center;justify-content:center;gap:6px;margin:0 0 6px 0;background:#fffdf5;border:1.2px solid var(--ink);border-radius:4.8px;padding:2px 6px;font-size:12.5px;font-family:var(--fh)">
       <span style="color:var(--ink)">Lượng đong: </span>
       <button class="btn dose-btn" id="dose-dec" style="padding:0 8px;font-size:12px;height:22px;line-height:18px">-</button>
       <span id="dose-val" style="font-weight:bold;width:65px;text-align:center;display:inline-block">${amt(lab.magicDose)}</span>
@@ -712,16 +1099,20 @@ function renderLab(){
     </div>
   ` : '';
 
+  const hasBal = !day.free && dayEqs(day).length;
   const hasStickyNotes = save.items && save.items.notes;
-  const stickyNoteHtml = hasStickyNotes ? `
-    <div class="wallitem stickynote" style="left:346px;top:168px;width:104px;min-height:100px;background:#fef5c1;border:1.2px solid var(--ink);transform:rotate(-2deg);padding:8px;font-family:var(--fh);font-size:14px;z-index:5">
-      <h4 style="margin:0 0 6px 0;font-size:14px;border-bottom:1px dotted #3b302566;padding-bottom:2px;display:flex;align-items:center;gap:4px">${ico('note',14)} Giấy nhớ</h4>
-      <div id="stickynote-content" style="font-size:12px;line-height:1.4"></div>
+  const hasSticky = !day.free && hasStickyNotes;
+  const stickyNoteHtml = hasSticky ? `
+    <div class="wallitem stickynote" style="left:${hasBal ? 632 : 580}px;top:120px;width:98px;min-height:96px;background:#fef5c1;border:1.2px solid #d6c57a;transform:rotate(-2deg);padding:7px;font-family:var(--fh);font-size:13.5px;z-index:5">
+      <h4 style="margin:0 0 5px 0;font-size:13.5px;border-bottom:1px dotted #3b302566;padding-bottom:2px;display:flex;align-items:center;gap:4px">${ico('note',13)} Giấy nhớ</h4>
+      <div id="stickynote-content" style="font-size:11.5px;line-height:1.35"></div>
       <div id="sn-water" style="display:none;position:absolute;right:6px;bottom:3px;font-size:10.5px;color:#4a7ba8;align-items:center;gap:2px">
         <svg width="9" height="12" viewBox="0 0 10 13"><path d="M5,0.5 C8,5 9.5,7.5 5,12 C0.5,7.5 2,5 5,0.5z" fill="#6f9ec9" stroke="#3b3025" stroke-width="1"/></svg> có nước
       </div>
     </div>
   ` : '';
+  const gogglesHtml = lab.hard ? `<div class="wallitem safetyhook" id="goggles" style="left:${day.free ? 534 : 874}px;top:${day.free ? 134 : 34}px" title="Bấm để đeo kính bảo hộ và găng tay">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>` : '';
+  const hoodHtml = lab.hoodDay ? `<div class="wallitem hoodsw" id="hoodsw" style="left:${day.free ? 634 : 872}px;top:${day.free ? 132 : 152}px" title="Bấm để bật / tắt tủ hút">${HOOD_SVG}<div class="wallcap">Tủ hút: tắt</div></div>` : '';
 
   G.innerHTML = `<div class="scene" style="padding:0">
     <div class="hudboard">${sym('sym-benchtex',1240,52,'position:absolute;left:20px;top:6px;width:calc(100% - 40px);opacity:.4;pointer-events:none')}
@@ -736,27 +1127,29 @@ function renderLab(){
       <button class="btn icobtn" id="bpause">${ico('pause')}</button>
     </div>
     <div class="wall">
-      <div class="wallitem" style="left:calc(22px - var(--bx));top:calc(16px - var(--by))">${sym('sym-poster-periodic',108,140)}</div>
-      <div class="wallitem" style="left:760px;top:20px">${sym('sym-poster-safety',104,134)}</div>
-      <div class="wallitem" style="left:352px;top:26px" id="winhost"><svg id="winsvg" width="100" height="123"><use href="#sym-window"/></svg></div>
-      <div class="wallitem" style="left:648px;top:18px"><svg id="clocksvg" width="86" height="86"><use href="#sym-clock"/></svg></div>
-      <div class="wallitem" style="left:900px;top:26px">${sym('sym-pipette',34,120,'--lc:#9b7bb8')}</div>
-      ${lab.hard ? `<div class="wallitem safetyhook" id="goggles" style="left:466px;top:86px" title="Bấm để đeo kính bảo hộ và găng tay">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>` : ''}
-      ${lab.hoodDay ? `<div class="wallitem hoodsw" id="hoodsw" style="left:464px;top:180px" title="Bấm để bật / tắt tủ hút">${HOOD_SVG}<div class="wallcap">Tủ hút: tắt</div></div>` : ''}
-      ${day.free ? '<div class="wallitem freenote" id="freenote"><h4>' + ico('note',14) + ' Trong cốc lúc này</h4><div id="freenote-body"></div></div>' : stickyNoteHtml}
-      ${!day.free && dayEqs(day).length ? `<div class="wallitem balpaper" id="balpaper" style="left:600px;top:116px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
+      <div class="wall-toptrim"></div>
+      ${wallBgSVG()}
+      <div class="wallitem" style="left:400px;top:18px">${sym('sym-poster-periodic',104,134)}</div>
+      <div class="wallitem" style="left:590px;top:14px"><svg id="clocksvg" width="84" height="84"><use href="#sym-clock"/></svg></div>
+      ${hasBal ? `<div class="wallitem balpaper" id="balpaper" style="left:${hasSticky ? 540 : 589}px;top:122px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
+      ${stickyNoteHtml}
+      ${day.free ? '' : `<div class="wallitem" style="left:${lab.hard ? 758 : 798}px;top:${lab.hard ? 18 : 20}px">${sym('sym-poster-safety',104,134)}</div>`}
+      ${gogglesHtml}
+      ${hoodHtml}
+      ${day.free ? '<div class="wallitem freenote" id="freenote"><h4>' + ico('note',14) + ' Trong cốc lúc này</h4><div id="freenote-body"></div></div>' : ''}
     </div>
     ${benchSVG()}
+    ${sinkCounterSVG()}
     <svg class="matzone" viewBox="0 0 1280 720"><polygon data-dz="bench" class="benchzone" points="${[0, 1, 3, 2].map(i => L3.bench.corners[i].join(',')).join(' ')}"/><polygon data-dz="mat" points="${L3.mat.map(q => q.join(',')).join(' ')}"/></svg>
     <div class="custcol">
-      <div class="speech" id="speech"><svg class="on-ring" width="30" height="30" viewBox="0 0 34 34"><circle class="bg" cx="17" cy="17" r="14"/><circle class="fg" cx="17" cy="17" r="14" stroke-dasharray="88" stroke-dashoffset="0"/></svg>
+      <div class="win-out">${counterWindowOutSVG()}</div>
+      <div class="custzone" id="cust" title="Bấm để trò chuyện với khách"><div class="custwalk" id="custwalk"></div></div>
+      <div class="win-frame">${counterWindowFrameSVG()}</div>
+      <div class="speech hush" id="speech"><svg class="on-ring" width="30" height="30" viewBox="0 0 34 34"><circle class="bg" cx="17" cy="17" r="14"/><circle class="fg" cx="17" cy="17" r="14" stroke-dasharray="88" stroke-dashoffset="0"/></svg>
         <div id="sptext"></div><div class="sp-order" id="sporder" hidden></div></div>
-      <div class="custzone" id="cust"><div class="custwalk" id="custwalk"></div></div>
       ${TRAY_SVG}
     </div>
-    <div class="sinkstation" data-dz="sink"><div class="counter"></div>
-      <svg id="sinksvg" width="96" height="76"><use href="#sym-sink"/></svg><div class="cap">Bồn rửa</div></div>
-    ${benchDressing()}
+    <div class="sinkstation" data-dz="sink" title="Kéo cốc / bình khí / đĩa lọc / muôi vào đây để đổ bỏ">${sinkSVG()}<div class="cap">Bồn rửa</div></div>
     ${place3({sid:'sym-tripod', an:'base', x:BKP.x, y:BKP.y, k:KW, z:ZB-1, id:'tripod', cls:'tripod', scls:'gated tri-sh'})}
     ${has('gas') ? place3({sid:'sym-ringstand', an:'base', ...L3.dock.gasStand, k:kAt(L3.dock.gasStand), z:zAt(L3.dock.gasStand.y), id:'gasstand', cls:'rig', scls:'gated rig-sh'}) : ''}
     ${has('filter') || has('burn') ? place3({sid:'sym-filterstand', an:'base', ...L3.dock.filterStand, k:kAt(L3.dock.filterStand), z:zAt(L3.dock.filterStand.y), id:'filterstand', cls:'rig', scls:'gated fs-sh'})
@@ -768,11 +1161,12 @@ function renderLab(){
     ${benchTools(day)}
     <div id="dishHost"></div>
     ${has('elec') ? '<div class="elecpanel" id="elecpanel"></div>' : ''}
-    <div class="shelf" aria-label="Tủ hoá chất"><div class="shtop"></div>${doseSelectorHtml}<div class="shgrid">${shelfHtml}</div></div>
+    <div class="shelf" aria-label="Tủ hoá chất"><div class="shtop"></div>${doseSelectorHtml}<div class="shgrid">${shelfHtml}</div><div class="sh-scfade top" aria-hidden="true"></div><div class="sh-scfade bot" aria-hidden="true"></div><button type="button" class="sh-scbtn up" aria-label="Cuộn tủ hoá chất lên">▲ Lên trên</button><button type="button" class="sh-scbtn dn" aria-label="Cuộn tủ hoá chất xuống">▼ Cuộn thêm</button></div>
   </div>`;
   // buttons
   G.querySelector('#bpause').onclick = pauseLab;
   G.querySelector('#speech').onclick = custChat;
+  G.querySelector('#cust').onclick = custChat;
   G.querySelector('#bmute').onclick = e => { const m = SFX.toggle(); e.currentTarget.innerHTML = ico(m?'mute':'sound'); };
   const hb = G.querySelector('#bhbook'); if(hb) hb.onclick = showHardBook;
   const bh = G.querySelector('#bhint'); if(bh) bh.onclick = () => { SFX.talk(); showHint(); };
@@ -797,6 +1191,12 @@ function renderLab(){
       onClick: () => pourChem(c.dataset.f, spoonUp() ? 'ladle' : 'beaker')
     });
     factHover(c, c.dataset.f); });
+  const shEl = G.querySelector('.shelf'), shGrid = G.querySelector('.shgrid');
+  if(shEl && shGrid){
+    shEl.querySelector('.sh-scbtn.up').onclick = () => shGrid.scrollBy({ top: -118, behavior: 'smooth' });
+    shEl.querySelector('.sh-scbtn.dn').onclick = () => shGrid.scrollBy({ top: 118, behavior: 'smooth' });
+    shGrid.addEventListener('scroll', updateShelfScrollUI, { passive: true });
+  }
   shelfBoards();   // ván tủ theo đúng vị trí các hàng lọ vừa dựng; phông chữ nạp xong làm nhãn cao thấp khác đi thì đặt lại
   if(document.fonts) document.fonts.ready.then(() => { if(lab) shelfBoards(); });
   const bgw = BK.w*KB*0.8, bgh = BK.h*KB*0.8;
@@ -1494,11 +1894,12 @@ const HOOD_SVG = '<svg width="96" height="66" viewBox="0 0 100 70">'
 const TRAY_SVG = '<svg class="traysvg" viewBox="0 0 340 140">'
   + '<path d="M38,126 L292,126 L330,22 L106,22 Z" fill="#3b3025" opacity=".14"/>'
   + '<g id="custtray" data-dz="cust">'
-  + '<path d="M282,118 L321,15 L321,25 L282,129 Z" fill="#95a1ab" stroke="#3b3025" stroke-width="2.5" stroke-linejoin="round"/>'
-  + '<path d="M32,118 L282,118 L282,129 L32,129 Z" fill="#a9b4bd" stroke="#3b3025" stroke-width="2.5" stroke-linejoin="round"/>'
-  + '<path d="M98,15 L321,15 L282,118 L32,118 Z" fill="#cfd6dc" stroke="#3b3025" stroke-width="3" stroke-linejoin="round"/>'
-  + '<path d="M110,24 L306,24 L272,108 L48,108 Z" fill="#e7ecf0" stroke="#3b3025" stroke-width="1.5" stroke-linejoin="round" opacity=".9"/>'
+  + '<path d="M282,118 L321,15 L321,25 L282,129 Z" fill="#95a1ab" stroke="#83909b" stroke-width="1.6" stroke-linejoin="round"/>'
+  + '<path d="M32,118 L282,118 L282,129 L32,129 Z" fill="#a9b4bd" stroke="#83909b" stroke-width="1.6" stroke-linejoin="round"/>'
+  + '<path d="M98,15 L321,15 L282,118 L32,118 Z" fill="#cfd6dc" stroke="#96a2ac" stroke-width="1.6" stroke-linejoin="round"/>'
+  + '<path d="M110,24 L306,24 L272,108 L48,108 Z" fill="#e7ecf0" stroke="#aeb9c2" stroke-width="1.8" stroke-linejoin="round" opacity=".92"/>'
   + '<path d="M122,32 L200,32 M66,98 L100,98" stroke="#fff" stroke-width="3.5" stroke-linecap="round" opacity=".8"/>'
+  + '<path d="M98,15 H321 V25 L282,129 H32 V118 Z" fill="none" stroke="#3b3025" stroke-width="3" stroke-linejoin="round"/>'
   + '<path class="tray-dz" d="M90,6 L334,6 L291,137 L22,137 Z"/>'
   + '</g></svg>';
 function safetyHit(code, msg){
@@ -2092,7 +2493,7 @@ function burnRoute(day, od){
   const direct = REACTIONS.some(x => !x.burn && x.pr[od.chem] && Object.keys(x.rg).every(f => day.chems.includes(f)));
   return direct && !/đốt|cháy/.test(od.pname || '') ? null : r;
 }
-const HINT_BASE = 'Kéo lọ từ <b>tủ hoá chất</b> vào cốc để rót. Kéo <b>cốc / bình khí / đĩa lọc</b> đến khách để giao, sang <b>bồn rửa</b> bên trái để đổ.';
+const HINT_BASE = 'Kéo lọ từ <b>tủ hoá chất</b> vào cốc để rót. Kéo <b>cốc / bình khí / đĩa lọc</b> đến khách để giao, sang <b>bồn rửa</b> bên phải để đổ.';
 
 /* Câu chỉ dẫn đổi theo thứ CÒN THIẾU trong cốc, nên nó luôn nói bước kế tiếp
    chứ không phải một câu chung chung. Sửa đúng lỗi cũ: ngày 1 khách hỏi DUNG DỊCH
@@ -2237,9 +2638,8 @@ function nextCustomer(){
   cw.innerHTML = '<div class="cwin">' + tall(WALK_VIEW === '3/4' && typeof custTurnSVG === 'function'
     ? custTurnSVG(od.who, 'neutral', skin) : custSVG(od.who, 'neutral', skin))
     + tall(custSideSVG(od.who, 'neutral', skin)) + '</div>';
-  // không vội: khách dừng chân, quay mặt thẳng (dáng 3/4: transition .32s trong style.css), đứng một nhịp rồi bóng thoại
-  // mới hiện và câu đặt hàng mới gõ ra
-  const faceMs = cw.querySelector('.charsvg.turn') ? 320 : 0;
+  // không vội: khách dừng chân, quay mặt thẳng tức thì (không trượt rời từng bộ phận), đứng một nhịp rồi bóng thoại mới hiện
+  const faceMs = 0;
   custWalk(cw, 'in', () => setTimeout(() => {
     if(!lab || !cw.isConnected || lab.day.orders[lab.oi] !== od || cw.classList.contains('turnout') || cw.classList.contains('away')) return;
     sp.classList.remove('hush'); custSay(line);
@@ -2307,7 +2707,7 @@ function setExp(exp){
    WALK_VIEW '3/4': vào ở dáng 3/4 → tới khay thì quay mặt thẳng → xong việc thì xoay người (.turnout: qua dáng 3/4
    một nhịp TURN_MS) → nghiêng hẳn rồi bước ra. 'nghieng': nghiêng hẳn cả lúc vào lẫn ra.
    Lúc bước (.walking) có nhún nhẹ; xong thì gọi done. Mỗi lần gọi huỷ lượt đi trước còn dở. */
-const WALK_MS = 1100, TURN_MS = 240;
+const WALK_MS = 1100, TURN_MS = 130;
 const WALK_VIEW = '3/4';   // '3/4' hoặc 'nghieng'
 function custWalk(cw, dir, done){
   clearTimeout(cw._walk);
