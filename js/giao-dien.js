@@ -497,6 +497,7 @@ function showAch(){
 }
 
 const themeOf = i => 1 + Math.min(4, Math.floor(i/7));   // nhạc nền theo chương (SFX.music)
+const MAP_BG = 'atoms';   // hoạ tiết nền màn lịch: một khoá trong BG_TILES (atoms, charges, metals, glass)
 function showMap(){
   runStop();
   SFX.music(0);
@@ -516,7 +517,7 @@ function showMap(){
     if(d > DAYS.length){ cells += '<div class="day-card blank"></div>'; continue; } // trailing blanks, like a real month page
     const day = DAYS[d], num = d+1;
     if(day.rest){   // ngày đang để trống: ô lịch gạch chéo, ghi "Tạm nghỉ", bấm thì chỉ nhắc đi tiếp
-      cells += `<div class="day-card rest${d%7===6?' sun':''}" data-rest="1" title="${day.t}"><div class="dt">${day.tn}</div>
+      cells += `<div class="day-card rest${d%7===6?' sun':''}" data-rest="1"><div class="dt">${day.tn}</div>
         <div class="dn"><span class="dnw">${num}</span></div><div class="st"></div></div>`;
       continue;
     }
@@ -530,16 +531,18 @@ function showMap(){
     hasStk[d] = !!stk;
     const sx = 2 + hh % 9, sy = 2 + (hh >> 3) % 7, corner = (hh + d) % 4;
     const spos = (corner & 1 ? 'right:' : 'left:') + sx + 'px;' + (corner & 2 ? 'bottom:' : 'top:') + sy + 'px';
-    cells += `<div class="day-card${open?'':' locked'}${d%7===6?' sun':''}${day.trip?' tripday':''}" data-d="${d}" title="${day.t}">
+    cells += `<div class="day-card${open?'':' locked'}${d%7===6?' sun':''}${day.trip?' tripday':''}" data-d="${d}">
       ${stk ? `<div class="dsk" style="${spos}">${stickerBox(stk, 46, 42, d)}</div>` : ''}<div class="dt">${day.tn}</div>
       <div class="dn"><span class="dnw">${num}${open && !st && !sth ? circ : ''}</span>${open?'':' '+ico('lock',14)}</div>
       <div class="st">${open||st?dayStars(st, sth):''}</div></div>`;
   }
   const wd = ['T2','T3','T4','T5','T6','T7','CN'].map((x,k)=>'<div'+(k===6?' class="sun"':'')+'>'+x+'</div>').join('');
-  G.innerHTML = `<div class="scene mapscene">
+  // nền ngoài tờ lịch: hoạ tiết hoá học của minigame (BG_TILES, do-hoa.js) trôi chéo chậm — xem .mapscene::before
+  const bgt = bgTile(MAP_BG);
+  G.innerHTML = `<div class="scene mapscene"${bgt ? ` style="--bgimg:${bgt.url};--bgw:${bgt.W}px"` : ''}>
     <div class="row" style="justify-content:flex-start">
-      <button class="btn icobtn" id="bback" aria-label="Về menu" title="Về menu">${ico('home',26)}</button>
-      <button class="btn icobtn" id="bshop" aria-label="Cửa hàng" title="Cửa hàng">${ico('shop',26)}</button>
+      <button class="btn icobtn" id="bback" aria-label="Về menu">${ico('home',26)}</button>
+      <button class="btn icobtn" id="bshop" aria-label="Cửa hàng">${ico('shop',26)}</button>
       ${hardUnlocked() ? `<button class="btn icobtn hardbtn${hardOn()?' on':''}" id="bhard" aria-label="Chế độ khó" aria-pressed="${hardOn()}">${ico('hard',30)}</button>` : ''}
     </div>
     <div class="calbook">
@@ -555,11 +558,10 @@ function showMap(){
   G.querySelector('#bback').onclick = () => go(showMenu);
   G.querySelector('#bshop').onclick = showShop;
   // nút chế độ khó chung cho mọi ngày (cũng có trong Cài đặt): đầu lâu mờ = tắt, rõ = bật; lịch đã tô sẵn sao khó màu
-  // đỏ nên không cần vẽ lại
+  // đỏ nên không cần vẽ lại. Màn lịch không có tooltip (title) nào: bật / tắt thì báo bằng thông báo bên dưới
   const bh = G.querySelector('#bhard');
-  const hardTip = () => bh.title = 'Chế độ khó: ' + (hardOn() ? 'đang bật' : 'đang tắt') + ' — đơn hàng ghi theo gam và lít khí; minigame có bài khó riêng';
-  if(bh){ hardTip(); bh.onclick = () => { save.settings.hard = !hardOn(); persist(); SFX.clink();
-    bh.classList.toggle('on', hardOn()); bh.setAttribute('aria-pressed', hardOn()); hardTip();
+  if(bh){ bh.onclick = () => { save.settings.hard = !hardOn(); persist(); SFX.clink();
+    bh.classList.toggle('on', hardOn()); bh.setAttribute('aria-pressed', hardOn());
     notify(ico('hard',18) + ' Chế độ khó: <b>' + (hardOn() ? 'BẬT' : 'TẮT') + '</b>'); }; }
   G.querySelectorAll('.freecard.locked').forEach(fc => fc.onclick = () => notify(ico('lock',16)+' Làm hết 31 ngày đã, rồi tháng sau tha hồ nghịch!'));
   G.querySelectorAll('.day-card').forEach(c => {
@@ -642,7 +644,7 @@ function showShop(){
             ${hasBook
               ? `<div style="display: flex; flex-direction: column; align-items: center; gap: 5px">
                    <span style="color: var(--green); font-weight: bold; font-size: 15px">Đã sở hữu</span>
-                   <div class="toggle${bookOn ? ' on' : ''}" id="tglBook" role="switch" aria-checked="${bookOn}" title="Bật / tắt sổ ghi chép"></div>
+                   <div class="toggle${bookOn ? ' on' : ''}" id="tglBook" role="switch" aria-checked="${bookOn}" aria-label="Bật / tắt sổ ghi chép"></div>
                  </div>`
               : `<button class="btn" id="buyBook" style="min-width: 100px; font-family:var(--fh)">3 ${ico('coinred', 14)} Mua</button>`
             }

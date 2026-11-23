@@ -1947,8 +1947,14 @@ const BG_OF_MG = {bins:'atoms', valence:'charges', identify:'glass', sort:'metal
 const bgCache = {};
 // CSS cho nền của một loại minigame (dán vào style của .scene); loại lạ thì để nền chấm mặc định
 function mgBgCSS(mg){
-  const key = BG_OF_MG[mg], P = BG_TILES[key];
-  if(!P) return '';
+  const t = bgTile(BG_OF_MG[mg]);
+  return t ? `background:var(--paper) ${t.url} 0 0/${t.W}px ${t.W}px` : '';
+}
+// một ô hoạ tiết theo tên trong BG_TILES: {url: 'url(...)' (SVG nhúng), W: cạnh ô, px}. Dùng cho nền minigame và
+// nền trôi chéo ngoài tờ lịch (showMap, giao-dien.js)
+function bgTile(key){
+  const P = BG_TILES[key];
+  if(!P) return null;
   if(!bgCache[key]){
     // khoảng cách giữa các hình co theo căn bậc hai mật độ; R: tầm một hình, để chép sang mép đối diện
     const W = Math.round(P.T/Math.sqrt(P.dens || 1)), H = W, c = W/P.n, R = 24;
@@ -1965,7 +1971,7 @@ function mgBgCSS(mg){
     }
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">`
       + `<g opacity="${P.op}" fill="none" stroke="${BG_INK}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${body}</g></svg>`;
-    bgCache[key] = `background:var(--paper) url('data:image/svg+xml,${encodeURIComponent(svg)}') 0 0/${W}px ${H}px`;
+    bgCache[key] = {url: `url('data:image/svg+xml,${encodeURIComponent(svg)}')`, W};
   }
   return bgCache[key];
 }
