@@ -334,7 +334,7 @@ function wallBgSVG(){
     + '<rect x="966" y="268" width="734" height="98" rx="2" fill="url(#wbg-tile)" stroke="#b4baba" stroke-width="2"/>'
     + tiles
     + '<rect x="965" y="268" width="735" height="5" rx="1.5" fill="#dfe8ea" stroke="#b0b7b9" stroke-width="1.6"/>'
-    // bảng ghim gỗ giữa tường (Vùng B: chỗ ghim Giấy cân bằng / Giấy nhớ)
+    // bảng ghim gỗ giữa tường (Vùng B: chỗ ghim Giấy nhớ)
     + '<rect x="529" y="112" width="212" height="144" rx="5" fill="#3b3025" opacity=".16"/>'
     + '<rect x="526" y="108" width="212" height="144" rx="5" fill="#b88852" stroke="#916b41" stroke-width="2.2"/>'
     + '<rect x="534" y="116" width="196" height="128" rx="2" fill="#d9b98a" stroke="#b69b74" stroke-width="1.4"/>'
@@ -1174,7 +1174,7 @@ function bigFitCalc(){
   for(const k in BIG_SLOT0) BIG_SLOT[k] = Math.round(BIG_SLOT0[k] * BIGP.w / 426);
   bigBX = BX;
 }
-// kính & găng bám góc trái khung (cốc to không ghim giấy cân bằng — mở ở thẻ Tạm nghỉ); giấy nhớ, công tắc tủ hút bám góc phải
+// kính & găng bám góc trái khung; giấy nhớ, công tắc tủ hút bám góc phải
 function bigWallPos(){
   [['#goggles', 6], ['.stickynote.bpw', -69], ['#hoodsw', -63]].forEach(([q, d]) => {
     const el = G.querySelector(q); if(el) el.style.left = (d > 0 ? BIGP.l + d : BIGP.l + BIGP.w + d) + 'px'; });
@@ -1683,7 +1683,7 @@ function bigCoachText(){
 function renderLab(){
   const day = lab.day;
   const has = t => day.tools.includes(t);
-  const big = lab.big;   // cốc to: khung giữa màn (bigPanelHTML), tủ + bồn rửa cột phải; kính, giấy nhớ… thu nhỏ ở hai góc khung (giấy cân bằng chỉ mở ở thẻ Tạm nghỉ)
+  const big = lab.big;   // cốc to: khung giữa màn (bigPanelHTML), tủ + bồn rửa cột phải; kính, giấy nhớ… thu nhỏ ở hai góc khung
   if(big) bigFitCalc();
   const shelfHtml = day.chems.map(f => { const c = CHEMS[baseChem(f)], dac = f !== baseChem(f);
     // chế độ khó: lọ dung dịch ghi rõ nồng độ — phải biết Cₘ mới tính được thể tích cần đong
@@ -1703,11 +1703,10 @@ function renderLab(){
     </div>
   ` : '';
 
-  const hasBal = !day.free && dayEqs(day).length;
   const hasStickyNotes = save.items && save.items.notes;
   const hasSticky = !day.free && hasStickyNotes;
   const stickyNoteHtml = hasSticky ? `
-    <div class="wallitem stickynote${big ? ' bpw' : ''}" style="left:${big ? BIGP.l + BIGP.w - 69 : hasBal ? 632 : 580}px;top:${big ? 6 : 120}px;width:98px;min-height:96px;background:#fef5c1;border:1.2px solid #d6c57a;transform:rotate(-2deg);padding:7px;font-family:var(--fh);font-size:13.5px;z-index:${big ? 55 : 5}">
+    <div class="wallitem stickynote${big ? ' bpw' : ''}" style="left:${big ? BIGP.l + BIGP.w - 69 : 580}px;top:${big ? 6 : 120}px;width:98px;min-height:96px;background:#fef5c1;border:1.2px solid #d6c57a;transform:rotate(-2deg);padding:7px;font-family:var(--fh);font-size:13.5px;z-index:${big ? 55 : 5}">
       <h4 style="margin:0 0 5px 0;font-size:13.5px;border-bottom:1px dotted #3b302566;padding-bottom:2px;display:flex;align-items:center;gap:4px">${ico('note',13)} Giấy nhớ</h4>
       <div id="stickynote-content" style="font-size:11.5px;line-height:1.35"></div>
       <div id="sn-water" style="display:none;position:absolute;right:6px;bottom:3px;font-size:10.5px;color:#4a7ba8;align-items:center;gap:2px">
@@ -1735,7 +1734,6 @@ function renderLab(){
       ${wallBgSVG()}
       ${big ? '' : `<div class="wallitem" style="left:400px;top:18px">${sym('sym-poster-periodic',104,134)}</div>`}
       <div class="wallitem" style="left:590px;top:14px"><svg id="clocksvg" width="84" height="84"><use href="#sym-clock"/></svg></div>
-      ${hasBal && !big ? `<div class="wallitem balpaper" id="balpaper" style="left:${hasSticky ? 540 : 589}px;top:122px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
       ${stickyNoteHtml}
       ${day.free || big ? '' : `<div class="wallitem" style="left:${lab.hard ? 758 : 798}px;top:${lab.hard ? 18 : 20}px">${sym('sym-poster-safety',104,134)}</div>`}
       ${gogglesHtml}
@@ -1779,14 +1777,6 @@ function renderLab(){
   G.querySelector('#bundo').onclick = undoPour;
   const gg = G.querySelector('#goggles'); if(gg) gg.onclick = () => { if(lab.goggles) return; wearGoggles(); toast('Đã đeo kính bảo hộ và găng tay — an toàn là trên hết!'); };
   const hs = G.querySelector('#hoodsw'); if(hs) hs.onclick = () => setHood(!lab.hood);
-  const bp = G.querySelector('#balpaper'); if(bp) bp.onclick = () => {
-    if(!lab) return;
-    if(lab.timer){ clearInterval(lab.timer); lab.timer = null; }   // cân bằng là việc thêm — không bị tính giờ
-    balanceSheet(lab.i, () => {
-      refreshBalPaper();
-      if(lab && lab.timer === null && !lab.cardOpen && !G.querySelector('.pausecard')) lab.timer = setInterval(labTick, 1000);
-    });
-  };
   // hoá chất trong tủ
   G.querySelectorAll('.chem').forEach(c => { const gt = chemDragTool(c.dataset.f);
     dragify(c, 'chem', {
@@ -1870,16 +1860,6 @@ function renderLab(){
   updateBeaker();
 }
 
-// Tờ giấy cân bằng ghim trên tường: mỗi phương trình của ngày là một dòng nguệch ngoạc; phương trình nào trò
-// đã cân bằng đúng (save.balanced) thì có ✓ đỏ cuối dòng, góc dưới đếm số đã xong. Giáo sư làm hộ thì không đếm.
-function balPaperFace(){
-  const eqs = dayEqs(lab.day), edit = balanceEditable(lab.i), done = eqs.filter(isBalanced).length;
-  return '<i class="bppin"></i><b>Cân bằng</b>'
-    + eqs.map(idx => '<span class="bpl' + (edit && isBalanced(idx) ? ' ok' : '') + '"></span>').join('')
-    + (edit ? '<em' + (done === eqs.length ? ' class="all"' : '') + '>' + done + '/' + eqs.length + '</em>' : '');
-}
-function refreshBalPaper(){ const f = G.querySelector('#balpaper .bpface'); if(f && lab) f.innerHTML = balPaperFace(); }
-
 function pauseLab(){
   if(!lab || !lab.timer) return;
   clearInterval(lab.timer); lab.timer = null;
@@ -1898,7 +1878,7 @@ function pauseLab(){
   bindVolSliders(ov);
   // bài giảng phủ lên ca đang dừng; đóng lại thì thẻ Tạm nghỉ hiện ra như cũ
   if(hasLesson) ov.querySelector('#plesson').onclick = () => { ov.classList.add('under'); showLesson(lab.i, () => ov.classList.remove('under')); };
-  if(hasEqs) ov.querySelector('#pnote').onclick = () => { ov.classList.add('under'); balanceSheet(lab.i, () => { ov.classList.remove('under'); refreshBalPaper(); }); };
+  if(hasEqs) ov.querySelector('#pnote').onclick = () => { ov.classList.add('under'); balanceSheet(lab.i, () => ov.classList.remove('under')); };
   ov.querySelector('#presume').onclick = () =>   // thẻ trượt xuống xong mới chạy lại đồng hồ
     closeOv(ov, () => { if(lab && lab.timer === null) lab.timer = setInterval(labTick, 1000); });
   ov.querySelector('#prestart').onclick = () => { const i = lab.i; lab = null; go(free ? startFree : ()=>playDay(i)); };

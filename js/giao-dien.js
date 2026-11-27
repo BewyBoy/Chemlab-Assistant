@@ -1087,8 +1087,8 @@ function balanceTutorial(){
   render(0);
 }
 
-// Tờ giấy cân bằng — KHÔNG bắt buộc. Mở từ tờ giấy ghim trên tường lúc làm ca
-// hoặc thẻ Tạm nghỉ. Từ ngày BALANCE_FROM_DAY trò tự điền hệ số: dòng nào đúng thì khoá lại, có dấu ✓ đỏ
+// Tờ giấy cân bằng — KHÔNG bắt buộc. Mở từ thẻ Tạm nghỉ lúc làm ca.
+// Từ ngày BALANCE_FROM_DAY trò tự điền hệ số: dòng nào đúng thì khoá lại, có dấu ✓ đỏ
 // ở lề và được nhớ mãi (save.balanced = chỉ số phản ứng trong REACTIONS). Trước ngày đó, hoặc khi đã tắt
 // công tắc Giấy cân bằng sẵn (vật phẩm Cửa hàng), giáo sư viết sẵn đáp án. onclose chạy ngay khi bấm đóng.
 const isBalanced = idx => (save.balanced || []).includes(idx);
