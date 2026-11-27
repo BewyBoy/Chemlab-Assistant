@@ -986,11 +986,15 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .bp-ml{font:15px var(--fh);fill:var(--ink);opacity:.6}
 #bp-liqg{transition:transform .45s ease-out,opacity .4s}
 .bp-lf{transition:fill .4s}
-/* que đóm dí vào cốc: lửa bùng (hình sao) hay làn khói (que tắt) */
-.bp-flash{position:absolute;z-index:58;pointer-events:none;translate:-50% -50%;animation:bpflash .7s ease-out forwards}
-.bp-flash svg{display:block}
-@keyframes bpflash{0%{transform:scale(.2) rotate(-10deg);opacity:1}55%{transform:scale(1.15) rotate(6deg);opacity:1}100%{transform:scale(1.3) rotate(10deg);opacity:0}}
-.bp-flash.fizzle{translate:-50% -90%;animation:bpfizzle 1s ease-out forwards}
+/* que đóm: đốm than hồng to dần ở chỗ đang hơ (--k: 0..1), làn khói khi que tắt, lửa liếm mặt lớp rắn khi bén lửa */
+.bp-ember{position:absolute;z-index:57;pointer-events:none;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;
+  background:radial-gradient(circle,#fff1a8 0,#ff8a3d 34%,#d9634f66 58%,transparent 72%);
+  transform:scale(calc(.3 + var(--k,0) * .9));opacity:calc(.35 + var(--k,0) * .65);animation:bpember .35s ease-in-out infinite alternate}
+@keyframes bpember{to{filter:brightness(1.3)}}
+.bp-smoke{position:absolute;z-index:58;pointer-events:none;translate:-50% -90%;animation:bpfizzle 1s ease-out forwards}
+.bp-smoke svg{display:block}
+#bp-fire{opacity:0;transition:opacity .35s}
+#bp-fire.on{opacity:1}
 @keyframes bpfizzle{0%{transform:translateY(6px);opacity:.9}100%{transform:translateY(-24px);opacity:0}}
 #bp-sed,#bp-sedtex{transition:d .45s ease-out,fill .4s}
 /* nắp, phễu, hơi nước: hiện khi đang dùng (lớp trên .bigpanel), rơi nhẹ xuống chỗ */
@@ -1005,19 +1009,11 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .bp-cup.draggingsrc:is([data-held="gas"],[data-held="liquid"],[data-held="solid"]){opacity:1}
 .bp-cup.draggingsrc[data-held="gas"] #bp-gasg,.bp-cup.draggingsrc[data-held="liquid"] #bp-liqg,.bp-cup.draggingsrc[data-held="solid"] #bp-sedg{opacity:.3!important}
 #bp-gasg{transition:opacity .35s}
-.bp-puff{animation:bppuff 4s ease-in-out infinite alternate}
-@keyframes bppuff{from{transform:translate(-14px,3px)}to{transform:translate(14px,-3px)}}
 .bp-tool{position:absolute;cursor:grab;transition:opacity .2s,translate .15s}
 .bp-tool:hover{translate:0 -4px}
 .bp-tool>svg{width:100%;height:100%}
 .bigpanel.heat #bpt_heat,.bigpanel.lid #bpt_lid{opacity:.25}
-.bb-word{position:absolute;z-index:57;pointer-events:none;white-space:nowrap;font:42px/1 'Paytone One',var(--fh);translate:-50% -50%;
-  text-shadow:-2.5px -2.5px 0 var(--ink),2.5px -2.5px 0 var(--ink),-2.5px 2.5px 0 var(--ink),2.5px 2.5px 0 var(--ink),
-    0 -2.5px 0 var(--ink),0 2.5px 0 var(--ink),-2.5px 0 0 var(--ink),2.5px 0 0 var(--ink),5px 6px 0 var(--ink);
-  animation:bbword 1.2s ease-out forwards}
-@keyframes bbword{0%{transform:scale(.2) rotate(-18deg);opacity:0}16%{transform:scale(1.2) rotate(-9deg);opacity:1}28%{transform:scale(1) rotate(-8deg)}
-  80%{opacity:1}100%{transform:scale(1.04) rotate(-8deg) translateY(-12px);opacity:0}}
-@media (prefers-reduced-motion:reduce){.bp-flame,.bp-wisp,.bp-puff,.bp-cup.dropready .bp-out{animation:none}.bb-word{animation-duration:1.6s}}
+@media (prefers-reduced-motion:reduce){.bp-flame,.bp-wisp,.bp-ember,.bp-cup.dropready .bp-out{animation:none}}
 .pourghost{position:absolute;z-index:30;pointer-events:none;animation:pourtilt .85s ease-in-out forwards;transform-origin:80% 90%}
 @keyframes pourtilt{0%{transform:rotate(0);opacity:0}15%{opacity:1}35%,75%{transform:rotate(-115deg)}100%{transform:rotate(0);opacity:0}}
 /* spoon tips its bowl to dump powder; pipette dips its tip — neither flips like a bottle */
