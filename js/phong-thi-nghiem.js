@@ -1100,11 +1100,13 @@ function shelfBoards(){
    Kéo một lớp ra khỏi khung thì nó nằm trong vật đựng: khí → bình khí, rắn / lỏng → lọ đựng mẫu.
    Mặt nước phẳng lặng, rót / khuấy / sủi / đốt thì gợn rồi lặng dần (bigSlosh).
    Ngày có điện phân (điện cực) — kể cả ca tự do — chưa có ở khung này: dùng bàn thường (newLab). */
-const BIGP = {l:412, t:64, w:556, h:656, table:498};   // khung (toạ độ màn hình); table: mép bàn, y trong khung
+/* Màn chia ba cột dọc: trái quầy khách + khay giao, GIỮA khung cốc to (1/3 bề ngang), phải tủ hoá chất (3/4 trên) + bồn
+   rửa (1/4 dưới) — tủ và bồn là hình cũ dời chỗ, đổi cỡ (.scene.bigmode trong style.css) */
+const BIGP = {l:427, t:64, w:426, h:656, table:498};   // khung (toạ độ màn hình); table: mép bàn, y trong khung
 const BIG_H = 360, BIG_LIFT = 72, BIG_R = 34;            // cốc cao; đun thì nhấc lên chừng này (lên lưới kiềng); bán kính góc đáy
-const BIG_CUP = {x:99, w:330};                           // cốc: mép trái trong khung, bề rộng
+const BIG_CUP = {x:78, w:270};                           // cốc: mép trái trong khung, bề rộng (giữa khung)
 const bigTop = () => BIGP.table - 6 - BIG_H - (lab.heaterOn ? BIG_LIFT : 0);   // mép trên thân cốc, trong khung
-const BIG_ROW = 632, BIG_SLOT = {rod:92, heat:218, lid:344, splint:470};   // dụng cụ trên mặt bàn: đáy chung, tâm x từng chỗ
+const BIG_ROW = 640, BIG_SLOT = {rod:54, heat:144, lid:238, splint:352};   // dụng cụ trên mặt bàn: đáy chung, tâm x từng chỗ
 // lòng cốc (toạ độ thân cốc): đáy trong, và chiều cao ứng với mức đầy nhất của thang cũ (196) — mặt nước / lớp rắn tính theo đây
 const BIG_FLOOR = BIG_H - 7, BIG_FILL = BIG_H - 7 - 26;
 // ---- ba lớp chất ----
@@ -1436,10 +1438,10 @@ function bigPanelHTML(){
     + (has('heat') ? bigHeatSVG(cx) : '')
     + '<div class="bp-cup" id="bigBeaker" data-dz="beaker" style="left:' + (c.x - 30) + 'px;top:' + (table - 6 - BIG_H - 56) + 'px;width:' + (W + 44) + 'px;height:' + (BIG_H + 62) + 'px">'
     +   bigCupSVG(W) + '</div>'
-    + tool('rod', 'Đũa khuấy — bấm để khuấy, hoặc kéo vào cốc rồi khuấy tròn', 96, 52)
-    + (has('heat') ? tool('heat', 'Đèn cồn — bấm (hoặc kéo vào cốc) để đun, bấm lần nữa để tắt', 80, 80) : '')
-    + (has('gas') ? tool('lid', 'Nắp — đậy cốc thì khí sinh ra ở lại trong cốc; mở nắp là khí bay mất', 104, 40) : '')
-    + (has('burn') ? tool('splint', 'Que đóm — kéo que đang cháy dí vào chất trong cốc để đốt', 116, 50) : '')
+    + tool('rod', 'Đũa khuấy — bấm để khuấy, hoặc kéo vào cốc rồi khuấy tròn', 80, 44)
+    + (has('heat') ? tool('heat', 'Đèn cồn — bấm (hoặc kéo vào cốc) để đun, bấm lần nữa để tắt', 66, 66) : '')
+    + (has('gas') ? tool('lid', 'Nắp — đậy cốc thì khí sinh ra ở lại trong cốc; mở nắp là khí bay mất', 86, 34) : '')
+    + (has('burn') ? tool('splint', 'Que đóm — kéo que đang cháy vào cốc, giữ ở chất cần đốt tới khi bén lửa', 96, 42) : '')
     + '</div>';
 }
 // gắn kéo–thả / bấm cho khung (gọi sau khi renderLab dựng xong bàn)
@@ -1597,7 +1599,7 @@ function bigCoachText(){
 function renderLab(){
   const day = lab.day;
   const has = t => day.tools.includes(t);
-  const big = lab.big;   // cốc to: khung truyện tranh giữa màn (bigPanelHTML); giấy cân bằng, giấy nhớ… nổi lên trên khung, thu nhỏ ở hai góc
+  const big = lab.big;   // cốc to: khung giữa màn (bigPanelHTML), tủ + bồn rửa cột phải; giấy cân bằng, giấy nhớ… thu nhỏ ở hai góc khung
   const shelfHtml = day.chems.map(f => { const c = CHEMS[baseChem(f)], dac = f !== baseChem(f);
     // chế độ khó: lọ dung dịch ghi rõ nồng độ — phải biết Cₘ mới tính được thể tích cần đong
     const cm = lab.hard && SOL_CM[f] ? ' <small class="cm">'+fmt(SOL_CM[f],2)+'M</small>' : '';
@@ -1620,7 +1622,7 @@ function renderLab(){
   const hasStickyNotes = save.items && save.items.notes;
   const hasSticky = !day.free && hasStickyNotes;
   const stickyNoteHtml = hasSticky ? `
-    <div class="wallitem stickynote${big ? ' bpw' : ''}" style="left:${big ? 852 : hasBal ? 632 : 580}px;top:${big ? 8 : 120}px;width:98px;min-height:96px;background:#fef5c1;border:1.2px solid #d6c57a;transform:rotate(-2deg);padding:7px;font-family:var(--fh);font-size:13.5px;z-index:${big ? 55 : 5}">
+    <div class="wallitem stickynote${big ? ' bpw' : ''}" style="left:${big ? 784 : hasBal ? 632 : 580}px;top:${big ? 6 : 120}px;width:98px;min-height:96px;background:#fef5c1;border:1.2px solid #d6c57a;transform:rotate(-2deg);padding:7px;font-family:var(--fh);font-size:13.5px;z-index:${big ? 55 : 5}">
       <h4 style="margin:0 0 5px 0;font-size:13.5px;border-bottom:1px dotted #3b302566;padding-bottom:2px;display:flex;align-items:center;gap:4px">${ico('note',13)} Giấy nhớ</h4>
       <div id="stickynote-content" style="font-size:11.5px;line-height:1.35"></div>
       <div id="sn-water" style="display:none;position:absolute;right:6px;bottom:3px;font-size:10.5px;color:#4a7ba8;align-items:center;gap:2px">
@@ -1628,8 +1630,8 @@ function renderLab(){
       </div>
     </div>
   ` : '';
-  const gogglesHtml = lab.hard ? `<div class="wallitem safetyhook${big ? ' bpw' : ''}" id="goggles" style="left:${big ? 418 : day.free ? 534 : 874}px;top:${big ? 172 : day.free ? 134 : 34}px" title="Bấm để đeo kính bảo hộ và găng tay">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>` : '';
-  const hoodHtml = lab.hoodDay ? `<div class="wallitem hoodsw${big ? ' bpw' : ''}" id="hoodsw" style="left:${big ? 852 : day.free ? 634 : 872}px;top:${big ? 172 : day.free ? 132 : 152}px" title="Bấm để bật / tắt tủ hút">${HOOD_SVG}<div class="wallcap">Tủ hút: tắt</div></div>` : '';
+  const gogglesHtml = lab.hard ? `<div class="wallitem safetyhook${big ? ' bpw' : ''}" id="goggles" style="left:${big ? 433 : day.free ? 534 : 874}px;top:${big ? 172 : day.free ? 134 : 34}px" title="Bấm để đeo kính bảo hộ và găng tay">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>` : '';
+  const hoodHtml = lab.hoodDay ? `<div class="wallitem hoodsw${big ? ' bpw' : ''}" id="hoodsw" style="left:${big ? 790 : day.free ? 634 : 872}px;top:${big ? 172 : day.free ? 132 : 152}px" title="Bấm để bật / tắt tủ hút">${HOOD_SVG}<div class="wallcap">Tủ hút: tắt</div></div>` : '';
 
   G.innerHTML = `<div class="scene${big ? ' bigmode' : ''}" style="padding:0">
     <div class="hudboard">${sym('sym-benchtex',1240,52,'position:absolute;left:20px;top:6px;width:calc(100% - 40px);opacity:.4;pointer-events:none')}
@@ -1646,11 +1648,11 @@ function renderLab(){
     <div class="wall">
       <div class="wall-toptrim"></div>
       ${wallBgSVG()}
-      <div class="wallitem" style="left:400px;top:18px">${sym('sym-poster-periodic',104,134)}</div>
+      ${big ? '' : `<div class="wallitem" style="left:400px;top:18px">${sym('sym-poster-periodic',104,134)}</div>`}
       <div class="wallitem" style="left:590px;top:14px"><svg id="clocksvg" width="84" height="84"><use href="#sym-clock"/></svg></div>
-      ${hasBal ? `<div class="wallitem balpaper${big ? ' bpw' : ''}" id="balpaper" style="left:${big ? 418 : hasSticky ? 540 : 589}px;top:${big ? 8 : 122}px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
+      ${hasBal ? `<div class="wallitem balpaper${big ? ' bpw' : ''}" id="balpaper" style="left:${big ? 433 : hasSticky ? 540 : 589}px;top:${big ? 6 : 122}px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
       ${stickyNoteHtml}
-      ${day.free ? '' : `<div class="wallitem" style="left:${lab.hard ? 758 : 798}px;top:${lab.hard ? 18 : 20}px">${sym('sym-poster-safety',104,134)}</div>`}
+      ${day.free || big ? '' : `<div class="wallitem" style="left:${lab.hard ? 758 : 798}px;top:${lab.hard ? 18 : 20}px">${sym('sym-poster-safety',104,134)}</div>`}
       ${gogglesHtml}
       ${hoodHtml}
       ${day.free ? '<div class="wallitem freenote" id="freenote"><h4>' + ico('note',14) + ' Trong cốc lúc này</h4><div id="freenote-body"></div></div>' : ''}
@@ -1667,6 +1669,7 @@ function renderLab(){
         <div id="sptext"></div><div class="sp-order" id="sporder" hidden></div></div>
       ${TRAY_SVG}
     </div>
+    ${big ? '<div class="bigsinkbg" aria-hidden="true"></div>' : ''}
     <div class="sinkstation" data-dz="sink" title="Kéo cốc / bình khí / đĩa lọc / muôi vào đây để đổ bỏ">${sinkSVG()}<div class="cap">Bồn rửa</div></div>
     ${place3({sid:'sym-tripod', an:'base', x:BKP.x, y:BKP.y, k:KW, z:ZB-1, id:'tripod', cls:'tripod', scls:'gated tri-sh'})}
     ${has('gas') ? place3({sid:'sym-ringstand', an:'base', ...L3.dock.gasStand, k:kAt(L3.dock.gasStand), z:zAt(L3.dock.gasStand.y), id:'gasstand', cls:'rig', scls:'gated rig-sh'}) : ''}
@@ -2660,7 +2663,9 @@ function updateBeaker(){
   const tr = G.querySelector('#custtray');
   if(tr) tr.classList.toggle('ready', autoCoach() && !!readyVessel());
   const ub = G.querySelector('#bundo');
-  if(ub){ ub.hidden = !canUndo(); if(!ub.hidden){ const bx = beakerBox(); ub.style.left = (bx.cx + Math.max(74, bx.w/2 + 10)) + 'px'; ub.style.top = (bx.bot - 36) + 'px'; } }
+  if(ub){ ub.hidden = !canUndo(); if(!ub.hidden){
+    if(lab.big){ ub.style.left = (BIGP.l + BIGP.w - 88) + 'px'; ub.style.top = (BIGP.t + BIGP.table + 8) + 'px'; }   // cốc to: góc phải mặt bàn trong khung
+    else { const bx = beakerBox(); ub.style.left = (bx.cx + Math.max(74, bx.w/2 + 10)) + 'px'; ub.style.top = (bx.bot - 36) + 'px'; } } }
 }
 // bình nào (cốc / bình khí / đĩa lọc) đang chứa đúng hàng của khách hiện tại, không có thì null
 function readyVessel(){

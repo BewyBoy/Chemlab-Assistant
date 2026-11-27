@@ -965,7 +965,15 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 /* bàn phối cảnh vẫn chạy ngầm phía sau: giấu cốc thật, dụng cụ, bộ lắp, vùng thả của thảm (vật ẩn cũng không bắt chuột) */
 .scene.bigmode .item,.scene.bigmode .shadow,.scene.bigmode .rig,.scene.bigmode .matzone{visibility:hidden}
 .scene.bigmode .undobtn{z-index:56}
-.wallitem.bpw{z-index:55;scale:.82;transform-origin:0 0}
+.wallitem.bpw{z-index:55;scale:.62;transform-origin:0 0}
+/* cột phải: tủ hoá chất cao 3/4 (4 lọ một hàng), bồn rửa thu nhỏ trên mặt quầy đá ở 1/4 dưới; lời nhắn trên cùng gọn trong khung giữa */
+.scene.bigmode .shelf{left:866px;width:408px;height:calc(480px + var(--by))}
+.scene.bigmode .shgrid{grid-template-columns:repeat(4,1fr)}
+.bigsinkbg{position:absolute;left:862px;right:calc(-1*var(--bx));top:550px;bottom:calc(-1*var(--by));z-index:5;pointer-events:none;
+  background:linear-gradient(#e7eaec,#d3d8db 62%,#bfc6ca);border-top:3px solid #8f989e;box-shadow:inset 0 3px 0 #ffffffa0}
+.scene.bigmode .sinkstation{left:964px;top:553px;scale:.72;transform-origin:0 0}
+.scene.bigmode .sinkstation .cap{font-size:18px;padding:1px 12px}
+.toast.say-low{left:16px;bottom:12px;margin:0;max-width:394px;pointer-events:none;transition:bottom .25s ease-out;font-size:15px;line-height:1.4;padding:8px 13px}
 /* lề giấy trắng + viền mực ngoài: khung như cắt ra từ trang truyện dán lên cảnh (không đổ bóng xuống nền) */
 .bigpanel{position:absolute;z-index:50;box-shadow:0 0 0 6px #fffdf5,0 0 0 9px var(--ink)}
 .bigpanel>*{position:absolute;left:0;top:0}

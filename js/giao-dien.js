@@ -247,6 +247,9 @@ function showNote(msg, keep){
   if(keep){ const last = [...G.querySelectorAll('.toast.say')].pop(); if(last && last._msg === msg) return; }
   // ở bàn thí nghiệm, lời nhắn người chơi nằm giữa phía trên (vùng tường) — góc dưới bên trái là khay giao hàng
   const top = keep && !!G.querySelector('#beakerItem');
+  // cốc to (Cài đặt): khung giữa hẹp, lời nhắn ở trên sẽ che cốc — xuống góc dưới bên trái, dưới khay giao hàng
+  const low = top && !!G.querySelector('.scene.bigmode');
+  if(low) return lowNote(msg);
   const t = document.createElement('div');
   t.className = 'toast' + (keep ? ' say' : '') + (top ? ' say-top' : '') + (top && G.querySelector('#freenote') ? ' say-narrow' : '');
   t.innerHTML = msg; t._msg = msg;
@@ -261,6 +264,21 @@ function showNote(msg, keep){
     if(k >= (top ? 1 : 2)){ x.remove(); return; }
     x.style[top ? 'top' : 'bottom'] = y + 'px';
     y += x.offsetHeight + 8;
+  });
+}
+// lời nhắn khi dùng cốc to: góc dưới bên trái (dưới khay giao hàng, trên tủ gầm bàn); mới nhất nằm dưới cùng, cái cũ đẩy
+// lên trên nhưng không được lấn tới khay (cao quá LOW_MAX thì bỏ cái cũ)
+const LOW_MAX = 150;
+function lowNote(msg){
+  const t = document.createElement('div');
+  t.className = 'toast say say-low'; t.innerHTML = msg; t._msg = msg;
+  const ms = Math.min(9000, 3500 + msg.replace(/<[^>]+>/g, '').length*45);
+  t.style.animationDuration = ms + 'ms';
+  G.appendChild(t); setTimeout(() => t.remove(), ms + 100);
+  let y = 12 + t.offsetHeight + 8;
+  [...G.querySelectorAll('.toast.say-low')].filter(x => x !== t).reverse().forEach(x => {
+    if(y + x.offsetHeight > LOW_MAX){ x.remove(); return; }
+    x.style.bottom = y + 'px'; y += x.offsetHeight + 8;
   });
 }
 function unlockAch(id){
