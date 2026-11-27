@@ -986,8 +986,12 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .bp-ml{font:15px var(--fh);fill:var(--ink);opacity:.6}
 #bp-liqg{transition:transform .45s ease-out,opacity .4s}
 .bp-lf{transition:fill .4s}
-.bp-wave{animation:bpwave 2.6s linear infinite}
-@keyframes bpwave{to{transform:translateX(-60px)}}
+/* que đóm dí vào cốc: lửa bùng (hình sao) hay làn khói (que tắt) */
+.bp-flash{position:absolute;z-index:58;pointer-events:none;translate:-50% -50%;animation:bpflash .7s ease-out forwards}
+.bp-flash svg{display:block}
+@keyframes bpflash{0%{transform:scale(.2) rotate(-10deg);opacity:1}55%{transform:scale(1.15) rotate(6deg);opacity:1}100%{transform:scale(1.3) rotate(10deg);opacity:0}}
+.bp-flash.fizzle{translate:-50% -90%;animation:bpfizzle 1s ease-out forwards}
+@keyframes bpfizzle{0%{transform:translateY(6px);opacity:.9}100%{transform:translateY(-24px);opacity:0}}
 #bp-sed,#bp-sedtex{transition:d .45s ease-out,fill .4s}
 /* nắp, phễu, hơi nước: hiện khi đang dùng (lớp trên .bigpanel), rơi nhẹ xuống chỗ */
 .bp-part{opacity:0;pointer-events:none;transform:translateY(-24px);transition:opacity .22s,transform .35s cubic-bezier(.3,1.4,.5,1)}
@@ -1013,7 +1017,7 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
   animation:bbword 1.2s ease-out forwards}
 @keyframes bbword{0%{transform:scale(.2) rotate(-18deg);opacity:0}16%{transform:scale(1.2) rotate(-9deg);opacity:1}28%{transform:scale(1) rotate(-8deg)}
   80%{opacity:1}100%{transform:scale(1.04) rotate(-8deg) translateY(-12px);opacity:0}}
-@media (prefers-reduced-motion:reduce){.bp-wave,.bp-flame,.bp-wisp,.bp-puff,.bp-cup.dropready .bp-out{animation:none}.bb-word{animation-duration:1.6s}}
+@media (prefers-reduced-motion:reduce){.bp-flame,.bp-wisp,.bp-puff,.bp-cup.dropready .bp-out{animation:none}.bb-word{animation-duration:1.6s}}
 .pourghost{position:absolute;z-index:30;pointer-events:none;animation:pourtilt .85s ease-in-out forwards;transform-origin:80% 90%}
 @keyframes pourtilt{0%{transform:rotate(0);opacity:0}15%{opacity:1}35%,75%{transform:rotate(-115deg)}100%{transform:rotate(0);opacity:0}}
 /* spoon tips its bowl to dump powder; pipette dips its tip — neither flips like a bottle */

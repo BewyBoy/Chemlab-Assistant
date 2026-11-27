@@ -207,6 +207,7 @@ const PROF_SAFETY = {
 const PROF_NO_RX = {
  'dot-sai-cho': 'Phản ứng CHÁY không làm trong cốc: thả <b>{fuel}</b> vào <b>muôi đốt</b> (muôi treo lên giá), kéo đèn cồn vào dưới muôi cho bén lửa, rồi đưa vào lọ khí đã nạp <b>{gas}</b>.',
  'khong-muoi':  '{fuel} chỉ cháy khi được đốt nóng trong khí {gas} — hôm nay không có muôi đốt.',
+ 'dot-que-dom': '{fuel} và {gas} nằm chung trong cốc nhưng chưa ai châm lửa — kéo <b>que đóm</b> đang cháy dí vào {fuel} để đốt.',   // cốc to
  'thieu-nhiet': 'Đủ chất rồi, nhưng phản ứng này cần <b>nhiệt</b> — kéo <b>đèn cồn</b> vào cốc.',
  'sau-hidro':   '<b>{m}</b> đứng sau <b>H</b> trong dãy hoạt động (K Na Mg Al Zn Fe <b>H</b> Cu Ag) nên không đẩy được hiđro ra khỏi axit {acid}.',
  'yeu-hon':     '<b>{m}</b> yếu hơn <b>{sm}</b> trong dãy hoạt động nên không đẩy được {sm} ra khỏi {salt}.',

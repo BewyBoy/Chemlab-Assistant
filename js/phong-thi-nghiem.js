@@ -663,6 +663,7 @@ const DZ_ACCEPT = {
   elec:  ['beaker','mat'],
   funnel:['beaker','mat'],
   lid:   ['beaker'],   // nắp của cốc to (Cài đặt → "Cốc phóng to"): đậy cốc = thu khí
+  splint:['beaker'],   // que đóm của cốc to: dí vào một lớp chất để đốt
   mgcard:['bin0','bin1','bin2','bin3'],
   mgdrop:['quy','rg0','rg1','rg2','rg3'],     // xác định chất: ống nhỏ giọt mẫu → giấy quỳ / cốc thuốc thử
   mglabel:['jar0','jar1','jar2','tray'],      // xác định chất: nhãn → lọ mất nhãn / khay nhãn
@@ -837,7 +838,7 @@ function newLab(i, day){
           otime:0, odur:0, waitStage:0, miss:0, lastWhy:'', cardQ:[], cardOpen:false,
           goggles:!hard, hood:false, hoodDay:hard && [...dayHave(day)].some(f => TOXIC.includes(f)),
           safety:0, safeHits:{}, firstPour:null, waterIn:false, dac:{},
-          big:bigBeakerOn() && !day.tools.some(t => t === 'burn' || t === 'elec')};   // cốc to (Cài đặt): ngày có muôi đốt / điện phân dùng bàn thường
+          big:bigBeakerOn() && !day.tools.includes('elec')};   // cốc to (Cài đặt): ngày có điện phân (cả ca tự do) dùng bàn thường
 }
 function startLab(i){
   SFX.music(themeOf(i));
@@ -1084,7 +1085,7 @@ function shelfBoards(){
 /* =====================  CỐC TO (Cài đặt → "Cốc phóng to", lab.big)  =====================
    Kiểu app "một cái cốc một màn hình": cột giữa, từ dưới bảng HUD tới đáy màn, thành một KHUNG TRUYỆN TRANH cắt dán — nền màu
    tường, mép bàn ngang, cốc 400 mL vẽ phẳng nhìn thẳng (đáy bo tròn, có miệng rót) ngồi trên mép bàn; dụng cụ vẽ phẳng trên mặt
-   bàn: đũa khuấy, đèn cồn (đun: cốc nhấc lên kiềng, đèn chui vào dưới), NẮP. Bấm dụng cụ = dùng / thôi dùng, hoặc kéo vào cốc;
+   bàn: đũa khuấy, đèn cồn (đun: cốc nhấc lên kiềng, đèn chui vào dưới), NẮP, que đóm. Bấm dụng cụ = dùng / thôi dùng, hoặc kéo vào cốc;
    bấm nắp đang đậy hay đèn dưới cốc là tháo ra.
    Không còn bình thu khí, phễu lọc, đĩa lọc: chất trong cốc tách thành ba LỚP theo trạng thái (bigPhases) — khí (đậy nắp thì khí
    sinh ra ở lại trong cốc, vẫn phản ứng tiếp được; mở nắp là bay hết), lỏng (nước + chất tan), rắn (kết tủa, chất chưa tan, chất
@@ -1093,12 +1094,14 @@ function shelfBoards(){
    Bàn phối cảnh vẫn chạy ngầm phía sau (ẩn bằng .bigmode): luật hoá học giữ nguyên, khung chỉ VẼ trạng thái lab (syncBig,
    paintBig) và gọi đúng các hàm cũ (setHeat, setCatch…). Hiệu ứng rót / sủi bọt / kết tủa / phương trình / vòng khuấy neo theo
    beakerGeo() và beakerBox(), nên hai hàm đó trả hình học cốc to (bigGeo) là đủ.
-   Ngày có muôi đốt hay điện phân (đốt trong lọ khí, điện cực) — kể cả ca tự do — chưa có ở khung này: dùng bàn thường (newLab). */
+   Đốt: QUE ĐÓM thay muôi đốt + lọ khí — đậy nắp, cho O₂ / Cl₂ và chất cần đốt vào cốc, kéo que đang cháy dí vào chất đó (bigIgnite).
+   Mặt nước phẳng lặng, rót / khuấy / sủi / đốt thì gợn rồi lặng dần (bigSlosh).
+   Ngày có điện phân (điện cực) — kể cả ca tự do — chưa có ở khung này: dùng bàn thường (newLab). */
 const BIGP = {l:412, t:64, w:556, h:656, table:498};   // khung (toạ độ màn hình); table: mép bàn, y trong khung
 const BIG_H = 360, BIG_LIFT = 72, BIG_R = 34;            // cốc cao; đun thì nhấc lên chừng này (lên lưới kiềng); bán kính góc đáy
 const BIG_CUP = {x:99, w:330};                           // cốc: mép trái trong khung, bề rộng
 const bigTop = () => BIGP.table - 6 - BIG_H - (lab.heaterOn ? BIG_LIFT : 0);   // mép trên thân cốc, trong khung
-const BIG_ROW = 632, BIG_SLOT = {rod:120, heat:278, lid:436};   // dụng cụ trên mặt bàn: đáy chung, tâm x từng chỗ
+const BIG_ROW = 632, BIG_SLOT = {rod:92, heat:218, lid:344, splint:470};   // dụng cụ trên mặt bàn: đáy chung, tâm x từng chỗ
 // lòng cốc (toạ độ thân cốc): đáy trong, và chiều cao ứng với mức đầy nhất của thang cũ (196) — mặt nước / lớp rắn tính theo đây
 const BIG_FLOOR = BIG_H - 7, BIG_FILL = BIG_H - 7 - 26;
 // ---- ba lớp chất ----
@@ -1186,6 +1189,103 @@ const bigSedPath = (W, y) => { let d = 'M0,' + (BIG_H + 4) + ' L0,' + y.toFixed(
   for(let i = 0; i < 12; i++){ const x0 = W*i/12, x1 = W*(i + 1)/12;
     d += ' Q' + ((x0 + x1)/2).toFixed(1) + ',' + (y - (i % 3 === 1 ? 7 : 3)).toFixed(1) + ' ' + x1.toFixed(1) + ',' + y.toFixed(1); }
   return d + ' L' + W + ',' + (BIG_H + 4) + ' Z'; };
+// ---- mặt nước: phẳng lặng; có gì khuấy động (rót, khuấy, sủi bọt, đốt) thì gợn sóng rồi lặng dần ----
+// sóng sin biên độ A (0 = phẳng), lệch pha ph, bước sóng 60; body: cả khối nước bên dưới mặt
+const bigWave = (W, A, ph, body) => { let d = '';
+  for(let x = -10; x <= W + 10; x += 10) d += (d ? ' L' : 'M') + x + ',' + (A * Math.sin(x / 60 * 2*Math.PI + ph)).toFixed(2);
+  return body ? d + ' L' + (W + 10) + ',' + (BIG_H + 20) + ' L-10,' + (BIG_H + 20) + ' Z' : d; };
+const BIG_CALM = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+// khuấy động mặt nước (a: biên độ, đơn vị viewBox cốc ≈ px): sóng tắt dần theo hàm mũ; đang đun thì sôi lăn tăn mãi
+function bigSlosh(a){
+  const L = lab; if(!L || !L.big || BIG_CALM) return;
+  L.bbA = Math.max(L.bbA || 0, a);
+  if(L.bbRaf) return;
+  let last = performance.now();
+  const step = now => {
+    if(lab !== L){ L.bbRaf = 0; return; }   // sang ca khác: vòng này thôi
+    const dt = Math.min(.1, (now - last) / 1000), rest = L.heaterOn && bigWet() ? 1.2 : 0;
+    last = now;
+    if(L.timer !== null){ L.bbA = rest + (L.bbA - rest) * Math.exp(-dt / .7); L.bbPh = (L.bbPh || 0) + dt * 4; }   // tạm nghỉ: sóng đứng yên
+    const done = !rest && L.bbA < .05;
+    if(done) L.bbA = 0;
+    const g = G.querySelector('#bp-liqg');
+    if(g){ const W = BIG_CUP.w, line = bigWave(W, L.bbA, L.bbPh || 0);
+      g.querySelector('.bp-lf').setAttribute('d', bigWave(W, L.bbA, L.bbPh || 0, true));
+      g.querySelector('.bp-lw').setAttribute('d', line); g.querySelector('.bp-li').setAttribute('d', line); }
+    L.bbRaf = done || !g ? 0 : requestAnimationFrame(step);
+  };
+  L.bbRaf = requestAnimationFrame(step);
+}
+// ---- QUE ĐÓM: kéo que đang cháy dí vào một lớp chất trong cốc to để đốt (thay muôi đốt + lọ khí của bàn thường) ----
+// que đóm vẽ phẳng. Lúc cầm: dựng đứng, đang cháy, ĐẦU QUE NẰM GIỮA hình (hình cao gấp đôi que) để chỗ thả — ngay con trỏ —
+// đúng là chỗ đầu que dí vào. Lúc cất trên bàn: nằm nghiêng, đầu que còn tàn đỏ
+const bigSplintArt = vertical => vertical
+  ? '<svg width="40" height="300" viewBox="0 0 40 300" overflow="visible" aria-hidden="true">'
+    + '<rect x="17" y="4" width="6" height="146" rx="3" fill="#dcb47e" stroke="' + BIG_INK + '" stroke-width="2.5"/>'
+    + '<rect x="17" y="132" width="6" height="18" rx="3" fill="#3b3025"/>'
+    + '<g class="bp-flame"><path d="M20,158 C6,150 9,128 20,104 C31,128 34,150 20,158 Z" fill="#ffb347" stroke="#d9634f" stroke-width="3" stroke-linejoin="round"/>'
+    + '<path d="M20,154 C13,148 14,135 20,122 C26,135 27,148 20,154 Z" fill="#fff1a8"/></g></svg>'
+  : '<svg viewBox="0 0 116 50" aria-hidden="true"><path d="M8,42 L104,10" stroke="' + BIG_INK + '" stroke-width="9" stroke-linecap="round"/>'
+    + '<path d="M8,42 L104,10" stroke="#dcb47e" stroke-width="4.5" stroke-linecap="round"/>'
+    + '<path d="M94,13.5 L104,10" stroke="#3b3025" stroke-width="6" stroke-linecap="round"/><circle cx="105" cy="10" r="3" fill="#ff8a3d"/></svg>';
+const BURN_GAS = ['O2', 'Cl2'];   // khí duy trì sự cháy
+// lửa bùng (ok) hay làn khói nhỏ (que tắt) ngay chỗ đầu que đóm dí vào; x, y: toạ độ game
+function bigFlash(x, y, ok, col){
+  const f = document.createElement('div');
+  f.className = 'bp-flash' + (ok ? '' : ' fizzle');
+  f.style.left = x + 'px'; f.style.top = y + 'px';
+  f.innerHTML = ok ? '<svg width="120" height="120" viewBox="-60 -60 120 120"><path d="' + Array.from({length: 18}, (_, i) => {
+      const a = i / 18 * 2*Math.PI, r = i % 2 ? 26 : 54; return (i ? 'L' : 'M') + (Math.cos(a)*r).toFixed(1) + ',' + (Math.sin(a)*r).toFixed(1); }).join(' ')
+      + ' Z" fill="' + (col || '#ffb347') + '" stroke="' + BIG_INK + '" stroke-width="3.5" stroke-linejoin="round"/><circle r="17" fill="#fff1a8"/></svg>'
+    : '<svg width="60" height="70" viewBox="-30 -60 60 70"><path d="M0,0 q-12,-12 0,-24 q12,-12 0,-24" fill="none" stroke="#7d8086" stroke-width="5" stroke-linecap="round"/></svg>';
+  G.appendChild(f); f.onanimationend = () => f.remove();
+}
+// dí que đóm đang cháy vào lớp ph (null: trượt ra ngoài các lớp) tại điểm (x, y) màn hình game
+function bigIgnite(ph, x, y){
+  if(!ph){ SFX.err(); notify('Dí <b>đầu que đóm</b> vào đúng lớp chất muốn đốt trong cốc.'); return; }
+  if(ph === 'liquid'){ bigFlash(x, y, false); SFX.sizzle(); bigWord('XÈO!', '#9fc9e6'); bigSlosh(2);
+    notify('Que đóm chạm chất lỏng là tắt ngấm — chất lỏng trong cốc không cháy.'); return; }
+  if(ph === 'solid' && bigWet()){ bigFlash(x, y, false); SFX.sizzle();
+    notify('Chất rắn đang ngập dưới chất lỏng nên không bén lửa — kéo <b>lớp lỏng</b> ra bồn rửa cho cốc khô rồi hãy đốt.'); return; }
+  const mix = lab.mix, und = lab.undissolved, fired = [], obs = [];
+  let fuel = null;
+  for(let pass = 0; pass < 4; pass++){
+    const P = bigPhases(), has = (box, f) => (box[f] || 0) > 0.009;
+    // lớp rắn: phản ứng cháy (burn, phan-ung.js) giữa chất rắn khô và khí O₂ / Cl₂ dưới nắp.
+    // lớp khí: hỗn hợp khí bén lửa (H₂ + O₂ nổ, H₂ + Cl₂, CO + O₂) — những phản ứng chỉ toàn khí
+    const r = REACTIONS.find(r => !r.elec && Object.keys(r.rg).every(f => CHEMS[f].s === 'k' ? has(P.gas, f) : ph === 'solid' && has(P.solid, f))
+      && (ph === 'solid' ? r.burn && Object.keys(r.rg).some(f => CHEMS[f].s !== 'k') : (r.burn || r.heat) && Object.keys(r.rg).every(f => CHEMS[f].s === 'k')));
+    if(!r) break;
+    Object.keys(r.rg).forEach(f => { if(und[f] > 0){   // chất rắn khô còn nằm ở lab.undissolved: dồn vào mix cho phản ứng lấy
+      mix[f] = RQ((mix[f] || 0) + und[f]); lab.dissolveTotal = Math.max(0, RQ(lab.dissolveTotal - und[f])); delete und[f]; } });
+    fuel = fuel || Object.keys(r.rg).find(f => CHEMS[f].s !== 'k') || Object.keys(r.rg)[0];
+    const n = Math.min(...Object.keys(r.rg).map(f => (mix[f] || 0) / r.rg[f]));
+    fired.push(applyReaction(r, n, null, true));   // cháy nóng: nước sinh ra bay thành hơi
+    if(r.obs) obs.push(r.obs);
+  }
+  if(!fired.length){
+    const P = bigPhases(), ox = BURN_GAS.filter(f => (P.gas[f] || 0) > 0.009);
+    bigFlash(x, y, ph === 'gas' && ox.length > 0, '#fff1a8');
+    if(ph === 'gas'){
+      if(ox.length){ SFX.ignite(); bigWord('BÙNG!', '#ffb347');
+        notify('Que đóm bùng cháy sáng rực — khí ' + ox.map(sub).join(', ') + ' duy trì sự cháy. Dí que vào <b>chất rắn</b> cần đốt để nó cháy trong khí này.'); }
+      else { SFX.err(); notify('Que đóm tắt — ' + (tot(P.gas) ? 'khí ' + Object.keys(P.gas).map(sub).join(', ') + ' không cháy, cũng không duy trì sự cháy.' : 'cốc chưa có lớp khí nào.')); }
+    } else {
+      SFX.err();
+      notify(ox.length ? Object.keys(P.solid).map(sub).join(', ') + ' không cháy được trong khí ' + ox.map(sub).join(', ') + '.'
+                       : 'Que đóm tắt ngấm — trong cốc không có khí <b>oxi</b> hay <b>clo</b>. Đậy <b>nắp</b>, cho O₂ (hoặc Cl₂) vào cốc trước rồi hãy đốt.');
+    }
+    return;
+  }
+  unlockAch('burn1');
+  bigFlash(x, y, true, FLAME_COL[fuel] || '#ffb347');
+  SFX.roar(); if(fuel === 'Fe') SFX.crackle();
+  bigSlosh(3);
+  runReactions();   // sản phẩm cháy có thể phản ứng tiếp với thứ còn trong cốc
+  eqPop(fired);
+  if(obs.length) notify('<i>' + obs.join(' ') + '</i>');
+  updateBeaker();
+}
 // cốc to vẽ phẳng, toạ độ thân cốc 0..W × 0..BIG_H: thành thẳng, hai góc đáy bo tròn, vành miệng loe nhẹ, miệng rót bên trái.
 // Phần trên thân cốc là chỗ của nắp.
 function bigCupSVG(W){
@@ -1198,8 +1298,6 @@ function bigCupSVG(W){
   for(let k = 1; k <= 7; k++){ const y = BIG_FLOOR - k*BIG_FILL/8, long = k % 2 === 0;
     marks += '<path d="M' + (W - (long ? 54 : 34)) + ',' + y.toFixed(1) + ' L' + (W - 14) + ',' + y.toFixed(1) + '" stroke="' + BIG_INK + '" stroke-width="3" stroke-linecap="round" opacity=".55"/>'
       + (long ? '<text class="bp-ml" x="' + (W - 60) + '" y="' + (y + 5).toFixed(1) + '" text-anchor="end">' + k*50 + '</text>' : ''); }
-  let wave = 'M-60,0';   // mặt chất lỏng gợn sóng, chu kỳ 60 — nhóm bp-wave trượt ngang đúng 60 nên lặp không thấy nối
-  for(let x = -60; x < W + 60; x += 60) wave += ' q15,-3 30,0 q15,3 30,0';
   const drops = [[16, 44], [24, 70], [W - 20, 52], [W - 30, 82], [W - 18, 104]].map(([x, y]) =>
     '<path d="M' + x + ',' + y + ' q-3,5 0,9 q3,-4 0,-9 Z" fill="#fff" stroke="' + BIG_INK + '" stroke-width="1.5" opacity=".8"/>').join('');
   const wisps = [-60, 0, 60].map((dx, k) => '<path class="bp-wisp" style="animation-delay:' + (k*.5) + 's" d="M' + (cx + dx) + ',-16 q-9,-14 0,-28 q9,-14 0,-28" fill="none" stroke="' + BIG_INK + '" stroke-width="3" stroke-linecap="round" opacity=".35"/>').join('');
@@ -1214,11 +1312,11 @@ function bigCupSVG(W){
     // lớp khí (dưới nắp, trên mặt chất lỏng / lớp rắn): nhuộm màu khí + chấm halftone + vài đám khí trôi
     +   '<g id="bp-gasg" class="bp-ph" data-ph="gas" style="pointer-events:none;opacity:0"><rect id="bp-gasr" x="0" y="8" width="' + W + '" height="0"/>'
     +     '<rect id="bp-gasd" x="0" y="8" width="' + W + '" height="0" fill="url(#bpgasdots)"/><g id="bp-puffs">' + puffs + '</g></g>'
-    // lớp lỏng: khối nước gợn sóng, trượt lên xuống theo mực nước
-    +   '<g id="bp-liqg" class="bp-ph" data-ph="liquid" style="transform:translateY(' + (H + 6) + 'px);opacity:0;pointer-events:none"><g class="bp-wave">'
-    +     '<path class="bp-lf" d="' + wave + ' L' + (W + 60) + ',' + (H + 20) + ' L-60,' + (H + 20) + ' Z" fill="#cfe6f2"/>'
-    +     '<path d="' + wave + '" transform="translate(0,4)" fill="none" stroke="#fff" stroke-width="3" opacity=".5"/>'
-    +     '<path d="' + wave + '" fill="none" stroke="' + BIG_INK + '" stroke-width="2.5" opacity=".45"/></g></g>'
+    // lớp lỏng: khối nước trượt lên xuống theo mực nước; mặt nước phẳng lặng, rót / khuấy / sủi thì gợn rồi lặng dần (bigSlosh)
+    +   '<g id="bp-liqg" class="bp-ph" data-ph="liquid" style="transform:translateY(' + (H + 6) + 'px);opacity:0;pointer-events:none">'
+    +     '<path class="bp-lf" d="' + bigWave(W, 0, 0, true) + '" fill="#cfe6f2"/>'
+    +     '<path class="bp-lw" d="' + bigWave(W, 0, 0) + '" transform="translate(0,4)" fill="none" stroke="#fff" stroke-width="3" opacity=".5"/>'
+    +     '<path class="bp-li" d="' + bigWave(W, 0, 0) + '" fill="none" stroke="' + BIG_INK + '" stroke-width="2.5" opacity=".45"/></g>'
     // lớp rắn: vẽ SAU lớp lỏng để bấm vào đáy cốc là cầm được chất rắn
     +   '<g id="bp-sedg" class="bp-ph" data-ph="solid" style="pointer-events:none">'
     +     '<path id="bp-sed" d="' + bigSedPath(W, H + 4) + '" fill="#ddd" stroke="' + BIG_INK + '" stroke-width="2.5" stroke-opacity=".5"/>'
@@ -1252,7 +1350,7 @@ function bigHeatSVG(cx){
 function bigPanelHTML(){
   const {w, h, table} = BIGP, c = BIG_CUP, W = c.w, cx = c.x + W/2, has = t => lab.day.tools.includes(t);
   const tool = (key, title, tw, th) => '<div class="bp-tool" id="bpt_' + key + '" title="' + title + '" style="left:' + (BIG_SLOT[key] - tw/2) + 'px;top:'
-    + (BIG_ROW - th) + 'px;width:' + tw + 'px;height:' + th + 'px">' + BIG_ART[key === 'heat' ? 'lamp' : key] + '</div>';
+    + (BIG_ROW - th) + 'px;width:' + tw + 'px;height:' + th + 'px">' + (key === 'splint' ? bigSplintArt(false) : BIG_ART[key === 'heat' ? 'lamp' : key]) + '</div>';
   let grain = '';   // vân gỗ mặt bàn
   [[table + 22, 3, 0], [table + 62, 4, 1], [table + 112, 5, 0]].forEach(([y, a, ph]) => { let d = 'M-20,' + y;
     for(let x = -20, i = ph; x < w + 20; x += 110, i++) d += ' q55,' + (i % 2 ? a : -a) + ' 110,0';
@@ -1273,6 +1371,7 @@ function bigPanelHTML(){
     + tool('rod', 'Đũa khuấy — bấm để khuấy, hoặc kéo vào cốc rồi khuấy tròn', 96, 52)
     + (has('heat') ? tool('heat', 'Đèn cồn — bấm (hoặc kéo vào cốc) để đun, bấm lần nữa để tắt', 80, 80) : '')
     + (has('gas') ? tool('lid', 'Nắp — đậy cốc thì khí sinh ra ở lại trong cốc; mở nắp là khí bay mất', 104, 40) : '')
+    + (has('burn') ? tool('splint', 'Que đóm — kéo que đang cháy dí vào chất trong cốc để đốt', 116, 50) : '')
     + '</div>';
 }
 // gắn kéo–thả / bấm cho khung (gọi sau khi renderLab dựng xong bàn)
@@ -1306,6 +1405,12 @@ function bigBindings(){
   tl('heat', 'lamp', {onClick: () => lab.heaterOn ? setHeat(false) : dropAction('lamp', 'beaker'),
                       onLoose: () => { if(lab.heaterOn){ setHeat(false); return true; } return false; }});
   tl('lid', 'lid', {onClick: () => setCatch(!lab.catcher), onDrop: () => setCatch(true)});
+  // que đóm: thả vào cốc = đầu que (ngay con trỏ) dí vào lớp chất nằm dưới nó
+  tl('splint', 'splint', {w:40, h:300, ghostHTML: () => bigSplintArt(true),
+    onClick: () => notify('Kéo <b>que đóm</b> đang cháy dí vào chất trong cốc để đốt (cốc đậy nắp, có khí O₂ hoặc Cl₂).'),
+    onDrop: (zone, e, pt) => { const el = document.elementFromPoint(pt[0], pt[1]), q = gameXY({clientX:pt[0], clientY:pt[1]});
+      const ph = el && el.closest ? el.closest('#bigBeaker [data-ph]') : null;
+      bigIgnite(ph ? ph.dataset.ph : null, q.x, q.y); }});
   const lamp = P.querySelector('.bp-lamp'); if(lamp) lamp.addEventListener('click', () => setHeat(false));
   syncBig();
 }
@@ -1315,6 +1420,7 @@ function syncBig(){
   P.classList.toggle('heat', !!lab.heaterOn); P.classList.toggle('lid', !!lab.catcher);
   P.classList.toggle('steam', !!lab.heaterOn && (bigWet() || !!lab.steam));
   P.querySelector('#bigBeaker').classList.toggle('hot', !!lab.heaterOn);
+  if(lab.heaterOn && bigWet()) bigSlosh(1.2);   // nước đang đun: sôi lăn tăn tới khi tắt đèn
 }
 // chất trong cốc → cốc to: lớp rắn, lớp lỏng gợn sóng, lớp khí dưới nắp, hơi nước đọng, vệt đổi màu loang
 function paintBig(){
@@ -1368,7 +1474,8 @@ function stirOnce(){
 const BIG_TIP = {
   heat:   'Mới: <b>Đèn cồn</b>. Bấm đèn (hoặc kéo vào cốc) để đun — cốc nhấc lên kiềng. Bấm lần nữa để tắt.',
   gas:    'Mới: <b>Nắp</b>. Đậy lên cốc <b>trước khi</b> phản ứng sinh khí — khí ở lại trong cốc thành <b>lớp khí</b>. Mở nắp là khí bay mất.',
-  filter: 'Không cần lọc: kết tủa nằm thành <b>lớp rắn</b> dưới đáy cốc. Kéo lớp rắn sang khách, hoặc kéo lớp lỏng ra bồn rửa để giữ lại chất rắn.'
+  filter: 'Không cần lọc: kết tủa nằm thành <b>lớp rắn</b> dưới đáy cốc. Kéo lớp rắn sang khách, hoặc kéo lớp lỏng ra bồn rửa để giữ lại chất rắn.',
+  burn:   'Mới: <b>Que đóm</b>. Đậy nắp, cho khí O₂ (hoặc Cl₂) và chất cần đốt vào cốc khô, rồi kéo que đóm đang cháy <b>dí vào chất đó</b>.'
 };
 const BIG_HINT = 'Kéo lọ từ <b>tủ hoá chất</b> vào cốc để rót. Kéo <b>lớp khí / lỏng / rắn</b> trong cốc sang khay khách để giao, sang <b>bồn rửa</b> để đổ.';
 // gợi ý bước kế tiếp khi dùng cốc to: giao theo lớp, khí cần nắp, nung khô thì đổ lớp lỏng đi
@@ -1387,6 +1494,16 @@ function bigCoachText(){
       + 'hoặc kéo lớp ' + ph + ' ra <b>bồn rửa</b> làm lại.';
   const made = want === 'gas' && /\(.*\+/.test(od.pname || '');
   const at = f => (lab.mix[f] || 0) + (lab.undissolved[f] || 0);
+  const br = burnRoute(day, od);   // phải ĐỐT: nắp → khí O₂ / Cl₂ → chất cháy (cốc khô) → dí que đóm
+  if(br){
+    const g = Object.keys(br.rg).find(f => CHEMS[f].s === 'k'), fu = Object.keys(br.rg).find(f => f !== g);
+    if(!lab.catcher) return 'Đơn này phải <b>ĐỐT</b>. Đậy <b>nắp</b> cốc trước đã — khí ' + sub(g) + ' phải ở lại trong cốc.';
+    if(!((P.gas[g] || 0) > 0)) return 'Cho khí <b>' + sub(g) + '</b> vào cốc: ' + (day.chems.includes(g) ? 'kéo bình ' + sub(g) + ' từ tủ vào cốc đang đậy nắp.'
+                                                                              : 'tự điều chế ' + sub(g) + ' ngay trong cốc đang đậy nắp.');
+    if(!(at(fu) > 0)) return 'Cốc đã có khí ' + sub(g) + '. Giờ cho <b>' + sub(fu) + '</b> từ tủ vào cốc.';
+    if(bigWet()) return sub(fu) + ' đang ngập nước thì không cháy — kéo <b>lớp lỏng</b> ra bồn rửa trước.';
+    return 'Kéo <b>que đóm</b> đang cháy dí vào <b>' + sub(fu) + '</b> trong cốc để đốt!';
+  }
   if(want === 'gas' && !lab.catcher) return 'Khách cần <b>khí</b>: kéo <b>nắp</b> đậy lên cốc trước đã — có nắp thì khí sinh ra ở lại trong cốc.';
   if(!made && day.chems.includes(t) && !(at(t) > 0)) return 'Bắt đầu bằng cách kéo lọ <b>' + sub(t) + '</b> từ tủ bên phải vào cốc.';
   if(od.water && !(lab.mix.H2O > 0) && day.chems.includes('H2O'))
@@ -1577,7 +1694,7 @@ function renderLab(){
   if(big) bigBindings();
   else if(bigBeakerOn() && !lab.bigTold){   // bật cốc to mà hôm nay có muôi đốt / điện phân: nói một lần vì sao bàn vẫn như cũ
     lab.bigTold = true;
-    setTimeout(() => { if(lab) notify('Hôm nay có ' + (has('burn') ? 'muôi đốt' : 'bộ điện phân') + ' nên dùng bàn thí nghiệm thường — cốc to chưa có bộ này.'); }, 1500);
+    setTimeout(() => { if(lab) notify('Hôm nay có bộ điện phân nên dùng bàn thí nghiệm thường — cốc to chưa có bộ này.'); }, 1500);
   }
   
   if(hasMagicTools){
@@ -1791,7 +1908,7 @@ function applyReaction(r, n, skip, steam){
   const boom = r.rg.H2 && (r.rg.O2 || r.rg.Cl2);   // hỗn hợp hiđro gặp lửa thì nổ "bụp", toả nhiệt thì xèo
   if(boom) SFX.bang(); else if(r.exo) SFX.sizzle();
   if(r.exo || boom){ const b = G.querySelector('#beakerItem'); b.classList.remove('glowing'); void b.offsetWidth; b.classList.add('glowing'); }
-  if(boom) bigWord('BÙM!', '#d9634f'); else if(r.exo) bigWord('XÈO!', '#ffb347');
+  if(boom) bigWord('BÙM!', '#d9634f'); else if(r.exo) bigWord(r.burn ? 'BÙNG!' : 'XÈO!', '#ffb347');   // cốc to: chữ tượng thanh
   return eqStr(r)+gasNote;
 }
 
@@ -2155,7 +2272,7 @@ function whyNoReaction(focus){
   const say = (k, v) => fillLine(PROF_NO_RX[k], v || {});
   for(const r of REACTIONS) if(r.burn && ready(r)){
     const g = Object.keys(r.rg).find(f => CHEMS[f].s === 'k'), fu = Object.keys(r.rg).find(f => f !== g);
-    if(hit([g, fu])) return say(tools.includes('burn') ? 'dot-sai-cho' : 'khong-muoi', {fuel:sub(fu), gas:sub(g)});
+    if(hit([g, fu])) return say(!tools.includes('burn') ? 'khong-muoi' : lab.big ? 'dot-que-dom' : 'dot-sai-cho', {fuel:sub(fu), gas:sub(g)});
   }
   // đang đun mà chất cần NUNG KHÔ (dry) còn lẫn trong nước / dung dịch: nói cách tách ra, đừng để trò đun suông
   if(lab.heaterOn && liquid){
@@ -2296,6 +2413,7 @@ function pourFX(f){
   const c = CHEMS[f], cs = contSym(f), q = beakerGeo(), m = q.mouth;
   const isPip = (cs === 'sym-bottle-liquid'), isSpoon = (cs === 'sym-jar-powder');
   const land = q.surf !== null ? q.surf : q.solid;   // chất rơi tới mặt chất lỏng; cốc khô thì tới đáy / mặt chất rắn
+  setTimeout(() => bigSlosh(isPip ? 4.5 : 3), 350);   // cốc to: chất rơi xuống mặt nước làm gợn sóng
   const g = document.createElement('div');
   g.className = 'pourghost' + (isPip ? ' ppip' : isSpoon ? ' pspoon' : '');
   g.style.zIndex = q.z + 3;
@@ -2516,7 +2634,7 @@ function spawnBubbles(){
     l.style.cssText = 'left:'+(q.x + (Math.random()*2 - 1)*q.rx*0.6)+'px;top:'+(top - 10)+'px;z-index:'+(q.z + 2)+';animation-delay:'+(Math.random()*.3)+'s';
     G.appendChild(l); setTimeout(()=>l.remove(), 1100);
   }
-  bigWord('SỦI!', '#7fc4c9');
+  bigWord('SỦI!', '#7fc4c9'); bigSlosh(2.2);
   SFX.fizz();
 }
 // kết tủa: hạt hiện ra trong khối chất lỏng rồi lắng xuống mặt lớp chất rắn ở đáy
@@ -2534,6 +2652,7 @@ function spawnFall(color){
 }
 // cốc chỉ lắc khi KHUẤY (bấm đũa / rê đũa trong lòng cốc) — rót, rút lại, axit bắn đều không lắc
 function wiggleBeaker(){
+  bigSlosh(4);   // cốc to: khuấy là nước sóng sánh rồi lặng dần
   const b = G.querySelector(lab && lab.big ? '#bigBeaker' : '#beakerItem'); if(!b) return;
   b.classList.remove('shaken'); void b.offsetWidth; b.classList.add('shaken');
 }
