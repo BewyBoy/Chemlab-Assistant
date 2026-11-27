@@ -172,6 +172,8 @@ const REASON_LINES = {
  'trong':        'vật đựng đang trống trơn mà',
  'vat-dung-khi': 'khí thì phải giao bằng bình thu khí chứ',
  'vat-dung-ran': 'chất rắn phải lọc ra đĩa rồi mới giao chứ',
+ 'lop-khi':      'khí thì đưa tôi lớp khí trong cốc chứ',          // cốc to (Cài đặt → "Cốc phóng to"): giao theo lớp
+ 'lop-ran':      'tôi cần lớp chất rắn thôi, đừng đưa cả nước',
  'khong-co':     'không thấy {name} đâu cả',                 // {name} = tên hàng khách đặt
  'lan-chat':     'hàng bị lẫn {list}',                       // {list} = các chất bị lẫn vào
  'nhieu-qua':    'cần đúng {q} cơ, chỗ này nhiều quá',
@@ -221,6 +223,7 @@ const PROF_NO_RX = {
 /* ---- nhắc trong ca ở bàn thí nghiệm (hiện ở góc dưới màn hình) ---- */
 const PROF_LAB = {
  khiBayMat:  'Khí sinh ra bay mất rồi! Muốn giữ khí thì kéo <b>Thu khí</b> lên miệng cốc <b>trước khi</b> rót chất tạo khí.',
+ khiBayMatNap: 'Khí sinh ra bay mất rồi! Muốn giữ khí thì <b>đậy nắp</b> cốc <b>trước khi</b> cho chất tạo khí — khí sẽ ở lại trong cốc.',   // cốc to
  thaKhay:    'Muốn giao hàng thì thả cốc (bình khí, đĩa lọc) vào đúng <b>khay</b> trước mặt khách nhé.',
  thaLoi:     'Lần giao sai đầu tiên trong ca ta <b>chưa tính lỗi</b> — khách đã nói sai chỗ nào, sửa lại rồi giao nhé. Từ lần sau, giao sai là mất sao thứ ba.',
  hoanTac:    'Đã rút lại lần rót vừa rồi.',
