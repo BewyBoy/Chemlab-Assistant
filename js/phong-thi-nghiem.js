@@ -612,26 +612,26 @@ function sinkTopSVG(){
     +   '<path d="M92,124 L140,124" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".7"/>'
     +   '<path d="M232,76 Q262,78 276,96" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".5"/>'
     + '</g>'
-    + '<rect x="58" y="38" width="252" height="98" rx="16" fill="none" stroke="' + ink + '" stroke-width="3.5"/>'
+    + '<rect x="58" y="38" width="252" height="98" rx="16" fill="none" stroke="#8fa3ad" stroke-width="3"/>'
     // lỗ thoát nước giữa đáy chậu
-    + '<ellipse cx="184" cy="96" rx="15" ry="12" fill="#82949d" stroke="' + ink + '" stroke-width="2.2"/>'
+    + '<ellipse cx="184" cy="96" rx="15" ry="12" fill="#82949d" stroke="#6b7c85" stroke-width="2"/>'
     + '<ellipse cx="184" cy="96" rx="10" ry="8" fill="#4f5d64"/>'
     + '<path d="M174,96 L194,96 M184,88 L184,104 M177,90.5 L191,101.5 M191,90.5 L177,101.5" stroke="#b8c6cd" stroke-width="1.5" opacity=".85"/>'
     // chai xà phòng trên gờ sau, nhìn từ trên: thân, cổ bơm, vòi bơm
-    + '<rect x="58" y="10" width="26" height="22" rx="6" fill="url(#st-soap)" stroke="' + ink + '" stroke-width="3"/>'
+    + '<rect x="58" y="10" width="26" height="22" rx="6" fill="url(#st-soap)" stroke="#5b968a" stroke-width="2.5"/>'
     + '<rect x="63" y="15" width="16" height="9" rx="1.5" fill="#fffdf5" opacity=".9"/>'
-    + '<circle cx="71" cy="12" r="5" fill="#d4dee3" stroke="' + ink + '" stroke-width="2.5"/>'
-    + '<path d="M76,12 L88,12" stroke="' + ink + '" stroke-width="5" stroke-linecap="round"/><path d="M76,12 L88,12" stroke="#d4dee3" stroke-width="2" stroke-linecap="round"/>'
+    + '<path d="M76,12 L88,12" stroke="#9aa9b0" stroke-width="5" stroke-linecap="round"/><path d="M76,12 L88,12" stroke="#d4dee3" stroke-width="2" stroke-linecap="round"/>'
+    + '<circle cx="71" cy="12" r="5" fill="#d4dee3" stroke="#9aa9b0" stroke-width="2"/>'
     // miếng bọt biển trên gờ sau bên phải: mặt cước xanh trên, lớp mút vàng lộ ra phía trước
-    + '<rect x="272" y="12" width="40" height="20" rx="4" fill="#f4cf5e" stroke="' + ink + '" stroke-width="3"/>'
-    + '<rect x="272" y="12" width="40" height="12" rx="4" fill="#6fa65a" stroke="' + ink + '" stroke-width="3"/>'
+    + '<rect x="272" y="12" width="40" height="20" rx="4" fill="#f4cf5e" stroke="#cfa53c" stroke-width="2.5"/>'
+    + '<rect x="272" y="12" width="40" height="12" rx="4" fill="#6fa65a" stroke="#4f8640" stroke-width="2.5"/>'
     // vòi cổ ngỗng: đế tròn trên gờ sau, thân đứng ngắn, cổ vươn ra phía trước trên lòng chậu, đầu vòi và giọt nước
-    + '<ellipse cx="184" cy="24" rx="15" ry="10" fill="#9fb0b8" stroke="' + ink + '" stroke-width="3"/>'
-    + '<path d="M198,22 L222,17" stroke="' + ink + '" stroke-width="9" stroke-linecap="round"/><path d="M198,22 L222,17" stroke="#c9d4d9" stroke-width="4" stroke-linecap="round"/>'
-    + '<path d="M184,10 L184,62" fill="none" stroke="' + ink + '" stroke-width="15" stroke-linecap="round"/>'
+    + '<ellipse cx="184" cy="24" rx="15" ry="10" fill="#9fb0b8" stroke="#7f8f97" stroke-width="2.5"/>'
+    + '<path d="M198,22 L222,17" stroke="#7f8f97" stroke-width="8" stroke-linecap="round"/><path d="M198,22 L222,17" stroke="#c9d4d9" stroke-width="4" stroke-linecap="round"/>'
+    + '<path d="M184,10 L184,62" fill="none" stroke="#7f8f97" stroke-width="13" stroke-linecap="round"/>'
     + '<path d="M184,10 L184,62" fill="none" stroke="url(#st-chrome)" stroke-width="9" stroke-linecap="round"/>'
     + '<path d="M181.5,12 L181.5,56" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".85"/>'
-    + '<ellipse cx="184" cy="64" rx="6.5" ry="4.5" fill="#5f6f77" stroke="' + ink + '" stroke-width="2"/>'
+    + '<ellipse cx="184" cy="64" rx="6.5" ry="4.5" fill="#5f6f77" stroke="#56656c" stroke-width="1.5"/>'
     + '<path d="M184,72 Q181.5,77 184,81 Q186.5,77 184,72 Z" fill="#6f9ec9" fill-opacity=".86"/>'
     // tia nước bắn ra khi đổ bỏ (--splash)
     + '<g style="opacity:var(--splash,0)">'
@@ -1157,13 +1157,35 @@ function shelfBoards(){
    Kéo một lớp ra khỏi khung thì nó nằm trong vật đựng: khí → bình khí, rắn / lỏng → lọ đựng mẫu.
    Mặt nước phẳng lặng, rót / khuấy / sủi / đốt thì gợn rồi lặng dần (bigSlosh).
    Ngày có điện phân (điện cực) — kể cả ca tự do — chưa có ở khung này: dùng bàn thường (newLab). */
-/* Màn chia ba cột dọc: trái quầy khách + khay giao, GIỮA khung cốc to (1/3 bề ngang), phải tủ hoá chất (3/4 trên) + bồn
-   rửa (1/4 dưới) — tủ và bồn là hình cũ dời chỗ, đổi cỡ (.scene.bigmode trong style.css) */
+/* Màn chia ba cột dọc bằng nhau 1:1:1 theo bề ngang thật của màn (cả phần dư BX hai bên): trái quầy khách + khay giao,
+   GIỮA khung cốc to, phải tủ hoá chất (3/4 trên) + bồn rửa (1/4 dưới) — tủ và bồn dời chỗ, đổi cỡ trong style.css
+   (.scene.bigmode, cùng công thức theo --bx). bigFitCalc() đặt l / w của khung theo BX hiện tại. */
 const BIGP = {l:427, t:64, w:426, h:656, table:498};   // khung (toạ độ màn hình); table: mép bàn, y trong khung
 const BIG_H = 360, BIG_LIFT = 72, BIG_R = 34;            // cốc cao; đun thì nhấc lên chừng này (lên lưới kiềng); bán kính góc đáy
 const BIG_CUP = {x:78, w:270};                           // cốc: mép trái trong khung, bề rộng (giữa khung)
 const bigTop = () => BIGP.table - 6 - BIG_H - (lab.heaterOn ? BIG_LIFT : 0);   // mép trên thân cốc, trong khung
-const BIG_ROW = 640, BIG_SLOT = {rod:54, heat:144, lid:238, splint:352};   // dụng cụ trên mặt bàn: đáy chung, tâm x từng chỗ
+const BIG_ROW = 640, BIG_SLOT0 = {rod:54, heat:144, lid:238, splint:352}, BIG_SLOT = {...BIG_SLOT0};   // dụng cụ trên mặt bàn: đáy chung, tâm x từng chỗ (BIG_SLOT0: khung rộng 426)
+let bigBX = null;   // BX lúc dựng khung lần cuối
+// khung giữa = 1/3 bề ngang màn; cốc ở giữa khung, chỗ dụng cụ giãn theo bề rộng khung
+function bigFitCalc(){
+  const third = (1280 + 2*BX) / 3;
+  BIGP.l = Math.round(third - BX); BIGP.w = Math.round(third);
+  BIG_CUP.x = Math.round((BIGP.w - BIG_CUP.w) / 2);
+  for(const k in BIG_SLOT0) BIG_SLOT[k] = Math.round(BIG_SLOT0[k] * BIGP.w / 426);
+  bigBX = BX;
+}
+// giấy cân bằng, kính & găng bám góc trái khung; giấy nhớ, công tắc tủ hút bám góc phải
+function bigWallPos(){
+  [['#balpaper', 6], ['#goggles', 6], ['.stickynote.bpw', -69], ['#hoodsw', -63]].forEach(([q, d]) => {
+    const el = G.querySelector(q); if(el) el.style.left = (d > 0 ? BIGP.l + d : BIGP.l + BIGP.w + d) + 'px'; });
+}
+// đổi cỡ màn giữa ca (xoay máy, kéo cửa sổ): dựng lại khung theo bề ngang mới, giữ nguyên chất trong cốc
+function bigRefit(){
+  const P = G.querySelector('#bigpanel'); if(!P || BX === bigBX) return;
+  bigFitCalc();
+  P.outerHTML = bigPanelHTML();
+  bigWallPos(); bigBindings(); updateBeaker();
+}
 // lòng cốc (toạ độ thân cốc): đáy trong, và chiều cao ứng với mức đầy nhất của thang cũ (196) — mặt nước / lớp rắn tính theo đây
 const BIG_FLOOR = BIG_H - 7, BIG_FILL = BIG_H - 7 - 26;
 // ---- ba lớp chất ----
@@ -1662,6 +1684,7 @@ function renderLab(){
   const day = lab.day;
   const has = t => day.tools.includes(t);
   const big = lab.big;   // cốc to: khung giữa màn (bigPanelHTML), tủ + bồn rửa cột phải; giấy cân bằng, giấy nhớ… thu nhỏ ở hai góc khung
+  if(big) bigFitCalc();
   const shelfHtml = day.chems.map(f => { const c = CHEMS[baseChem(f)], dac = f !== baseChem(f);
     // chế độ khó: lọ dung dịch ghi rõ nồng độ — phải biết Cₘ mới tính được thể tích cần đong
     const cm = lab.hard && SOL_CM[f] ? ' <small class="cm">'+fmt(SOL_CM[f],2)+'M</small>' : '';
@@ -1684,7 +1707,7 @@ function renderLab(){
   const hasStickyNotes = save.items && save.items.notes;
   const hasSticky = !day.free && hasStickyNotes;
   const stickyNoteHtml = hasSticky ? `
-    <div class="wallitem stickynote${big ? ' bpw' : ''}" style="left:${big ? 784 : hasBal ? 632 : 580}px;top:${big ? 6 : 120}px;width:98px;min-height:96px;background:#fef5c1;border:1.2px solid #d6c57a;transform:rotate(-2deg);padding:7px;font-family:var(--fh);font-size:13.5px;z-index:${big ? 55 : 5}">
+    <div class="wallitem stickynote${big ? ' bpw' : ''}" style="left:${big ? BIGP.l + BIGP.w - 69 : hasBal ? 632 : 580}px;top:${big ? 6 : 120}px;width:98px;min-height:96px;background:#fef5c1;border:1.2px solid #d6c57a;transform:rotate(-2deg);padding:7px;font-family:var(--fh);font-size:13.5px;z-index:${big ? 55 : 5}">
       <h4 style="margin:0 0 5px 0;font-size:13.5px;border-bottom:1px dotted #3b302566;padding-bottom:2px;display:flex;align-items:center;gap:4px">${ico('note',13)} Giấy nhớ</h4>
       <div id="stickynote-content" style="font-size:11.5px;line-height:1.35"></div>
       <div id="sn-water" style="display:none;position:absolute;right:6px;bottom:3px;font-size:10.5px;color:#4a7ba8;align-items:center;gap:2px">
@@ -1692,8 +1715,8 @@ function renderLab(){
       </div>
     </div>
   ` : '';
-  const gogglesHtml = lab.hard ? `<div class="wallitem safetyhook${big ? ' bpw' : ''}" id="goggles" style="left:${big ? 433 : day.free ? 534 : 874}px;top:${big ? 172 : day.free ? 134 : 34}px" title="Bấm để đeo kính bảo hộ và găng tay">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>` : '';
-  const hoodHtml = lab.hoodDay ? `<div class="wallitem hoodsw${big ? ' bpw' : ''}" id="hoodsw" style="left:${big ? 790 : day.free ? 634 : 872}px;top:${big ? 172 : day.free ? 132 : 152}px" title="Bấm để bật / tắt tủ hút">${HOOD_SVG}<div class="wallcap">Tủ hút: tắt</div></div>` : '';
+  const gogglesHtml = lab.hard ? `<div class="wallitem safetyhook${big ? ' bpw' : ''}" id="goggles" style="left:${big ? BIGP.l + 6 : day.free ? 534 : 874}px;top:${big ? 172 : day.free ? 134 : 34}px" title="Bấm để đeo kính bảo hộ và găng tay">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>` : '';
+  const hoodHtml = lab.hoodDay ? `<div class="wallitem hoodsw${big ? ' bpw' : ''}" id="hoodsw" style="left:${big ? BIGP.l + BIGP.w - 63 : day.free ? 634 : 872}px;top:${big ? 172 : day.free ? 132 : 152}px" title="Bấm để bật / tắt tủ hút">${HOOD_SVG}<div class="wallcap">Tủ hút: tắt</div></div>` : '';
 
   G.innerHTML = `<div class="scene${big ? ' bigmode' : ''}" style="padding:0">
     <div class="hudboard">${sym('sym-benchtex',1240,52,'position:absolute;left:20px;top:6px;width:calc(100% - 40px);opacity:.4;pointer-events:none')}
@@ -1712,7 +1735,7 @@ function renderLab(){
       ${wallBgSVG()}
       ${big ? '' : `<div class="wallitem" style="left:400px;top:18px">${sym('sym-poster-periodic',104,134)}</div>`}
       <div class="wallitem" style="left:590px;top:14px"><svg id="clocksvg" width="84" height="84"><use href="#sym-clock"/></svg></div>
-      ${hasBal ? `<div class="wallitem balpaper${big ? ' bpw' : ''}" id="balpaper" style="left:${big ? 433 : hasSticky ? 540 : 589}px;top:${big ? 6 : 122}px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
+      ${hasBal ? `<div class="wallitem balpaper${big ? ' bpw' : ''}" id="balpaper" style="left:${big ? BIGP.l + 6 : hasSticky ? 540 : 589}px;top:${big ? 6 : 122}px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
       ${stickyNoteHtml}
       ${day.free || big ? '' : `<div class="wallitem" style="left:${lab.hard ? 758 : 798}px;top:${lab.hard ? 18 : 20}px">${sym('sym-poster-safety',104,134)}</div>`}
       ${gogglesHtml}

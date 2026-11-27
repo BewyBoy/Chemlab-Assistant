@@ -1476,6 +1476,7 @@ function fit(){
   SCR.style.transform = `translate(-50%,-50%) scale(${s})`;
   const bench = G.querySelector('#benchsvg');            // cạnh trái bàn bám theo mép màn — vẽ lại chỉ khi mép thật sự đổi
   if(bench && (BX !== benchBX || !bench.isConnected)){ benchBX = BX; bench.outerHTML = benchSVG(); }
+  if(typeof lab !== 'undefined' && lab && lab.big && typeof bigRefit === 'function') bigRefit();   // cốc to: khung giữa luôn 1/3 màn
   if(typeof lab !== 'undefined' && lab && typeof shelfBoards === 'function') shelfBoards();
 }
 // kéo cửa sổ / thanh địa chỉ điện thoại co giãn bắn hàng chục sự kiện resize: gom lại, mỗi khung hình fit() một lần
