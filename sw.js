@@ -3,7 +3,7 @@
    - Font: không bao giờ đổi, lấy thẳng bản đã lưu cho nhanh.
    Thêm file mới vào game thì thêm vào SHELL bên dưới (cùng danh sách với index.html và tools/dong-goi.ps1). */
 'use strict';
-const CACHE = 'chemlab-v7';
+const CACHE = 'chemlab-v8';
 const SHELL = [
   './', 'index.html', 'style.css', 'favicon.png', 'favicon.ico', 'assets/man-hinh-chinh.svg', 'assets/logo-mo-dau.svg',
   'js/loi-thoai.js', 'js/nhan-vat.js', 'js/phan-ung.js', 'js/du-lieu.js', 'js/lich.js', 'js/bai-giang.js',

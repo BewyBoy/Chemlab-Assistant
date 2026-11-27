@@ -583,6 +583,63 @@ function sinkSVG(){
 }
 
 
+/* bồn rửa của chế độ cốc to: nhìn từ trên xuống, hơi nghiêng (thấy dải thành sau của lòng chậu, thân vòi đứng).
+   Cùng bảng màu, nét mực và tia nước --splash với sinkSVG; id sinksvg để dumpBeaker / dumpPhase bắn nước như cũ. */
+function sinkTopSVG(){
+  const ink = '#3b3025';
+  // giọt / vệt nước bắn ra quanh lỗ thoát (184,96) khi đổ bỏ
+  const splash = [[-34, -16], [-40, 8], [-20, -30], [26, -28], [40, -10], [36, 14], [-6, -36], [10, 26]].map(([dx, dy], k) =>
+    '<path d="M' + (184 + dx*.45) + ',' + (96 + dy*.45) + ' L' + (184 + dx) + ',' + (96 + dy) + '" stroke="#6f9ec9" stroke-width="3" stroke-linecap="round" opacity=".8"/>'
+    + '<circle cx="' + (184 + dx*1.18) + '" cy="' + (96 + dy*1.18) + '" r="' + (k % 3 ? 2.6 : 3.4) + '" fill="#6f9ec9" fill-opacity=".85"/>').join('');
+  return '<svg id="sinksvg" class="sink-svg sink-top" viewBox="0 0 340 150" width="340" height="150" aria-hidden="true">'
+    + '<defs>'
+    +   '<linearGradient id="st-rim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2f6f8"/><stop offset="1" stop-color="#cdd8dd"/></linearGradient>'
+    +   '<linearGradient id="st-back" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7f949e"/><stop offset="1" stop-color="#a3b5be"/></linearGradient>'
+    +   '<radialGradient id="st-floor" cx=".5" cy=".55" r=".75"><stop offset="0" stop-color="#e3ebee"/><stop offset="1" stop-color="#b6c5cc"/></radialGradient>'
+    +   '<linearGradient id="st-chrome" gradientUnits="userSpaceOnUse" x1="179" y1="0" x2="189" y2="0"><stop offset="0" stop-color="#f2f6f8"/><stop offset=".55" stop-color="#b7c4cb"/><stop offset="1" stop-color="#7f8f97"/></linearGradient>'
+    +   '<linearGradient id="st-soap" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#9dd4c9"/><stop offset="1" stop-color="#6faea2"/></linearGradient>'
+    +   '<clipPath id="st-bowl"><rect x="58" y="38" width="252" height="98" rx="16"/></clipPath>'
+    + '</defs>'
+    // khối chậu inox gắn vào mặt quầy: gờ sau rộng để vòi và xà phòng
+    + '<rect x="40" y="6" width="288" height="140" rx="18" fill="url(#st-rim)" stroke="' + ink + '" stroke-width="5"/>'
+    + '<path d="M50,13 L318,13" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".8"/>'
+    // lòng chậu: dải thành sau (thấy được vì hơi nghiêng), hai thành bên hẹp, đáy sáng dần ra giữa
+    + '<g clip-path="url(#st-bowl)">'
+    +   '<rect x="58" y="38" width="252" height="98" fill="url(#st-floor)"/>'
+    +   '<path d="M58,38 L310,38 L310,58 Q296,56 292,60 L76,60 Q72,56 58,58 Z" fill="url(#st-back)"/>'
+    +   '<path d="M58,58 Q72,56 76,60 L72,136 L58,136 Z" fill="#8fa3ad" opacity=".75"/>'
+    +   '<path d="M310,58 Q296,56 292,60 L296,136 L310,136 Z" fill="#c3d0d6" opacity=".85"/>'
+    +   '<path d="M92,124 L140,124" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".7"/>'
+    +   '<path d="M232,76 Q262,78 276,96" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".5"/>'
+    + '</g>'
+    + '<rect x="58" y="38" width="252" height="98" rx="16" fill="none" stroke="' + ink + '" stroke-width="3.5"/>'
+    // lỗ thoát nước giữa đáy chậu
+    + '<ellipse cx="184" cy="96" rx="15" ry="12" fill="#82949d" stroke="' + ink + '" stroke-width="2.2"/>'
+    + '<ellipse cx="184" cy="96" rx="10" ry="8" fill="#4f5d64"/>'
+    + '<path d="M174,96 L194,96 M184,88 L184,104 M177,90.5 L191,101.5 M191,90.5 L177,101.5" stroke="#b8c6cd" stroke-width="1.5" opacity=".85"/>'
+    // chai xà phòng trên gờ sau, nhìn từ trên: thân, cổ bơm, vòi bơm
+    + '<rect x="58" y="10" width="26" height="22" rx="6" fill="url(#st-soap)" stroke="' + ink + '" stroke-width="3"/>'
+    + '<rect x="63" y="15" width="16" height="9" rx="1.5" fill="#fffdf5" opacity=".9"/>'
+    + '<circle cx="71" cy="12" r="5" fill="#d4dee3" stroke="' + ink + '" stroke-width="2.5"/>'
+    + '<path d="M76,12 L88,12" stroke="' + ink + '" stroke-width="5" stroke-linecap="round"/><path d="M76,12 L88,12" stroke="#d4dee3" stroke-width="2" stroke-linecap="round"/>'
+    // miếng bọt biển trên gờ sau bên phải: mặt cước xanh trên, lớp mút vàng lộ ra phía trước
+    + '<rect x="272" y="12" width="40" height="20" rx="4" fill="#f4cf5e" stroke="' + ink + '" stroke-width="3"/>'
+    + '<rect x="272" y="12" width="40" height="12" rx="4" fill="#6fa65a" stroke="' + ink + '" stroke-width="3"/>'
+    // vòi cổ ngỗng: đế tròn trên gờ sau, thân đứng ngắn, cổ vươn ra phía trước trên lòng chậu, đầu vòi và giọt nước
+    + '<ellipse cx="184" cy="24" rx="15" ry="10" fill="#9fb0b8" stroke="' + ink + '" stroke-width="3"/>'
+    + '<path d="M198,22 L222,17" stroke="' + ink + '" stroke-width="9" stroke-linecap="round"/><path d="M198,22 L222,17" stroke="#c9d4d9" stroke-width="4" stroke-linecap="round"/>'
+    + '<path d="M184,10 L184,62" fill="none" stroke="' + ink + '" stroke-width="15" stroke-linecap="round"/>'
+    + '<path d="M184,10 L184,62" fill="none" stroke="url(#st-chrome)" stroke-width="9" stroke-linecap="round"/>'
+    + '<path d="M181.5,12 L181.5,56" stroke="#fff" stroke-width="2" stroke-linecap="round" opacity=".85"/>'
+    + '<ellipse cx="184" cy="64" rx="6.5" ry="4.5" fill="#5f6f77" stroke="' + ink + '" stroke-width="2"/>'
+    + '<path d="M184,72 Q181.5,77 184,81 Q186.5,77 184,72 Z" fill="#6f9ec9" fill-opacity=".86"/>'
+    // tia nước bắn ra khi đổ bỏ (--splash)
+    + '<g style="opacity:var(--splash,0)">'
+    +   '<ellipse cx="184" cy="96" rx="30" ry="22" fill="none" stroke="#6f9ec9" stroke-width="2.5" opacity=".6"/>' + splash
+    + '</g>'
+    + '</svg>';
+}
+
 /* đặt một vật ĐỨNG trên bàn tại (u,t). art co theo phối cảnh, over (nhãn) thì không */
 function place(o){
   const x = xOf(o.u,o.t), y = yOf(o.t), sc = scaleOf(o.t);
@@ -1158,16 +1215,6 @@ function bigGeo(){
 }
 const inBig = p => { const g = bigGeo(); return Math.abs(p.x - g.x) < g.rx + 8 && p.y > g.mouth && p.y < g.floor; };
 const BIG_INK = '#3b3025', BIG_GL = '#eef8fa';
-// đèn cồn vẽ phẳng, gốc toạ độ ở giữa đáy đèn; cap: nắp chụp bấc (lúc cất), flame: lửa (lúc đun)
-const bigLampArt = (cap, flame) =>
-  '<path d="M-40,0 Q-46,-34 -16,-46 L-16,-54 L16,-54 L16,-46 Q46,-34 40,0 Z" fill="' + BIG_GL + '" stroke="' + BIG_INK + '" stroke-width="4" stroke-linejoin="round"/>'
-  + '<path d="M-36,-5 Q-40,-21 -32,-25 L32,-25 Q40,-21 36,-5 Z" fill="#cdbfe6" opacity=".8"/>'
-  + '<path d="M-30,-38 Q-24,-42 -18,-42" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>'
-  + '<rect x="-12" y="-63" width="24" height="10" rx="2" fill="#b8bcc2" stroke="' + BIG_INK + '" stroke-width="3"/>'
-  + '<rect x="-3.5" y="-73" width="7" height="11" rx="2" fill="#f1e6c8" stroke="' + BIG_INK + '" stroke-width="2.5"/>'
-  + (cap ? '<path d="M-16,-55 L-16,-74 Q0,-92 16,-74 L16,-55 Z" fill="' + BIG_GL + '" stroke="' + BIG_INK + '" stroke-width="4" stroke-linejoin="round"/>' : '')
-  + (flame ? '<g class="bp-flame"><path d="M0,-70 C-17,-80 -13,-104 0,-124 C13,-104 17,-80 0,-70 Z" fill="#ffb347" stroke="#d9634f" stroke-width="3" stroke-linejoin="round"/>'
-           + '<path d="M0,-74 C-8,-81 -6,-95 0,-105 C6,-95 8,-81 0,-74 Z" fill="#fff1a8"/></g>' : '');
 // nắp kính phẳng: tấm đậy rộng w (thò ra hai bên miệng cốc), núm cầm ở giữa; gốc toạ độ ở giữa mép dưới tấm đậy
 const bigLidArt = w => '<rect x="' + (-w/2 - 12) + '" y="-18" width="' + (w + 24) + '" height="16" rx="8" fill="' + BIG_GL + '" stroke="' + BIG_INK + '" stroke-width="4"/>'
   + '<path d="M' + (-w/2) + ',-12 L' + (w/2 - 30) + ',-12" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>'
@@ -1175,7 +1222,7 @@ const bigLidArt = w => '<rect x="' + (-w/2 - 12) + '" y="-18" width="' + (w + 24
 const BIG_ART = {
   rod:  '<svg viewBox="0 0 96 52" aria-hidden="true"><path d="M8,44 L88,8" stroke="' + BIG_INK + '" stroke-width="9" stroke-linecap="round"/><path d="M8,44 L88,8" stroke="' + BIG_GL + '" stroke-width="4.5" stroke-linecap="round"/></svg>',
   rodV: '<svg width="18" height="160" viewBox="0 0 18 160" aria-hidden="true"><path d="M9,6 L9,154" stroke="' + BIG_INK + '" stroke-width="9" stroke-linecap="round"/><path d="M9,6 L9,154" stroke="' + BIG_GL + '" stroke-width="4.5" stroke-linecap="round"/></svg>',
-  lamp: '<svg viewBox="-50 -96 100 100" aria-hidden="true">' + bigLampArt(true, false) + '</svg>',
+  lamp: '<svg viewBox="0 0 106 116" aria-hidden="true"><use href="#sym-lamp-cat"/></svg>',   // đèn cồn gốc, đậy nắp
   lid:  '<svg viewBox="-62 -44 124 46" aria-hidden="true">' + bigLidArt(96) + '</svg>'
 };
 // hình một lớp chất đang cầm trên tay (kéo ra khỏi cốc): giọt lỏng, đám khí, đụn chất rắn — tô màu của lớp
@@ -1183,6 +1230,7 @@ const BIG_BLOB = {
   liquid: [70, 84, c => '<path d="M35,5 C35,5 9,40 9,57 A26,26 0 0 0 61,57 C61,40 35,5 35,5 Z" fill="' + c + '" stroke="' + BIG_INK + '" stroke-width="3.5" stroke-linejoin="round"/>'
     + '<path d="M22,52 Q22,40 30,30" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".75"/>'],
   gas: [96, 66, c => '<path d="M22,56 A16,16 0 0 1 18,25 A20,20 0 0 1 54,15 A19,19 0 0 1 83,31 A13,13 0 0 1 79,56 Z" fill="' + c + '" fill-opacity=".75" stroke="' + BIG_INK + '" stroke-width="3.5" stroke-linejoin="round"/>'
+    + '<path d="M24,54 A14,14 0 0 1 20,27 A18,18 0 0 1 54,17 A17,17 0 0 1 81,32 A11,11 0 0 1 78,54 Z" fill="url(#bpgas)"/>'
     + '<path d="M30,26 A12,12 0 0 1 46,20" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" opacity=".8"/>'],
   solid: [88, 54, c => '<path d="M6,50 Q12,24 28,27 Q36,9 52,17 Q70,10 74,29 Q86,33 82,50 Z" fill="' + c + '" stroke="' + BIG_INK + '" stroke-width="3.5" stroke-linejoin="round"/>'
     + '<path d="M8,49 Q13,26 28,29 Q36,12 52,19 Q69,13 73,30 Q84,34 80,49 Z" fill="url(#bpgrain)"/>']
@@ -1238,8 +1286,8 @@ const bigSplintArt = (vertical, lit = true) => vertical
 const BURN_GAS = ['O2', 'Cl2'];   // khí duy trì sự cháy
 // phải giữ que đóm bao lâu (giây) chất mới bén lửa: chất cháy mạnh (Mg, kim loại kiềm, photpho) gần như bén ngay,
 // than, sắt, đồng… phải hơ lâu
-const IGNITE_S = {Mg:.3, Na:.3, K:.3, P:.8, S:2.5, Al:3.5, Zn:3.5, C12H22O11:3.5, C:4, Fe:4, Cu:4};
-const igniteS = f => IGNITE_S[f] || 3;
+const IGNITE_S = {Mg:.22, Na:.22, K:.22, P:.6, S:1.9, Al:2.6, Zn:2.6, C12H22O11:2.6, C:3, Fe:3, Cu:3};
+const igniteS = f => IGNITE_S[f] || 2.25;
 // làn khói nhỏ ngay chỗ que đóm tắt; x, y: toạ độ game
 function bigSmoke(x, y){
   const f = document.createElement('div');
@@ -1327,7 +1375,7 @@ function splintEnd(){
   const d = splintDrag; splintDrag = null; bigEmber(null);
   if(!d) return;
   clearInterval(d.sT);
-  if(!d.done && !d.out && d.hold > .25 && d.need) notify('Chưa bén lửa — giữ que đóm ở chất rắn lâu hơn chút' + (d.need >= 3 ? ' (chất này khó cháy).' : '.'));
+  if(!d.done && !d.out && d.hold > .25 && d.need) notify('Chưa bén lửa — giữ que đóm ở chất rắn lâu hơn chút' + (d.need >= 2.2 ? ' (chất này khó cháy).' : '.'));
 }
 // vật đựng khi kéo một lớp chất ra khỏi khung: khí vào bình khí (canister), chất rắn / lỏng vào lọ đựng mẫu
 const BIG_BOX = {gas:[50, 84], jar:[56, 74]};
@@ -1336,7 +1384,7 @@ function bigContainerSVG(kind, col){
     + '<rect x="14" y="1" width="22" height="5" rx="2" fill="#9a9da3" stroke="' + BIG_INK + '" stroke-width="2"/>'
     + '<rect x="20" y="5" width="10" height="11" rx="2" fill="#b8bcc2" stroke="' + BIG_INK + '" stroke-width="2.5"/>'
     + '<path d="M8,31 Q8,15 25,15 Q42,15 42,31 L42,76 Q42,82 36,82 L14,82 Q8,82 8,76 Z" fill="#c8d4da" stroke="' + BIG_INK + '" stroke-width="3"/>'
-    + '<rect x="8" y="44" width="34" height="17" fill="' + col + '" stroke="' + BIG_INK + '" stroke-width="2"/>'
+    + '<rect x="8" y="44" width="34" height="17" fill="' + col + '" stroke="' + BIG_INK + '" stroke-width="2"/><rect x="9" y="45" width="32" height="15" fill="url(#bpgas)"/>'
     + '<path d="M14,30 L14,72" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/></svg>';
   const solid = kind === 'solid';
   return '<svg width="56" height="74" viewBox="0 0 56 74" aria-hidden="true"><defs><clipPath id="bxclip"><rect x="8" y="14" width="40" height="56" rx="7"/></clipPath></defs>'
@@ -1376,11 +1424,22 @@ function bigCupSVG(W){
     + '<pattern id="bpgrain" width="22" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(-8)">'
     +   '<path d="M2,5 L6,2.5 L9.5,5 L8,9 L3,9 Z" fill="#000" opacity=".16"/><path d="M12,1.5 L16,.5 L18.5,3.5 L15.5,6 L12.5,5 Z" fill="#fff" opacity=".4"/>'
     +   '<path d="M13.5,9.5 L18.5,8.5 L21,12.5 L17,15 L13,13 Z" fill="#000" opacity=".13"/><path d="M3.5,11.5 L7,10.5 L8.5,13.5 L5,15 Z" fill="#fff" opacity=".35"/>'
-    +   '<path d="M9,6 L11,5.5 L11.5,7.5 L9.5,8 Z" fill="#000" opacity=".2"/></pattern></defs>'
+    +   '<path d="M9,6 L11,5.5 L11.5,7.5 L9.5,8 Z" fill="#000" opacity=".2"/></pattern>'
+    // kết cấu chất khí: làn khí xoắn và hạt li ti (nét mực mờ + vệt sáng), trôi ngang chậm khi trong cốc có khí
+    + '<pattern id="bpgas" width="96" height="74" patternUnits="userSpaceOnUse">'
+    +   '<g fill="none" stroke-linecap="round">'
+    +     '<path d="M8,48 q3,-12 14,-9 q8,3 4,11 q-4,6 -10,1" stroke="' + BIG_INK + '" stroke-width="2" opacity=".24"/>'
+    +     '<path d="M9,46 q3,-10 12,-8" stroke="#fff" stroke-width="2.2" opacity=".9"/>'
+    +     '<path d="M56,16 q2,-8 10,-6 q5,2 2,7 q-3,4 -7,1" stroke="' + BIG_INK + '" stroke-width="1.7" opacity=".2"/>'
+    +     '<path d="M57,14 q2,-6 8,-5" stroke="#fff" stroke-width="1.8" opacity=".85"/>'
+    +     '<path d="M50,58 q9,-5 18,0 q7,4 12,0" stroke="#fff" stroke-width="1.8" opacity=".7"/></g>'
+    +   '<circle cx="34" cy="20" r="2.2" fill="#fff" opacity=".85"/><circle cx="84" cy="38" r="1.6" fill="#fff" opacity=".75"/>'
+    +   '<circle cx="30" cy="66" r="1.3" fill="' + BIG_INK + '" opacity=".2"/><circle cx="76" cy="66" r="1.2" fill="#fff" opacity=".7"/></pattern></defs>'
     + '<path d="' + outer + '" fill="' + BIG_GL + '" fill-opacity=".45"/>'
     + '<g clip-path="url(#bpclip)">'
-    // lớp khí (dưới nắp, trên mặt chất lỏng / lớp rắn): chỉ một lớp màu mờ
-    +   '<g id="bp-gasg" class="bp-ph" data-ph="gas" style="pointer-events:none;opacity:0"><rect id="bp-gasr" x="0" y="8" width="' + W + '" height="0"/></g>'
+    // lớp khí (dưới nắp, trên mặt chất lỏng / lớp rắn): một lớp màu mờ phủ hoạ tiết làn khí
+    +   '<g id="bp-gasg" class="bp-ph" data-ph="gas" style="pointer-events:none;opacity:0"><rect id="bp-gasr" x="0" y="8" width="' + W + '" height="0"/>'
+    +     '<rect id="bp-gastex" x="-96" y="8" width="' + (W + 96) + '" height="0" fill="url(#bpgas)"/></g>'
     // lớp lỏng: khối nước trượt lên xuống theo mực nước; mặt nước phẳng lặng, rót / khuấy / sủi thì gợn rồi lặng dần (bigSlosh)
     +   '<g id="bp-liqg" class="bp-ph" data-ph="liquid" style="transform:translateY(' + (H + 6) + 'px);opacity:0;pointer-events:none">'
     +     '<path class="bp-lf" d="' + bigWave(W, 0, 0, true) + '" fill="#cfe6f2"/>'
@@ -1405,14 +1464,16 @@ function bigCupSVG(W){
 }
 // đun: kiềng (lưới amiăng ngay dưới đáy cốc lúc nhấc) + đèn cồn mở nắp, lửa liếm lưới; toạ độ trong khung
 function bigHeatSVG(cx){
-  const g = BIGP.table - 6 - BIG_LIFT, T = BIGP.table;
+  const g = BIGP.table - 6 - BIG_LIFT, T = BIGP.table, LB = T + 16, LK = (LB - g - 2) / 101.5;   // LB: đáy đèn trên mặt bàn; LK: cỡ đèn (đáy → đầu lửa 101.5 đơn vị)
   const leg = (x1, x2, front) => '<path d="M' + x1 + ',' + (g + 9) + ' L' + x2 + ',' + T + '" stroke="' + BIG_INK + '" stroke-width="' + (front ? 9 : 7) + '" stroke-linecap="round"/>'
     + '<path d="M' + x1 + ',' + (g + 9) + ' L' + x2 + ',' + T + '" stroke="' + (front ? '#9a9da3' : '#7d8086') + '" stroke-width="' + (front ? 4 : 3) + '" stroke-linecap="round"/>';
   let hatch = '';
   for(let x = cx - 140; x < cx + 145; x += 12) hatch += '<path d="M' + x + ',' + (g + 2) + ' l5,7" stroke="' + BIG_INK + '" stroke-width="1.2" opacity=".35"/>';
   return '<svg class="bp-heat" width="' + BIGP.w + '" height="' + BIGP.h + '" viewBox="0 0 ' + BIGP.w + ' ' + BIGP.h + '" aria-hidden="true">'
     + leg(cx, cx, false)
-    + '<g class="bp-lamp" transform="translate(' + cx + ',' + T + ') scale(.8)">' + bigLampArt(false, true) + '</g>'   // đèn nhỏ hơn chút cho vừa gầm kiềng
+    // đèn cồn gốc (sym-lamp, mở nắp, lửa bật): gốc đáy đèn đặt trên mặt bàn, đầu ngọn lửa chạm lưới kiềng
+    + '<use class="bp-lamp" href="#sym-lamp" x="' + (cx - 53*LK).toFixed(1) + '" y="' + (LB - 106.5*LK).toFixed(1) + '" width="' + (106*LK).toFixed(1)
+    +   '" height="' + (136*LK).toFixed(1) + '" style="--flame:1;--flamerun:running"/>'
     + '<rect x="' + (cx - 150) + '" y="' + g + '" width="300" height="10" rx="3" fill="#d9d2c3" stroke="' + BIG_INK + '" stroke-width="3.5"/>' + hatch
     + leg(cx - 118, cx - 150, true) + leg(cx + 118, cx + 150, true)
     + '</svg>';
@@ -1439,7 +1500,7 @@ function bigPanelHTML(){
     + '<div class="bp-cup" id="bigBeaker" data-dz="beaker" style="left:' + (c.x - 30) + 'px;top:' + (table - 6 - BIG_H - 56) + 'px;width:' + (W + 44) + 'px;height:' + (BIG_H + 62) + 'px">'
     +   bigCupSVG(W) + '</div>'
     + tool('rod', 'Đũa khuấy — bấm để khuấy, hoặc kéo vào cốc rồi khuấy tròn', 80, 44)
-    + (has('heat') ? tool('heat', 'Đèn cồn — bấm (hoặc kéo vào cốc) để đun, bấm lần nữa để tắt', 66, 66) : '')
+    + (has('heat') ? tool('heat', 'Đèn cồn — bấm (hoặc kéo vào cốc) để đun, bấm lần nữa để tắt', 62, 68) : '')
     + (has('gas') ? tool('lid', 'Nắp — đậy cốc thì khí sinh ra ở lại trong cốc; mở nắp là khí bay mất', 86, 34) : '')
     + (has('burn') ? tool('splint', 'Que đóm — kéo que đang cháy vào cốc, giữ ở chất cần đốt tới khi bén lửa', 96, 42) : '')
     + '</div>';
@@ -1522,8 +1583,9 @@ function paintBig(){
   const gg = cup.querySelector('#bp-gasg'), gb = (liq ? ys - 3 : pre ? yp - 5 : BIG_FLOOR), gh = Math.max(0, gb - 8).toFixed(1);
   gg.style.opacity = gas ? 1 : 0; gg.style.pointerEvents = gas ? 'auto' : 'none';
   const gr = cup.querySelector('#bp-gasr'), gc = bigColor(P.gas, 'gas');
-  gr.setAttribute('height', gh);
+  gr.setAttribute('height', gh); cup.querySelector('#bp-gastex').setAttribute('height', gh);
   gr.style.fill = gc;
+  const panel = cup.closest('.bigpanel'); if(panel) panel.classList.toggle('gas', !!gas);   // làn khí chỉ trôi khi có khí
   gr.style.opacity = Math.min(.4, .2 + gas*.04).toFixed(2);
   cup.querySelector('#bp-fire').style.transform = 'translateY(' + (pre ? yp - 2 : BIG_FLOOR).toFixed(1) + 'px)';
   cup.querySelector('#bp-drops').setAttribute('opacity', lab.heaterOn && (liq || lab.steam) ? 1 : 0);
@@ -1573,7 +1635,7 @@ function bigCoachText(){
                                                                               : 'tự điều chế ' + sub(g) + ' ngay trong cốc đang đậy nắp.');
     if(!(at(fu) > 0)) return 'Cốc đã có khí ' + sub(g) + '. Giờ cho <b>' + sub(fu) + '</b> từ tủ vào cốc.';
     if(bigWet()) return sub(fu) + ' đang ngập nước thì không cháy — kéo <b>lớp lỏng</b> ra bồn rửa trước.';
-    return 'Kéo <b>que đóm</b> đang cháy vào cốc, giữ đầu que ở <b>' + sub(fu) + '</b>' + (igniteS(fu) >= 1 ? ' một lúc cho bén lửa' : '') + '.';
+    return 'Kéo <b>que đóm</b> đang cháy vào cốc, giữ đầu que ở <b>' + sub(fu) + '</b>' + (igniteS(fu) >= .75 ? ' một lúc cho bén lửa' : '') + '.';
   }
   if(want === 'gas' && !lab.catcher) return 'Khách cần <b>khí</b>: kéo <b>nắp</b> đậy lên cốc trước đã — có nắp thì khí sinh ra ở lại trong cốc.';
   if(!made && day.chems.includes(t) && !(at(t) > 0)) return 'Bắt đầu bằng cách kéo lọ <b>' + sub(t) + '</b> từ tủ bên phải vào cốc.';
@@ -1670,7 +1732,7 @@ function renderLab(){
       ${TRAY_SVG}
     </div>
     ${big ? '<div class="bigsinkbg" aria-hidden="true"></div>' : ''}
-    <div class="sinkstation" data-dz="sink" title="Kéo cốc / bình khí / đĩa lọc / muôi vào đây để đổ bỏ">${sinkSVG()}<div class="cap">Bồn rửa</div></div>
+    <div class="sinkstation" data-dz="sink" title="Kéo cốc / bình khí / đĩa lọc / muôi vào đây để đổ bỏ">${big ? sinkTopSVG() : sinkSVG()}<div class="cap">Bồn rửa</div></div>
     ${place3({sid:'sym-tripod', an:'base', x:BKP.x, y:BKP.y, k:KW, z:ZB-1, id:'tripod', cls:'tripod', scls:'gated tri-sh'})}
     ${has('gas') ? place3({sid:'sym-ringstand', an:'base', ...L3.dock.gasStand, k:kAt(L3.dock.gasStand), z:zAt(L3.dock.gasStand.y), id:'gasstand', cls:'rig', scls:'gated rig-sh'}) : ''}
     ${has('filter') || has('burn') ? place3({sid:'sym-filterstand', an:'base', ...L3.dock.filterStand, k:kAt(L3.dock.filterStand), z:zAt(L3.dock.filterStand.y), id:'filterstand', cls:'rig', scls:'gated fs-sh'})

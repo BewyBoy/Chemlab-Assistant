@@ -971,8 +971,16 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .scene.bigmode .shgrid{grid-template-columns:repeat(4,1fr)}
 .bigsinkbg{position:absolute;left:862px;right:calc(-1*var(--bx));top:550px;bottom:calc(-1*var(--by));z-index:5;pointer-events:none;
   background:linear-gradient(#e7eaec,#d3d8db 62%,#bfc6ca);border-top:3px solid #8f989e;box-shadow:inset 0 3px 0 #ffffffa0}
-.scene.bigmode .sinkstation{left:964px;top:553px;scale:.72;transform-origin:0 0}
-.scene.bigmode .sinkstation .cap{font-size:18px;padding:1px 12px}
+.scene.bigmode .sinkstation{left:901px;top:558px;width:340px;height:150px}
+.scene.bigmode .sinkstation svg{width:340px;height:150px}
+.scene.bigmode .sinkstation .cap{left:184px;top:136px;font-size:13px}
+/* điện thoại cầm ngang: game thu nhỏ còn khoảng một nửa — tủ chỉ 3 lọ một hàng, lọ to hơn cho dễ bấm */
+@media (pointer:coarse) and (max-height:500px){
+  .scene.bigmode .shgrid{grid-template-columns:repeat(3,1fr);gap:12px 10px}
+  .scene.bigmode .chem svg{width:56px;height:75px}
+  .scene.bigmode .cc-tag{max-width:96px}
+  .scene.bigmode .cc-tag .f{font-size:16px}
+}
 .toast.say-low{left:16px;bottom:12px;margin:0;max-width:394px;pointer-events:none;transition:bottom .25s ease-out;font-size:15px;line-height:1.4;padding:8px 13px}
 /* lề giấy trắng + viền mực ngoài: khung như cắt ra từ trang truyện dán lên cảnh (không đổ bóng xuống nền) */
 .bigpanel{position:absolute;z-index:50;box-shadow:0 0 0 6px #fffdf5,0 0 0 9px var(--ink)}
@@ -994,6 +1002,9 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .bp-ml{font:15px var(--fh);fill:var(--ink);opacity:.6}
 #bp-liqg{transition:transform .45s ease-out,opacity .4s}
 .bp-lf{transition:fill .4s}
+/* lớp khí: hoạ tiết làn khí trôi ngang chậm (đúng một ô hoạ tiết rồi lặp), chỉ chạy khi trong cốc có khí */
+.bigpanel.gas #bp-gastex{animation:bpgas 14s linear infinite}
+@keyframes bpgas{to{transform:translateX(96px)}}
 /* que đóm: đốm than hồng to dần ở chỗ đang hơ (--k: 0..1), làn khói khi que tắt, lửa liếm mặt lớp rắn khi bén lửa */
 .bp-ember{position:absolute;z-index:57;pointer-events:none;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;
   background:radial-gradient(circle,#fff1a8 0,#ff8a3d 34%,#d9634f66 58%,transparent 72%);
@@ -1021,7 +1032,7 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .bp-tool:hover{translate:0 -4px}
 .bp-tool>svg{width:100%;height:100%}
 .bigpanel.heat #bpt_heat,.bigpanel.lid #bpt_lid{opacity:.25}
-@media (prefers-reduced-motion:reduce){.bp-flame,.bp-wisp,.bp-ember,.bp-cup.dropready .bp-out{animation:none}}
+@media (prefers-reduced-motion:reduce){.bp-flame,.bp-wisp,.bp-ember,.bp-cup.dropready .bp-out,.bigpanel.gas #bp-gastex{animation:none}}
 .pourghost{position:absolute;z-index:30;pointer-events:none;animation:pourtilt .85s ease-in-out forwards;transform-origin:80% 90%}
 @keyframes pourtilt{0%{transform:rotate(0);opacity:0}15%{opacity:1}35%,75%{transform:rotate(-115deg)}100%{transform:rotate(0);opacity:0}}
 /* spoon tips its bowl to dump powder; pipette dips its tip — neither flips like a bottle */
