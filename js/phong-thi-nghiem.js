@@ -608,10 +608,11 @@ function place3(o){
 }
 /* hộp bao của cốc trên màn hình — mọi hiệu ứng rót/bọt/vòng khuấy neo theo đây */
 function beakerBox(){
+  if(lab && lab.big){ const g = bigGeo(); return {cx:g.x, w:BIG_CUP.w, top:g.mouth - 4, bot:g.floor + 8}; }
   const it = G.querySelector('#beakerItem'), gr = G.getBoundingClientRect();
-  if(!it) return {cx:CX, top:300, bot:500};
+  if(!it) return {cx:CX, w:120, top:300, bot:500};
   const r = it.getBoundingClientRect(), sc = gr.width/1280;
-  return {cx:(r.left + r.width/2 - gr.left)/sc,
+  return {cx:(r.left + r.width/2 - gr.left)/sc, w:r.width/sc,
           top:(r.top - gr.top)/sc, bot:(r.bottom - gr.top)/sc};
 }
 
@@ -661,6 +662,7 @@ const DZ_ACCEPT = {
   lamp:  ['beaker','mat'],
   elec:  ['beaker','mat'],
   funnel:['beaker','mat'],
+  lid:   ['beaker'],   // nắp của cốc to (Cài đặt → "Cốc phóng to"): đậy cốc = thu khí
   mgcard:['bin0','bin1','bin2','bin3'],
   mgdrop:['quy','rg0','rg1','rg2','rg3'],     // xác định chất: ống nhỏ giọt mẫu → giấy quỳ / cốc thuốc thử
   mglabel:['jar0','jar1','jar2','tray'],      // xác định chất: nhãn → lọ mất nhãn / khay nhãn
@@ -834,7 +836,8 @@ function newLab(i, day){
           time:dur, oi:0, served:0, wrong:0, waste:0, timer:null, lastColor:'', magicDose:1,
           otime:0, odur:0, waitStage:0, miss:0, lastWhy:'', cardQ:[], cardOpen:false,
           goggles:!hard, hood:false, hoodDay:hard && [...dayHave(day)].some(f => TOXIC.includes(f)),
-          safety:0, safeHits:{}, firstPour:null, waterIn:false, dac:{}};
+          safety:0, safeHits:{}, firstPour:null, waterIn:false, dac:{},
+          big:bigBeakerOn() && !day.tools.some(t => t === 'burn' || t === 'elec')};   // cốc to (Cài đặt): ngày có muôi đốt / điện phân dùng bàn thường
 }
 function startLab(i){
   SFX.music(themeOf(i));
@@ -1078,9 +1081,245 @@ function shelfBoards(){
   g.insertAdjacentHTML('beforeend', rows.map(y => '<i class="shboard" style="top:' + (y - 11) + 'px"></i>').join(''));
   updateShelfScrollUI();
 }
+/* =====================  CỐC TO (Cài đặt → "Cốc phóng to", lab.big)  =====================
+   Kiểu app "một cái cốc một màn hình": cột giữa, từ dưới bảng HUD tới đáy màn, thành một KHUNG TRUYỆN TRANH cắt dán — nền màu
+   tường, mép bàn ngang, cốc 400 mL vẽ phẳng nhìn thẳng ngồi trên mép bàn; dụng cụ vẽ phẳng bày trên mặt bàn phía trước:
+   đũa khuấy, đèn cồn (đun: cốc nhấc lên kiềng, đèn chui vào dưới), NẮP (đậy cốc = thu khí, ống dẫn sang bình khí), phễu lọc
+   (cắm trên miệng cốc, kết tủa sang đĩa lọc), bình khí, đĩa lọc. Bấm dụng cụ = dùng / thôi dùng; kéo vào cốc cũng được; bấm
+   nắp / phễu đang cắm trên cốc hay đèn dưới cốc là tháo ra.
+   Bàn phối cảnh vẫn chạy ngầm phía sau (ẩn bằng .bigmode): cốc thật, bộ lắp và mọi luật hoá học giữ nguyên — khung chỉ VẼ trạng
+   thái lab (syncBig, paintBig) và gọi đúng các hàm cũ (setHeat, setCatch, setFilter, pourGas…). Hiệu ứng rót / sủi bọt / kết
+   tủa / phương trình / vòng khuấy neo theo beakerGeo() và beakerBox(), nên hai hàm đó trả hình học cốc to (bigGeo) là đủ.
+   Ngày có muôi đốt hay điện phân (đốt trong lọ khí, điện cực) — kể cả ca tự do — chưa có ở khung này: dùng bàn thường (newLab). */
+const BIGP = {l:412, t:64, w:556, h:656, table:498};   // khung (toạ độ màn hình); table: mép bàn, y trong khung
+const BIG_H = 360, BIG_LIFT = 72;                        // cốc cao; đun thì nhấc lên chừng này, đặt lên lưới kiềng
+const BIG_CUP = {x:99, w:330};                           // cốc: mép trái trong khung, bề rộng
+const bigTop = () => BIGP.table - 6 - BIG_H - (lab.heaterOn ? BIG_LIFT : 0);   // mép trên thân cốc, trong khung
+const BIG_ROW = 632, BIG_SLOT = {rod:58, heat:146, lid:232, filter:318, dish:404, gas:492};   // dụng cụ: đáy chung, tâm x từng chỗ
+// hình học cốc to trên màn hình — cùng dạng beakerGeo(): tâm, miệng, đáy lòng cốc, nửa bề rộng lòng, mặt chất lỏng / chất rắn
+function bigGeo(){
+  const c = BIG_CUP, top = BIGP.t + bigTop(), floor = top + BIG_H - 8, fill = (BIG_H - 30) * .88;
+  return {x: BIGP.l + c.x + c.w/2, mouth: top + 4, floor, rx: c.w/2 - 14, ry: 5,
+          surf: lab.bkH ? floor - lab.bkH / BK.hMax * fill : null, solid: floor - (lab.bkPH || 0) / BK.hMax * fill, z: 56};
+}
+const inBig = p => { const g = bigGeo(); return Math.abs(p.x - g.x) < g.rx + 8 && p.y > g.mouth && p.y < g.floor; };
+const BIG_INK = '#3b3025', BIG_GL = '#eef8fa';
+// đèn cồn vẽ phẳng, gốc toạ độ ở giữa đáy đèn; cap: nắp chụp bấc (lúc cất), flame: lửa (lúc đun)
+const bigLampArt = (cap, flame) =>
+  '<path d="M-40,0 Q-46,-34 -16,-46 L-16,-54 L16,-54 L16,-46 Q46,-34 40,0 Z" fill="' + BIG_GL + '" stroke="' + BIG_INK + '" stroke-width="4" stroke-linejoin="round"/>'
+  + '<path d="M-36,-5 Q-40,-21 -32,-25 L32,-25 Q40,-21 36,-5 Z" fill="#cdbfe6" opacity=".8"/>'
+  + '<path d="M-30,-38 Q-24,-42 -18,-42" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>'
+  + '<rect x="-12" y="-63" width="24" height="10" rx="2" fill="#b8bcc2" stroke="' + BIG_INK + '" stroke-width="3"/>'
+  + '<rect x="-3.5" y="-73" width="7" height="11" rx="2" fill="#f1e6c8" stroke="' + BIG_INK + '" stroke-width="2.5"/>'
+  + (cap ? '<path d="M-16,-55 L-16,-74 Q0,-92 16,-74 L16,-55 Z" fill="' + BIG_GL + '" stroke="' + BIG_INK + '" stroke-width="4" stroke-linejoin="round"/>' : '')
+  + (flame ? '<g class="bp-flame"><path d="M0,-70 C-17,-80 -13,-104 0,-124 C13,-104 17,-80 0,-70 Z" fill="#ffb347" stroke="#d9634f" stroke-width="3" stroke-linejoin="round"/>'
+           + '<path d="M0,-74 C-8,-81 -6,-95 0,-105 C6,-95 8,-81 0,-74 Z" fill="#fff1a8"/></g>' : '');
+// nắp kính phẳng: tấm đậy rộng w, núm ở giữa có cổ cắm ống dẫn khí; gốc toạ độ ở giữa mép dưới tấm đậy
+const bigLidArt = w => '<rect x="' + (-w/2 - 12) + '" y="-18" width="' + (w + 24) + '" height="16" rx="8" fill="' + BIG_GL + '" stroke="' + BIG_INK + '" stroke-width="4"/>'
+  + '<path d="M' + (-w/2) + ',-12 L' + (w/2 - 30) + ',-12" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>'
+  + '<rect x="-20" y="-36" width="40" height="19" rx="7" fill="' + BIG_GL + '" stroke="' + BIG_INK + '" stroke-width="4"/>'
+  + '<rect x="-6" y="-47" width="12" height="12" rx="2" fill="#c8ccd2" stroke="' + BIG_INK + '" stroke-width="3"/>';
+// phễu lọc phẳng: miệng rộng 2r ở y0, giấy lọc gấp nón bên trong, cuống tới y1; gốc x ở giữa
+const bigFunnelArt = (r, y0, y1) => { const yn = y0 + r * .98;
+  return '<path d="M' + (-r) + ',' + y0 + ' L' + r + ',' + y0 + ' L13,' + yn + ' L6,' + yn + ' L5,' + y1 + ' L-5,' + y1 + ' L-6,' + yn + ' L-13,' + yn + ' Z" fill="' + BIG_GL + '" stroke="' + BIG_INK + '" stroke-width="4" stroke-linejoin="round"/>'
+    + '<path d="M' + (-r + 12) + ',' + (y0 + 6) + ' L' + (r - 12) + ',' + (y0 + 6) + ' L0,' + (yn - 6) + ' Z" fill="#fffdf5" stroke="' + BIG_INK + '" stroke-width="2.5" stroke-linejoin="round"/>'
+    + '<path d="M0,' + (y0 + 6) + ' L0,' + (yn - 6) + '" stroke="' + BIG_INK + '" stroke-width="1.5" opacity=".4"/>'; };
+const BIG_ART = {
+  rod:  '<svg viewBox="0 0 96 52" aria-hidden="true"><path d="M8,44 L88,8" stroke="' + BIG_INK + '" stroke-width="9" stroke-linecap="round"/><path d="M8,44 L88,8" stroke="' + BIG_GL + '" stroke-width="4.5" stroke-linecap="round"/></svg>',
+  rodV: '<svg width="18" height="160" viewBox="0 0 18 160" aria-hidden="true"><path d="M9,6 L9,154" stroke="' + BIG_INK + '" stroke-width="9" stroke-linecap="round"/><path d="M9,6 L9,154" stroke="' + BIG_GL + '" stroke-width="4.5" stroke-linecap="round"/></svg>',
+  lamp: '<svg viewBox="-50 -96 100 100" aria-hidden="true">' + bigLampArt(true, false) + '</svg>',
+  lid:  '<svg viewBox="-62 -50 124 52" aria-hidden="true">' + bigLidArt(96) + '</svg>',
+  filter: '<svg viewBox="-40 -6 80 104" aria-hidden="true">' + bigFunnelArt(36, 0, 96) + '</svg>',
+  gas:  '<svg viewBox="-36 -128 72 130" aria-hidden="true"><rect x="-28" y="-96" width="56" height="94" rx="13" fill="' + BIG_GL + '" stroke="' + BIG_INK + '" stroke-width="4"/>'
+        + '<rect class="bp-gas" x="-23" y="-90" width="46" height="83" rx="9"/>'
+        + '<rect x="-11" y="-113" width="22" height="19" rx="3" fill="' + BIG_GL + '" stroke="' + BIG_INK + '" stroke-width="4"/>'
+        + '<rect class="bp-stop" x="-14" y="-126" width="28" height="13" rx="4" fill="#c89a63" stroke="' + BIG_INK + '" stroke-width="3"/>'
+        + '<path d="M-18,-80 L-18,-30" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/></svg>',
+  dish: '<svg viewBox="-52 -26 104 42" aria-hidden="true"><path d="M-48,-8 Q-46,12 0,14 Q46,12 48,-8 Z" fill="' + BIG_GL + '" stroke="' + BIG_INK + '" stroke-width="3.5" stroke-linejoin="round"/>'
+        + '<ellipse cx="0" cy="-8" rx="48" ry="9" fill="' + BIG_GL + '" stroke="' + BIG_INK + '" stroke-width="3.5"/>'
+        + '<path d="M-30,-8 Q-27,-20 -9,-19 Q0,-25 11,-19 Q28,-20 30,-8 Q0,-3 -30,-8 Z" fill="var(--sc,#ddd)" stroke="' + BIG_INK + '" stroke-width="2.5" stroke-linejoin="round"/></svg>'
+};
+// mặt lớp chất rắn lắng ở đáy cốc to: gợn lổn nhổn, luôn đủ 12 đoạn để `d` chuyển mượt khi dày lên / mỏng đi
+const bigSedPath = (W, y) => { let d = 'M0,' + (BIG_H + 4) + ' L0,' + y.toFixed(1);
+  for(let i = 0; i < 12; i++){ const x0 = W*i/12, x1 = W*(i + 1)/12;
+    d += ' Q' + ((x0 + x1)/2).toFixed(1) + ',' + (y - (i % 3 === 1 ? 7 : 3)).toFixed(1) + ' ' + x1.toFixed(1) + ',' + y.toFixed(1); }
+  return d + ' L' + W + ',' + (BIG_H + 4) + ' Z'; };
+// cốc to vẽ phẳng, toạ độ thân cốc 0..W × 0..BIG_H (miệng đổ thò sang trái); phần trên thân là chỗ của nắp và phễu
+function bigCupSVG(W){
+  const H = BIG_H, cx = W/2;
+  const outer = 'M-26,-8 L' + (W + 5) + ',-3 L' + W + ',8 L' + W + ',' + (H - 32) + ' L' + (W - 32) + ',' + H + ' L32,' + H + ' L0,' + (H - 32) + ' L0,26 Z';
+  const inner = 'M7,20 L' + (W - 7) + ',20 L' + (W - 7) + ',' + (H - 36) + ' L' + (W - 36) + ',' + (H - 7) + ' L36,' + (H - 7) + ' L7,' + (H - 36) + ' Z';
+  let marks = '';   // vạch chia mỗi 50 mL, ghi số ở 100 / 200 / 300
+  for(let i = 1; i <= 7; i++){ const y = H - 8 - i*(H - 30)/8, long = i % 2 === 0;
+    marks += '<path d="M' + (W - (long ? 54 : 34)) + ',' + y.toFixed(1) + ' L' + (W - 14) + ',' + y.toFixed(1) + '" stroke="' + BIG_INK + '" stroke-width="3" stroke-linecap="round" opacity=".55"/>'
+      + (long ? '<text class="bp-ml" x="' + (W - 60) + '" y="' + (y + 5).toFixed(1) + '" text-anchor="end">' + i*50 + '</text>' : ''); }
+  let wave = 'M-60,0';   // mặt chất lỏng gợn sóng, chu kỳ 60 — nhóm bp-wave trượt ngang đúng 60 nên lặp không thấy nối
+  for(let x = -60; x < W + 60; x += 60) wave += ' q15,-3 30,0 q15,3 30,0';
+  const drops = [[16, 44], [24, 70], [W - 20, 52], [W - 30, 82], [W - 18, 104]].map(([x, y]) =>
+    '<path d="M' + x + ',' + y + ' q-3,5 0,9 q3,-4 0,-9 Z" fill="#fff" stroke="' + BIG_INK + '" stroke-width="1.5" opacity=".8"/>').join('');
+  const wisps = [-60, 0, 60].map((dx, i) => '<path class="bp-wisp" style="animation-delay:' + (i*.5) + 's" d="M' + (cx + dx) + ',-16 q-9,-14 0,-28 q9,-14 0,-28" fill="none" stroke="' + BIG_INK + '" stroke-width="3" stroke-linecap="round" opacity=".35"/>').join('');
+  return '<svg width="100%" height="100%" viewBox="-30 -132 ' + (W + 44) + ' ' + (H + 138) + '" aria-hidden="true"><defs>'
+    + '<clipPath id="bpclip"><path d="' + inner + '"/></clipPath>'
+    + '<pattern id="bpdots" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="2" cy="3" r="1.4" fill="#000" opacity=".2"/><circle cx="6.5" cy="7" r="1.1" fill="#fff" opacity=".35"/></pattern></defs>'
+    + '<path d="' + outer + '" fill="' + BIG_GL + '" fill-opacity=".45"/>'
+    + '<g clip-path="url(#bpclip)">'
+    +   '<path id="bp-sed" d="' + bigSedPath(W, H + 4) + '" fill="#ddd" stroke="' + BIG_INK + '" stroke-width="2.5" stroke-opacity=".5"/>'
+    +   '<path id="bp-sedtex" d="' + bigSedPath(W, H + 4) + '" fill="url(#bpdots)"/>'
+    +   '<g id="bp-liqg" style="transform:translateY(' + (H + 6) + 'px);opacity:0"><g class="bp-wave">'
+    +     '<path class="bp-lf" d="' + wave + ' L' + (W + 60) + ',' + (H + 20) + ' L-60,' + (H + 20) + ' Z" fill="#cfe6f2"/>'
+    +     '<path d="' + wave + '" transform="translate(0,4)" fill="none" stroke="#fff" stroke-width="3" opacity=".5"/>'
+    +     '<path d="' + wave + '" fill="none" stroke="' + BIG_INK + '" stroke-width="2.5" opacity=".45"/></g></g>'
+    +   '<g id="bp-swirl"></g>'
+    + '</g>'
+    + '<g id="bp-drops" opacity="0">' + drops + '</g>'
+    + '<rect x="15" y="34" width="10" height="' + (H - 110) + '" rx="5" fill="#fff" opacity=".75"/>'
+    + '<rect x="31" y="44" width="4" height="' + (H - 170) + '" rx="2" fill="#fff" opacity=".55"/>'
+    + marks
+    + '<path class="bp-out" d="' + outer + '" fill="none" stroke="' + BIG_INK + '" stroke-width="5" stroke-linejoin="round"/>'
+    + '<path d="M3,10 L' + (W - 3) + ',10" stroke="' + BIG_INK + '" stroke-width="2.5" opacity=".4"/>'
+    + '<g id="bp-steam" class="bp-part">' + wisps + '</g>'
+    + '<g id="bp-lidg" class="bp-part"><g transform="translate(' + cx + ',-2)">' + bigLidArt(W) + '</g></g>'
+    + '<g id="bp-fung" class="bp-part"><g transform="translate(' + cx + ',0)">' + bigFunnelArt(78, -122, 60)
+    +   '<g class="bp-drip">' + [0, .45].map(b => '<path style="animation-delay:' + b + 's" d="M0,62 q-4,6 0,11 q4,-5 0,-11 Z" fill="#9fc9e6" stroke="' + BIG_INK + '" stroke-width="1.5"/>').join('') + '</g></g></g>'
+    + '</svg>';
+}
+// đun: kiềng (lưới amiăng ngay dưới đáy cốc lúc nhấc) + đèn cồn mở nắp, lửa liếm lưới; toạ độ trong khung
+function bigHeatSVG(cx){
+  const g = BIGP.table - 6 - BIG_LIFT, T = BIGP.table;
+  const leg = (x1, x2, front) => '<path d="M' + x1 + ',' + (g + 9) + ' L' + x2 + ',' + T + '" stroke="' + BIG_INK + '" stroke-width="' + (front ? 9 : 7) + '" stroke-linecap="round"/>'
+    + '<path d="M' + x1 + ',' + (g + 9) + ' L' + x2 + ',' + T + '" stroke="' + (front ? '#9a9da3' : '#7d8086') + '" stroke-width="' + (front ? 4 : 3) + '" stroke-linecap="round"/>';
+  let hatch = '';
+  for(let x = cx - 140; x < cx + 145; x += 12) hatch += '<path d="M' + x + ',' + (g + 2) + ' l5,7" stroke="' + BIG_INK + '" stroke-width="1.2" opacity=".35"/>';
+  return '<svg class="bp-heat" width="' + BIGP.w + '" height="' + BIGP.h + '" viewBox="0 0 ' + BIGP.w + ' ' + BIGP.h + '" aria-hidden="true">'
+    + leg(cx, cx, false)
+    + '<g class="bp-lamp" transform="translate(' + cx + ',' + T + ') scale(.8)">' + bigLampArt(false, true) + '</g>'   // đèn nhỏ hơn chút cho vừa gầm kiềng
+    + '<rect x="' + (cx - 150) + '" y="' + g + '" width="300" height="10" rx="3" fill="#d9d2c3" stroke="' + BIG_INK + '" stroke-width="3.5"/>' + hatch
+    + leg(cx - 118, cx - 150, true) + leg(cx + 118, cx + 150, true)
+    + '</svg>';
+}
+function bigPanelHTML(){
+  const {w, h, table} = BIGP, c = BIG_CUP, W = c.w, cx = c.x + W/2, has = t => lab.day.tools.includes(t);
+  const tool = (key, title, tw, th) => '<div class="bp-tool" id="bpt_' + key + '" title="' + title + '" style="left:' + (BIG_SLOT[key] - tw/2) + 'px;top:'
+    + (BIG_ROW - th) + 'px;width:' + tw + 'px;height:' + th + 'px">' + BIG_ART[key === 'heat' ? 'lamp' : key] + '</div>';
+  let grain = '';   // vân gỗ mặt bàn
+  [[table + 22, 3, 0], [table + 62, 4, 1], [table + 112, 5, 0]].forEach(([y, a, ph]) => { let d = 'M-20,' + y;
+    for(let x = -20, i = ph; x < w + 20; x += 110, i++) d += ' q55,' + (i % 2 ? a : -a) + ' 110,0';
+    grain += '<path d="' + d + '" fill="none" stroke="#754d26" stroke-width="1.4" opacity=".16"/>'; });
+  const bg = '<svg class="bp-bg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true"><defs>'
+    + '<linearGradient id="bpwall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f5edd9"/><stop offset=".65" stop-color="#ede1c7"/><stop offset="1" stop-color="#e5d6b8"/></linearGradient>'
+    + '<linearGradient id="bptable" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8ac77"/><stop offset="1" stop-color="#b8874f"/></linearGradient></defs>'
+    + '<rect width="' + w + '" height="' + table + '" fill="url(#bpwall)"/>'
+    + '<rect y="' + table + '" width="' + w + '" height="' + (h - table) + '" fill="url(#bptable)"/>'
+    + [40, 88, 146].map(d => '<path d="M0,' + (table + d) + ' L' + w + ',' + (table + d) + '" stroke="#6e4b28" stroke-width="1.5" opacity=".22"/>').join('') + grain
+    + '<ellipse cx="' + cx + '" cy="' + (table + 3) + '" rx="' + (W*.56) + '" ry="7" fill="' + BIG_INK + '" opacity=".14"/>'   // bóng cốc trên mặt bàn
+    + '<path d="M0,' + table + ' L' + w + ',' + table + '" stroke="' + BIG_INK + '" stroke-width="4"/>'
+    + '<path d="M0,' + (table + 4) + ' L' + w + ',' + (table + 4) + '" stroke="#f4d3a1" stroke-width="2" opacity=".7"/>'
+    + '<rect x="2.5" y="2.5" width="' + (w - 5) + '" height="' + (h - 5) + '" fill="none" stroke="' + BIG_INK + '" stroke-width="5"/></svg>';
+  return '<div class="bigpanel" id="bigpanel" style="left:' + BIGP.l + 'px;top:' + BIGP.t + 'px;width:' + w + 'px;height:' + h + 'px">' + bg
+    + (has('heat') ? bigHeatSVG(cx) : '')
+    + '<div class="bp-cup" id="bigBeaker" data-dz="beaker" style="left:' + (c.x - 30) + 'px;top:' + (table - 6 - BIG_H - 132) + 'px;width:' + (W + 44) + 'px;height:' + (BIG_H + 138) + 'px">'
+    +   bigCupSVG(W) + '</div>'
+    + (has('gas') ? '<svg class="bp-tube" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" aria-hidden="true">'
+                  + '<path fill="none" stroke="' + BIG_INK + '" stroke-width="10" stroke-linecap="round"/><path fill="none" stroke="#f3f1e8" stroke-width="5.5" stroke-linecap="round"/></svg>' : '')
+    + tool('rod', 'Đũa khuấy — bấm để khuấy, hoặc kéo vào cốc rồi khuấy tròn', 96, 52)
+    + (has('heat') ? tool('heat', 'Đèn cồn — bấm (hoặc kéo vào cốc) để đun, bấm lần nữa để tắt', 80, 80) : '')
+    + (has('gas') ? tool('lid', 'Nắp — đậy cốc để thu khí sinh ra sang bình khí', 104, 44) : '')
+    + (has('filter') ? tool('filter', 'Phễu lọc — cắm lên miệng cốc, kết tủa ở lại đĩa lọc', 68, 88) : '')
+    + (has('gas') ? tool('gas', 'Bình khí', 62, 112) : '')
+    + '<div id="bpDishHost"></div></div>';
+}
+// gắn kéo–thả / bấm cho khung (gọi sau khi renderLab dựng xong bàn)
+function bindBig(){
+  const P = G.querySelector('#bigpanel'); if(!P) return;
+  const cup = P.querySelector('#bigBeaker'), bgw = BK.w*KB*0.8, bgh = BK.h*KB*0.8;
+  cup.style.setProperty('--lift', -BIG_LIFT + 'px');   // .bp-cup.hot nhấc đúng chừng này (CSS)
+  let downOn = null;   // bấm trúng nắp / phễu đang cắm trên cốc thì tháo nó; bấm chỗ khác của cốc thì không làm gì
+  cup.addEventListener('pointerdown', e => { downOn = e.target.closest ? e.target.closest('.bp-part') : null; }, true);
+  dragify(cup, 'beaker', {w:bgw, h:bgh,
+    ghostHTML: () => G.querySelector('#beakersvg').outerHTML.replace('width="100%" height="100%"', 'width="'+bgw+'" height="'+bgh+'"'),
+    onDrop: zone => { if(zone === 'cust' || zone === 'sink') dropAction('beaker', zone); },   // khay khách = giao, bồn rửa = đổ
+    onClick: () => {
+      if(downOn && downOn.id === 'bp-lidg') setCatch(false);
+      else if(downOn && downOn.id === 'bp-fung') (Object.keys(lab.mix).some(isPrecip) ? useFilter : () => setFilter(false))();
+    }});
+  const tl = (key, type, opts) => { const el = P.querySelector('#bpt_' + key); if(!el) return;
+    dragify(el, type, Object.assign({w:parseFloat(el.style.width), h:parseFloat(el.style.height), ghostHTML: () => el.innerHTML}, opts)); };
+  tl('rod', 'rod', {w:18, h:160, ghostHTML: () => BIG_ART.rodV, onClick: stirOnce});
+  tl('heat', 'lamp', {onClick: () => lab.heaterOn ? setHeat(false) : dropAction('lamp', 'beaker'),
+                      onLoose: () => { if(lab.heaterOn){ setHeat(false); return true; } return false; }});
+  tl('lid', 'lid', {onClick: () => setCatch(!lab.catcher), onDrop: () => setCatch(true)});
+  tl('filter', 'funnel', {onClick: () => setFilter(!lab.filterOn)});
+  tl('gas', 'gas', {});
+  const lamp = P.querySelector('.bp-lamp'); if(lamp) lamp.addEventListener('click', () => setHeat(false));
+  syncBig();
+}
+// trạng thái lab → khung: đun (cốc nhấc lên kiềng), nắp + ống dẫn, phễu, hơi nước, khí trong bình, đĩa lọc
+function syncBig(){
+  const P = G.querySelector('#bigpanel'); if(!P || !lab) return;
+  const liq = Object.keys(lab.mix).some(f => !isPrecip(f));
+  P.classList.toggle('heat', !!lab.heaterOn); P.classList.toggle('lid', !!lab.catcher); P.classList.toggle('filter', !!lab.filterOn);
+  P.classList.toggle('steam', !!lab.heaterOn && (liq || !!lab.steam));
+  P.querySelector('#bigBeaker').classList.toggle('hot', !!lab.heaterOn);
+  const gb = P.querySelector('#bpt_gas');
+  if(gb){
+    const ks = Object.keys(lab.gas).filter(f => lab.gas[f] > 0);
+    gb.style.setProperty('--gasop', ks.length ? 1 : 0);
+    if(ks.length) gb.style.setProperty('--gc', CHEMS[ks[0]].c);
+    gb.title = 'Bình khí' + (ks.length ? ' · ' + ks.join(', ') : ' (trống)') + ' — kéo vào khay khách để giao, vào cốc để sục khí';
+    // ống dẫn: từ cổ núm nắp vòng lên, vắt sang phải rồi thòng xuống cắm vào miệng bình khí
+    const c = BIG_CUP, sx = c.x + c.w/2, sy = bigTop() - 46, gx = BIG_SLOT.gas, gy = BIG_ROW - 96, cy = Math.max(10, sy - 50);   // không vượt mép trên khung
+    const d = 'path("M' + sx + ',' + sy + ' C' + sx + ',' + cy + ' ' + gx + ',' + cy + ' ' + gx + ',' + gy + '")';
+    P.querySelectorAll('.bp-tube path').forEach(e => e.style.d = d);
+  }
+  // đĩa lọc chỉ có khi đang có chất rắn trên đĩa (lọc ra từ cốc)
+  const host = P.querySelector('#bpDishHost'), ks = Object.keys(lab.solid).filter(f => lab.solid[f] > 0);
+  if(!ks.length){ host.innerHTML = ''; return; }
+  if(!host.firstChild){
+    host.innerHTML = '<div class="bp-tool" id="bpt_dish" title="Đĩa lọc — kéo vào khay khách để giao, vào cốc để trút lại" style="left:'
+      + (BIG_SLOT.dish - 46) + 'px;top:' + (BIG_ROW - 38) + 'px;width:92px;height:38px">' + BIG_ART.dish + '</div>';
+    const el = host.firstChild;
+    dragify(el, 'dish', {w:92, h:38, ghostHTML: () => el.innerHTML});
+  }
+  host.firstChild.style.setProperty('--sc', CHEMS[ks[0]].c);
+}
+// chất trong cốc → cốc to: mặt chất lỏng gợn sóng, màu, lớp cặn / kết tủa, hơi nước đọng, vệt đổi màu loang
+function paintBig(liq, liqColor, colMax, pre, preColor){
+  const cup = G.querySelector('#bigBeaker'); if(!cup) return;
+  const W = BIG_CUP.w, floor = BIG_H - 8, fill = (BIG_H - 30) * .88;
+  const ys = floor - lab.bkH / BK.hMax * fill, yp = floor - lab.bkPH / BK.hMax * fill;
+  const lg = cup.querySelector('#bp-liqg');
+  lg.style.transform = 'translateY(' + (liq ? ys : BIG_H + 6).toFixed(1) + 'px)';
+  lg.style.opacity = liq ? (colMax ? .82 : .6) : 0;
+  cup.querySelector('.bp-lf').style.fill = liqColor;
+  const sd = 'path("' + bigSedPath(W, pre ? yp : BIG_H + 4) + '")';
+  cup.querySelector('#bp-sed').style.d = sd; cup.querySelector('#bp-sedtex').style.d = sd;
+  cup.querySelector('#bp-sed').style.fill = preColor;
+  cup.querySelector('#bp-drops').setAttribute('opacity', lab.heaterOn && (liq || lab.steam) ? 1 : 0);
+  if(liq && liqColor !== lab.lastColor && lab.lastColor){
+    const sw = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    sw.setAttribute('cx', W/2); sw.setAttribute('cy', ((ys + floor)/2).toFixed(1)); sw.setAttribute('r', (W*.12).toFixed(1));
+    sw.setAttribute('class', 'bkswirl'); sw.style.fill = liqColor;
+    cup.querySelector('#bp-swirl').appendChild(sw); setTimeout(() => sw.remove(), 950);
+  }
+}
+// chữ tượng thanh kiểu truyện tranh bật ra cạnh cốc (chỉ khi bật cốc to; mỗi lúc một chữ)
+function bigWord(txt, col){
+  if(!lab || !lab.big || !G.querySelector('#bigBeaker')) return;
+  G.querySelectorAll('.bb-word').forEach(x => x.remove());
+  const bx = beakerBox(), w = document.createElement('div');
+  w.className = 'bb-word'; w.textContent = txt; w.style.color = col;
+  w.style.left = (bx.cx + bx.w/2 + 26) + 'px'; w.style.top = (bx.top + (bx.bot - bx.top)*.4) + 'px';
+  G.appendChild(w); w.onanimationend = () => w.remove();
+}
+// một nhát khuấy (bấm đũa): còn chất chưa tan thì tan thêm, không thì lắc cốc cho phản ứng chạy
+function stirOnce(){
+  if(tot(lab.undissolved) > 0){ dissolveStep(); return; }
+  wiggleBeaker(); SFX.pour(); if(!runReactions()) explainNoRx(); updateBeaker();
+}
 function renderLab(){
   const day = lab.day;
   const has = t => day.tools.includes(t);
+  const big = lab.big;   // cốc to: khung truyện tranh giữa màn (bigPanelHTML); giấy cân bằng, giấy nhớ… nổi lên trên khung, thu nhỏ ở hai góc
   const shelfHtml = day.chems.map(f => { const c = CHEMS[baseChem(f)], dac = f !== baseChem(f);
     // chế độ khó: lọ dung dịch ghi rõ nồng độ — phải biết Cₘ mới tính được thể tích cần đong
     const cm = lab.hard && SOL_CM[f] ? ' <small class="cm">'+fmt(SOL_CM[f],2)+'M</small>' : '';
@@ -1103,7 +1342,7 @@ function renderLab(){
   const hasStickyNotes = save.items && save.items.notes;
   const hasSticky = !day.free && hasStickyNotes;
   const stickyNoteHtml = hasSticky ? `
-    <div class="wallitem stickynote" style="left:${hasBal ? 632 : 580}px;top:120px;width:98px;min-height:96px;background:#fef5c1;border:1.2px solid #d6c57a;transform:rotate(-2deg);padding:7px;font-family:var(--fh);font-size:13.5px;z-index:5">
+    <div class="wallitem stickynote${big ? ' bpw' : ''}" style="left:${big ? 852 : hasBal ? 632 : 580}px;top:${big ? 8 : 120}px;width:98px;min-height:96px;background:#fef5c1;border:1.2px solid #d6c57a;transform:rotate(-2deg);padding:7px;font-family:var(--fh);font-size:13.5px;z-index:${big ? 55 : 5}">
       <h4 style="margin:0 0 5px 0;font-size:13.5px;border-bottom:1px dotted #3b302566;padding-bottom:2px;display:flex;align-items:center;gap:4px">${ico('note',13)} Giấy nhớ</h4>
       <div id="stickynote-content" style="font-size:11.5px;line-height:1.35"></div>
       <div id="sn-water" style="display:none;position:absolute;right:6px;bottom:3px;font-size:10.5px;color:#4a7ba8;align-items:center;gap:2px">
@@ -1111,10 +1350,10 @@ function renderLab(){
       </div>
     </div>
   ` : '';
-  const gogglesHtml = lab.hard ? `<div class="wallitem safetyhook" id="goggles" style="left:${day.free ? 534 : 874}px;top:${day.free ? 134 : 34}px" title="Bấm để đeo kính bảo hộ và găng tay">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>` : '';
-  const hoodHtml = lab.hoodDay ? `<div class="wallitem hoodsw" id="hoodsw" style="left:${day.free ? 634 : 872}px;top:${day.free ? 132 : 152}px" title="Bấm để bật / tắt tủ hút">${HOOD_SVG}<div class="wallcap">Tủ hút: tắt</div></div>` : '';
+  const gogglesHtml = lab.hard ? `<div class="wallitem safetyhook${big ? ' bpw' : ''}" id="goggles" style="left:${big ? 418 : day.free ? 534 : 874}px;top:${big ? 172 : day.free ? 134 : 34}px" title="Bấm để đeo kính bảo hộ và găng tay">${sym('sym-goggles',92,64)}<div class="wallcap">Kính & găng</div></div>` : '';
+  const hoodHtml = lab.hoodDay ? `<div class="wallitem hoodsw${big ? ' bpw' : ''}" id="hoodsw" style="left:${big ? 852 : day.free ? 634 : 872}px;top:${big ? 172 : day.free ? 132 : 152}px" title="Bấm để bật / tắt tủ hút">${HOOD_SVG}<div class="wallcap">Tủ hút: tắt</div></div>` : '';
 
-  G.innerHTML = `<div class="scene" style="padding:0">
+  G.innerHTML = `<div class="scene${big ? ' bigmode' : ''}" style="padding:0">
     <div class="hudboard">${sym('sym-benchtex',1240,52,'position:absolute;left:20px;top:6px;width:calc(100% - 40px);opacity:.4;pointer-events:none')}
       <span class="hud-title">${day.free ? 'Ngày 1 · tự do' : 'Ngày '+(lab.i+1)}${lab.hard ? ' · <span style="color:#a8331f">khó</span>' : ''}</span>
       <div class="timerbar"><div style="width:100%"></div></div>
@@ -1131,7 +1370,7 @@ function renderLab(){
       ${wallBgSVG()}
       <div class="wallitem" style="left:400px;top:18px">${sym('sym-poster-periodic',104,134)}</div>
       <div class="wallitem" style="left:590px;top:14px"><svg id="clocksvg" width="84" height="84"><use href="#sym-clock"/></svg></div>
-      ${hasBal ? `<div class="wallitem balpaper" id="balpaper" style="left:${hasSticky ? 540 : 589}px;top:122px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
+      ${hasBal ? `<div class="wallitem balpaper${big ? ' bpw' : ''}" id="balpaper" style="left:${big ? 418 : hasSticky ? 540 : 589}px;top:${big ? 8 : 122}px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
       ${stickyNoteHtml}
       ${day.free ? '' : `<div class="wallitem" style="left:${lab.hard ? 758 : 798}px;top:${lab.hard ? 18 : 20}px">${sym('sym-poster-safety',104,134)}</div>`}
       ${gogglesHtml}
@@ -1140,6 +1379,7 @@ function renderLab(){
     </div>
     ${benchSVG()}
     ${sinkCounterSVG()}
+    ${big ? bigPanelHTML() : ''}
     <svg class="matzone" viewBox="0 0 1280 720"><polygon data-dz="bench" class="benchzone" points="${[0, 1, 3, 2].map(i => L3.bench.corners[i].join(',')).join(' ')}"/><polygon data-dz="mat" points="${L3.mat.map(q => q.join(',')).join(' ')}"/></svg>
     <div class="custcol">
       <div class="win-out">${counterWindowOutSVG()}</div>
@@ -1237,14 +1477,16 @@ function renderLab(){
       ghostHTML: () => sym(tl.symbol, gw, gh, G.querySelector('#sv_'+key).getAttribute('style') || ''),
       onLoose: LOOSE[tl.drag],
       // đũa: bấm một cái = khuấy một nhát, thay cho nút "Khuấy" cũ
-      onClick: key === 'rod' ? (() => {
-        if(tot(lab.undissolved) > 0){ dissolveStep(); return; }
-        wiggleBeaker(); SFX.pour(); if(!runReactions()) explainNoRx(); updateBeaker();
-      }) : key === 'burn' ? (() => notify(ladleHint())) : undefined
+      onClick: key === 'rod' ? stirOnce : key === 'burn' ? (() => notify(ladleHint())) : undefined
     });
   });
   syncLadle();
   layoutRigs();
+  if(big) bindBig();
+  else if(bigBeakerOn() && !lab.bigTold){   // bật cốc to mà hôm nay có muôi đốt / điện phân: nói một lần vì sao bàn vẫn như cũ
+    lab.bigTold = true;
+    setTimeout(() => { if(lab) notify('Hôm nay có ' + (has('burn') ? 'muôi đốt' : 'bộ điện phân') + ' nên dùng bàn thí nghiệm thường — cốc to chưa có bộ này.'); }, 1500);
+  }
   
   if(hasMagicTools){
     const dec = G.querySelector('#dose-dec');
@@ -1386,7 +1628,7 @@ function eqPop(lines){
   G.querySelectorAll('.eqpop').forEach(x => x.remove());   // rót liên tiếp: chỉ giữ phương trình mới nhất, không chồng chữ
   const bx = beakerBox(), e = document.createElement('div');
   e.className = 'eqpop'; e.innerHTML = lines.join('<br>');
-  e.style.left = bx.cx + 'px'; e.style.top = (bx.top - 14) + 'px';
+  e.style.left = bx.cx + 'px'; e.style.top = (bx.top + (lab.big ? 56 : -14)) + 'px';   // cốc to: nổi trong miệng cốc, dưới lời nhắn của giáo sư
   G.appendChild(e); e.onanimationend = () => e.remove();
 }
 /* Sổ tay ghi lại phản ứng NGƯỜI CHƠI ĐÃ TỰ CHẠY — mở ở màn hình chính, xem như
@@ -1456,6 +1698,7 @@ function applyReaction(r, n, skip, steam){
   const boom = r.rg.H2 && (r.rg.O2 || r.rg.Cl2);   // hỗn hợp hiđro gặp lửa thì nổ "bụp", toả nhiệt thì xèo
   if(boom) SFX.bang(); else if(r.exo) SFX.sizzle();
   if(r.exo || boom){ const b = G.querySelector('#beakerItem'); b.classList.remove('glowing'); void b.offsetWidth; b.classList.add('glowing'); }
+  if(boom) bigWord('BÙM!', '#d9634f'); else if(r.exo) bigWord('XÈO!', '#ffb347');
   return eqStr(r)+gasNote;
 }
 
@@ -1575,6 +1818,7 @@ function acidSplash(acid, water){
   lab.ending = true; clearInterval(lab.timer); lab.timer = null;   // đồng hồ đứng: kéo–thả cũng bị chặn
   SFX.bang();
   const b = G.querySelector('#beakerItem'); if(b){ b.classList.remove('glowing'); void b.offsetWidth; b.classList.add('glowing'); }
+  bigWord('BÙM!', '#d9634f');
   const bx = beakerBox(), col = CHEMS[acid].c;
   for(let k = 0; k < 14; k++){   // giọt axit văng ra hai bên miệng cốc
     const d = document.createElement('i'); d.className = 'acidsplash';
@@ -1947,6 +2191,7 @@ function pourSafety(f){
    mặt chất lỏng (null nếu cốc khô), mặt lớp chất rắn, đáy. Mọi hiệu ứng rót / sủi bọt / kết tủa rơi neo theo đây,
    không theo hộp hình (hộp có cả miệng đổ nên tâm hộp lệch khỏi tâm cốc). */
 function beakerGeo(){
+  if(lab && lab.big) return bigGeo();   // cốc to: hiệu ứng neo theo cốc trong khung
   const b = beakerBoxAt(lab && lab.heaterOn), k = b.w / BK.w, at = vy => b.t + vy*k;
   const bk = G.querySelector('#beakerItem');
   return {x: b.l + BK.cx*k, mouth: at(BK.top), floor: at(BK.bot), rx: BK.rx*k, ry: BK.ry*k,
@@ -2097,6 +2342,7 @@ function updateBeaker(){
     sw.setAttribute('class', 'bkswirl'); sw.style.fill = liqColor;
     swg.appendChild(sw); setTimeout(()=>sw.remove(), 950);
   }
+  if(lab.big){ paintBig(liq, liqColor, colMax, pre, preColor); syncBig(); }
   lab.lastColor = liq ? liqColor : '';
   if(save.items && save.items.notes){
     const snc = G.querySelector('#stickynote-content');
@@ -2129,7 +2375,7 @@ function updateBeaker(){
   const tr = G.querySelector('#custtray');
   if(tr) tr.classList.toggle('ready', autoCoach() && !!readyVessel());
   const ub = G.querySelector('#bundo');
-  if(ub){ ub.hidden = !canUndo(); if(!ub.hidden){ const bx = beakerBox(); ub.style.left = (bx.cx + 74) + 'px'; ub.style.top = (bx.bot - 36) + 'px'; } }
+  if(ub){ ub.hidden = !canUndo(); if(!ub.hidden){ const bx = beakerBox(); ub.style.left = (bx.cx + Math.max(74, bx.w/2 + 10)) + 'px'; ub.style.top = (bx.bot - 36) + 'px'; } }
 }
 // bình nào (cốc / bình khí / đĩa lọc) đang chứa đúng hàng của khách hiện tại, không có thì null
 function readyVessel(){
@@ -2171,6 +2417,7 @@ function spawnBubbles(){
     l.style.cssText = 'left:'+(q.x + (Math.random()*2 - 1)*q.rx*0.6)+'px;top:'+(top - 10)+'px;z-index:'+(q.z + 2)+';animation-delay:'+(Math.random()*.3)+'s';
     G.appendChild(l); setTimeout(()=>l.remove(), 1100);
   }
+  bigWord('SỦI!', '#7fc4c9');
   SFX.fizz();
 }
 // kết tủa: hạt hiện ra trong khối chất lỏng rồi lắng xuống mặt lớp chất rắn ở đáy
@@ -2188,7 +2435,7 @@ function spawnFall(color){
 }
 // cốc chỉ lắc khi KHUẤY (bấm đũa / rê đũa trong lòng cốc) — rót, rút lại, axit bắn đều không lắc
 function wiggleBeaker(){
-  const b = G.querySelector('#beakerItem'); if(!b) return;
+  const b = G.querySelector(lab && lab.big ? '#bigBeaker' : '#beakerItem'); if(!b) return;
   b.classList.remove('shaken'); void b.offsetWidth; b.classList.add('shaken');
 }
 
@@ -2304,8 +2551,8 @@ function layoutRigs(){
       const tb = G.querySelector('#gastube'); if(tb) tb.style.zIndex = ZB + 7;   // ống vắt qua trước cốc và chuông
     }
   }
+  if(lab.big) syncBig();   // cốc to: vẽ lại đèn / nắp / phễu trong khung
 }
-
 /* Bật đèn = dựng cả BỘ ĐUN: kiềng mọc lên, cốc được nhấc đặt LÊN lưới amiăng, đèn chui vào giữa ba chân. */
 function setHeat(on){
   if(lab.heaterOn === on) return;
@@ -2368,6 +2615,7 @@ function useFilter(){
   if(!moved.length){ notify('Không có kết tủa nào trong cốc để lọc.'); return; }
   const fn = G.querySelector('#sv_filter');
   if(fn){ setFx(fn, 'dripop', 1); setTimeout(()=>setFx(fn, 'dripop', 0), 1400); }
+  const bp = G.querySelector('#bigpanel'); if(bp){ bp.classList.add('drip'); setTimeout(() => bp.classList.remove('drip'), 1400); }
   SFX.pour();
   moved.forEach(f => { lab.solid[f] = (lab.solid[f]||0) + lab.mix[f]; delete lab.mix[f]; });
   unlockAch('filter1');
@@ -2397,9 +2645,9 @@ function stirMove(p, dist){
   if(!lab || tot(lab.undissolved) <= 0) return;
   const bz = G.querySelector('#beakerItem'); if(!bz) return;
   const gr = G.getBoundingClientRect(), s = gr.width/1280, r = bz.getBoundingClientRect();
-  // đũa phải đi vòng tròn TRONG lòng cốc mới ăn — ra ngoài thì không tính
+  // đũa phải đi vòng tròn TRONG lòng cốc mới ăn — ra ngoài thì không tính (cốc to: trong lòng cốc to)
   const cx = (r.left + r.width/2 - gr.left)/s, cy = (r.top + r.height*0.55 - gr.top)/s;
-  if(Math.hypot(p.x-cx, p.y-cy) > 95) return;
+  if(lab.big ? !inBig(p) : Math.hypot(p.x-cx, p.y-cy) > 95) return;
   drag.stir = (drag.stir||0) + dist;
   if(drag.stir < 240) return; // one dissolve step per ~240px of stirring motion
   drag.stir = 0;

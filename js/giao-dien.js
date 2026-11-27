@@ -204,6 +204,8 @@ if(!save.bestHard) save.bestHard = {};                 // kỷ lục điểm ch�
 const hardUnlocked = () => DEBUG;   // chế độ khó tạm chỉ có ở chế độ dev (nút trên lịch, công tắc trong Cài đặt)
 const hardOn  = () => hardUnlocked() && save.settings.hard === true;     // chế độ khó: tự tính gam / ml / lít
 const cardsOn = () => save.settings.cards !== false;   // thẻ phản ứng khi khám phá: bật mặc định
+// cốc phóng to: cột giữa bàn thành khung truyện tranh, cốc to nhìn thẳng (bigPanelHTML, phong-thi-nghiem.js); tắt mặc định
+const bigBeakerOn = () => save.settings.bigBeaker === true;
 // sổ ghi chép ở màn xác định chất: phải mua ở Cửa hàng; mua rồi bật/tắt ngay trong Cửa hàng (mặc định bật)
 const labbookOn = () => !!(save.items && save.items.labbook) && save.settings.labbook !== false;
 const BALANCE_FROM_DAY = 6; // từ ngày này trở đi người chơi tự cân bằng; trước đó giáo sư làm hộ (ngày 5 học cân bằng)
@@ -1177,6 +1179,7 @@ function settingsModal(){
     + tgl('tglBalance','note','Giấy cân bằng sẵn',!balanceOn(),!nobalOwned())
     + (hardUnlocked() ? tgl('tglHard','flask','Chế độ khó',hardOn()) : '')
     + tgl('tglCurtain','play','Màn "Bắt đầu"',curtainOn())
+    + tgl('tglBig','drop','Cốc phóng to',bigBeakerOn())
     + '<button class="btn about" id="babout">'+ico('info',15)+' Giới thiệu</button>'
     + '</div></div></div>';
   const flip = (id, key, get, after) => ov.querySelector(id).onclick = e => {
@@ -1189,6 +1192,7 @@ function settingsModal(){
   const lockedTgl = (id, msg) => ov.querySelector(id).onclick = () => { SFX.err(); notify(ico('lock',16)+' '+msg); };
   flip('#tglCards', 'cards', cardsOn);
   flip('#tglCurtain', 'curtain', curtainOn);
+  flip('#tglBig', 'bigBeaker', bigBeakerOn);
   if(hardUnlocked()) flip('#tglHard', 'hard', hardOn);   // ngoài chế độ dev không có công tắc này
   if(nobalOwned()) flip('#tglBalance', 'balance', () => !balanceOn());
   else lockedTgl('#tglBalance', 'Mua vật phẩm ở Cửa hàng để mở khoá!');
