@@ -1502,7 +1502,8 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 @keyframes fxladle{0%,100%{transform:rotate(0)}25%{transform:rotate(5deg)}50%{transform:rotate(-4deg)}75%{transform:rotate(2deg)}}
 /* Thẻ Tạm nghỉ đang mở: dừng mọi chuyển động lặp phía sau lớp phủ (khách chớp mắt, quạt tủ hút, sóng nước…) —
    cảnh đứng yên như đồng hồ, máy không phải vẽ lại thứ người chơi không nhìn */
-#game:has(> .pauseov) .scene *,#game:has(> .pauseov) .scene *::before,#game:has(> .pauseov) .scene *::after{animation-play-state:paused!important}
+/* Bài giảng mở từ thẻ Tạm nghỉ (.vnover) cũng là .scene: loại nó ra, không thì bảng, giáo sư, thẻ thoại kẹt ở khung đầu (vô hình) */
+#game:has(> .pauseov) .scene:not(.vnover) *,#game:has(> .pauseov) .scene:not(.vnover) *::before,#game:has(> .pauseov) .scene:not(.vnover) *::after{animation-play-state:paused!important}
 
 /* thông báo người chơi cần đọc (notify, giao-dien.js): nền giấy để khác ghi chú dev nền tối */
 .toast.say{background:var(--card);color:var(--ink);border:1.5px solid var(--ink);box-shadow:3px 3px 0 #3b302533;font-size:16.5px;line-height:1.45}

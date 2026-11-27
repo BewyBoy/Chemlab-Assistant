@@ -1174,9 +1174,9 @@ function bigFitCalc(){
   for(const k in BIG_SLOT0) BIG_SLOT[k] = Math.round(BIG_SLOT0[k] * BIGP.w / 426);
   bigBX = BX;
 }
-// giấy cân bằng, kính & găng bám góc trái khung; giấy nhớ, công tắc tủ hút bám góc phải
+// kính & găng bám góc trái khung (cốc to không ghim giấy cân bằng — mở ở thẻ Tạm nghỉ); giấy nhớ, công tắc tủ hút bám góc phải
 function bigWallPos(){
-  [['#balpaper', 6], ['#goggles', 6], ['.stickynote.bpw', -69], ['#hoodsw', -63]].forEach(([q, d]) => {
+  [['#goggles', 6], ['.stickynote.bpw', -69], ['#hoodsw', -63]].forEach(([q, d]) => {
     const el = G.querySelector(q); if(el) el.style.left = (d > 0 ? BIGP.l + d : BIGP.l + BIGP.w + d) + 'px'; });
 }
 // đổi cỡ màn giữa ca (xoay máy, kéo cửa sổ): dựng lại khung theo bề ngang mới, giữ nguyên chất trong cốc
@@ -1683,7 +1683,7 @@ function bigCoachText(){
 function renderLab(){
   const day = lab.day;
   const has = t => day.tools.includes(t);
-  const big = lab.big;   // cốc to: khung giữa màn (bigPanelHTML), tủ + bồn rửa cột phải; giấy cân bằng, giấy nhớ… thu nhỏ ở hai góc khung
+  const big = lab.big;   // cốc to: khung giữa màn (bigPanelHTML), tủ + bồn rửa cột phải; kính, giấy nhớ… thu nhỏ ở hai góc khung (giấy cân bằng chỉ mở ở thẻ Tạm nghỉ)
   if(big) bigFitCalc();
   const shelfHtml = day.chems.map(f => { const c = CHEMS[baseChem(f)], dac = f !== baseChem(f);
     // chế độ khó: lọ dung dịch ghi rõ nồng độ — phải biết Cₘ mới tính được thể tích cần đong
@@ -1735,7 +1735,7 @@ function renderLab(){
       ${wallBgSVG()}
       ${big ? '' : `<div class="wallitem" style="left:400px;top:18px">${sym('sym-poster-periodic',104,134)}</div>`}
       <div class="wallitem" style="left:590px;top:14px"><svg id="clocksvg" width="84" height="84"><use href="#sym-clock"/></svg></div>
-      ${hasBal ? `<div class="wallitem balpaper${big ? ' bpw' : ''}" id="balpaper" style="left:${big ? BIGP.l + 6 : hasSticky ? 540 : 589}px;top:${big ? 6 : 122}px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
+      ${hasBal && !big ? `<div class="wallitem balpaper" id="balpaper" style="left:${hasSticky ? 540 : 589}px;top:122px" title="Bấm để cân bằng phương trình (không bắt buộc)"><div class="bpface">${balPaperFace()}</div><div class="wallcap">Giấy cân bằng</div></div>` : ''}
       ${stickyNoteHtml}
       ${day.free || big ? '' : `<div class="wallitem" style="left:${lab.hard ? 758 : 798}px;top:${lab.hard ? 18 : 20}px">${sym('sym-poster-safety',104,134)}</div>`}
       ${gogglesHtml}
