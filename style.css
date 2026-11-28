@@ -966,13 +966,14 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .scene.bigmode .item,.scene.bigmode .shadow,.scene.bigmode .rig,.scene.bigmode .matzone{visibility:hidden}
 .scene.bigmode .undobtn{z-index:56}
 .wallitem.bpw{z-index:55;scale:.62;transform-origin:0 0}
-/* cột phải (từ mép phải khung giữa = 853⅓px + bx/3 tới mép phải màn): tủ hoá chất cao 3/4 (4 lọ một hàng) kéo hết ra mép màn,
+/* cột phải (từ vạch đen mép phải khung giữa = 853⅓px + bx/3 tới mép phải màn): tủ hoá chất cao 3/4 áp sát vạch, kéo hết ra mép màn,
    bồn rửa nhìn từ trên trên mặt quầy đá ở 1/4 dưới, nằm giữa cột */
-.scene.bigmode .shelf{left:calc(866px + var(--bx)/3);width:calc(414px + var(--bx)*2/3);height:calc(480px + var(--by));
-  border-right:none;border-radius:9px 0 0 9px}
-.bigsinkbg{position:absolute;left:calc(862px + var(--bx)/3);right:calc(-1*var(--bx));top:550px;bottom:calc(-1*var(--by));z-index:5;pointer-events:none;
+.scene.bigmode .shelf{left:calc(852px + var(--bx)/3);width:calc(428px + var(--bx)*2/3);top:calc(64px - var(--by));height:calc(482px + var(--by));
+  border-left:none;border-right:none;border-radius:0;box-shadow:inset 0 2px 0 #e0b98a,inset 0 -2px 0 #5e4126}
+.scene.bigmode .shtop{border-radius:0}
+.bigsinkbg{position:absolute;left:calc(852px + var(--bx)/3);right:calc(-1*var(--bx));top:550px;bottom:calc(-1*var(--by));z-index:5;pointer-events:none;
   background:linear-gradient(#e7eaec,#d3d8db 62%,#bfc6ca);border-top:3px solid #8f989e;box-shadow:inset 0 3px 0 #ffffffa0}
-.scene.bigmode .sinkstation{left:calc(901px + var(--bx)*2/3);top:558px;width:340px;height:150px}
+.scene.bigmode .sinkstation{left:calc(897px + var(--bx)*2/3);top:558px;width:340px;height:150px}
 .scene.bigmode .sinkstation svg{width:340px;height:150px}
 .scene.bigmode .sinkstation .cap{left:184px;top:136px;font-size:13px}
 /* tủ chỉ 3 lọ một hàng, mỗi lọ to gấp rưỡi cho dễ kéo (máy tính lẫn điện thoại) */
@@ -983,8 +984,13 @@ background:linear-gradient(#c89a63,#b98a52 55%,#a97c4b);border-bottom:1.2px soli
 .scene.bigmode .cc-tag .f{font-size:21px}
 .scene.bigmode .cc-tag .nm{font-size:10px;max-height:22px}
 .toast.say-low{left:calc(16px - var(--bx));bottom:12px;margin:0;max-width:calc(393px + var(--bx)/3);pointer-events:none;transition:bottom .25s ease-out;font-size:15px;line-height:1.4;padding:8px 13px}
-/* lề giấy trắng + viền mực ngoài: khung như cắt ra từ trang truyện dán lên cảnh (không đổ bóng xuống nền) */
-.bigpanel{position:absolute;z-index:50;box-shadow:0 0 0 6px #fffdf5,0 0 0 9px var(--ink)}
+/* khung giữa không viền: hai vạch đen dọc chia cột (vẽ trong bp-bg). Màn cao hơn 16:9 thì ::before / ::after nối tường lên tới
+   đáy thanh HUD và mặt bàn xuống tới đáy màn, vạch đen chạy suốt */
+.bigpanel{position:absolute;z-index:50}
+.bigpanel::before,.bigpanel::after{content:'';position:absolute;left:0;right:0;height:var(--by);pointer-events:none;
+  box-shadow:inset 3px 0 var(--ink),inset -3px 0 var(--ink)}
+.bigpanel::before{bottom:100%;background:#f5edd9}
+.bigpanel::after{top:100%;background:#b8874f}
 .bigpanel>*{position:absolute;left:0;top:0}
 .bigpanel svg{display:block;overflow:visible}
 .bp-heat{pointer-events:none;opacity:0;translate:0 26px;transition:opacity .25s,translate .42s cubic-bezier(.3,1.25,.5,1)}

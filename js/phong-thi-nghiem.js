@@ -1516,7 +1516,8 @@ function bigPanelHTML(){
     + [40, 88, 146].map(d => '<path d="M0,' + (table + d) + ' L' + w + ',' + (table + d) + '" stroke="#6e4b28" stroke-width="1.5" opacity=".22"/>').join('') + grain
     + '<path d="M0,' + table + ' L' + w + ',' + table + '" stroke="' + BIG_INK + '" stroke-width="4"/>'
     + '<path d="M0,' + (table + 4) + ' L' + w + ',' + (table + 4) + '" stroke="#f4d3a1" stroke-width="2" opacity=".7"/>'
-    + '<rect x="2.5" y="2.5" width="' + (w - 5) + '" height="' + (h - 5) + '" fill="none" stroke="' + BIG_INK + '" stroke-width="5"/></svg>';
+    // không viền khung: chỉ hai vạch đen dọc chia ba cột (CSS kéo dài lên tới đáy thanh HUD, xuống tới đáy màn)
+    + '<path d="M1.5,0 V' + h + ' M' + (w - 1.5) + ',0 V' + h + '" stroke="' + BIG_INK + '" stroke-width="3"/></svg>';
   return '<div class="bigpanel" id="bigpanel" style="left:' + BIGP.l + 'px;top:' + BIGP.t + 'px;width:' + w + 'px;height:' + h + 'px">' + bg
     + (has('heat') ? bigHeatSVG(cx) : '')
     + '<div class="bp-cup" id="bigBeaker" data-dz="beaker" style="left:' + (c.x - 30) + 'px;top:' + (table - 6 - BIG_H - 56) + 'px;width:' + (W + 44) + 'px;height:' + (BIG_H + 62) + 'px">'
@@ -1540,7 +1541,7 @@ function bigBindings(){
      đưa ngược vào khung thì lại là giọt / đám khí / đụn chất như lúc vừa nhấc */
   const opts = {w:bgw, h:bgh,
     onMove: p => { if(!held || !drag || !drag.ghost) return;
-      const out = p.x < BIGP.l || p.x > BIGP.l + BIGP.w || p.y < BIGP.t;
+      const out = p.x < BIGP.l || p.x > BIGP.l + BIGP.w || p.y < BIGP.t - BY;
       if(out === !!opts.boxed) return;
       opts.boxed = out;
       const col = bigColor(bigPhases()[held], held);
